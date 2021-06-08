@@ -1,3 +1,5 @@
+This repository is a development version of WecOptTool written in Python. If you are looking for previous work published using the MATLAB version of WecOptTool please see: [WecOptTool-MATLAB](https://github.com/SNL-WaterPower/WecOptTool-MATLAB)
+
 ## Getting started
 
 *this is a temporary approach, will do something different for general users*
