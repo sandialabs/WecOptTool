@@ -1,0 +1,317 @@
+\title{\emph{Design optimization of a WEC}}
+
+\documentclass[]{article}
+
+% ----------------------------------------------------------------------------------
+
+\usepackage{bm}
+\usepackage[square,numbers,sort&compress]{natbib}
+\bibliographystyle{IEEEtranN}
+
+\usepackage[margin=0.75in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{./}{./gfx/}}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\usepackage[breaklinks,draft]{hyperref}
+\def\UrlBreaks{\do\/\do-\do_}
+\usepackage{booktabs}
+\usepackage{tabu}
+\usepackage{multirow}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage[hang,flushmargin]{footmisc}
+\usepackage{ulem}
+
+% \usepackage{draftwatermark}
+% \SetWatermarkScale{5}
+% \SetWatermarkText{\textbf{DRAFT}}
+
+\usepackage[]{authblk}
+
+% -----------------------------------------------------------
+
+\newcommand{\bigzero}{\mbox{\normalfont\Large\bfseries 0}}
+\newcommand{\todo}[1]{\textcolor{red}{\emph{#1}}}
+
+\RequirePackage{snapshot}
+\begin{document}
+
+\author[1]{Ryan G. Coe}
+\author[1]{Giorgio Bacelli}
+\author[1]{Sterling S. Olson}
+\author[2]{Mathew B. R. Topper}
+\author[1]{Vincent S. Neary}
+\author[3]{Alex Hagmuller}
+\author[3]{Max Ginsburg}
+
+\affil[1]{Sandia National Laboratories, Albuquerque, NM, USA}
+\affil[2]{Data Only Greater}
+\affil[3]{AquaHarmonics}
+
+\maketitle
+
+\abstract{
+	XX
+}
+
+% -----------------------------------------------------------
+\section{Introduction}\label{sec:intro}
+
+The methods and formulations here follow those developed by \citet{Bacelli2014}.
+
+
+% -----------------------------------------------------------
+\section{Methods}\label{sec:methods}
+
+% -----------------------------------------------------------
+\subsection{Inner optimization problem}\label{sec:inner_optimization_problem}
+
+\begin{figure*}[tb]
+	\centering
+	\includegraphics[width=0.6\textwidth]{gfx/WecOptTool_structure.pdf}
+	\caption{WecOptTool algorithmic and user interface structure. \todo{XX-update diagram with LaTex equations}}
+	\label{fig:WecOptTool_structure}
+\end{figure*}
+
+We thus wish to solve an optimization problem based on a decision variable $x$, which includes states of the body motion as well as other ``external'' states, e.g., related to controllers, PTO systems, mooring systems, etc.
+
+\begin{equation}\label{eq:decision_variable}
+	x = 
+	\begin{bmatrix}
+		x_{pos}\\
+		x_{ext}
+	\end{bmatrix}
+\end{equation}
+
+\noindent{}Here, $x_{pos} \in \mathbb{R}^{m(2n + 1)}$, where $m$ is the number of body modes of motion and $n$ is the number of frequency components.
+Similarly, $x_{ext} \in \mathbb{R}^{p(2n+1)}$, where $p$ is the number of external states.
+Body modes could include multiple degrees-of-freedom for a single body (e.g., heave, surge, and pitch) and/or degrees-of-freedom from multiple bodies (e.g., heave modes from each body in a large array of bodies).
+The frequency vector $\omega \in \mathbb{R}^n$ should span the relevant frequencies of the device operation, and also super harmonics to capture nonlinearities (this topic will be further discussed in Section~\ref{sec:example_tethered_point_absorber}).
+
+\begin{equation}
+	x_{pos} = 
+	\begin{bmatrix}
+		x_{pos,1} \\
+		x_{pos,2} \\
+		\vdots \\
+		x_{pos,m}
+	\end{bmatrix}
+\end{equation}
+
+For each mode, $x_{pos}$ has $2n + 1$ elements ($x_{pos,k} \in \mathbb{R}^{2n + 1}$).
+There are $2n$ elements because each frequency is described by two components: one each corresponding to the cosine and sine amplitudes.
+The additional element in the first position is used to capture a mean (``DC'') displacement.
+Thus, the portion of $x_{pos}$ describing the $k$-th mode would be.
+
+\begin{equation}
+	x_{pos,k} = 
+	\begin{bmatrix}
+		\bar{x}_{pos,k} \\
+		a_{k,1} \\
+		b_{k,1} \\
+		\vdots \\
+		a_{k,n} \\
+		b_{k,n}
+	\end{bmatrix}
+\end{equation}
+
+\noindent{}The external state vector ($x_{ext}$) has an analogous composition.
+The mean components in $x_{ext}$ can be used to capture, for example, pretension in a tether.
+
+The system dynamics is:
+
+\begin{equation}
+	(M + m_a) \dot{v} = - k z - B \, v - C \int\limits_{-\infty}^t v  + f_{ext} + f_{exc},
+\end{equation}
+
+\noindent{}which can be written in residual for as:
+
+\begin{equation}
+	r = -(M + m_a) \dot{v} - k z - B \, v - C \int\limits_{-\infty}^t v  + f_{ext} + f_{exc},
+\end{equation}
+
+By defining the quantity $f_i$ as:
+
+\begin{subequations}
+	\begin{align}
+		f_i &= -(M + m_a) \dot{v} - k z - B \, v - C \int\limits_{-\infty}^t v \\
+			&= \mathcal{F}^{-1} \left[ Z \, \hat{V}  \right] ,
+	\end{align}
+\end{subequations}
+
+\noindent{}where $Z$ is the intrinsic impedance and $\hat{V}$ is the velocity in complex amplitude form, the residual of the system dynamics can be expressed as
+
+\begin{equation}
+	r = - f_i + f_{ext} + f_{exc}
+\end{equation}
+
+Thus the optimization problem can be written as follows.
+
+\begin{equation}\label{eq:optimization_problem}
+	\begin{aligned}
+	\min_x p(x)&\\
+	\textrm{such that }&\\
+	r(x)&=0\\
+	c(x)& \leq 0\\
+	c_{eq}(x)&=0\\
+	\end{aligned}
+\end{equation}
+
+\noindent{}The function $p(x)$ gives the total power, where the convention is that power is work done by the WEC, such that negative work is absorbed power, which is desirable.
+The dynamics of the system are enforced by the constraint $r(x)=0$.
+
+\begin{equation}\label{eq:residual_form}
+	r(x) = \mathcal{F}^{-1}\left\{ Z x_{vel} \right\} - \left( f_{exc}(t) + \sum\limits_{i=1}^p J_i \, f_{ext,i}(t) \right)
+\end{equation}
+
+\noindent{}Here, $\mathcal{F}^{-1}$ is the inverse discrete Fourier transform, which is executed by the fast-Fourier transform in practice (i.e., \texttt{ifft}).
+
+In \eqref{eq:residual_form}, $Z\in \mathbb{C}^{m\times{}m\times{}n}$ is the intrinsic impedance of the multi-input, multi-output (MIMO) hydrodynamic system.
+
+\begin{equation}
+	Z = B_r + j\left( \omega\left(  M + A_r \right) -\frac{S}{\omega} \right)
+\end{equation}
+
+\noindent{}Here, $B_r$ and $A_r$ are the radiation damping and added mass, respectively.
+The rigid body inertia is $M$ and the hydrostatic restoring stiffness is $S$.
+The radial frequency is $\omega$ and $j=\sqrt{-1}$ is the imaginary unit.
+
+The wave excitation forcing is $f_{exc}(t)$.
+This can be expressed in the frequency domain as
+
+\begin{equation}\label{eq:excitation_freq}
+	\begin{aligned}
+		F_{exc} &= H_{exc}(\omega) \, A(\omega) \\
+		&= H_{exc} (\omega) \, e^{j \theta} \sqrt{2 S(\omega) \Delta \omega}.
+	\end{aligned}
+\end{equation}
+
+\noindent{}Note that \eqref{eq:excitation_freq} gives the complex excitation amplitude ($F_{exc} \in \mathbb{C}^{mn}$), as a random phasing $\theta$ has been introduced.
+From $F_{exc}$, one can obtain $f_{exc}(t)$ in the time-domain from the inverse discrete Fourier transform.
+
+\begin{equation}
+	f_{exc}(t) = \mathcal{F}^{-1} \left[ F_{exc}(\omega) \right]
+\end{equation}
+
+External forces and moments, such as those due to a PTO or a mooring system, act on the free hydrodynamic modes according to a kinematic Jacobian $J_i$.
+In general, the periodic time-history of each external force should be determined based on the decision variable $x$ and can take any form.
+
+% \begin{equation}
+% 	f_{exc}(t) = f(x)
+% \end{equation}
+
+The velocity $x_{vel}$ in \eqref{eq:residual_form} is obtained from
+
+\begin{equation}
+	x_{vel} = D_{\phi} \, x_{pos},
+\end{equation}
+
+\noindent{}where $D_{\phi} \in \mathbb{R}^{m(2n+1) \times m(2n+1)}$ is the differentiation matrix, which is a block diagonal matrix.
+
+\begin{equation}\label{eq:Dphi}
+	D_{\phi} =
+	\begin{bmatrix}
+	D_{\phi,1} & & \\
+	& \ddots & \\
+	 & & D_{\phi,m}
+	\end{bmatrix}
+\end{equation}
+
+\noindent{}Each block within $D_{\phi}$ corresponds to a mode of motion.
+For the specific case of Fourier expansion, these are defined by combining a matrix with the frequency components along the upper and lower diagonals
+
+\begin{equation}\label{eq:Dphi_blocks}
+D^d_{\phi,k} = \begin{bmatrix}
+	\begin{matrix} 0 &  \omega_0 \\ -\omega_0 & 0 \end{matrix} \\
+	& \begin{matrix} 	0 & 2 \, \omega_0 \\ -2 \, \omega_0 & 0	\end{matrix} \\
+	\phantom{\begin{matrix} 	0 & 2 \, \omega_0 \\ -2 \, \omega_0 & 0	\end{matrix}}\\
+	&&&&\begin{matrix} 0 & n \, \omega_0 \\ -n \, \omega_0 & 0 \end{matrix} \\
+\end{bmatrix}
+\end{equation}
+
+\noindent{}with a column vector of zeros
+
+\begin{equation}
+	D_{\phi,k} = [0_{2n\times1},\, D^d_{\phi,k}] .
+\end{equation}
+
+\noindent{}Thus, we have for each mode $k=1,2,\dots m$ a matrix $D_{\phi,k} \in \mathbb{R}^{2n\times2n+1}$.
+Combining the block matrix for each mode according to \eqref{eq:Dphi}, we arrive at $D_{\phi} \in \mathbb{R}^{2mn \times m(2n+1)}$.
+
+The Fourier coefficient vector $x_{pos}$ is built as
+\begin{equation}
+	x_{pos} = [a_1, b_1, a_2, b_2, \ldots, a_n, b_n],
+\end{equation}
+thus the resulting coefficients for the velocity vector are:
+\begin{equation}
+	\begin{aligned}
+		x_{vel} &= D_{\phi} \, x_{pos}\\
+		&= [\omega_0 \, b_1, -\omega_0 \, a_1, \ldots, n \, \omega_0 b_n, -n \, \omega_0 \, a_n].
+	\end{aligned}
+\end{equation}
+
+\noindent{}From the velocity vector, which contains these cosine and sine components for each frequency, we can find a complex velocity vector.
+The k-\textit{th} element of the complex amplitude vector for the velocity $\hat{V}$ is built as
+
+\begin{equation}\label{eq:ps_to_ca}
+	\hat{V}_k = x_{vel_{2k-1}} - i \, x_{vel_{2k}}, \qquad \textrm{for } k=1:n.
+\end{equation}
+
+\noindent{}Finally, we may construct the velocity's periodic time history at the collocation points as 
+
+\begin{equation}
+	v(t) = \sum\limits_i a_i \cos \left( k \omega_0 t \right) + b_i \sin \left( k \omega_0 t \right) .
+\end{equation}
+
+
+The additional constraints in \eqref{eq:optimization_problem} can be used to limit body motion or PTO inputs (i.e., through $c(x)$) and obtain a non-zero mean, e.g., in the case of a tethered device (i.e., through $c_{eq}(x)$).
+
+
+The impedance has to be reshaped into a block matrix $Z_{block} \in \mathbb{C}^{mn \times mn}$.
+Each block within $Z_{block}$ is a diagonal matrix $Z_{block,ik} \in \mathbb{C}^{n \times n}$ corresponding to the interaction between the $i$-th and $k$-th modes of motion.
+
+\begin{equation}
+	Z_{block,ik} = 
+	\begin{bmatrix}
+		Z_{ik}(\omega_0) & & \\
+		& \ddots & \\
+		& &  Z_{ik}(n \omega_0)
+	\end{bmatrix}
+\end{equation}	
+
+% -----------------------------------------------------------------------------------------
+\subsection{Numerical implementation}\label{sec:numericalImplementation}
+In practice, the number of decision variables will often be large.
+The decision variable $x$, as specified by \eqref{eq:decision_variable}, with have a size of $(2n + 1) \cdot (m + p)$, where $n$, $m$, and $p$ are the number of frequency components, the number of body modes of motion, and the number of external states, respectively.
+The number of frequency components needed will depend first on the dynamics of the device and the wave spectrum.
+The degree to which either the device or spectrum exhibit narrow banded or ``peaky'' responses will increase the need for larger numbers of frequency components.
+The National Buoy Data Center (NDBC), for instance, currently uses 47 frequency components between 0.02 and 0.485\,Hz in spectral density estimates.
+Considering next that we would like to handle nonlinearities which will occur at super-harmonics of the exciting frequencies, we need five times the number of these exciting frequencies.
+
+Take, for example, a single degree of freedom WEC operating in an irregular sea state.
+If we use $n=25$ frequency components, which is fairly parsimonious, the result would be $(2\cdot 5 \cdot 25 + 1) \cdot (1 + p) > 251$ decision variables.
+Of course $p \geq 1$, so it is clear to see how the number of decision variables can easily reach $\mathcal{O}(1e3)$.
+
+The optimization problem described in Section~\ref{sec:inner_optimization_problem} requires a high-accuracy deterministic solution.
+We cannot, in general, ensure that the Jacobians of the objective and constraint functions will be known.
+Given these factors along with the understanding that the number of decision variables will often be large, the problem is well-suited to the application of automatic differentiation \todo{XX-cite}.
+
+% -----------------------------------------------------------------------------------------
+\subsubsection{Scaling}\label{sec:scaling}
+
+Elementwise multiplication of $x$ to scale.
+User sets this based on knowledge of problem (for now).
+Pre-multiply $x$ in \texttt{decompose\_decision\_variable}.
+Write Obj fun and PTO fun and external fun as if working with non-scaled $x$.
+Final step after solver runs, unscale results.
+
+\section{Example: tethered point absorber}\label{sec:example_tethered_point_absorber}
+
+To better illustrate the concepts outlined in Section~\ref{sec:methods}, we consider an example for a tethered point absorber.
+
+\bibliography{WecOptTool_FY21Q2.bib}   % name your BibTeX data base
+
+\end{document}
