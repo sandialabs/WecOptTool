@@ -47,14 +47,14 @@ jobs:
       run: |          
         conda env create --file environment.yml
         conda init bash
-    - name: Activate environment
+    - name: Activate environment & Run pytest
       shell: bash -l {0}
       run: |         
         conda activate _wecopttool
         pip install -e .
-    - name: Run pytest
-      run: |          
         pytest
+   
+        
  #   - name: Lint with flake8
  #     run: |
  #       # stop the build if there are Python syntax errors or undefined names
