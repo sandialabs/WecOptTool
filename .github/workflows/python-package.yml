@@ -35,15 +35,21 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest 
-    - name: Create environment
+    - name: Debug statements
       run: |     
         pwd
         cwd="$(pwd)"
         echo $cwd
         val="$(ls)"
         echo $val
+    - name: Create environment
+      shell: bash -l {0}
+      run: |          
         conda env create --file environment.yml
         conda init bash
+    - name: Activate environment
+      shell: bash -l {0}
+      run: |         
         conda activate _wecopttool
         pip install -e .
     - name: Run pytest
