@@ -27,8 +27,8 @@ jobs:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
     - name: Conda info
-        shell: bash -l {0}
-        run: conda info    
+      shell: bash -l {0}
+      run: conda info    
     - name: Set up Git repository
       uses: actions/checkout@v2
     - name: Install pip flake8 and pytest
