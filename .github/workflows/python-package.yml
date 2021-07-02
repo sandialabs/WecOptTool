@@ -32,13 +32,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest 
-    - name: Debug statements
-      run: |     
-        pwd
-        cwd="$(pwd)"
-        echo $cwd
-        val="$(ls)"
-        echo $val
     - name: Create environment, Activate environment & Run pytest
       shell: bash -l {0}
       run: |          
