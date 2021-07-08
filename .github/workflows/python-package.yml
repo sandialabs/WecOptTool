@@ -37,7 +37,10 @@ jobs:
         pytest
         
     - name: Upload coverage data to coveralls.io
-      run: coveralls --service=github
+      shell: bash -l {0}
+      run: |
+          conda activate _wecopttool
+          coveralls --service=github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
