@@ -34,7 +34,7 @@ jobs:
         conda activate _wecopttool
         pip install coveralls
         pip install -e .
-        pytest
+         coverage run -m pytest
         
     - name: Upload coverage data to coveralls.io
       shell: bash -l {0}
