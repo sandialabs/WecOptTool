@@ -1,3 +1,5 @@
-from WecOptTool.core import WEC, calc_impedance
-from WecOptTool import examples
-from WecOptTool import core
+
+from WecOptTool.core import *
+from WecOptTool import waves
+from WecOptTool import hydrostatics
+from WecOptTool import pto
