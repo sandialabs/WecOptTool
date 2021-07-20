@@ -7,7 +7,7 @@ import xarray as xr
 import numpy as np
 
 import WecOptTool as wot
-
+from preprocess import freq
 
 plt.rcParams.update({"text.usetex": True,})
 
@@ -42,7 +42,7 @@ for TD, color, case in zip(TD_all, colors, cases):
     TD['power'].sel(dof_pto='pto_1').plot(ax=axs[5], color=color, label=case)
 
 # format subplots
-xlim = 10.0
+xlim = 10.0  # TD.time[-1]
 ylims = [0.05, 1000.0, 0.2, 0.5, 5000.0, 500.0]
 names = ['$\eta$ [$m$]', '$F_e$ [$N$]', '$z$ [$m$]', '$u$ [$m/s$]',
          '$F_u$ [$N$]', '$P$ [$W$]']
@@ -52,7 +52,7 @@ for ax, ylim, name in zip(axs, ylims, names):
         ax.set_xlabel('')
     ax.set_ylabel(name)
     ax.label_outer()
-    ax.set_xticks([i for i in range(11)], minor=False)
+    ax.set_xticks([i for i in range(int(xlim)+1)], minor=False)
     ax.grid(color='0.75', linestyle='-', linewidth=0.5, which='major')
     ax.tick_params(direction='in')
     ax.spines['right'].set_visible(False)
@@ -85,7 +85,7 @@ def plot_FD(axs, FD, marker, label, rmface=False):
         if rmface:
             markers.set_markerfacecolor('none')
 
-    omega = FD.omega
+    omega = FD.omega / (freq*2*np.pi)
     mag = np.squeeze(20*np.log10(np.abs(FD)))
     ang = np.squeeze(np.angle(FD))
 
@@ -101,11 +101,11 @@ for i, FD in enumerate(FD_all):
 # format subplots
 locs = [1, 3, 5, 7]
 ylims = [100.0, 2.0]
-xlims = [0, 8]
+xlims = [0, FD.omega.values[-1]/(freq*2*np.pi)]
 for i in range(ncases):
     iaxs = axs if ncases == 1 else axs[:, i]
     for j in range(2):
-        iaxs[j].set_xticks(locs, minor=False)
+        iaxs[j].set_xticks([0]+locs, minor=False)
         iaxs[j].set_yticks([-ylims[j], 0, ylims[j]], minor=False)
         iaxs[j].label_outer()
         iaxs[j].grid(color='0.75', linestyle='-',
@@ -114,7 +114,7 @@ for i in range(ncases):
         iaxs[j].spines['right'].set_visible(False)
         iaxs[j].spines['top'].set_visible(False)
         iaxs[j].set_xlim(xlims)
-        iaxs[j].set_xticklabels([f'${k} \omega_0$' for k in locs])
+        iaxs[j].set_xticklabels(['0']+[f'${k} \omega_0$' for k in locs])
     iaxs[0].set_title(cases[i])
     iaxs[1].set_xlabel('Frequency [rad/s]')
     iaxs[1].set_ylim([-np.pi, np.pi])

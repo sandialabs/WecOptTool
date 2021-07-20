@@ -531,13 +531,24 @@ def wave_excitation(bem_data, waves):
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
 
-    # zero frequency
+    # excitation BEM
+    H = bem_data['Froude_Krylov_force'] + bem_data['diffraction_force']
+
+    # add zero frequency
     assert waves.omega[0] != 0
-    tmp = waves.isel(omega=0)
+    tmp = waves.isel(omega=0).copy(deep=True)
     tmp['omega'] *= 0
     tmp['S'] *= 0
     tmp['phase'] *= 0
     wavesp0 = xr.concat([tmp, waves], dim='omega')
+
+    assert H.omega[0] != 0
+    tmp = H.isel(omega=0).copy(deep=True)
+    tmp['omega'] *= 0
+    tmp *= 0
+    tmp['wavenumber'] = 0.0
+    tmp['wavelength'] = np.inf
+    Hp0 = xr.concat([tmp, H], dim='omega')
 
     # complex amplitude
     dw = wavesp0.omega[1] - wavesp0.omega[0]
@@ -546,16 +557,14 @@ def wave_excitation(bem_data, waves):
     ETA.attrs['units'] = 'm^2*s'
 
     # excitation force
-    H = bem_data['Froude_Krylov_force'] + bem_data['diffraction_force']
-    F_EXC = xr.dot(H, ETA, dims=["wave_direction"])
-    F_EXC[0] = 0+0j
-    F_EXC.wavenumber[0] = 0.0
-    F_EXC.wavelength[0] = np.inf
+    F_EXC = xr.dot(Hp0, ETA, dims=["wave_direction"])
     F_EXC.attrs['long_name'] = 'wave excitation force'
     F_EXC.attrs['units'] = 'N^2*s or N^2*m^2*s'
     F_EXC = F_EXC.transpose('influenced_dof', 'omega')
 
     FD = xr.Dataset({'wave_elevation': ETA, 'excitation_force': F_EXC},)
+    FD['omega'].attrs['long_name'] = 'frequency'
+    FD['omega'].attrs['units'] = '(radians)'
 
     # time domain
     nfd = 2 * len(waves['omega']) + 1
@@ -580,9 +589,6 @@ def wave_excitation(bem_data, waves):
         eta.attrs['units'] = 'm'
         TD['wave_elevation'] = eta
     # TODO: time domain elevation for multidirectional wave?
-
-    FD['omega'].attrs['long_name'] = 'frequency'
-    FD['omega'].attrs['units'] = '(radians)'
 
     return FD, TD
 
