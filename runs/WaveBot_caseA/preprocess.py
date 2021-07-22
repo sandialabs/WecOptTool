@@ -5,7 +5,7 @@ rho = 1e3
 
 # frequency array
 f0 = 0.05
-num_freq = 38  # 48 # TODO
+num_freq = 30  # 48 # TODO
 
 # wec
 mesh_size_factor = 0.25

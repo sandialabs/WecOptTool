@@ -1,13 +1,14 @@
 
 import pygmsh
 import gmsh
+import capytaine as cpy
 
 Kt = 6.1745    # motor torque constant
 R = 0.5        # motor electrical winding resistance (set to 0 for mech power)
 N = 12.4666    # gear ratio
 
-def hull(T1:float=0.16, T2:float=0.37, r1:float=0.88, r2:float=0.35,
-         offset:float=0.001, mesh_size_factor=1.0):
+def mesh(T1:float=0.16, T2:float=0.37, r1:float=0.88, r2:float=0.35,
+         offset:float=0.001, mesh_size_factor:float=1.0):
     '''
     Returns a mesh for the WaveBot hull and saves file in provided directory
     name
@@ -35,6 +36,4 @@ def hull(T1:float=0.16, T2:float=0.37, r1:float=0.88, r2:float=0.35,
         geom.translate(cyl, [0, 0, offset])
         geom.translate(cone, [0, 0, offset])
         geom.boolean_union([cyl, cone])
-        mesh = geom.generate_mesh()
-    return mesh
-
+        return geom.generate_mesh()

@@ -5,6 +5,7 @@ import logging
 
 import autograd.numpy as np
 import capytaine as cpy
+import xarray as xr
 import matplotlib.pyplot as plt
 
 import WecOptTool as wot
@@ -48,10 +49,13 @@ wec = wot.WEC(fb, M, K, f0, num_freq, f_add=f_pto, rho=rho)
 freq = 0.2
 amplitude = 0.25
 phase = 0.0
-waves = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)
+wave1 = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)
+wave2 = wot.waves.regular_wave(
+    f0, num_freq, 2*freq, 2*amplitude, phase+np.pi, direction=45)
+waves = xr.merge([wave1, wave2], combine_attrs='drop')
 
 # run BEM
-wec.run_bem()
+wec.run_bem(wave_dirs=waves['wave_direction'].values)
 
 # Solve
 FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
@@ -67,6 +71,9 @@ wot.to_netcdf('FD.nc', FD)
 # example time domain plots
 plt.figure()
 TD['wave_elevation'].plot()
+
+plt.figure()
+TD['excitation_force'].plot()
 
 plt.figure()
 TD['pos'].plot()

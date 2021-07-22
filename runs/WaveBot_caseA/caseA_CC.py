@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import logging
 
 import autograd.numpy as np
 import capytaine as cpy
@@ -9,9 +8,6 @@ import xarray as xr
 
 import WecOptTool as wot
 from preprocess import rho, f0, num_freq
-
-
-logging.basicConfig(level=logging.INFO)
 
 
 # I/O

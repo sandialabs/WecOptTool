@@ -9,6 +9,7 @@ import numpy as np
 import WecOptTool as wot
 from preprocess import freq
 
+
 plt.rcParams.update({"text.usetex": True,})
 
 # cases

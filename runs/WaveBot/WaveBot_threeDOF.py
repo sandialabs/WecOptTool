@@ -28,16 +28,18 @@ mesh.write(mesh_file)
 fb = cpy.FloatingBody.from_file(mesh_file, name='WaveBot')
 os.remove(mesh_file)
 fb.add_translation_dof(name="Heave")
+fb.add_translation_dof(name="SURGE")
+fb.rotation_center = np.array([0, 0, 0])
+fb.add_rotation_dof(name="PITCH")
 
 # mass and hydrostatic stiffness
 hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
-M33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-M = np.atleast_2d(M33)
-K33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-K = np.atleast_2d(K33)
+idx = np.array([[0, 2, 4]])
+M = wot.hydrostatics.mass_matrix_constant_density(hs_data)[idx, idx.T]
+K = wot.hydrostatics.stiffness_matrix(hs_data)[idx, idx.T]
 
 # PTO: state, force, power (objective function)
-kinematics = np.eye(fb.nb_dofs)
+kinematics = np.array([[0, 1, 0]])
 num_x_pto, f_pto, power_pto, pto_postproc = \
     wot.pto.pseudospectral_pto(num_freq, kinematics)
 

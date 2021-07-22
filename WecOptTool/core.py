@@ -1,4 +1,6 @@
 
+import logging
+
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import jacobian
@@ -7,14 +9,16 @@ import capytaine as cpy
 from scipy import optimize
 from scipy import sparse
 
+
+log = logging.getLogger(__name__)
+
 # Default values
 _default_parameters = {'rho': 1000.0, 'g': 9.81, 'depth': np.infty}
 
 # TODO: write/create WEC instance to/from file
-# TODO: logging
-# TODO: docstrings, type hinting
-# TODO: style (pep8): line length, naming convention, etc.
-# TODO: reshape & flatten
+# TODO: docstrings: https://numpydoc.readthedocs.io/en/latest/format.html
+# TODO: type hinting: https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html
+# TODO: style (pep8): https://www.python.org/dev/peps/pep-0008/
 
 class WEC:
     """
@@ -27,48 +31,56 @@ class WEC:
                  g=_default_parameters['g']):
         """
         """
-        # BEM placeholder
-        self.hydro = xr.DataArray()
-
+        log.info("New WEC.")
         # water properties
-        self.rho = rho
-        self.depth = depth
+        super().__setattr__('rho', rho)
+        super().__setattr__('depth', depth)
+        super().__setattr__('g', g)
         if g != _default_parameters['g']:
             # TODO: requires modifying Capytaine solver.fill_dataset()
             raise NotImplementedError('Currently only g=9.81 can be used.')
-        self.g = g
 
         # WEC
-        self.fb = fb
-        self.mass_matrix = mass_matrix
-        self.hydrostatic_stiffness = hydrostatic_stiffness
+        super().__setattr__('fb', fb)
+        super().__setattr__('mass_matrix', mass_matrix)
+        super().__setattr__('hydrostatic_stiffness', hydrostatic_stiffness)
 
         # frequency
-        self.freq = (f0, num_freq)
+        # self.freq = (f0, num_freq)
+        super().__setattr__('freq', (f0, num_freq))
 
         # additional WEC dynamics forces
         def f_zero(self, x_wec, x_opt): return 0.0
-        self.f_add = f_add if (f_add is not None) else f_zero
-        self.dissipation = dissipation
-        self.stiffness = stiffness
+        f_add = f_add if (f_add is not None) else f_zero
+        super().__setattr__('f_add', f_add)
+        super().__setattr__('dissipation', dissipation)
+        super().__setattr__('stiffness', stiffness)
 
     def __setattr__(self, name, value):
-        # TODO: logging
         _attrs_delete_mass = ['fb']
         _attrs_delete_stiffness = ['fb', 'rho', 'g']
         _attrs_delete_impedance_not_bem = ['dissipation', 'stiffness']
         _attrs_delete_bem = ['fb', 'rho', 'g', 'depth', 'freq']
+        log.info(f"Changing value of '{name}'. " + \
+            "This might cause some attributes to be reset.")
         if name in _attrs_delete_mass:
-            self.mass_matrix = None
+            super().__setattr__('name', value)
+            log.info("  Mass matrix deleted. " + \
+                "Assign new values to 'self.mass_matrix'")
         if name in _attrs_delete_stiffness:
-            self.hydrostatic_stiffness = None
+            super().__setattr__('hydrostatic_stiffness', None)
+            log.info("  Hydrostatic stiffness deleted. " + \
+                "Assign new values to 'self.hydrostatic_stiffness'")
         if name in _attrs_delete_impedance_not_bem:
             if 'Zi' in self.hydro:
-                self.hydro['Zi'] = None
+                super().__setattr__('Zi', None)
+                log.info("  Impedance matrix deleted. " + \
+                    "To calculate impedance call 'self._bem_calc_impedance()'")
         if name in _attrs_delete_bem:
-            self.hydro = xr.DataArray()
-            self._Gi_block_scaled = None
-            self._Gi_scale = None
+            super().__setattr__('hydro', xr.DataArray())
+            super().__setattr__('_Gi_block_scaled', None)
+            super().__setattr__('_Gi_scale', None)
+            log.info("  BEM data deleted. To run BEM use self.run_bem(...) ")
         super().__setattr__(name, value)
 
     # frequency properties
@@ -82,10 +94,11 @@ class WEC:
             msg = "To set the frequency provide a tuple (f0, num_freq)"
             raise TypeError(msg)
         f0, num_freq = freq
-        self._freq = freq_array(f0, num_freq)
+        super().__setattr__('_freq', freq_array(f0, num_freq))
         # update Phi and DPhi
-        self._Phi = self._make_Phi()
-        self._Dphi = self._make_Dphi()
+        super().__setattr__('_Phi', self._make_Phi())
+        super().__setattr__('_Phi_fs', self._make_Phi_fs())
+        super().__setattr__('_Dphi', self._make_Dphi())
 
     @property
     def f0(self):
@@ -111,6 +124,11 @@ class WEC:
     def Phi(self):
         """ Set when frequency is set. """
         return self._Phi
+
+    @property
+    def Phi_fs(self):
+        """ Set when frequency is set. """
+        return self._Phi_fs
 
     @property
     def Phi_vel(self):
@@ -154,7 +172,7 @@ class WEC:
     def dofmat_to_vec(self, mat):
         return mat.flatten()
 
-    def _make_Phi(self) -> np.array:
+    def _make_Phi(self):
         """
         Phi is a matrix for the transformation from Fourier series
         coefficients to time series
@@ -167,7 +185,15 @@ class WEC:
         Phi[2::2, ::] = np.sin(MM)
         return Phi
 
-    def _make_Dphi(self) -> np.array:
+    def _make_Phi_fs(self):
+        """ shuffle Phi rather than FS, since autograd doesn't like it."""
+        tmp_1 = self.Phi[0]
+        tmp_2 = self.Phi[1::2]
+        tmp_3 = self.Phi[2::2]
+        return np.vstack([tmp_1, tmp_2, tmp_3])
+
+
+    def _make_Dphi(self):
         """
         Dphi is a matrix used to transform between position and velocity
         """
@@ -175,7 +201,7 @@ class WEC:
         Dphi = np.diag((np.array([[1], [0]]) * omega).flatten('F')[:-1], 1)
         Dphi = Dphi - Dphi.transpose()
         Dphi = np.concatenate((np.zeros((2*self.num_freq, 1)), Dphi), axis=1)
-        return Dphi
+        return Dphi.T
 
     # frequency domain
     def fd_to_td(self, FD):
@@ -185,24 +211,30 @@ class WEC:
         mean = FD[:, 0:1]
         return np.concatenate((mean, FD[:, 1::2] - FD[:, 2::2]*1j), axis=1)
 
-    def fd_folded_nomean(self, FD):
-        mean = np.zeros([self.ndof, 1])
+    def fd_folded_nomean(self, FD, ndof=None):
+        if ndof is None:
+            ndof = self.ndof
+        mean = np.zeros([ndof, 1])
         return np.concatenate((mean, FD[:, 0::2] - FD[:, 1::2]*1j), axis=1)
 
     # bem
     def run_bem(self, wave_dirs=[0]):
+        log.info("Running Capytaine (BEM): " + \
+            f"{self.num_freq} frequencies x {len(wave_dirs)} wave directions.")
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
         data = run_bem(self.fb, self.freq, wave_dirs,
                        rho=self.rho, g=self.g, depth=self.depth,
                        write_info=write_info)
-        self.hydro = data
+        super().__setattr__('hydro', data)
         # add mass and stiffness
         self._bem_add_hydrostatics()
         # calculate impedance
         self._bem_calc_impedance()
 
-    def read_bem(self, fpath) -> xr.Dataset:
-        self.hydro = from_netcdf(fpath)
+    def read_bem(self, fpath):
+        log.info(f"Reading BEM data from {fpath}.")
+        data = from_netcdf(fpath)
+        super().__setattr__('hydro', data)
         # add mass and stiffness
         bmass = 'mass' in self.hydro
         bstiffness = 'hydrostatic_stiffness' in self.hydro
@@ -219,7 +251,7 @@ class WEC:
         # post-processing needed for solving dynamics
         self._post_process_impedance()
 
-    def write_bem(self, fpath: str = None):
+    def write_bem(self, fpath=None):
         """
         Write the BEM solution to netCDF file
 
@@ -227,6 +259,7 @@ class WEC:
         ----------
         fpath : str
         """
+        log.info(f"Writting BEM data to {fpath}.")
         to_netcdf(fpath, self.hydro)
 
     def _bem_add_hydrostatics(self,):
@@ -236,6 +269,7 @@ class WEC:
             dims, self.hydrostatic_stiffness)
 
     def bem_calc_Ainf(self):
+        log.info("Running Capytaine for infinite frequency.")
         inf_data = run_bem(
             self.fb, [np.infty], wave_dirs=None,
             rho=self.rho, g=self.g, depth=self.depth)
@@ -247,6 +281,7 @@ class WEC:
     def _bem_calc_impedance(self):
         """
         """
+        log.info("Calculating impedance matrix.")
         # TODO: use capytaine after next release
         # A = cpy.post_pro.impedance(
             # self.hydro, self.dissipation, self.stiffness)
@@ -259,9 +294,8 @@ class WEC:
             B = np.real(Zi.sel(omega=iw).values).diagonal()
             B_min = B.min()
             if B_min < 0.0:
-                msg = "WARNING: impedance matrix has negative diagonal " + \
-                    "terms. Setting to zero."
-                print(msg)  # TODO: use logging
+                log.warning("Impedance matrix has negative diagonal terms." + \
+                    " Setting to zero.")
                 for j, jB in enumerate(B):
                     Zi.loc[{"omega": iw}][j, j] = (
                         np.max([0.0, jB]) +
@@ -280,10 +314,12 @@ class WEC:
 
     def _post_process_impedance(self,):
         _Gi_block = self._make_Gi_block()
-        self._Gi_scale = 1/np.linalg.norm(_Gi_block.toarray())
-        self._Gi_block_scaled = self._Gi_scale * _Gi_block.toarray()
+        _Gi_scale = 1/np.linalg.norm(_Gi_block.toarray())
+        _Gi_block_scaled = _Gi_scale * _Gi_block.toarray()
+        super().__setattr__('_Gi_scale', _Gi_scale)
+        super().__setattr__('_Gi_block_scaled', _Gi_block_scaled)
 
-    def _make_Gi_block(self) -> np.ndarray:
+    def _make_Gi_block(self):
         """
         Makes a block matrix of the MIMO impedance + position
 
@@ -292,24 +328,24 @@ class WEC:
         Gi_block : np.ndarray.
         """
         Zi = self.hydro.Zi.values
-        elem = [[0] * self.ndof] * self.ndof
+        # elem = [[0] * self.ndof] * self.ndof
+        elem = [[None]*self.ndof for _ in range(self.ndof)]
 
-        for i in range(self.ndof):
-            for j in range(self.ndof):
-                K = self.hydrostatic_stiffness[i, j]
-                wZi = self.omega*Zi[:, i, j]
-                elem[i][j] = np.diag(np.concatenate(([K], 1j * wZi)))
+        for idof in range(self.ndof):
+            for jdof in range(self.ndof):
+                K = self.hydrostatic_stiffness[idof, jdof]
+                wZi = self.omega*Zi[:, idof, jdof]
+                elem[idof][jdof] = np.diag(np.concatenate(([K], 1j * wZi)))
 
-        Gi_block = sparse.dia_matrix(np.block(elem))
-
-        return Gi_block
+        return sparse.dia_matrix(np.block(elem))
 
     # solve
-    def solve(self, waves, obj_fun, num_x_opt, x_wec_0=None, x_opt_0=None,
-              scale_x_wec=1.0, scale_x_opt=1.0, scale_obj=1.0,
-              constraints=[], optim_options={}):
+    def solve(self, waves, obj_fun, num_x_opt, constraints=[],
+              x_wec_0=None, x_opt_0=None, scale_x_wec=1.0,
+              scale_x_opt=1.0, scale_obj=1.0, optim_options={}):
         """
         """
+        log.info("Solving pseudo-spectral control problem.")
         # initial state
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.num_x_wec)
@@ -346,7 +382,8 @@ class WEC:
         # minimize
         options = {'ftol': 1e-6,
                 'eps': 1.4901161193847656e-08,
-                'disp': True,
+                'disp': False,
+                'iprint': 1,
                 'maxiter': 100,
                 'finite_diff_rel_step': None,
                 }
@@ -361,6 +398,21 @@ class WEC:
                                 constraints=constraints,
                                 options=options,
                                 )
+
+        msg = f'{res.message}    (Exit mode {res.status})'
+        if res.status == 0:
+            log.info(msg)
+        elif res.status == 9:
+            log.warning(msg)
+        else:
+            log.error(msg)
+
+        # Optimization terminated successfully    (Exit mode 0)
+        #     Current function value: -10283808377.161573
+        #     Iterations: 58
+        #     Function evaluations: 85
+        #     Gradient evaluations: 58
+
 
         # unscale
         res.x /= scale
@@ -399,20 +451,16 @@ class WEC:
         X_hat = self.fd_folded(X)
         X_hat_vec = self.dofmat_to_vec(X_hat)
 
-        # TODO: not working for multiple DOF
         Fi = self.vec_to_dofmat(self._Gi_block_scaled @ X_hat_vec)
         Fi_fs_tmp_0 = np.real(Fi[:, 0:1])
         tmp_1_0 = np.real(Fi[:, 1::])
         tmp_1_1 = -np.imag(Fi[:, 1::])
-        # Fi_fs_tmp_1 = np.dstack([tmp_1_0, tmp_1_1]).reshape([self.ndof, -1]) # TODO: does not work, even though same array! autograd?
-        Fi_fs_tmp_1 = np.vstack([tmp_1_0, tmp_1_1]).flatten('F').reshape(self.ndof, -1) # TODO: does not work with multiple DOF
-        Fi_fs = np.hstack((Fi_fs_tmp_0, Fi_fs_tmp_1))
-        fi = Fi_fs @ self.Phi
+        Fi_fs = np.hstack((Fi_fs_tmp_0, tmp_1_0, tmp_1_1))
+        fi = Fi_fs @ self.Phi_fs
 
         f_add = self.f_add(self, x_wec, x_opt)
 
-        residual = f_exc + f_add - fi
-        return residual
+        return f_exc + f_add - fi
 
     def _post_process_x_wec(self, x_wec):
         """
@@ -428,7 +476,7 @@ class WEC:
         x = X @ self.Phi
 
         # velocity
-        VEL = X @ self.Dphi.T
+        VEL = X @ self.Dphi
         VEL_hat = self.fd_folded_nomean(VEL)
         vel = VEL @ self.Phi[1:, :]
 
@@ -455,7 +503,7 @@ class WEC:
 
         return FD,TD
 
-    def plot_impedance(self, diag_only:bool=True, axs=None):
+    def plot_impedance(self, diag_only=True, axs=None):
         """
         Parameters
         ----------
@@ -489,7 +537,7 @@ class WEC:
         # else:
         #     raise NotImplementedError()
 
-    def get_pow_ub(self, S, dof: int =2) -> xr.DataArray:
+    def get_pow_ub(self, S, dof):
         """
         Find the upper theoretical limit of power
 
@@ -530,6 +578,8 @@ def wave_excitation(bem_data, waves):
     """
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
+    assert np.allclose(waves['wave_direction'].values,
+                       bem_data['wave_direction'].values)
 
     # excitation BEM
     H = bem_data['Froude_Krylov_force'] + bem_data['diffraction_force']
@@ -583,12 +633,11 @@ def wave_excitation(bem_data, waves):
     f_exc.attrs['units'] = 'N or N*m'
     TD = xr.Dataset({'excitation_force': f_exc},)
 
-    if len(ETA.wave_direction) == 1:
-        eta = fd_to_td(np.squeeze(ETA))
-        eta = xr.DataArray(eta, dims=dims_td, coords=coords_td, attrs=ETA.attrs)
-        eta.attrs['units'] = 'm'
-        TD['wave_elevation'] = eta
-    # TODO: time domain elevation for multidirectional wave?
+    eta_all = fd_to_td(ETA)
+    eta = np.sum(eta_all, axis=0)
+    eta = xr.DataArray(eta, dims=dims_td, coords=coords_td, attrs=ETA.attrs)
+    eta.attrs['units'] = 'm'
+    TD['wave_elevation'] = eta
 
     return FD, TD
 
