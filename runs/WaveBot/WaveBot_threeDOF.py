@@ -59,8 +59,8 @@ wec.run_bem()
 FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
 
 # post-process: PTO
-TD['vel'] = TD['vel']
-TD, FD = pto_postproc(wec, TD, FD, x_opt)
+# TD['vel'] = TD['vel']
+# TD, FD = pto_postproc(wec, TD, FD, x_opt)
 
 # save
 TD.to_netcdf('TD.nc')
@@ -71,18 +71,24 @@ plt.figure()
 TD['wave_elevation'].plot()
 
 plt.figure()
-TD['pos'].plot()
+TD['pos'].sel(influenced_dof='Heave').plot()
 
 plt.figure()
-TD['pto_force'].plot()
+TD['pos'].sel(influenced_dof='PITCH').plot()
+
+plt.figure()
+TD['pos'].sel(influenced_dof='SURGE').plot()
+
+# plt.figure()
+# TD['pto_force'].plot()
 
 # example frequency domain plots
 fd_lines = {'marker': 'o', 'linestyle': '', 'fillstyle': 'none'}
 
 plt.figure()
-np.abs(FD['excitation_force']).plot(**fd_lines)
+np.abs(FD['excitation_force'].sel(influenced_dof='Heave')).plot(**fd_lines)
 
-plt.figure()
-np.abs(FD['pto_force']).plot(**fd_lines)
+# plt.figure()
+# np.abs(FD['pto_force']).plot(**fd_lines)
 
 plt.show()

@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # mesh
     # TODO: Capytaine fb from meshio/pygmsh mesh (Issues #13, #62)
     mesh_file = os.path.join(data_dir, 'mesh.stl')
-    mesh = WaveBot.hull(mesh_size_factor=mesh_size_factor)
+    mesh = WaveBot.mesh(mesh_size_factor=mesh_size_factor)
     mesh.write(mesh_file)
 
     # create Capytaine floating body (mesh + DOFs)
