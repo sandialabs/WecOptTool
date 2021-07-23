@@ -27,7 +27,7 @@ mesh_file = 'tmp_mesh.stl'
 mesh.write(mesh_file)
 fb = cpy.FloatingBody.from_file(mesh_file, name='WaveBot')
 os.remove(mesh_file)
-fb.add_translation_dof(name="Heave")
+fb.add_translation_dof(name="HEAVE")
 fb.add_translation_dof(name="SURGE")
 fb.rotation_center = np.array([0, 0, 0])
 fb.add_rotation_dof(name="PITCH")
@@ -59,8 +59,7 @@ wec.run_bem()
 FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
 
 # post-process: PTO
-# TD['vel'] = TD['vel']
-# TD, FD = pto_postproc(wec, TD, FD, x_opt)
+TD, FD = pto_postproc(wec, TD, FD, x_opt)
 
 # save
 TD.to_netcdf('TD.nc')
@@ -71,7 +70,7 @@ plt.figure()
 TD['wave_elevation'].plot()
 
 plt.figure()
-TD['pos'].sel(influenced_dof='Heave').plot()
+TD['pos'].sel(influenced_dof='HEAVE').plot()
 
 plt.figure()
 TD['pos'].sel(influenced_dof='PITCH').plot()
@@ -79,16 +78,16 @@ TD['pos'].sel(influenced_dof='PITCH').plot()
 plt.figure()
 TD['pos'].sel(influenced_dof='SURGE').plot()
 
-# plt.figure()
-# TD['pto_force'].plot()
+plt.figure()
+TD['pto_force'].plot()
 
 # example frequency domain plots
 fd_lines = {'marker': 'o', 'linestyle': '', 'fillstyle': 'none'}
 
 plt.figure()
-np.abs(FD['excitation_force'].sel(influenced_dof='Heave')).plot(**fd_lines)
+np.abs(FD['excitation_force'].sel(influenced_dof='HEAVE')).plot(**fd_lines)
 
-# plt.figure()
-# np.abs(FD['pto_force']).plot(**fd_lines)
+plt.figure()
+np.abs(FD['pto_force']).plot(**fd_lines)
 
 plt.show()

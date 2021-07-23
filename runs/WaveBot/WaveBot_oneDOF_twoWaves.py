@@ -28,7 +28,7 @@ mesh_file = 'tmp_mesh.stl'
 mesh.write(mesh_file)
 fb = cpy.FloatingBody.from_file(mesh_file, name='WaveBot')
 os.remove(mesh_file)
-fb.add_translation_dof(name="Heave")
+fb.add_translation_dof(name="HEAVE")
 
 # mass and hydrostatic stiffness
 hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
@@ -61,7 +61,6 @@ wec.run_bem(wave_dirs=waves['wave_direction'].values)
 FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
 
 # post-process: PTO
-TD['vel'] = TD['vel']
 TD, FD = pto_postproc(wec, TD, FD, x_opt)
 
 # save

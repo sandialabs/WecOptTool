@@ -28,18 +28,21 @@ mesh.write(mesh_file)
 fb = cpy.FloatingBody.from_file(mesh_file, name='WaveBot')
 os.remove(mesh_file)
 fb.add_translation_dof(name="HEAVE")
+fb.add_translation_dof(name="SURGE")
+fb.rotation_center = np.array([0, 0, 0])
+fb.add_rotation_dof(name="PITCH")
 
 # mass and hydrostatic stiffness
 hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
-M33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-M = np.atleast_2d(M33)
-K33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-K = np.atleast_2d(K33)
+idx = np.array([[0, 2, 4]])
+M = wot.hydrostatics.mass_matrix_constant_density(hs_data)[idx, idx.T]
+K = wot.hydrostatics.stiffness_matrix(hs_data)[idx, idx.T]
 
 # PTO: state, force, power (objective function)
-kinematics = np.eye(fb.nb_dofs)
+pto_names = ['HEAVE PTO', 'PITCH PTO']
+kinematics = np.array([[0, 1, 0], [0, 0, 1]])
 num_x_pto, f_pto, power_pto, pto_postproc = \
-    wot.pto.pseudospectral_pto(num_freq, kinematics)
+    wot.pto.proportional_pto(kinematics, pto_names)
 
 # create WEC
 wec = wot.WEC(fb, M, K, f0, num_freq, f_add=f_pto, rho=rho)
@@ -68,18 +71,30 @@ plt.figure()
 TD['wave_elevation'].plot()
 
 plt.figure()
-TD['pos'].plot()
+TD['pos'].sel(influenced_dof='HEAVE').plot()
 
 plt.figure()
-TD['pto_force'].plot()
+TD['pos'].sel(influenced_dof='PITCH').plot()
+
+plt.figure()
+TD['pos'].sel(influenced_dof='SURGE').plot()
+
+plt.figure()
+TD['pto_force'].sel(dof_pto='HEAVE PTO').plot()
+
+plt.figure()
+TD['pto_force'].sel(dof_pto='PITCH PTO').plot()
 
 # example frequency domain plots
 fd_lines = {'marker': 'o', 'linestyle': '', 'fillstyle': 'none'}
 
 plt.figure()
-np.abs(FD['excitation_force']).plot(**fd_lines)
+np.abs(FD['excitation_force'].sel(influenced_dof='HEAVE')).plot(**fd_lines)
 
 plt.figure()
-np.abs(FD['pto_force']).plot(**fd_lines)
+np.abs(FD['pto_force'].sel(dof_pto='HEAVE PTO')).plot(**fd_lines)
+
+plt.figure()
+np.abs(FD['pto_force'].sel(dof_pto='PITCH PTO')).plot(**fd_lines)
 
 plt.show()

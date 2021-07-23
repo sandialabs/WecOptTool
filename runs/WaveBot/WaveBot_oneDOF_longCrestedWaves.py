@@ -6,6 +6,7 @@ import logging
 import autograd.numpy as np
 import capytaine as cpy
 import matplotlib.pyplot as plt
+from mhkit.wave.resource import jonswap_spectrum
 
 import WecOptTool as wot
 from WecOptTool.examples import WaveBot
@@ -45,13 +46,21 @@ num_x_pto, f_pto, power_pto, pto_postproc = \
 wec = wot.WEC(fb, M, K, f0, num_freq, f_add=f_pto, rho=rho)
 
 # wave
-freq = 0.2
-amplitude = 0.25
-phase = 0.0
-waves = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)
+Tp = 6.0
+Hs = 0.5
+gamma = 3.3
+wave_direction = 0.0
+
+spectrum_name = 'JONSWAP, Hs = 0.5 m, Tp = 6.0 s, gamma=3.3'
+
+def spectrum(freq):
+    return jonswap_spectrum(freq, Tp, Hs, gamma).values
+
+waves = wot.waves.long_crested_wave(
+    f0, num_freq, spectrum, wave_direction, spectrum_name)
 
 # run BEM
-wec.run_bem()
+wec.run_bem(wave_dirs=waves['wave_direction'].values)
 
 # Solve
 FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
@@ -66,6 +75,9 @@ wot.to_netcdf('FD.nc', FD)
 # example time domain plots
 plt.figure()
 TD['wave_elevation'].plot()
+
+plt.figure()
+TD['excitation_force'].plot()
 
 plt.figure()
 TD['pos'].plot()

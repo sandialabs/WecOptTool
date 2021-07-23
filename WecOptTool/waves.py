@@ -47,7 +47,7 @@ def regular_wave(f0, num_freq, freq, amplitude, phase=None, direction=0.0):
     ifreq = iomega/(2*np.pi)
     if not np.isclose(iomega, omega):
         warnings.warn(f"Requested frequency {freq} Hz is not in array. " +
-            f"Using nearest value of {ifreq} Hz.")
+                      f"Using nearest value of {ifreq} Hz.")
 
     # amplitude
     waves['S'].loc[{'omega': iomega}] = 0.5 * amplitude**2 / f0
@@ -66,7 +66,7 @@ def regular_wave(f0, num_freq, freq, amplitude, phase=None, direction=0.0):
                    'Amplitude (m)': amplitude,
                    'Phase (degrees)': phase,
                    'Direction (degrees)': direction,
-                  }
+                   }
 
     return waves
 
@@ -129,12 +129,12 @@ def empty_wave_dataset(f0, num_freq, directions):
     tmp = np.zeros([num_freq, num_directions])
 
     attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
-    S = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
+    spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
 
     attrs = {'units': '(radians)', 'long_name': 'wave phase'}
     phase = xr.DataArray(tmp.copy(), dims=dims, coords=coords, attrs=attrs)
 
-    return xr.Dataset({'S': S, 'phase': phase}, attrs={})
+    return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
 
 
 def degrees_to_radians(degrees):
@@ -142,7 +142,7 @@ def degrees_to_radians(degrees):
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    radians = radians.item() if radians.size==1 else np.sort(radians)
+    radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
 
 
@@ -157,7 +157,7 @@ def spread_cos2s(freq, dir, fp, s_max):
     freq = np.atleast_1d(freq)
     rdir = degrees_to_radians(dir)
     pow = np.ones(len(freq)) * 5.0
-    pow[freq>fp] = -2.5
+    pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
-    Cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1)
-    return (Cs * npo.power.outer(np.cos(rdir/2), 2*s)).T
+    cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1)
+    return (cs * npo.power.outer(np.cos(rdir/2), 2*s)).T

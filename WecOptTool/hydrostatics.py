@@ -57,9 +57,9 @@ def mass_matrix_constant_density(hs_data, mass=None):
         mass = hs_data['disp_mass']
     rho_wec = mass / hs_data['mesh'].volume
     rho_ratio = rho_wec / hs_data['rho_water']
-    I = np.array([[hs_data['Ixx'], -1*hs_data['Ixy'], -1*hs_data['Ixz']],
-                  [-1*hs_data['Ixy'], hs_data['Iyy'], -1*hs_data['Iyz']],
-                  [-1*hs_data['Ixz'], -1*hs_data['Iyz'], hs_data['Izz']]])
-    I *= rho_ratio
-    return block_diag(mass, mass, mass, I)
-
+    mom_inertia = np.array([
+        [hs_data['Ixx'], -1*hs_data['Ixy'], -1*hs_data['Ixz']],
+        [-1*hs_data['Ixy'], hs_data['Iyy'], -1*hs_data['Iyz']],
+        [-1*hs_data['Ixz'], -1*hs_data['Iyz'], hs_data['Izz']]])
+    mom_inertia *= rho_ratio
+    return block_diag(mass, mass, mass, mom_inertia)
