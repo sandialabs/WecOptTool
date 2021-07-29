@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #  -*- coding: utf-8 -*-
 from scipy.optimize import minimize
-import WecOptTool.WaveBot as wb
+from WecOptTool.examples import WaveBot
 from autograd import jacobian
 import autograd.numpy as np
 from autograd import jacobian
@@ -18,17 +18,19 @@ path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
 dat_dir = os.path.join(current_directory, os.path.join('data'))
 
-   
-def test_example_waveBot1DOF(script_runner):
-    ret = script_runner.run('example_WaveBot_oneDof')
-    assert ret.success
+
+# TODO: Need to move files from run.WaveBot to WecOptTool.examples
+# and setup the call to the example files
+# def test_example_waveBot1DOF(script_runner):
+    # ret = script_runner.run('example_WaveBot_oneDof')
+    # assert ret.success
 
 
 # # -----------------------------------------------------------------------------
 
 @pytest.mark.dependency()
 def test_WaveBot_geom():
-    pytest.wec = wot.WEC(mesh=wb.hull(), 
+    pytest.wec = wot.WEC(mesh=WaveBot.mesh(), 
                          modes=np.ones(6),
                          f0=0.05,
                          num_freq=1,
