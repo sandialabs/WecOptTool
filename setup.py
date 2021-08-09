@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="WecOptTool",
-    version="0.0.2",
+    version="0.1.0",
     author="Sandia National Labs",
     author_email="",
     description="",
