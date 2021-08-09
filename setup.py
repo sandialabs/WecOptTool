@@ -18,7 +18,4 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    entry_points={
-        'console_scripts': ['example_WaveBot_oneDof=WecOptTool.examples.example_WaveBot_oneDof:test_example']
-    },
 )
