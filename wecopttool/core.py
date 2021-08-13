@@ -324,7 +324,7 @@ class WEC:
         # post-processing needed for solving dynamics
         self._post_process_impedance()
 
-    def write_bem(self, fpath: Union[str, Path, None] = None) -> None:
+    def write_bem(self, fpath: Union[str, Path]) -> None:
         """
         Write the BEM solution to a NetCDF file.
 

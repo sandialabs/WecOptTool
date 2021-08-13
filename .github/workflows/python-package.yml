@@ -17,25 +17,25 @@ jobs:
 
     steps:
     - uses: conda-incubator/setup-miniconda@v2
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-        
+
     - name: Set up Git repository
       uses: actions/checkout@v2
-              
+
     - name: Create environment, Activate environment & Run pytest
       shell: bash -l {0}
-      run: |  
+      run: |
         python -m pip install --upgrade pip
-        conda env create --file environment.yml        
+        conda env create --file environment.yml
         conda activate _wecopttool
         pip install coveralls
         pip install -e .
-         coverage run -m pytest
-        
+        coverage run -m pytest
+
     - name: Upload coverage data to coveralls.io
       shell: bash -l {0}
       run: |
@@ -57,4 +57,4 @@ jobs:
         coveralls --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+
