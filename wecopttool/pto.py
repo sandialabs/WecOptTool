@@ -4,10 +4,10 @@ for the control optimization.
 """
 from typing import Union, Callable
 
+import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import xarray as xr
-import numpy.typing as npt
 
 import wecopttool as wot
 

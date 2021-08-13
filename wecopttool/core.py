@@ -3,6 +3,7 @@ import logging
 from typing import Union, Iterable, Callable, Any
 from pathlib import Path
 
+import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import jacobian
@@ -10,7 +11,6 @@ import xarray as xr
 import capytaine as cpy
 from scipy import optimize
 from scipy import sparse
-import numpy.typing as npt
 
 
 log = logging.getLogger(__name__)
@@ -540,8 +540,8 @@ class WEC:
             log.error(msg)
 
         # unscale
-        res.x /= scale
-        res.fun /= scale_obj
+        res.x = res.x / scale
+        res.fun = res.fun / scale_obj
 
         # post-process
         x_wec, x_opt = self.decompose_decision_var(res.x)
@@ -596,7 +596,7 @@ class WEC:
         the user can work with directly.
         """
         # scale
-        x_wec *= self._gi_scale
+        x_wec = x_wec * self._gi_scale
 
         # position
         x_fd = self.vec_to_dofmat(x_wec)
@@ -708,15 +708,15 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     # add zero frequency
     assert waves.omega[0] != 0
     tmp = waves.isel(omega=0).copy(deep=True)
-    tmp['omega'] *= 0
-    tmp['S'] *= 0
-    tmp['phase'] *= 0
+    tmp['omega'] = tmp['omega'] * 0
+    tmp['S'] = tmp['S'] * 0
+    tmp['phase'] = tmp['phase'] * 0
     wavesp0 = xr.concat([tmp, waves], dim='omega')
 
     assert exc_coeff.omega[0] != 0
     tmp = exc_coeff.isel(omega=0).copy(deep=True)
-    tmp['omega'] *= 0
-    tmp *= 0
+    tmp['omega'] = tmp['omega'] * 0
+    tmp = tmp * 0
     tmp['wavenumber'] = 0.0
     tmp['wavelength'] = np.inf
     exc_coeff_p0 = xr.concat([tmp, exc_coeff], dim='omega')
