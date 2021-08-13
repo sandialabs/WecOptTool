@@ -68,7 +68,8 @@ def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
             PTO force in the time domain.
         """
         x_pto = np.reshape(x_opt, (ndof_pto, num_x_perdof))
-        fpto_td = kinematics.transpose() @ x_pto @ wec.phi[1::, ::]
+        fpto_td = np.dot(np.dot(np.transpose(kinematics), x_pto),
+                         wec.phi[1::, ::])
         return fpto_td
 
     def power(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
@@ -91,10 +92,9 @@ def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
             PTO power produced over the simulation time.
         """
         x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = x_wec @ wec.dphi
-        pto_vel_fd = kinematics @ wec_vel_fd
-        # return float(pto_vel_fd.flatten() @ x_opt / (2*wec.f0))
-        return pto_vel_fd.flatten() @ x_opt / (2*wec.f0)
+        wec_vel_fd = np.dot(x_wec, wec.dphi)
+        pto_vel_fd = np.dot(kinematics, wec_vel_fd)
+        return np.dot(np.reshape(pto_vel_fd, -1), x_opt) / (2*wec.f0)
 
     def post_process(wec: wot.WEC, time_dom: xr.Dataset, freq_dom: xr.Dataset,
                      x_opt: npt.ArrayLike) -> tuple[xr.Dataset, xr.Dataset]:
@@ -190,11 +190,11 @@ def proportional_pto(kinematics: np.ndarray,
         """
         x_pto = x_opt.reshape([ndof_pto, 1])
         x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = x_wec @ wec.dphi
-        wec_vel_td = wec_vel_fd @ wec.phi[1:, :]
-        pto_vel_td = kinematics @ wec_vel_td
+        wec_vel_fd = np.dot(x_wec, wec.dphi)
+        wec_vel_td = np.dot(wec_vel_fd, wec.phi[1:, :])
+        pto_vel_td = np.dot(kinematics, wec_vel_td)
         f_pto_td = -1.0 * x_pto * pto_vel_td
-        return kinematics.transpose() @ f_pto_td
+        return np.dot(np.transpose(kinematics), f_pto_td)
 
     def power(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
               ) -> np.ndarray:
@@ -215,12 +215,14 @@ def proportional_pto(kinematics: np.ndarray,
         float
             PTO power produced over the simulation time.
         """
-        x_pto = x_opt.reshape([ndof_pto, 1])
+        x_pto = np.reshape(x_opt, (ndof_pto, 1))
         x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = x_wec @ wec.dphi
-        pto_vel_fd = kinematics @ wec_vel_fd
+        wec_vel_fd = np.dot(x_wec, wec.dphi)
+        pto_vel_fd = np.dot(kinematics, wec_vel_fd)
         f_pto_fd = -1.0 * x_pto * pto_vel_fd
-        return np.sum(pto_vel_fd.flatten() * f_pto_fd.flatten()) / (2*wec.f0)
+        power = np.sum(np.reshape(pto_vel_fd, -1) *
+                       np.reshape(f_pto_fd, -1)) / (2*wec.f0)
+        return power
 
     def post_process(wec: wot.WEC, time_dom: xr.Dataset, freq_dom: xr.Dataset,
                      x_opt: npt.ArrayLike) -> [xr.Dataset, xr.Dataset]:

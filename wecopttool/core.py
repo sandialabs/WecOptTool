@@ -73,7 +73,7 @@ class WEC:
         super().__setattr__('depth', depth)
         super().__setattr__('g', g)
         if g != _default_parameters['g']:
-            # TODO: Capytaine: modify Capytaine solver.fill_dataset()
+            # TODO: fixed after next release of capytaine
             raise NotImplementedError('Currently only g=9.81 can be used.')
 
         # WEC
@@ -201,7 +201,6 @@ class WEC:
     @property
     def nfd_nomean(self):
         """ Like ``nfd`` but for the no mean (no f=0) cases. """
-        # return self.nfd - 1
         return 2 * self.num_freq
 
     @property
@@ -244,7 +243,7 @@ class WEC:
     def dofmat_to_vec(self, mat: np.ndarray) -> np.ndarray:
         """ Flatten a matrix that has one row per DOF.
         Opposite of ``vec_to_dofmat``. """
-        return mat.flatten()
+        return np.reshape(mat, -1)
 
     def _make_phi(self) -> np.ndarray:
         t = np.linspace(0, 1/self.f0, self.nfd, endpoint=False).reshape(1, -1)
@@ -405,7 +404,6 @@ class WEC:
         Create a block matrix of the MIMO impedance + position.
         """
         impedance = self.hydro['Zi'].values
-        # elem = [[0] * self.ndof] * self.ndof
         elem = [[None]*self.ndof for _ in range(self.ndof)]
 
         for idof in range(self.ndof):
@@ -578,12 +576,12 @@ class WEC:
         x_fd_hat = fd_folded(x_fd)
         x_fd_hat_vec = self.dofmat_to_vec(x_fd_hat)
 
-        fi_fd = self.vec_to_dofmat(self._gi_block_scaled @ x_fd_hat_vec)
+        fi_fd = self.vec_to_dofmat(np.dot(self._gi_block_scaled, x_fd_hat_vec))
         fi_fd_tmp_0 = np.real(fi_fd[:, 0:1])
         tmp_1_0 = np.real(fi_fd[:, 1::])
         tmp_1_1 = -np.imag(fi_fd[:, 1::])
         fi_fd = np.hstack((fi_fd_tmp_0, tmp_1_0, tmp_1_1))
-        f_i = fi_fd @ self._phi_for_fi
+        f_i = np.dot(fi_fd, self._phi_for_fi)
 
         f_add = self.f_add(self, x_wec, x_opt)
 
