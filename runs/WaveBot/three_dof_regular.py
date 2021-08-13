@@ -7,8 +7,8 @@ import autograd.numpy as np
 import capytaine as cpy
 import matplotlib.pyplot as plt
 
-import WecOptTool as wot
-from WecOptTool.examples import WaveBot
+import wecopttool as wot
+from wecopttool.examples import WaveBot
 
 
 logging.basicConfig(level=logging.INFO)
@@ -35,17 +35,16 @@ fb.add_rotation_dof(name="PITCH")
 # mass and hydrostatic stiffness
 hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
 idx = np.array([[0, 2, 4]])
-M = wot.hydrostatics.mass_matrix_constant_density(hs_data)[idx, idx.T]
-K = wot.hydrostatics.stiffness_matrix(hs_data)[idx, idx.T]
+mass = wot.hydrostatics.mass_matrix_constant_density(hs_data)[idx, idx.T]
+stiffness = wot.hydrostatics.stiffness_matrix(hs_data)[idx, idx.T]
 
 # PTO: state, force, power (objective function)
-pto_names = ['HEAVE PTO', 'PITCH PTO']
-kinematics = np.array([[0, 1, 0], [0, 0, 1]])
+kinematics = np.array([[0, 1, 0]])
 num_x_pto, f_pto, power_pto, pto_postproc = \
-    wot.pto.pseudospectral_pto(num_freq, kinematics, pto_names)
+    wot.pto.pseudospectral_pto(num_freq, kinematics)
 
 # create WEC
-wec = wot.WEC(fb, M, K, f0, num_freq, f_add=f_pto, rho=rho)
+wec = wot.WEC(fb, mass, stiffness, f0, num_freq, f_add=f_pto, rho=rho)
 
 # wave
 freq = 0.2
@@ -57,44 +56,38 @@ waves = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)
 wec.run_bem()
 
 # Solve
-FD, TD, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
+f_dom, t_dom, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
 
 # post-process: PTO
-TD, FD = pto_postproc(wec, TD, FD, x_opt)
+t_dom, f_dom = pto_postproc(wec, t_dom, f_dom, x_opt)
 
 # save
-TD.to_netcdf('TD.nc')
-wot.to_netcdf('FD.nc', FD)
+t_dom.to_netcdf('t_dom.nc')
+wot.to_netcdf('f_dom.nc', f_dom)
 
 # example time domain plots
 plt.figure()
-TD['wave_elevation'].plot()
+t_dom['wave_elevation'].plot()
 
 plt.figure()
-TD['pos'].sel(influenced_dof='HEAVE').plot()
+t_dom['pos'].sel(influenced_dof='HEAVE').plot()
 
 plt.figure()
-TD['pos'].sel(influenced_dof='PITCH').plot()
+t_dom['pos'].sel(influenced_dof='PITCH').plot()
 
 plt.figure()
-TD['pos'].sel(influenced_dof='SURGE').plot()
+t_dom['pos'].sel(influenced_dof='SURGE').plot()
 
 plt.figure()
-TD['pto_force'].sel(dof_pto='HEAVE PTO').plot()
-
-plt.figure()
-TD['pto_force'].sel(dof_pto='PITCH PTO').plot()
+t_dom['pto_force'].plot()
 
 # example frequency domain plots
 fd_lines = {'marker': 'o', 'linestyle': '', 'fillstyle': 'none'}
 
 plt.figure()
-np.abs(FD['excitation_force'].sel(influenced_dof='HEAVE')).plot(**fd_lines)
+np.abs(f_dom['excitation_force'].sel(influenced_dof='HEAVE')).plot(**fd_lines)
 
 plt.figure()
-np.abs(FD['pto_force'].sel(dof_pto='HEAVE PTO')).plot(**fd_lines)
-
-plt.figure()
-np.abs(FD['pto_force'].sel(dof_pto='PITCH PTO')).plot(**fd_lines)
+np.abs(f_dom['pto_force']).plot(**fd_lines)
 
 plt.show()

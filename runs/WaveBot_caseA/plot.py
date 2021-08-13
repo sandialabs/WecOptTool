@@ -6,44 +6,44 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
 
-import WecOptTool as wot
+import wecopttool as wot
 from preprocess import freq
 
 
-plt.rcParams.update({"text.usetex": True,})
+plt.rcParams.update({"text.usetex": True, })
 
 # cases
-cases = ['CC', 'P', 'PS']
+cases = ['cc', 'p', 'ps']
 colors = ['tab:blue', 'tab:red', 'tab:orange']
 ncases = len(cases)
 
 # load data
 results_dir = 'results'
-TD_all = []
-FD_all = []
+tdom_all = []
+fdom_all = []
 for case in cases:
-    td_file = os.path.join(results_dir, f'TD_{case}.nc')
-    TD_all.append(xr.load_dataset(td_file))
-    fd_file = os.path.join(results_dir, f'FD_{case}.nc')
-    FD_all.append(wot.from_netcdf(fd_file))
+    td_file = os.path.join(results_dir, f'tdom_{case}.nc')
+    tdom_all.append(xr.load_dataset(td_file))
+    fd_file = os.path.join(results_dir, f'fdom_{case}.nc')
+    fdom_all.append(wot.from_netcdf(fd_file))
 
 # Plot time domain
 fig, axs = plt.subplots(nrows=6, sharex=True)
 
-for TD, color, case in zip(TD_all, colors, cases):
-    TD['wave_elevation'].plot(ax=axs[0], color=color, label=case)
-    TD['excitation_force'].sel(influenced_dof='Heave').plot(
+for tdom, color, case in zip(tdom_all, colors, cases):
+    tdom['wave_elevation'].plot(ax=axs[0], color=color, label=case)
+    tdom['excitation_force'].sel(influenced_dof='Heave').plot(
         ax=axs[1], color=color, label=case)
-    TD['pos'].sel(influenced_dof='Heave').plot(
+    tdom['pos'].sel(influenced_dof='Heave').plot(
         ax=axs[2], color=color, label=case)
-    TD['vel'].sel(influenced_dof='Heave').plot(
+    tdom['vel'].sel(influenced_dof='Heave').plot(
         ax=axs[3], color=color, label=case)
-    TD['pto_force'].sel(dof_pto='pto_1').plot(
+    tdom['pto_force'].sel(dof_pto='pto_1').plot(
         ax=axs[4], color=color, label=case)
-    TD['power'].sel(dof_pto='pto_1').plot(ax=axs[5], color=color, label=case)
+    tdom['power'].sel(dof_pto='pto_1').plot(ax=axs[5], color=color, label=case)
 
 # format subplots
-xlim = 10.0  # TD.time[-1]
+xlim = 10.0  # tdom.time[-1]
 ylims = [0.05, 1000.0, 0.2, 0.5, 5000.0, 500.0]
 names = ['$\eta$ [$m$]', '$F_e$ [$N$]', '$z$ [$m$]', '$u$ [$m/s$]',
          '$F_u$ [$N$]', '$P$ [$W$]']
@@ -68,12 +68,13 @@ fig.tight_layout()
 # Plot frequency domain
 fig, axs = plt.subplots(2, ncases, sharex='col', sharey='row')
 
-def plot_FD(axs, FD, marker, label, rmface=False):
 
-    def _plot_FD(ax, omega, FD, marker, label, rmface=False):
+def plot_fd(axs, fdom, marker, label, rmface=False):
+
+    def _plot_fd(ax, omega, fdom, marker, label, rmface=False):
         markers, stems, base = ax.stem(
             omega,
-            FD,
+            fdom,
             basefmt='k-',
             linefmt='b-',
             markerfmt='b'+marker,
@@ -86,23 +87,24 @@ def plot_FD(axs, FD, marker, label, rmface=False):
         if rmface:
             markers.set_markerfacecolor('none')
 
-    omega = FD.omega / (freq*2*np.pi)
-    mag = np.squeeze(20*np.log10(np.abs(FD)))
-    ang = np.squeeze(np.angle(FD))
+    omega = fdom.omega / (freq*2*np.pi)
+    mag = np.squeeze(20*np.log10(np.abs(fdom)))
+    ang = np.squeeze(np.angle(fdom))
 
-    _plot_FD(axs[0], omega, mag, marker, label, rmface)
-    _plot_FD(axs[1], omega, ang, marker, label, rmface)
+    _plot_fd(axs[0], omega, mag, marker, label, rmface)
+    _plot_fd(axs[1], omega, ang, marker, label, rmface)
 
-for i, FD in enumerate(FD_all):
+
+for i, fdom in enumerate(fdom_all):
     iaxs = axs if ncases == 1 else axs[:, i]
-    plot_FD(iaxs, FD['excitation_force'], 'o', '$F_e$', True)
-    plot_FD(iaxs, FD['vel'], '.', '$u$')
-    plot_FD(iaxs, FD['pto_force'], '_', '$F_u$')
+    plot_fd(iaxs, fdom['excitation_force'], 'o', '$F_e$', True)
+    plot_fd(iaxs, fdom['vel'], '.', '$u$')
+    plot_fd(iaxs, fdom['pto_force'], '_', '$F_u$')
 
 # format subplots
 locs = [1, 3, 5, 7]
 ylims = [100.0, 2.0]
-xlims = [0, FD.omega.values[-1]/(freq*2*np.pi)]
+xlims = [0, fdom.omega.values[-1]/(freq*2*np.pi)]
 for i in range(ncases):
     iaxs = axs if ncases == 1 else axs[:, i]
     for j in range(2):
@@ -110,7 +112,7 @@ for i in range(ncases):
         iaxs[j].set_yticks([-ylims[j], 0, ylims[j]], minor=False)
         iaxs[j].label_outer()
         iaxs[j].grid(color='0.75', linestyle='-',
-                       linewidth=0.5, which='major')
+                     linewidth=0.5, which='major')
         iaxs[j].tick_params(direction='in')
         iaxs[j].spines['right'].set_visible(False)
         iaxs[j].spines['top'].set_visible(False)

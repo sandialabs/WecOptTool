@@ -5,10 +5,10 @@ rho = 1e3
 
 # frequency array
 f0 = 0.05
-num_freq = 30  # 48 # TODO
+num_freq = 48
 
 # wec
-mesh_size_factor = 0.25
+mesh_size_factor = 0.1
 
 # wave
 freq = 0.3
@@ -23,9 +23,8 @@ if __name__ == "__main__":
     import numpy as np
     import capytaine as cpy
 
-    import WecOptTool as wot
-    from WecOptTool.examples import WaveBot
-
+    import wecopttool as wot
+    from wecopttool.examples import WaveBot
 
     logging.basicConfig(level=logging.INFO)
 
@@ -45,19 +44,19 @@ if __name__ == "__main__":
 
     # mass and hydrostatic stiffness
     hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
-    M33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-    M = np.atleast_2d(M33)
-    K33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-    K = np.atleast_2d(K33)
-    np.savetxt(os.path.join(data_dir, 'mass_matrix'), M)
-    np.savetxt(os.path.join(data_dir, 'hydrostatic_stiffness'), K)
+    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
+    mass = np.atleast_2d(mass_33)
+    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
+    stiffness = np.atleast_2d(stiffness_33)
+    np.savetxt(os.path.join(data_dir, 'mass_matrix'), mass)
+    np.savetxt(os.path.join(data_dir, 'hydrostatic_stiffness'), stiffness)
 
     # create WEC
-    wec = wot.WEC(fb, M, K, f0, num_freq, rho=rho)
+    wec = wot.WEC(fb, mass, stiffness, f0, num_freq, rho=rho)
 
     # run BEM
     wec.run_bem()
-    wec.write_bem(os.path.join(data_dir, 'BEM.nc'))
+    wec.write_bem(os.path.join(data_dir, 'bem.nc'))
 
     # wave
     waves = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)

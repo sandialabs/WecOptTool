@@ -1,5 +1,7 @@
 
 import logging
+from typing import Union, Iterable, Callable, Any
+from pathlib import Path
 
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
@@ -8,6 +10,7 @@ import xarray as xr
 import capytaine as cpy
 from scipy import optimize
 from scipy import sparse
+import numpy.typing as npt
 
 
 log = logging.getLogger(__name__)
@@ -15,28 +18,56 @@ log = logging.getLogger(__name__)
 # Default values
 _default_parameters = {'rho': 1000.0, 'g': 9.81, 'depth': np.infty}
 
-# TODO: write/create WEC instance to/from file
-# TODO: implement: plot_impedance() and get_power_ub()
-# TODO: several ongoing changes to Capytaine (see 'TODO: Capytaine'),
-#       modify here once those changes are in a Capytaine release
-# TODO: figure out why infinite frequency BEM run is not working
-# TODO: Docstrings & type hints
-#       https://numpydoc.readthedocs.io/en/latest/format.html
-#       https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html
-
 
 class WEC:
     """
     """
 
-    def __init__(self, fb, mass_matrix, hydrostatic_stiffness, f0, num_freq,
-                 dissipation=None, stiffness=None, f_add=None,
-                 rho=_default_parameters['rho'],
-                 depth=_default_parameters['depth'],
-                 g=_default_parameters['g']):
+    def __init__(self, fb: cpy.FloatingBody, mass_matrix: np.ndarray,
+                 hydrostatic_stiffness: np.ndarray, f0: float, num_freq: int,
+                 dissipation: Union[np.ndarray, None] = None,
+                 stiffness: Union[np.ndarray, None] = None,
+                 f_add: Union[Callable, None] = None,
+                 rho: float = _default_parameters['rho'],
+                 depth: float = _default_parameters['depth'],
+                 g: float = _default_parameters['g']) -> None:
         """
+        Parameters
+        ----------
+        fb: capytaine.FloatingBody
+            The WEC as a capytaine floating body (mesh + DOFs).
+        mass_matrix: np.ndarray
+            Mass matrix shape of (``ndof`` x ``ndof``).
+        hydrostatic_stiffness: np.ndarray
+            Hydrstatic stiffness matrix matrix of shape
+            (``ndof`` x ``ndof``).
+        f0: float
+            Initial frequency (in Hz) for frequency array.
+            Frequency array given as [f0, 2*f0, ..., num_freq*f0].
+        num_freq: int
+            Number of frequencies in frequency array. See ``f0``.
+        dissipation: np.ndarray
+            Additional dissipiation for the impedance calculation in
+            ``capytaine.post_pro.impedance``. Shape:
+            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``num_freq``).
+        stiffness: np.ndarray
+            Additional stiffness for the impedance calculation in
+            ``capytaine.post_pro.impedance``. Shape:
+            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``num_freq``).
+        f_add: function
+            Additional forcing terms (e.g. PTO, mooring, etc.) for the
+            WEC dynamics in the time-domain. Takes three inputs:
+            (1) the WEC object,
+            (2) the WEC dynamics state (1D np.ndarray), and
+            (3) the optimization state (1D np.ndarray)
+            and outputs the force time-series (1D np.ndarray).
+        rho: float, optional
+            Water density in :math:`kg/m^3`.
+        depth: float, optional
+            Water depth in :math:`m`.
+        g: float, optional
+            Gravitational acceleration in :math:`m/s^2`.
         """
-        log.info("New WEC.")
         # water properties
         super().__setattr__('rho', rho)
         super().__setattr__('depth', depth)
@@ -51,7 +82,6 @@ class WEC:
         super().__setattr__('hydrostatic_stiffness', hydrostatic_stiffness)
 
         # frequency
-        # self.freq = (f0, num_freq)
         super().__setattr__('freq', (f0, num_freq))
 
         # additional WEC dynamics forces
@@ -61,7 +91,16 @@ class WEC:
         super().__setattr__('dissipation', dissipation)
         super().__setattr__('stiffness', stiffness)
 
+        # log
+        super().__setattr__(
+            '_dof_str', 'DOF' if self.fb.nb_dofs == 1 else 'DOFs')
+        log.info(
+            f"New WEC: {self.fb.name} with {self.fb.nb_dofs} {self._dof_str}")
+
     def __setattr__(self, name, value):
+        """ Delete dependent attributes  when user manually modifies
+        an attribute.
+        """
         _attrs_delete_mass = ['fb']
         _attrs_delete_stiffness = ['fb', 'rho', 'g']
         _attrs_delete_impedance_not_bem = ['dissipation', 'stiffness']
@@ -78,7 +117,7 @@ class WEC:
                      "Assign new values to 'self.hydrostatic_stiffness'")
         if name in _attrs_delete_impedance_not_bem:
             if 'Zi' in self.hydro:
-                super().__setattr__('Zi', None)
+                self.hydro['Zi'] = None
                 log.info("  Impedance matrix deleted. To calculate " +
                          "impedance call 'self._bem_calc_impedance()'")
         if name in _attrs_delete_bem:
@@ -88,9 +127,15 @@ class WEC:
             log.info("  BEM data deleted. To run BEM use self.run_bem(...) ")
         super().__setattr__(name, value)
 
+    def __repr__(self):
+        str_info = (f'{self.__class__.__name__} "{self.fb.name}" ' +
+                    f'with {self.fb.nb_dofs} {self._dof_str}')
+        return str_info
+
     # frequency properties
     @property
     def freq(self):
+        """ Freequency array f=[f0, 2*f0, ..., num_freq*f0] in Hz. """
         return self._freq
 
     @freq.setter
@@ -102,95 +147,106 @@ class WEC:
         super().__setattr__('_freq', freq_array(f0, num_freq))
         # update phi and dphi
         super().__setattr__('_phi', self._make_phi())
-        super().__setattr__('_phi_fs', self._make_phi_fs())
+        super().__setattr__('_phi_for_fi', self._make_phi_for_fi())
         super().__setattr__('_dphi', self._make_dphi())
 
     @property
     def f0(self):
+        """ Initial frequency (and spacing) in Hz. See ``freq``. """
         return self._freq[0]
 
     @property
     def num_freq(self):
+        """ Number of frequencies in frequency array. See ``freq``. """
         return len(self._freq)
 
     @property
     def period(self):
+        """ Period :math:T=1/f in seconds. """
         return 1/self._freq
 
     @property
     def omega(self):
+        """ Frequency array in radians per second ω=2πf."""
         return self._freq * 2 * np.pi
 
     @property
     def omegap0(self):
+        """ Like ``omega`` but also includes zero frequency: [0, ω]. """
         return np.concatenate([[0.0], self.omega])
 
     @property
     def phi(self):
-        """ Set when frequency is set. """
+        """ Matrix to convert from frequency domaint to time domain.
+        Set when frequency is set. """
         return self._phi
 
     @property
-    def phi_fs(self):
-        """ Set when frequency is set. """
-        return self._phi_fs
-
-    @property
-    def phi_vel(self):
-        return self.phi[1:, :]
-
-    @property
     def dphi(self):
-        """ Set when frequency is set. """
+        """ Derivtive matrix to convert from position to velocity in
+        the frequency domain. Set when frequency is set. """
         return self._dphi
 
     # problem size
     @property
     def ndof(self):
+        """ Number of degrees of freedom of the WEC. """
         return self.fb.nb_dofs
 
     @property
     def nfd(self):
+        """ Number of frequencies in the two sided spectrum. """
         return 2 * self.num_freq + 1
 
     @property
     def nfd_nomean(self):
+        """ Like ``nfd`` but for the no mean (no f=0) cases. """
         # return self.nfd - 1
         return 2 * self.num_freq
 
     @property
     def num_x_wec(self):
+        """ Length of the  WEC dynamics state vector. """
         return self.ndof * self.nfd
 
     # time
     @property
-    def time(self):
+    def time(self) -> np.ndarray:
+        """ Time array. """
         return np.linspace(0, 1/self.f0, self.nfd)
 
-    @staticmethod
-    def from_file(fpath):
-        # TODO: implement
-        raise NotImplementedError()
-
-    def to_file(self, fpath):
+    def to_file(self, fpath: Union[str, Path]) -> None:
         # TODO: implement
         raise NotImplementedError()
 
     # state vector
-    def decompose_decision_var(self, x):
+    def decompose_decision_var(self, x: np.ndarray
+                               ) -> tuple[np.ndarray, np.ndarray]:
+        """ Split the state vector into the WEC dynamics state and the
+        optimization state. x = [x_wec, x_opt].
+
+        Parameters
+        ----------
+        x: np.ndarray
+
+        Returns
+        -------
+        x_wec: np.ndarray
+        x_opt: np.ndarray
+        """
         return x[:self.num_x_wec], x[self.num_x_wec:]
 
-    def vec_to_dofmat(self, vec):
+    def vec_to_dofmat(self, vec: np.ndarray) -> np.ndarray:
+        """ Convert a flat vector back to a matrix with one row per DOF.
+        Opposite of ``dofmat_to_vec``. """
         return np.reshape(vec, (self.ndof, -1))
 
-    def dofmat_to_vec(self, mat):
+    def dofmat_to_vec(self, mat: np.ndarray) -> np.ndarray:
+        """ Flatten a matrix that has one row per DOF.
+        Opposite of ``vec_to_dofmat``. """
         return mat.flatten()
 
-    def _make_phi(self):
-        """
-        phi is a matrix for the transformation from Fourier series
-        coefficients to time series
-        """
+    def _make_phi(self) -> np.ndarray:
         t = np.linspace(0, 1/self.f0, self.nfd, endpoint=False).reshape(1, -1)
         w = self.omega.reshape(1, -1)
         mm = w.T @ t
@@ -199,40 +255,37 @@ class WEC:
         phi[2::2, ::] = np.sin(mm)
         return phi
 
-    def _make_phi_fs(self):
-        """ shuffle phi rather than f_i, since autograd doesn't like it.
+    def _make_phi_for_fi(self) -> np.ndarray:
+        """ Shuffle phi rather than f_i, since autograd doesn't like it.
         """
         tmp_1 = self.phi[0]
         tmp_2 = self.phi[1::2]
         tmp_3 = self.phi[2::2]
         return np.vstack([tmp_1, tmp_2, tmp_3])
 
-    def _make_dphi(self):
-        """
-        dphi is a matrix used to transform between position and velocity
-        """
+    def _make_dphi(self) -> np.ndarray:
         omega = np.array(self.omega)
         dphi = np.diag((np.array([[1], [0]]) * omega).flatten('F')[:-1], 1)
         dphi = dphi - dphi.transpose()
         dphi = np.concatenate((np.zeros((2*self.num_freq, 1)), dphi), axis=1)
         return dphi.T
 
-    # frequency domain
-    def fd_to_td(self, fd):
+    # ifft
+    def fd_to_td(self, fd: np.ndarray) -> np.ndarray:
+        """ Convert from frequency domain to time ddomain using IFFT."""
         return np.fft.irfft(fd/(2/self.nfd), n=self.nfd)
 
-    def fd_folded(self, fd):
-        mean = fd[:, 0:1]
-        return np.concatenate((mean, fd[:, 1::2] - fd[:, 2::2]*1j), axis=1)
-
-    def fd_folded_nomean(self, fd, ndof=None):
-        if ndof is None:
-            ndof = self.ndof
-        mean = np.zeros([ndof, 1])
-        return np.concatenate((mean, fd[:, 0::2] - fd[:, 1::2]*1j), axis=1)
-
     # bem
-    def run_bem(self, wave_dirs=[0]):
+    def run_bem(self, wave_dirs: npt.ArrayLike = [0]) -> None:
+        """ Run the BEM for the specified wave directions.
+
+        See ``wot.run_bem``.
+
+        Parameters
+        ----------
+        wave_dirs: list[float]
+            List of wave directions to evaluate BEM at.
+        """
         log.info(f"Running Capytaine (BEM): {self.num_freq} frequencies x " +
                  f"{len(wave_dirs)} wave directions.")
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
@@ -245,7 +298,14 @@ class WEC:
         # calculate impedance
         self._bem_calc_impedance()
 
-    def read_bem(self, fpath):
+    def read_bem(self, fpath: Union[str, Path]) -> None:
+        """ Read a BEM solution from a NetCDF file.
+
+        Parameters
+        ----------
+        fpath: str
+            Name of file to read BEM data from.
+        """
         log.info(f"Reading BEM data from {fpath}.")
         data = from_netcdf(fpath)
         super().__setattr__('hydro', data)
@@ -265,42 +325,45 @@ class WEC:
         # post-processing needed for solving dynamics
         self._post_process_impedance()
 
-    def write_bem(self, fpath=None):
+    def write_bem(self, fpath: Union[str, Path, None] = None) -> None:
         """
-        Write the BEM solution to netCDF file
+        Write the BEM solution to a NetCDF file.
 
         Parameters
         ----------
-        fpath : str
+        fpath: str
+            Name of file to write BEM data to.
         """
         log.info(f"Writting BEM data to {fpath}.")
         to_netcdf(fpath, self.hydro)
 
-    def _bem_add_hydrostatics(self,):
+    def _bem_add_hydrostatics(self) -> None:
+        """ Add hydrostatic data to self.hydro. """
         dims = ['radiating_dof', 'influenced_dof']
         self.hydro['mass'] = (dims, self.mass_matrix)
         self.hydro['hydrostatic_stiffness'] = (
             dims, self.hydrostatic_stiffness)
 
-    def bem_calc_inf_added_mass(self):
-        # TODO: not working
+    def bem_calc_inf_added_mass(self) -> None:
+        """ Run the BEM to obtain infinite added mass. """
         log.info("Running Capytaine for infinite frequency.")
         inf_data = run_bem(
             self.fb, [np.infty], wave_dirs=None,
             rho=self.rho, g=self.g, depth=self.depth)
         self.hydro['Ainf'] = inf_data.added_mass[0, :, :]
 
-    def bem_calc_rao(self):
+    def bem_calc_rao(self) -> None:
+        """ Calculate BEM RAOs using capytaine. """
         self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
 
-    def _bem_calc_impedance(self):
-        """
+    def _bem_calc_impedance(self) -> None:
+        """ Calculate the impedance matrix.
         """
         log.info("Calculating impedance matrix.")
         # TODO: Capytaine: use capytaine after next release
         # impedance = cpy.post_pro.impedance(
         #     self.hydro, self.dissipation, self.stiffness)
-        impedance = cpy_impedance(
+        impedance = _cpy_impedance(
             self.hydro, self.dissipation, self.stiffness)
         impedance = impedance * -1j/impedance.omega
 
@@ -329,20 +392,17 @@ class WEC:
         # post-processing needed for solving dynamics
         self._post_process_impedance()
 
-    def _post_process_impedance(self,):
+    def _post_process_impedance(self) -> None:
+        """ Calculate the Gi block. """
         _gi_block = self._make_gi_block()
         _gi_scale = 1/np.linalg.norm(_gi_block.toarray())
         _gi_block_scaled = _gi_scale * _gi_block.toarray()
         super().__setattr__('_gi_scale', _gi_scale)
         super().__setattr__('_gi_block_scaled', _gi_block_scaled)
 
-    def _make_gi_block(self):
+    def _make_gi_block(self) -> sparse.dia.dia_matrix:
         """
-        Makes a block matrix of the MIMO impedance + position
-
-        Returns
-        -------
-        gi_block : np.ndarray.
+        Create a block matrix of the MIMO impedance + position.
         """
         impedance = self.hydro['Zi'].values
         # elem = [[0] * self.ndof] * self.ndof
@@ -358,10 +418,64 @@ class WEC:
         return sparse.dia_matrix(np.block(elem))
 
     # solve
-    def solve(self, waves, obj_fun, num_x_opt, constraints=[],
-              x_wec_0=None, x_opt_0=None, scale_x_wec=1.0,
-              scale_x_opt=1.0, scale_obj=1.0, optim_options={}):
-        """
+    def solve(self, waves: xr.Dataset, obj_fun: Callable, num_x_opt: int,
+              constraints: list[dict] = [],
+              x_wec_0: Union[np.ndarray, None] = None,
+              x_opt_0: Union[np.ndarray, None] = None,
+              scale_x_wec: float = 1.0, scale_x_opt: float = 1.0,
+              scale_obj: float = 1.0, optim_options: dict[str, Any] = {}
+              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
+                         optimize.optimize.OptimizeResult]:
+        """ Solve the WEC control co-design problem.
+
+        Parameters
+        ----------
+        waves: xr.Dataset
+            The wave, described by two 2D DataArrays:
+            elevation variance `S` (m^2*s) and phase `phase` (radians)
+            with coordinates of radial frequency `omega` (radians)
+            and wave direction `wave_direction` (radians).
+            The frequencies and  wave directions must match those in
+            the `bem_data`.
+        obj_fun: function
+            Objective function for the control optimization.
+            Takes three inputs:
+            (1) the WEC object,
+            (2) the WEC dynamics state (1D np.ndarray), and
+            (3) the optimization state (1D np.ndarray)
+            and outputs the scalar objective function:
+            tuple[WEC, np.ndarray, np.ndarray] -> float.
+        num_x_opt: int
+            Length of the optimization (controls) state vector.
+        constraints: list[dict]
+            Constraints for the constrained optimization.
+            See ``scipy.optimize.minimize``.
+        x_wec_0: np.ndarray
+            Initial guess for the WEC dynamics state.
+            If ``None`` it is randomly initiated.
+        x_opt_0: np.ndarray
+            Initial guess for the optimization (controls) state.
+            If ``None`` it is randomly initiated.
+        scale_x_wec: float
+            Factor to scale ``x_wec`` by, to improve convergence.
+        scale_x_opt: float
+            Factor to scale ``x_opt`` by, to improve convergence.
+        scale_obj: float
+            Factor to scale ``obj_fun`` by, to improve convergence.
+        optim_options: dict
+            Optimization options passed to the optimizer.
+            See ``scipy.optimize.minimize``.
+
+        Returns
+        -------
+        freq_dom: xr.Dataset
+            Dataset containing the frequency-domain results.
+        time_dom: xr.Dataset
+            Dataset containing the time-domain results.
+        x_opt: np.ndarray
+            Optimal control state.
+        res: optimize.optimize.OptimizeResult
+            Raw optimization results.
         """
         log.info("Solving pseudo-spectral control problem.")
         # initial state
@@ -437,11 +551,12 @@ class WEC:
         time_dom = xr.merge([time_dom_x, td_we])
         return freq_dom, time_dom, x_opt, res
 
-    def _dynamic_residual(self, x, f_exc):
+    def _dynamic_residual(self, x: np.ndarray, f_exc: np.ndarray
+                          ) -> np.ndarray:
         """
-        Solves WEC dynamics in residual form so that they may be
+        Solve WEC dynamics in residual form so that they may be
         enforced through a nonlinear constraint within an optimization
-        problem
+        problem.
 
         Parameters
         ----------
@@ -460,7 +575,7 @@ class WEC:
         # WEC position
         x_wec, x_opt = self.decompose_decision_var(x)
         x_fd = self.vec_to_dofmat(x_wec)
-        x_fd_hat = self.fd_folded(x_fd)
+        x_fd_hat = fd_folded(x_fd)
         x_fd_hat_vec = self.dofmat_to_vec(x_fd_hat)
 
         fi_fd = self.vec_to_dofmat(self._gi_block_scaled @ x_fd_hat_vec)
@@ -468,28 +583,29 @@ class WEC:
         tmp_1_0 = np.real(fi_fd[:, 1::])
         tmp_1_1 = -np.imag(fi_fd[:, 1::])
         fi_fd = np.hstack((fi_fd_tmp_0, tmp_1_0, tmp_1_1))
-        f_i = fi_fd @ self.phi_fs
+        f_i = fi_fd @ self._phi_for_fi
 
         f_add = self.f_add(self, x_wec, x_opt)
 
         return f_exc + f_add - f_i
 
-    def _post_process_x_wec(self, x_wec):
+    def _post_process_x_wec(self, x_wec: np.ndarray
+                            ) -> tuple[xr.DataArray, xr.DataArray]:
         """
-        Transform the results from optimization solution to form that
-        user can work with directly
+        Transform the results from optimization solution to a form that
+        the user can work with directly.
         """
         # scale
         x_wec *= self._gi_scale
 
         # position
         x_fd = self.vec_to_dofmat(x_wec)
-        x_fd_hat = self.fd_folded(x_fd)
+        x_fd_hat = fd_folded(x_fd)
         x_td = x_fd @ self.phi
 
         # velocity
         vel_fd = x_fd @ self.dphi
-        vel_fd_hat = self.fd_folded_nomean(vel_fd)
+        vel_fd_hat = fd_folded_nomean(vel_fd)
         vel_td = vel_fd @ self.phi[1:, :]
 
         # xarray
@@ -517,15 +633,16 @@ class WEC:
 
         return freq_dom, time_dom
 
-    def plot_impedance(self, ):
+    def plot_impedance(self):
+        """ Plot impedance.
         """
-        """
+        # TODO: Needed? Or are xarray plotting sufficient?
         # TODO: implement, see original code
         raise NotImplementedError()
 
-    def get_pow_ub(self, ):
+    def get_pow_ub(self):
         """
-        Find the upper theoretical limit of power
+        Find the upper theoretical limit of power from each DOF.
         """
         # TODO: implement (here or  pto.py?).
         #       See original code
@@ -533,12 +650,52 @@ class WEC:
         raise NotImplementedError()
 
 
-def freq_array(f0, num_freq):
+def from_file(fpath: Union[str, Path]) -> WEC:
+    # TODO: implement
+    raise NotImplementedError()
+
+
+def freq_array(f0: float, num_freq: int) -> np.ndarray:
+    """ Cunstruct equally spaced frequency array.
+    """
     return np.arange(1, num_freq+1)*f0
 
 
-def wave_excitation(bem_data, waves):
+def fd_folded(fd: np.ndarray) -> np.ndarray:
+    """ Convert a two-sided spectrum to one sided. """
+    mean = fd[:, 0:1]
+    return np.concatenate((mean, fd[:, 1::2] - fd[:, 2::2]*1j), axis=1)
+
+
+def fd_folded_nomean(fd: np.ndarray) -> np.ndarray:
+    """ Like ``fd_folded`` but for spectrum with no mean (no f=0).
     """
+    ndof = fd.shape[0]
+    mean = np.zeros([ndof, 1])
+    return np.concatenate((mean, fd[:, 0::2] - fd[:, 1::2]*1j), axis=1)
+
+
+def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
+                    ) -> tuple[xr.Dataset, xr.Dataset]:
+    """ Compute the frequency- and time-domain wave excitation force.
+
+    Parameters
+    ----------
+    bem_data: xarray.Dataset
+        BEM data for the WEC obtained from `capytaine`.
+    waves : xarray.Dataset
+        The wave, described by two 2D DataArrays:
+        elevation variance `S` (m^2*s) and phase `phase` (radians)
+        with coordinates of radial frequency `omega` (radians)
+        and wave direction `wave_direction` (radians). The frequencies
+        and  wave directions must match those in the `bem_data`.
+
+    Returns
+    -------
+    freq_dom: xarray.Dataset
+        Frequency domain wave excitation and elevation.
+    freq_dom: xarray.Dataset
+        Time domain wave excitation and elevation.
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
     assert np.allclose(waves['wave_direction'].values,
@@ -594,7 +751,7 @@ def wave_excitation(bem_data, waves):
 
     f_exc_td = fd_to_td(f_exc_fd)
     dims = ['influenced_dof'] + dims_td
-    coords = [(dims[0], f_exc_fd.coords[dims[0]],)] + coords_td
+    coords = [(dims[0], f_exc_fd.coords[dims[0]].data,)] + coords_td
     f_exc_td = xr.DataArray(
         f_exc_td, dims=dims, coords=coords, attrs=f_exc_fd.attrs)
     f_exc_td.attrs['units'] = 'N or N*m'
@@ -610,12 +767,37 @@ def wave_excitation(bem_data, waves):
     return freq_dom, time_dom
 
 
-def run_bem(fb, freq=[np.infty], wave_dirs=[0],
-            rho=_default_parameters['rho'],
-            g=_default_parameters['g'],
-            depth=_default_parameters['depth'],
-            write_info=[]):
+def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
+            wave_dirs: Iterable[float] = [0],
+            rho: float = _default_parameters['rho'],
+            g: float = _default_parameters['g'],
+            depth: float = _default_parameters['depth'],
+            write_info: Iterable[str] = []
+            ) -> xr.Dataset:
     """ Run Capytaine for a range of frequencies and wave directions.
+
+    Parameters
+    ----------
+    fb: capytaine.FloatingBody
+        The WEC as a capytaine floating body (mesh + DOFs).
+    freq: list[float]
+        List of frequencies to evaluate BEM at.
+    wave_dirs: list[float]
+        List of wave directions to evaluate BEM at.
+    rho: float, optional
+        Water density in :math:`kg/m^3`.
+    g: float, optional
+        Gravitational acceleration in :math:`m/s^2`.
+    depth: float, optional
+        Water depth in :math:`m`.
+    write_info: list[str], optional
+        List of informmation to keep, passed to `capytaine` solver.
+        Options are: `wavenumber`, `wavelength`, `mesh`, `hydrostatics`.
+
+    Returns
+    -------
+    xarray.Dataset
+        BEM results from capytaine.
     """
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
@@ -624,27 +806,29 @@ def run_bem(fb, freq=[np.infty], wave_dirs=[0],
         'omega': [ifreq*2*np.pi for ifreq in freq],
         'wave_direction': wave_dirs,
         'radiating_dof': list(fb.dofs.keys()),
-        # TODO: Capytaine: modify solver.fill_dataset() to not hardcode g=9.81.
         'g': [g],
     })
     if wave_dirs is None:
         # radiation only problem, no diffraction or excitation
-        test_matrix.drop('wave_direction')
-    # TODO: Capytaine: run keep_immersed_part() automatically (#62)
+        test_matrix = test_matrix.drop_vars('wave_direction')
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     write_info = {key: True for key in write_info}
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
-def from_netcdf(fpath):
+def from_netcdf(fpath: Union[str, Path]) -> xr.Dataset:
+    """ Read a NetCDF file with commplex entries as an xarray dataSet.
+    """
     return cpy.io.xarray.merge_complex_values(xr.open_dataset(fpath))
 
 
-def to_netcdf(fpath, bem_data):
+def to_netcdf(fpath: Union[str, Path], bem_data: xr.Dataset) -> None:
+    """ Save an xarray dataSet with complex entries as a NetCDF file.
+    """
     cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
 
 
-def cpy_impedance(bem_data, dissipation=None, stiffness=None):
+def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
     # TODO: Capytaine: this is in Capytaine but not in release yet
     omega = bem_data.coords['omega']
     impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +

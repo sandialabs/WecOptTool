@@ -6,14 +6,14 @@ import autograd.numpy as np
 import capytaine as cpy
 import xarray as xr
 
-import WecOptTool as wot
+import wecopttool as wot
 from preprocess import rho, f0, num_freq
 
 
 # I/O
 data_dir = 'data'
 results_dir = 'results'
-case = 'P'
+case = 'cc'
 if not os.path.exists(results_dir):
     os.makedirs(results_dir)
 
@@ -23,16 +23,17 @@ fb = cpy.FloatingBody.from_file(mesh_file, name='WaveBot')
 fb.add_translation_dof(name="Heave")
 
 # mass and hydrostatic stiffness
-M = np.atleast_2d(np.loadtxt(os.path.join(data_dir, 'mass_matrix')))
-K = np.atleast_2d(np.loadtxt(os.path.join(data_dir, 'hydrostatic_stiffness')))
+mass = np.atleast_2d(np.loadtxt(os.path.join(data_dir, 'mass_matrix')))
+stiffness = np.atleast_2d(
+    np.loadtxt(os.path.join(data_dir, 'hydrostatic_stiffness')))
 
 # PTO: state, force, power (objective function)
 kinematics = np.eye(fb.nb_dofs)
 num_x_pto, f_pto, power_pto, pto_postproc = \
-    wot.pto.proportional_pto(kinematics)
+    wot.pto.pseudospectral_pto(num_freq, kinematics)
 
 # create WEC
-wec = wot.WEC(fb, M, K, f0, num_freq, f_add=f_pto, rho=rho)
+wec = wot.WEC(fb, mass, stiffness, f0, num_freq, f_add=f_pto, rho=rho)
 
 # read BEM
 bem_file = os.path.join(data_dir, 'BEM.nc')
@@ -52,17 +53,18 @@ constraints = []
 # Solve dynamics & opt control
 options = {'maxiter': 1000, }
 
-FD, TD, x_opt, res = wec.solve(
+fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,
     constraints=constraints, optim_options=options,
     scale_x_wec=scale_wec, scale_x_opt=scale_opt, scale_obj=scale_obj)
 
 # post-process: PTO
-TD, FD = pto_postproc(wec, TD, FD, x_opt)
+tdom['vel'] = tdom['vel']
+tdom, fdom = pto_postproc(wec, tdom, fdom, x_opt)
 
 # save
-td_file = os.path.join(results_dir, f'TD_{case}.nc')
-TD.to_netcdf(td_file)
+td_file = os.path.join(results_dir, f'tdom_{case}.nc')
+tdom.to_netcdf(td_file)
 
-fd_file = os.path.join(results_dir, f'FD_{case}.nc')
-wot.to_netcdf(fd_file, FD)
+fd_file = os.path.join(results_dir, f'fdom_{case}.nc')
+wot.to_netcdf(fd_file, fdom)
