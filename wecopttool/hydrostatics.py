@@ -3,11 +3,10 @@ properties for floating bodies.
 """
 from typing import Any, Union
 
-import autograd.numpy as np
-from autograd.builtins import isinstance, tuple, list, dict
+import numpy as np
+import numpy.typing as npt
 from scipy.linalg import block_diag
 from meshmagick.hydrostatics import compute_hydrostatics
-import numpy.typing as npt
 import capytaine as cpy
 
 

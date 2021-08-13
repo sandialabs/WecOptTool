@@ -11,12 +11,10 @@ wave frequency ``omega`` (rad)  and direction ``wave_direction`` (rad).
 import warnings
 from typing import Union, Callable
 
-import autograd.numpy as np
-from autograd.builtins import isinstance, tuple, list, dict
-import numpy as npo
+import numpy as np
+import numpy.typing as npt
 import xarray as xr
 from scipy.special import gamma
-import numpy.typing as npt
 
 from wecopttool.core import freq_array
 
@@ -271,4 +269,4 @@ def spread_cos2s(freq: Union[float, npt.ArrayLike],
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
     cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1)
-    return (cs * npo.power.outer(np.cos(rdir/2), 2*s)).T
+    return (cs * np.power.outer(np.cos(rdir/2), 2*s)).T
