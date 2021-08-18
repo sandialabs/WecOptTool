@@ -98,8 +98,9 @@ def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
 
     def post_process(wec: wot.WEC, time_dom: xr.Dataset, freq_dom: xr.Dataset,
                      x_opt: npt.ArrayLike) -> tuple[xr.Dataset, xr.Dataset]:
-        """ Calculate the time and frequency domain PTO force and
-        power, and add these to the results datasets.
+        """ Calculate the time and frequency domain PTO position,
+        velocity, force and power, and add these to the results
+        datasets.
 
         Parameters
         ----------
@@ -121,17 +122,22 @@ def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
         """
         x_pto = x_opt.reshape(ndof_pto, num_x_perdof)
 
-        # time domain
-        f_pto_td = (x_pto @ wec.phi[1:, :])
-        power_td = kinematics @ time_dom['vel'].values * f_pto_td
-
         # frequency domain
         f_pto_fd = wot.fd_folded_nomean(x_pto)
         power_fd = kinematics @ freq_dom['vel'].values * f_pto_fd / (2*wec.f0)
+        pos_fd = np.dot(kinematics, freq_dom['pos'].values)
+        vel_fd = np.dot(kinematics, freq_dom['vel'].values)
+
+        # time domain
+        f_pto_td = (x_pto @ wec.phi[1:, :])
+        power_td = kinematics @ time_dom['vel'].values * f_pto_td
+        pos_td = np.dot(kinematics, time_dom['pos'].values)
+        vel_td = np.dot(kinematics, time_dom['vel'].values)
 
         time_dom, freq_dom = _add_pto_info(
-            time_dom, freq_dom, f_pto_td, power_td, f_pto_fd, power_fd,
-            pto_names)
+            time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd,
+            f_pto_td, power_td, pos_td, vel_td, pto_names)
+
         return time_dom, freq_dom
 
     return num_x, f_pto, power, post_process
@@ -247,27 +253,32 @@ def proportional_pto(kinematics: np.ndarray,
         freq_dom: xr.Dataset
             Frequency domain results with PTO force and power added.
         """
-        # time domain
         x_pto = x_opt.reshape([ndof_pto, 1])
-        pto_vel_td = kinematics @ time_dom['vel'].values
-        f_pto_td = -1.0 * x_pto * pto_vel_td
-        power_td = pto_vel_td * f_pto_td
 
         # frequency domain
         pto_vel_fd = kinematics @ freq_dom['vel'].values
         f_pto_fd = x_pto * pto_vel_fd
         power_fd = pto_vel_fd * f_pto_fd / (2*wec.f0)
+        pos_fd = np.dot(kinematics, freq_dom['pos'].values)
+        vel_fd = np.dot(kinematics, freq_dom['vel'].values)
+
+        # time domain
+        pto_vel_td = kinematics @ time_dom['vel'].values
+        f_pto_td = -1.0 * x_pto * pto_vel_td
+        power_td = pto_vel_td * f_pto_td
+        pos_td = np.dot(kinematics, time_dom['pos'].values)
+        vel_td = np.dot(kinematics, time_dom['vel'].values)
 
         time_dom, freq_dom = _add_pto_info(
-            time_dom, freq_dom, f_pto_td, power_td, f_pto_fd, power_fd,
-            pto_names)
+            time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd,
+            f_pto_td, power_td, pos_td, vel_td, pto_names)
         return time_dom, freq_dom
 
     return num_x, f_pto, power, post_process
 
 
-def _add_pto_info(time_dom, freq_dom, f_pto_td, power_td, f_pto_fd, power_fd,
-                  pto_names=None):
+def _add_pto_info(time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd,
+                  f_pto_td, power_td, pos_td, vel_td, pto_names=None):
     """ Add the PTO force and power to the time and frequency domain
     datasets.
     """
@@ -280,18 +291,31 @@ def _add_pto_info(time_dom, freq_dom, f_pto_td, power_td, f_pto_fd, power_fd,
     coords = [(dims[0], pto_names), time_dom.time]
     attrs_f = {'long_name': 'PTO force', 'units': 'N or N*m'}
     attrs_p = {'long_name': 'PTO power', 'units': 'W'}
+    attrs_pos = {'long_name': 'PTO position', 'units': 'm or (rad)'}
+    attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or (rad)/s'}
     f_pto_td = xr.DataArray(f_pto_td, dims=dims, coords=coords, attrs=attrs_f)
     power_td = xr.DataArray(power_td, dims=dims, coords=coords, attrs=attrs_p)
+    pos_td = xr.DataArray(pos_td, dims=dims, coords=coords, attrs=attrs_pos)
+    vel_td = xr.DataArray(vel_td, dims=dims, coords=coords, attrs=attrs_vel)
     time_dom['pto_force'] = f_pto_td
     time_dom['power'] = power_td
+    time_dom['pto_pos'] = pos_td
+    time_dom['pto_vel'] = vel_td
+
 
     dims[1] = 'omega'
     coords[1] = freq_dom.omega
     attrs_f['units'] = 'N^2*s'
     attrs_p['units'] = 'W^2*s'
+    attrs_pos['units'] = 'm^2*s or (rad)^2*s'
+    attrs_vel['units'] = 'm^2/s or (rad)^2/s'
     f_pto_fd = xr.DataArray(f_pto_fd, dims=dims, coords=coords, attrs=attrs_f)
     power_fd = xr.DataArray(power_fd, dims=dims, coords=coords, attrs=attrs_p)
+    pos_fd = xr.DataArray(pos_fd, dims=dims, coords=coords, attrs=attrs_pos)
+    vel_fd = xr.DataArray(vel_fd, dims=dims, coords=coords, attrs=attrs_vel)
     freq_dom['pto_force'] = f_pto_fd
     freq_dom['power'] = power_fd
+    freq_dom['pto_pos'] = pos_fd
+    freq_dom['pto_vel'] = vel_fd
 
     return time_dom, freq_dom

@@ -79,7 +79,7 @@ The methods and formulations here follow those developed by \citet{Bacelli2014}.
 We thus wish to solve an optimization problem based on a decision variable $x$, which includes states of the body motion as well as other ``external'' states, e.g., related to controllers, PTO systems, mooring systems, etc.
 
 \begin{equation}\label{eq:decision_variable}
-	x = 
+	x =
 	\begin{bmatrix}
 		x_{pos}\\
 		x_{ext}
@@ -92,7 +92,7 @@ Body modes could include multiple degrees-of-freedom for a single body (e.g., he
 The frequency vector $\omega \in \mathbb{R}^n$ should span the relevant frequencies of the device operation, and also super harmonics to capture nonlinearities (this topic will be further discussed in Section~\ref{sec:example_tethered_point_absorber}).
 
 \begin{equation}
-	x_{pos} = 
+	x_{pos} =
 	\begin{bmatrix}
 		x_{pos,1} \\
 		x_{pos,2} \\
@@ -107,7 +107,7 @@ The additional element in the first position is used to capture a mean (``DC'') 
 Thus, the portion of $x_{pos}$ describing the $k$-th mode would be.
 
 \begin{equation}
-	x_{pos,k} = 
+	x_{pos,k} =
 	\begin{bmatrix}
 		\bar{x}_{pos,k} \\
 		a_{k,1} \\
@@ -260,7 +260,7 @@ The k-\textit{th} element of the complex amplitude vector for the velocity $\hat
 	\hat{V}_k = x_{vel_{2k-1}} - i \, x_{vel_{2k}}, \qquad \textrm{for } k=1:n.
 \end{equation}
 
-\noindent{}Finally, we may construct the velocity's periodic time history at the collocation points as 
+\noindent{}Finally, we may construct the velocity's periodic time history at the collocation points as
 
 \begin{equation}
 	v(t) = \sum\limits_i a_i \cos \left( k \omega_0 t \right) + b_i \sin \left( k \omega_0 t \right) .
@@ -274,13 +274,13 @@ The impedance has to be reshaped into a block matrix $Z_{block} \in \mathbb{C}^{
 Each block within $Z_{block}$ is a diagonal matrix $Z_{block,ik} \in \mathbb{C}^{n \times n}$ corresponding to the interaction between the $i$-th and $k$-th modes of motion.
 
 \begin{equation}
-	Z_{block,ik} = 
+	Z_{block,ik} =
 	\begin{bmatrix}
 		Z_{ik}(\omega_0) & & \\
 		& \ddots & \\
 		& &  Z_{ik}(n \omega_0)
 	\end{bmatrix}
-\end{equation}	
+\end{equation}
 
 % -----------------------------------------------------------------------------------------
 \subsection{Numerical implementation}\label{sec:numericalImplementation}

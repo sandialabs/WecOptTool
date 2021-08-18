@@ -9,7 +9,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 import wecopttool as wot
-from wecopttool.examples import WaveBot
+from wecopttool.examples import wavebot
 
 
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ f0 = 0.05
 num_freq = 18
 
 # Capytaine floating body
-mesh = WaveBot.mesh()
+mesh = wavebot.mesh()
 # TODO: Capytaine fb from meshio/pygmsh mesh (Issues #13, #62)
 mesh_file = 'tmp_mesh.stl'
 mesh.write(mesh_file)

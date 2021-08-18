@@ -33,7 +33,7 @@ def hydrostatics(wec: cpy.FloatingBody, rho: float = 1025, g: float = 9.81,
         dict
             MeshMagick hydrostatic data
     """
-    mesh = wec.mesh.to_meshmagick()
+    mesh = wec.mesh.merged().to_meshmagick()
     return compute_hydrostatics(mesh, cog, rho, g, at_cog=True)
 
 

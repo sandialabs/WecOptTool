@@ -24,7 +24,7 @@ if __name__ == "__main__":
     import capytaine as cpy
 
     import wecopttool as wot
-    from wecopttool.examples import WaveBot
+    from wecopttool.examples import wavebot
 
     logging.basicConfig(level=logging.INFO)
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # mesh
     # TODO: Capytaine fb from meshio/pygmsh mesh (Issues #13, #62)
     mesh_file = os.path.join(data_dir, 'mesh.stl')
-    mesh = WaveBot.mesh(mesh_size_factor=mesh_size_factor)
+    mesh = wavebot.mesh(mesh_size_factor=mesh_size_factor)
     mesh.write(mesh_file)
 
     # create Capytaine floating body (mesh + DOFs)
