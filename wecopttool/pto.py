@@ -277,8 +277,12 @@ def proportional_pto(kinematics: np.ndarray,
     return num_x, f_pto, power, post_process
 
 
-def _add_pto_info(time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd,
-                  f_pto_td, power_td, pos_td, vel_td, pto_names=None):
+def _add_pto_info(time_dom: xr.Dataset, freq_dom: xr.Dataset,
+                  f_pto_fd: np.ndarray, power_fd: np.ndarray,
+                  pos_fd: np.ndarray, vel_fd: np.ndarray,
+                  f_pto_td: np.ndarray, power_td: np.ndarray,
+                  pos_td: np.ndarray, vel_td: np.ndarray,
+                  pto_names: Union[list[str], None] = None):
     """ Add the PTO force and power to the time and frequency domain
     datasets.
     """
@@ -301,7 +305,6 @@ def _add_pto_info(time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd,
     time_dom['power'] = power_td
     time_dom['pto_pos'] = pos_td
     time_dom['pto_vel'] = vel_td
-
 
     dims[1] = 'omega'
     coords[1] = freq_dom.omega

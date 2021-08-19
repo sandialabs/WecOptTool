@@ -11,6 +11,7 @@ import xarray as xr
 import capytaine as cpy
 from scipy import optimize
 from scipy import sparse
+import matplotlib.pyplot as plt
 
 
 log = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class WEC:
         super().__setattr__('depth', depth)
         super().__setattr__('g', g)
         if g != _default_parameters['g']:
-            # TODO: fixed after next release of capytaine
+            # TODO: Capytaine: fixed after next release of capytaine
             raise NotImplementedError('Currently only g=9.81 can be used.')
 
         # WEC
@@ -616,7 +617,7 @@ class WEC:
             (dims_td[0], self.hydro.influenced_dof.values),
             (dims_td[1], self.time, {'units': 's'})]
         attrs_x = {'long_name': 'WEC position', 'units': 'm or (rad)'}
-        attrs_vel = {'long_name': 'WEC velocity','units': 'm/s or (rad)/s'}
+        attrs_vel = {'long_name': 'WEC velocity', 'units': 'm/s or (rad)/s'}
         x_td = xr.DataArray(
             x_td, dims=dims_td, coords=coords_td, attrs=attrs_x)
         vel_td = xr.DataArray(
@@ -628,18 +629,20 @@ class WEC:
         vel_fd = xr.DataArray(
             vel_fd_hat, dims=dims_fd, coords=coords_fd, attrs=attrs_vel)
 
-
         freq_dom = xr.Dataset({'pos': x_fd, 'vel': vel_fd},)
         time_dom = xr.Dataset({'pos': x_td, 'vel': vel_td},)
 
         return freq_dom, time_dom
 
-    def plot_impedance(self):
+    def plot_impedance(self, option: str = 'symmetric', show: bool = True):
         """ Plot impedance.
+
+        See `wot.plot_impedance()`.
         """
-        # TODO: Needed? Or are xarray plotting sufficient?
-        # TODO: implement, see original code
-        raise NotImplementedError()
+        fig, axs = plot_impedance(
+            Zi=self.hydro.Zi.values, freq=self.freq, option=option,
+            dof_names=self.hydro.influenced_dof.values.tolist(), show=show)
+        return fig, axs
 
     def get_pow_ub(self):
         """
@@ -840,3 +843,112 @@ def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
     if stiffness is not None:
         impedance = impedance + stiffness
     return impedance
+
+
+def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
+                   option: str = 'diagonal', show: bool = False,
+                   dof_names: Union[list[str], None] = None):
+    """ Plot the impedance matrix.
+
+    Parameters
+    ----------
+    Zi: np.ndarray
+        Complex impedance matrix. Shape: nfreq x ndof x ndof
+    freq: list[float]
+        Frequencies in Hz.
+    option: {'diagonal', 'symmetric', 'all'}
+        Which terms of the matrix to plot:
+        'diagonal' to plot only the diagonal terms,
+        'symmetric' to plot only the lower triangular terms, and
+        'all' to plot all terms.
+    show: bool
+        Whether to show the figure.
+    dof_names: list[str]
+
+    Returns
+    -------
+    fig: matplotlib.figure.Figure
+    axs: np.ndarray[matplotlib.axes._subplots.AxesSubplot]
+    """
+    figh = 2.5
+    figw = 2 * figh
+    ndof = Zi.shape[-1]
+    fig, axs = plt.subplots(
+        ndof*2, ndof, figsize=(ndof*figw, ndof*figh),
+        sharex='all', sharey='row', squeeze=False)
+
+    if dof_names is None:
+        dof_names = [f"DOF {i}" for i in range(ndof)]
+
+    colors = (plt.rcParams['axes.prop_cycle'].by_key()['color']*10)[:ndof]
+    phase_pad = 18
+    mag_max = np.max(20*np.log10(np.abs(Zi)))
+    mag_pad = 0.05 * mag_max
+
+    def delaxes(axs, idof, jdof, ndof):
+        for i, ax in enumerate([axs[idof*2, jdof], axs[idof*2+1, jdof]]):
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            if idof != ndof-1 or (idof == ndof-1 and i == 0):
+                ax.tick_params(axis='x', which='both', bottom=False)
+                ax.spines['bottom'].set_visible(False)
+            if jdof != 0:
+                ax.tick_params(axis='y', which='both', left=False)
+                ax.spines['left'].set_visible(False)
+
+    for idof in range(ndof):
+        color = colors[idof]
+        for jdof in range(ndof):
+            # labels, ticks, etc
+            if jdof == 0:
+                axs[idof*2, jdof].set_ylabel('Magnitude (dB)')
+                axs[idof*2+1, jdof].set_ylabel('Phase (deg)')
+
+            if idof == ndof-1:
+                axs[idof*2+1, jdof].set_xlabel('Frequency (Hz)')
+
+            if idof == 0:
+                axs[idof*2, jdof].set_xlabel(dof_names[jdof])
+                axs[idof*2, jdof].xaxis.set_label_position("top")
+
+            if jdof == ndof-1:
+                ax_ylabel = axs[idof*2, jdof].twinx()
+                ax_ylabel.set_ylabel(dof_names[idof], rotation=-90,
+                                     labelpad=12)
+                ax_ylabel.yaxis.set_label_position("right")
+                ax_ylabel.tick_params(axis='y', which='both', left=False,
+                                      right=False, labelright=False)
+                ax_ylabel.tick_params(axis='x', which='both', bottom=False)
+                ax_ylabel.tick_params(axis='y', which='both', left=False)
+                ax_ylabel.spines[:].set_visible(False)
+
+            # plot
+            all = (option == 'all')
+            sym = (option == 'symmetric' and jdof <= idof)
+            diag = (option == 'diagonal' and jdof == idof)
+            plot = True if (all or sym or diag) else False
+            if plot:
+                iZi = Zi[:, idof, jdof]
+                mag = np.squeeze(20*np.log10(np.abs(iZi)))
+                ang = np.squeeze(np.rad2deg(np.angle(iZi)))
+                axs[idof*2, jdof].semilogx(freq, mag, '-o', color=color)
+                axs[idof*2+1, jdof].semilogx(freq, ang, '-o', color=color)
+
+                axs[idof*2, jdof].grid(True, which='both')
+                axs[idof*2+1, jdof].grid(True, which='both')
+
+                axs[idof*2, jdof].set_ylim(0-mag_pad, mag_max+mag_pad)
+                axs[idof*2+1, jdof].set_ylim(-180-phase_pad, 180+phase_pad)
+            else:
+                delaxes(axs, idof, jdof, ndof)
+
+    fig.align_ylabels(axs[:, 0])
+    fig.align_ylabels(axs[:, -1])
+    fig.align_xlabels(axs[-1, :])
+    fig.align_xlabels(axs[0, :])
+    fig.tight_layout()
+
+    if show:
+        plt.show()
+
+    return fig, axs

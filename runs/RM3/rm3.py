@@ -24,6 +24,7 @@ def parallel_ax(inertia, mass, distance_vec):
 def idx(body, dof):
     return 6 * body + dof
 
+
 bodies = {'float': 0, 'spar': 1, 'rm3': 2}
 dofs = {'SURGE': 0, 'SWAY': 1, 'HEAVE': 2, 'ROLL': 3, 'PITCH': 4, 'YAW': 5}
 
@@ -101,7 +102,7 @@ mass_all = block_diag(float_mass, spar_mass, rm3_mass)
 stiffness_all = block_diag(float_stiffness, spar_stiffness, rm3_stiffness)
 idxs = np.array([
     [idx(bodies['float'], dofs['HEAVE']), idx(bodies['spar'], dofs['HEAVE'])] +
-    [idx(bodies['rm3'], dofs[dof]) for dof in rm3_dofs] ])
+    [idx(bodies['rm3'], dofs[dof]) for dof in rm3_dofs]])
 mass = mass_all[idxs.T, idxs]
 stiffness = stiffness_all[idxs.T, idxs]
 
