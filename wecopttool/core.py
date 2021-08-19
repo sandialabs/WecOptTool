@@ -1,6 +1,7 @@
 
+from __future__ import annotations  # TODO: delete after python 3.10
 import logging
-from typing import Union, Iterable, Callable, Any
+from typing import Iterable, Callable, Any
 from pathlib import Path
 
 import numpy.typing as npt
@@ -26,9 +27,10 @@ class WEC:
 
     def __init__(self, fb: cpy.FloatingBody, mass_matrix: np.ndarray,
                  hydrostatic_stiffness: np.ndarray, f0: float, num_freq: int,
-                 dissipation: Union[np.ndarray, None] = None,
-                 stiffness: Union[np.ndarray, None] = None,
-                 f_add: Union[Callable, None] = None,
+                 dissipation: np.ndarray | None = None,
+                 stiffness: np.ndarray | None = None,
+                 f_add: Callable[[WEC, np.ndarray, np.ndarray], np.ndarray] |
+                 None = None,
                  rho: float = _default_parameters['rho'],
                  depth: float = _default_parameters['depth'],
                  g: float = _default_parameters['g']) -> None:
@@ -215,7 +217,13 @@ class WEC:
         """ Time array. """
         return np.linspace(0, 1/self.f0, self.nfd)
 
-    def to_file(self, fpath: Union[str, Path]) -> None:
+    # save/load class object
+    def to_file(self, fpath: str | Path) -> None:
+        # TODO: implement
+        raise NotImplementedError()
+
+    @staticmethod
+    def from_file(fpath: str | Path) -> WEC:
         # TODO: implement
         raise NotImplementedError()
 
@@ -298,7 +306,7 @@ class WEC:
         # calculate impedance
         self._bem_calc_impedance()
 
-    def read_bem(self, fpath: Union[str, Path]) -> None:
+    def read_bem(self, fpath: str | Path) -> None:
         """ Read a BEM solution from a NetCDF file.
 
         Parameters
@@ -325,7 +333,7 @@ class WEC:
         # post-processing needed for solving dynamics
         self._post_process_impedance()
 
-    def write_bem(self, fpath: Union[str, Path]) -> None:
+    def write_bem(self, fpath: str | Path) -> None:
         """
         Write the BEM solution to a NetCDF file.
 
@@ -417,10 +425,11 @@ class WEC:
         return sparse.dia_matrix(np.block(elem))
 
     # solve
-    def solve(self, waves: xr.Dataset, obj_fun: Callable, num_x_opt: int,
-              constraints: list[dict] = [],
-              x_wec_0: Union[np.ndarray, None] = None,
-              x_opt_0: Union[np.ndarray, None] = None,
+    def solve(self, waves: xr.Dataset,
+              obj_fun: Callable[[WEC, np.ndarray, np, ndarray], float],
+              num_x_opt: int, constraints: list[dict] = [],
+              x_wec_0: np.ndarray | None = None,
+              x_opt_0: np.ndarray | None = None,
               scale_x_wec: float = 1.0, scale_x_opt: float = 1.0,
               scale_obj: float = 1.0, optim_options: dict[str, Any] = {}
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
@@ -654,11 +663,6 @@ class WEC:
         raise NotImplementedError()
 
 
-def from_file(fpath: Union[str, Path]) -> WEC:
-    # TODO: implement
-    raise NotImplementedError()
-
-
 def freq_array(f0: float, num_freq: int) -> np.ndarray:
     """ Cunstruct equally spaced frequency array.
     """
@@ -820,13 +824,13 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
-def from_netcdf(fpath: Union[str, Path]) -> xr.Dataset:
+def from_netcdf(fpath: str | Path) -> xr.Dataset:
     """ Read a NetCDF file with commplex entries as an xarray dataSet.
     """
     return cpy.io.xarray.merge_complex_values(xr.open_dataset(fpath))
 
 
-def to_netcdf(fpath: Union[str, Path], bem_data: xr.Dataset) -> None:
+def to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
     """ Save an xarray dataSet with complex entries as a NetCDF file.
     """
     cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
@@ -847,7 +851,7 @@ def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
 
 def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
                    option: str = 'diagonal', show: bool = False,
-                   dof_names: Union[list[str], None] = None):
+                   dof_names: list[str] | None = None):
     """ Plot the impedance matrix.
 
     Parameters

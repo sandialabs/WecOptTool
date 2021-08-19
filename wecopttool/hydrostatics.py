@@ -1,7 +1,9 @@
 """ This modules provides functions for calculating hydrstatic and mass
 properties for floating bodies.
 """
-from typing import Any, Union
+
+from __future__ import annotations  # TODO: delete after python 3.10
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -55,7 +57,7 @@ def stiffness_matrix(hs_data: dict[str, Any]) -> np.ndarray:
 
 
 def mass_matrix_constant_density(hs_data: dict[str, Any],
-                                 mass: Union[float, None] = None
+                                 mass: float | None = None
                                  ) -> np.ndarray:
     """ Create the 6x6 mass matrix assuming a constant density for the
     WEC.

@@ -2,7 +2,9 @@
 control approaches. The PTO power can be used as the objective function
 for the control optimization.
 """
-from typing import Union, Callable
+
+from __future__ import annotations  # TODO: delete after python 3.10
+from typing import Callable
 
 import numpy.typing as npt
 import autograd.numpy as np
@@ -12,9 +14,14 @@ import xarray as xr
 import wecopttool as wot
 
 
-def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
-                       pto_names: Union[list[str], None] = None
-                       ) -> tuple[int, Callable, Callable, Callable]:
+_finput = [wot.WEC, npt.ArrayLike,  npt.ArrayLike]
+
+
+def pseudospectral_pto(
+        num_freq: int, kinematics: np.ndarray,
+        pto_names: list[str] | None = None) -> tuple[
+        int, Callable[_finput, np.ndarray], Callable[_finput, float],
+        Callable[_finput, tuple(xr.Dataset, xr.Dataset)]]:
     """ Create the relevant parameters and functions for a
     peudo-spectral PTO control.
 
@@ -143,9 +150,10 @@ def pseudospectral_pto(num_freq: int, kinematics: np.ndarray,
     return num_x, f_pto, power, post_process
 
 
-def proportional_pto(kinematics: np.ndarray,
-                     pto_names: Union[list[str], None] = None
-                     ) -> tuple[int, Callable, Callable, Callable]:
+def proportional_pto(
+        kinematics: np.ndarray, pto_names: list[str] | None = None) -> tuple[
+        int, Callable[_finput, np.ndarray], Callable[_finput, float],
+        Callable[_finput, tuple(xr.Dataset, xr.Dataset)]]:
     """ Create the relevant parameters and functions for a
     proportional PTO control.
 
@@ -282,7 +290,7 @@ def _add_pto_info(time_dom: xr.Dataset, freq_dom: xr.Dataset,
                   pos_fd: np.ndarray, vel_fd: np.ndarray,
                   f_pto_td: np.ndarray, power_td: np.ndarray,
                   pos_td: np.ndarray, vel_td: np.ndarray,
-                  pto_names: Union[list[str], None] = None):
+                  pto_names: list[str] | None = None):
     """ Add the PTO force and power to the time and frequency domain
     datasets.
     """

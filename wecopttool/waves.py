@@ -8,8 +8,9 @@ The dataset structure is an xarray.Dataset containing the following two
 wave frequency ``omega`` (rad)  and direction ``wave_direction`` (rad).
 """
 
+from __future__ import annotations  # TODO: delete after python 3.10
 import warnings
-from typing import Union, Callable
+from typing import Callable
 
 import numpy as np
 import numpy.typing as npt
@@ -20,7 +21,7 @@ from wecopttool.core import freq_array
 
 
 def wave_dataset(f0: float, num_freq: int,
-                 directions: Union[float, npt.ArrayLike]) -> xr.Dataset:
+                 directions: float | npt.ArrayLike) -> xr.Dataset:
     """ Create an empty wave dataset with correct dimensions and
     coordinates.
 
@@ -59,7 +60,7 @@ def wave_dataset(f0: float, num_freq: int,
 
 
 def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
-                 phase: Union[float, None] = None, direction: float = 0.0
+                 phase: float | None = None, direction: float = 0.0
                  ) -> xr.Dataset:
     """ Create the dataset for a regular wave.
 
@@ -121,7 +122,7 @@ def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
 
 def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
                       direction: float = 0.0, spectrum_name: str = '',
-                      seed: Union[int, None] = None) -> xr.Dataset:
+                      seed: int | None = None) -> xr.Dataset:
     """ Create the dataset for a long-crested irregular wave.
 
     Parameters
@@ -133,7 +134,7 @@ def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
         Wave spectrum function. Maps frequecies to amplitude spectrum.
-        Union[float, npt.ArrayLike] -> Union[float, np.ndarray]
+        float | npt.ArrayLike -> float | np.ndarray
     direction: float, optional
         Direction (in degrees) of the regular wave.
     spectrum_name: str, optional
@@ -163,10 +164,10 @@ def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
 
 
 def irregular_wave(f0: float, num_freq: int,
-                   directions: Union[float, npt.ArrayLike],
+                   directions: float | npt.ArrayLike,
                    spectrum_func: Callable, spread_func: Callable,
                    spectrum_name: str = '', spread_name: str = '',
-                   seed: Union[int, None] = None) -> xr.Dataset:
+                   seed: int | None = None) -> xr.Dataset:
     """ Create the dataset for an irregular wave field.
 
     Parameters
@@ -180,11 +181,11 @@ def irregular_wave(f0: float, num_freq: int,
         Wave directions. 1D array.
     spectrum_func: function
         Wave spectrum function. Maps frequencies to amplitude spectrum.
-        Union[float, npt.ArrayLike] -> Union[float, np.ndarray]
+        float | npt.ArrayLike -> float | np.ndarray
     spread_func: function
         Wave spreading function. Maps wave frequencies and directions to
         spread value.
-        tuple[Union[float, npt.ArrayLike], Union[float, npt.ArrayLike]
+        tuple[float | npt.ArrayLike, float | npt.ArrayLike
         ] -> np.ndarray.
     spectrum_name: str, optional
         Name of the spectrum function.
@@ -218,8 +219,8 @@ def irregular_wave(f0: float, num_freq: int,
     return waves
 
 
-def degrees_to_radians(degrees: Union[float, npt.ArrayLike]
-                       ) -> Union[float, np.ndarray]:
+def degrees_to_radians(degrees: float | npt.ArrayLike
+                       ) -> float | np.ndarray:
     """ Convert degrees to radians in range -π to π and sort.
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
@@ -228,16 +229,16 @@ def degrees_to_radians(degrees: Union[float, npt.ArrayLike]
     return radians
 
 
-def random_phase(shape: Union[list[int], int, None] = None,
-                 seed: Union[float, None] = None) -> Union[float, np.ndarray]:
+def random_phase(shape: list[int] | int | None = None,
+                 seed: float | None = None) -> float | np.ndarray:
     """ Generate random phases in range -π to π radians.
     """
     rng = np.random.default_rng(seed)
     return rng.random(shape)*2*np.pi - np.pi
 
 
-def spread_cos2s(freq: Union[float, npt.ArrayLike],
-                 directions: Union[float, npt.ArrayLike],
+def spread_cos2s(freq: float | npt.ArrayLike,
+                 directions: float | npt.ArrayLike,
                  fp: float, s_max: float) -> np.ndarray:
     """ Calculate the Cosine-2s spreading function for the specified
     frequencies and wave directions.
