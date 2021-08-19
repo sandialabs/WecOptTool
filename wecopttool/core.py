@@ -653,15 +653,6 @@ class WEC:
             dof_names=self.hydro.influenced_dof.values.tolist(), show=show)
         return fig, axs
 
-    def get_pow_ub(self):
-        """
-        Find the upper theoretical limit of power from each DOF.
-        """
-        # TODO: implement (here or  pto.py?).
-        #       See original code
-        #       Use PTO DOFs instead of WEC DOFS
-        raise NotImplementedError()
-
 
 def freq_array(f0: float, num_freq: int) -> np.ndarray:
     """ Cunstruct equally spaced frequency array.
