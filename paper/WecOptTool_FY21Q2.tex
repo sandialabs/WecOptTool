@@ -39,17 +39,9 @@
 \RequirePackage{snapshot}
 \begin{document}
 
-\author[1]{Ryan G. Coe}
-\author[1]{Giorgio Bacelli}
-\author[1]{Sterling S. Olson}
-\author[2]{Mathew B. R. Topper}
-\author[1]{Vincent S. Neary}
-\author[3]{Alex Hagmuller}
-\author[3]{Max Ginsburg}
+\author[1]{Author}
 
 \affil[1]{Sandia National Laboratories, Albuquerque, NM, USA}
-\affil[2]{Data Only Greater}
-\affil[3]{AquaHarmonics}
 
 \maketitle
 
@@ -61,7 +53,11 @@
 \section{Introduction}\label{sec:intro}
 
 The methods and formulations here follow those developed by \citet{Bacelli2014}.
-
+A previous version of \texttt{WecOptTool} was released using MATLAB \cite{Coe2020b}.
+\citet{Coe2020b} focuses mainly on the conceptual demonstration of co-optimization for WEC design.
+In this paper, we introduce a new structure for \texttt{WecOptTool}, which has been re-written Python and restructured to provide better usability.
+This paper also more completely explains the underlying theory applied.
+A case-study using the AquaHarmonics device is presented to demonstrate a realistic application of \texttt{WecOptTool}.
 
 % -----------------------------------------------------------
 \section{Methods}\label{sec:methods}
@@ -282,6 +278,29 @@ Each block within $Z_{block}$ is a diagonal matrix $Z_{block,ik} \in \mathbb{C}^
 	\end{bmatrix}
 \end{equation}
 
+\begin{table}[tb]
+	\caption{Variable descriptions and sizes}
+	\label{tab:variables}
+	\centering
+
+	\begin{tabular}{ccl}
+	\hline
+
+	\hline
+	\textbf{Symbol} 	& \textbf{Size} 						& \textbf{Description} \\
+	\hline
+		$n$				& 1 									& number of frequency components \\
+		$m$				& 1 									& number of body modes of motion \\
+		$p$				& 1 									& number of external states \\
+		$x$ 			& $\mathbb{R}^{(2n + 1) \cdot (m + p)}$ & pseudo-spectral decision variable \\
+		$x_{pos}$ 		& $\mathbb{R}^{m(2n + 1)}$ 				& pseudo-spectral position \\
+		$x_{ext}$ 		& $\mathbb{R}^{p(2n+1)}$ 				& pseudo-spectral external states \\
+	\hline
+
+	\hline
+	\end{tabular}
+\end{table}
+
 % -----------------------------------------------------------------------------------------
 \subsection{Numerical implementation}\label{sec:numericalImplementation}
 In practice, the number of decision variables will often be large.
@@ -289,10 +308,10 @@ The decision variable $x$, as specified by \eqref{eq:decision_variable}, with ha
 The number of frequency components needed will depend first on the dynamics of the device and the wave spectrum.
 The degree to which either the device or spectrum exhibit narrow banded or ``peaky'' responses will increase the need for larger numbers of frequency components.
 The National Buoy Data Center (NDBC), for instance, currently uses 47 frequency components between 0.02 and 0.485\,Hz in spectral density estimates.
-Considering next that we would like to handle nonlinearities which will occur at super-harmonics of the exciting frequencies, we need five times the number of these exciting frequencies.
+Considering next that we would like to handle nonlinearities which will occur at super-harmonics of the exciting frequencies, we need some multiple of the number of exciting frequencies (e.g., $5\textrm{x}$).
 
 Take, for example, a single degree of freedom WEC operating in an irregular sea state.
-If we use $n=25$ frequency components, which is fairly parsimonious, the result would be $(2\cdot 5 \cdot 25 + 1) \cdot (1 + p) > 251$ decision variables.
+If we use $n=25$ frequency components to represent the excitation spectrum, which is fairly parsimonious, and use five harmonics (i.e., $n=25\cdot5$) the result would be $(2\cdot 5 \cdot 25 + 1) \cdot (1 + p) > 251$ decision variables.
 Of course $p \geq 1$, so it is clear to see how the number of decision variables can easily reach $\mathcal{O}(1e3)$.
 
 The optimization problem described in Section~\ref{sec:inner_optimization_problem} requires a high-accuracy deterministic solution.
@@ -301,12 +320,23 @@ Given these factors along with the understanding that the number of decision var
 
 % -----------------------------------------------------------------------------------------
 \subsubsection{Scaling}\label{sec:scaling}
+The optimization problem to solve for $x$ is badly scaled.
+Reviewing \eqref{eq:decision_variable}, we see that $x$ is composed of two constituent components: $x_{pos}$ and $x_{ext}$.
+Considering a device for wave tank testing, which might move 0.5\,m and require forces on the order of \,1kN, $x_{pos}$ may be $\mathcal{O}(1e-1)$, while the scale of $x_{ext}$ may be $\mathcal{O}(1e3)$.
+As the size of the device increases, the disparity may get even worse.
+Thus, to ensure convergence it is necessary to scale the problem.
 
-Elementwise multiplication of $x$ to scale.
-User sets this based on knowledge of problem (for now).
-Pre-multiply $x$ in \texttt{decompose\_decision\_variable}.
-Write Obj fun and PTO fun and external fun as if working with non-scaled $x$.
-Final step after solver runs, unscale results.
+In practice, the scaling is applied as follows:
+
+\begin{enumerate}
+	\item Set up:
+	\begin{itemize}
+		\item User sets elementwise scaling of $x$ based on knowledge of problem
+		\item User writes objective, PTO, and external functions as if working with unscaled $x$.
+	\end{itemize}
+	\item Solve (pre-multiply $x$ before evaluation of objective and constraint functions\footnote{This takes place in \texttt{{decompose\_decision\_variable}}.})
+	\item Post-process (unscale results)
+\end{enumerate}
 
 \section{Example: tethered point absorber}\label{sec:example_tethered_point_absorber}
 
