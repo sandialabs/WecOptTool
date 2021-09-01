@@ -425,13 +425,14 @@ class WEC:
         """ Calculate BEM RAOs using capytaine. """
         self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
 
-    def plot_impedance(self, option: str = 'symmetric', show: bool = True):
+    def plot_impedance(self, style: str = 'Bode',
+        option: str = 'symmetric', show: bool = True):
         """ Plot impedance.
 
         See `wot.plot_impedance()`.
         """
         fig, axs = plot_impedance(
-            Zi=self.hydro.Zi.values, freq=self.freq, option=option,
+            Zi=self.hydro.Zi.values, freq=self.freq, style=style, option=option,
             dof_names=self.hydro.influenced_dof.values.tolist(), show=show)
         return fig, axs
 
@@ -820,6 +821,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
 
 
 def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
+                   style: str = 'Bode',
                    option: str = 'diagonal', show: bool = False,
                    dof_names: list[str] | None = None):
     """ Plot the impedance matrix.
@@ -830,6 +832,7 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
         Complex impedance matrix. Shape: nfreq x ndof x ndof
     freq: list[float]
         Frequencies in Hz.
+    style: {'Bode','complex'}
     option: {'diagonal', 'symmetric', 'all'}
         Which terms of the matrix to plot:
         'diagonal' to plot only the diagonal terms,
@@ -844,7 +847,7 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
     fig: matplotlib.figure.Figure
     axs: np.ndarray[matplotlib.axes._subplots.AxesSubplot]
     """
-    figh = 2.5
+    figh = 3.5
     figw = 2 * figh
     ndof = Zi.shape[-1]
     fig, axs = plt.subplots(
@@ -875,8 +878,16 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
         for jdof in range(ndof):
             # labels, ticks, etc
             if jdof == 0:
-                axs[idof*2, jdof].set_ylabel('Magnitude (dB)')
-                axs[idof*2+1, jdof].set_ylabel('Phase (deg)')
+                if style == 'Bode':
+                    l1 = 'Magnitude (dB)'
+                    l2 = 'Phase (deg)'
+                    
+                elif style == 'complex':
+                    l1 = 'Real'
+                    l2 = 'Imaginary'
+
+                axs[idof*2, jdof].set_ylabel(l1)
+                axs[idof*2+1, jdof].set_ylabel(l2)
 
             if idof == ndof-1:
                 axs[idof*2+1, jdof].set_xlabel('Frequency (Hz)')
@@ -903,16 +914,28 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
             plot = True if (all or sym or diag) else False
             if plot:
                 iZi = Zi[:, idof, jdof]
-                mag = np.squeeze(20*np.log10(np.abs(iZi)))
-                ang = np.squeeze(np.rad2deg(np.angle(iZi)))
-                axs[idof*2, jdof].semilogx(freq, mag, '-o', color=color)
-                axs[idof*2+1, jdof].semilogx(freq, ang, '-o', color=color)
+                if style == 'Bode':
+                    p1 = np.squeeze(20*np.log10(np.abs(iZi)))
+                    p2 = np.squeeze(np.rad2deg(np.angle(iZi)))
+                elif style == 'complex':
+                    p1 = np.squeeze(np.real(iZi))
+                    p2 = np.squeeze(np.imag(iZi))
+                axs[idof*2, jdof].semilogx(freq, p1, '-o', 
+                                           color=color,
+                                           markersize=4,
+                                           )
+                axs[idof*2+1, jdof].semilogx(freq, p2, '-o', 
+                                            color=color,
+                                            markersize=4,
+                                            )
 
                 axs[idof*2, jdof].grid(True, which='both')
                 axs[idof*2+1, jdof].grid(True, which='both')
 
-                axs[idof*2, jdof].set_ylim(0-mag_pad, mag_max+mag_pad)
-                axs[idof*2+1, jdof].set_ylim(-180-phase_pad, 180+phase_pad)
+                if style == 'Bode':
+                    axs[idof*2, jdof].set_ylim(0-mag_pad, mag_max+mag_pad)
+                    axs[idof*2+1, jdof].set_ylim(-180-phase_pad, 180+phase_pad)
+
             else:
                 delaxes(axs, idof, jdof, ndof)
 
