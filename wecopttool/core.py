@@ -88,8 +88,6 @@ class WEC:
         super().__setattr__('freq', (f0, num_freq))
 
         # additional WEC dynamics forces
-        def f_zero(self, x_wec, x_opt): return 0.0
-        f_add = f_add if (f_add is not None) else f_zero
         super().__setattr__('f_add', f_add)
         super().__setattr__('dissipation', dissipation)
         super().__setattr__('stiffness', stiffness)
@@ -170,7 +168,7 @@ class WEC:
 
     @property
     def omega(self):
-        """ Frequency array in radians per second ω=2πf."""
+        """ Frequency array in radians per second ω=2πf. """
         return self._freq * 2 * np.pi
 
     @property
@@ -180,13 +178,13 @@ class WEC:
 
     @property
     def phi(self):
-        """ Matrix to convert from frequency domaint to time domain.
+        """ Matrix to convert from frequency domain to time domain.
         Set when frequency is set. """
         return self._phi
 
     @property
     def dphi(self):
-        """ Derivtive matrix to convert from position to velocity in
+        """ Derivative matrix to convert from position to velocity in
         the frequency domain. Set when frequency is set. """
         return self._dphi
 
@@ -254,6 +252,7 @@ class WEC:
         Opposite of ``vec_to_dofmat``. """
         return np.reshape(mat, -1)
 
+    # Transformation matrices
     def _make_phi(self) -> np.ndarray:
         t = np.linspace(0, 1/self.f0, self.nfd, endpoint=False).reshape(1, -1)
         w = self.omega.reshape(1, -1)
@@ -283,7 +282,7 @@ class WEC:
         """ Convert from frequency domain to time ddomain using IFFT."""
         return np.fft.irfft(fd/(2/self.nfd), n=self.nfd)
 
-    # bem
+    # bem & impedance
     def run_bem(self, wave_dirs: npt.ArrayLike = [0]) -> None:
         """ Run the BEM for the specified wave directions.
 
@@ -305,6 +304,8 @@ class WEC:
         self._bem_add_hydrostatics()
         # calculate impedance
         self._bem_calc_impedance()
+        # post-processing needed for solving dynamics
+        self._post_process_impedance()
 
     def read_bem(self, fpath: str | Path) -> None:
         """ Read a BEM solution from a NetCDF file.
@@ -352,21 +353,11 @@ class WEC:
         self.hydro['hydrostatic_stiffness'] = (
             dims, self.hydrostatic_stiffness)
 
-    def bem_calc_inf_added_mass(self) -> None:
-        """ Run the BEM to obtain infinite added mass. """
-        log.info("Running Capytaine for infinite frequency.")
-        inf_data = run_bem(
-            self.fb, [np.infty], wave_dirs=None,
-            rho=self.rho, g=self.g, depth=self.depth)
-        self.hydro['Ainf'] = inf_data.added_mass[0, :, :]
-
-    def bem_calc_rao(self) -> None:
-        """ Calculate BEM RAOs using capytaine. """
-        self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
-
     def _bem_calc_impedance(self) -> None:
         """ Calculate the impedance matrix.
         """
+        # TODO: Move this to outside WEC.
+        #       wrapper on Capytaine impedance that makes symmetric, etc.
         log.info("Calculating impedance matrix.")
         # TODO: Capytaine: use capytaine after next release
         # impedance = cpy.post_pro.impedance(
@@ -397,9 +388,6 @@ class WEC:
         # store
         self.hydro['Zi'] = impedance
 
-        # post-processing needed for solving dynamics
-        self._post_process_impedance()
-
     def _post_process_impedance(self) -> None:
         """ Calculate the Gi block. """
         _gi_block = self._make_gi_block()
@@ -423,6 +411,28 @@ class WEC:
                     np.concatenate(([K], 1j * w_impedance)))
 
         return sparse.dia_matrix(np.block(elem))
+
+    def bem_calc_inf_added_mass(self) -> None:
+        """ Run the BEM to obtain infinite added mass. """
+        log.info("Running Capytaine for infinite frequency.")
+        inf_data = run_bem(
+            self.fb, [np.infty], wave_dirs=None,
+            rho=self.rho, g=self.g, depth=self.depth)
+        self.hydro['Ainf'] = inf_data.added_mass[0, :, :]
+
+    def bem_calc_rao(self) -> None:
+        """ Calculate BEM RAOs using capytaine. """
+        self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
+
+    def plot_impedance(self, option: str = 'symmetric', show: bool = True):
+        """ Plot impedance.
+
+        See `wot.plot_impedance()`.
+        """
+        fig, axs = plot_impedance(
+            Zi=self.hydro.Zi.values, freq=self.freq, option=option,
+            dof_names=self.hydro.influenced_dof.values.tolist(), show=show)
+        return fig, axs
 
     # solve
     def solve(self, waves: xr.Dataset,
@@ -593,7 +603,10 @@ class WEC:
         fi_fd = np.hstack((fi_fd_tmp_0, tmp_1_0, tmp_1_1))
         f_i = np.dot(fi_fd, self._phi_for_fi)
 
-        f_add = self.f_add(self, x_wec, x_opt)
+        if self.f_add is not None:
+            f_add = self.f_add(self, x_wec, x_opt)
+        else:
+            f_add = 0.0
 
         return f_exc + f_add - f_i
 
@@ -643,16 +656,6 @@ class WEC:
 
         return freq_dom, time_dom
 
-    def plot_impedance(self, option: str = 'symmetric', show: bool = True):
-        """ Plot impedance.
-
-        See `wot.plot_impedance()`.
-        """
-        fig, axs = plot_impedance(
-            Zi=self.hydro.Zi.values, freq=self.freq, option=option,
-            dof_names=self.hydro.influenced_dof.values.tolist(), show=show)
-        return fig, axs
-
 
 def freq_array(f0: float, num_freq: int) -> np.ndarray:
     """ Cunstruct equally spaced frequency array.
@@ -693,7 +696,7 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     -------
     freq_dom: xarray.Dataset
         Frequency domain wave excitation and elevation.
-    freq_dom: xarray.Dataset
+    time_dom: xarray.Dataset
         Time domain wave excitation and elevation.
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
@@ -815,31 +818,6 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
-def from_netcdf(fpath: str | Path) -> xr.Dataset:
-    """ Read a NetCDF file with commplex entries as an xarray dataSet.
-    """
-    return cpy.io.xarray.merge_complex_values(xr.open_dataset(fpath))
-
-
-def to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
-    """ Save an xarray dataSet with complex entries as a NetCDF file.
-    """
-    cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
-
-
-def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
-    # TODO: Capytaine: this is in Capytaine but not in release yet
-    omega = bem_data.coords['omega']
-    impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +
-                 1j*omega*bem_data['radiation_damping'] +
-                 bem_data['hydrostatic_stiffness'])
-    if dissipation is not None:
-        impedance = impedance + 1j*omega*dissipation
-    if stiffness is not None:
-        impedance = impedance + stiffness
-    return impedance
-
-
 def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
                    option: str = 'diagonal', show: bool = False,
                    dof_names: list[str] | None = None):
@@ -947,3 +925,28 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
         plt.show()
 
     return fig, axs
+
+
+def from_netcdf(fpath: str | Path) -> xr.Dataset:
+    """ Read a NetCDF file with commplex entries as an xarray dataSet.
+    """
+    return cpy.io.xarray.merge_complex_values(xr.open_dataset(fpath))
+
+
+def to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
+    """ Save an xarray dataSet with complex entries as a NetCDF file.
+    """
+    cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
+
+
+def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
+    # TODO: Capytaine: this is in Capytaine but not in release yet
+    omega = bem_data.coords['omega']
+    impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +
+                 1j*omega*bem_data['radiation_damping'] +
+                 bem_data['hydrostatic_stiffness'])
+    if dissipation is not None:
+        impedance = impedance + 1j*omega*dissipation
+    if stiffness is not None:
+        impedance = impedance + stiffness
+    return impedance
