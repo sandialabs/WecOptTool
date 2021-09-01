@@ -366,6 +366,7 @@ class WEC:
             self.hydro, self.dissipation, self.stiffness)
         impedance = impedance * -1j/impedance.omega
 
+        # TODO: Should not be zero either (maybe % of max?)
         # ensure non-negative diagonal
         for iw in impedance['omega'].values:
             B = np.real(impedance.sel(omega=iw).values).diagonal()

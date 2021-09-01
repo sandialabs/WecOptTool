@@ -42,16 +42,16 @@ wec.read_bem(bem_file)
 # wave
 waves = xr.open_dataset(os.path.join(data_dir, 'waves.nc'))
 
-# Scale # TODO (makes it worst in some cases ... why?)
-scale_wec = 1.0  # 1e-4
-scale_opt = 1.0  # 1e-3
-scale_obj = 1.0  # 1e-8
+# Scale
+scale_wec = 1.0
+scale_opt = 100.0
+scale_obj = 1.0
 
 # Constraints
 constraints = []
 
 # Solve dynamics & opt control
-options = {'maxiter': 1000, }
+options = {'maxiter': 10000, 'ftol': 1e-8}
 
 fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,
