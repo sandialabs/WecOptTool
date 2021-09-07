@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import logging
 
 import autograd.numpy as np
 import capytaine as cpy
@@ -9,6 +10,8 @@ import xarray as xr
 import wecopttool as wot
 from preprocess import rho, f0, num_freq
 
+
+logging.basicConfig(level=logging.WARNING)
 
 # I/O
 data_dir = 'data'
@@ -36,15 +39,15 @@ num_x_pto, f_pto, power_pto, pto_postproc = \
 wec = wot.WEC(fb, mass, stiffness, f0, num_freq, f_add=f_pto, rho=rho)
 
 # read BEM
-bem_file = os.path.join(data_dir, 'BEM.nc')
+bem_file = os.path.join(data_dir, 'bem.nc')
 wec.read_bem(bem_file)
 
 # wave
 waves = xr.open_dataset(os.path.join(data_dir, 'waves.nc'))
 
 # Scale
-scale_wec = 1.0
-scale_opt = 100.0
+scale_wec = [1.0]
+scale_opt = 1000.0
 scale_obj = 1.0
 
 # Constraints

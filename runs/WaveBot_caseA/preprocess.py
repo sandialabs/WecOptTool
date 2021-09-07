@@ -5,7 +5,7 @@ rho = 1e3
 
 # frequency array
 f0 = 0.05
-num_freq = 48
+num_freq = 50
 
 # wec
 mesh_size_factor = 0.1
@@ -58,6 +58,12 @@ if __name__ == "__main__":
     # run BEM
     wec.run_bem()
     wec.write_bem(os.path.join(data_dir, 'bem.nc'))
+
+    # plot BEM
+    fig1, axs1 = wec.plot_impedance(style='Bode', show=False)
+    fig2, axs2 = wec.plot_impedance(style='complex', show=False)
+    fig1.savefig(os.path.join(data_dir, 'impedance_bode.pdf'))
+    fig2.savefig(os.path.join(data_dir, 'impedance_complex.pdf'))
 
     # wave
     waves = wot.waves.regular_wave(f0, num_freq, freq, amplitude, phase)

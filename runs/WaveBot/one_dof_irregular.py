@@ -19,10 +19,11 @@ rho = 1e3
 
 # frequencies
 f0 = 0.05
-num_freq = 18
+num_freq = 25
+mesh_size_factor = 0.5
 
 # Capytaine floating body
-mesh = wavebot.mesh()
+mesh = wavebot.mesh(mesh_size_factor=mesh_size_factor)
 # TODO: Capytaine fb from meshio/pygmsh mesh (Issues #13, #62)
 mesh_file = 'tmp_mesh.stl'
 mesh.write(mesh_file)
@@ -71,36 +72,49 @@ waves = wot.waves.irregular_wave(
 # run BEM
 wec.run_bem(wave_dirs=waves['wave_direction'].values)
 
-# Solve
-f_dom, t_dom, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
+# Scale
+scale_wec = [1.0]
+scale_opt = 1000.0
+scale_obj = 1.0
+
+# Constraints
+constraints = []
+
+# Solve dynamics & opt control
+options = {'maxiter': 10000, 'ftol': 1e-8}
+
+fdom, tdom, x_opt, res = wec.solve(
+    waves, power_pto, num_x_pto,
+    constraints=constraints, optim_options=options,
+    scale_x_wec=scale_wec, scale_x_opt=scale_opt, scale_obj=scale_obj)
 
 # post-process: PTO
-t_dom, f_dom = pto_postproc(wec, t_dom, f_dom, x_opt)
+tdom, fdom = pto_postproc(wec, tdom, fdom, x_opt)
 
 # save
-t_dom.to_netcdf('t_dom.nc')
-wot.to_netcdf('f_dom.nc', f_dom)
+tdom.to_netcdf('tdom.nc')
+wot.to_netcdf('fdom.nc', fdom)
 
 # example time domain plots
 plt.figure()
-t_dom['wave_elevation'].plot()
+tdom['wave_elevation'].plot()
 
 plt.figure()
-t_dom['excitation_force'].plot()
+tdom['excitation_force'].plot()
 
 plt.figure()
-t_dom['pos'].plot()
+tdom['pos'].plot()
 
 plt.figure()
-t_dom['pto_force'].plot()
+tdom['pto_force'].plot()
 
 # example frequency domain plots
 fd_lines = {'marker': 'o', 'linestyle': '', 'fillstyle': 'none'}
 
 plt.figure()
-np.abs(f_dom['excitation_force']).plot(**fd_lines)
+np.abs(fdom['excitation_force']).plot(**fd_lines)
 
 plt.figure()
-np.abs(f_dom['pto_force']).plot(**fd_lines)
+np.abs(fdom['pto_force']).plot(**fd_lines)
 
 plt.show()

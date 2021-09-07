@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import logging
 
 import autograd.numpy as np
 from autograd import jacobian
@@ -10,6 +11,8 @@ import xarray as xr
 import wecopttool as wot
 from preprocess import rho, f0, num_freq
 
+
+logging.basicConfig(level=logging.WARNING)
 
 # I/O
 data_dir = 'data'
@@ -37,22 +40,21 @@ num_x_pto, f_pto, power_pto, pto_postproc = \
 wec = wot.WEC(fb, mass, stiffness, f0, num_freq, f_add=f_pto, rho=rho)
 
 # read BEM
-bem_file = os.path.join(data_dir, 'BEM.nc')
+bem_file = os.path.join(data_dir, 'bem.nc')
 wec.read_bem(bem_file)
 
 # wave
 waves = xr.open_dataset(os.path.join(data_dir, 'waves.nc'))
 
 # Scale
-scale_wec = 1.0
-scale_opt = 100.0
+scale_wec = [1.0]
+scale_opt = 1e9
 scale_obj = 1.0
 
 # Constraints
 f_max = 2000.0
 
-scale = np.concatenate([scale_wec * np.ones(wec.num_x_wec),
-                        scale_opt * np.ones(num_x_pto)])
+scale = wec.scale(scale_wec, scale_opt, num_x_pto)
 
 
 def const_f_pto(x):
@@ -70,12 +72,10 @@ constraints = [ineq_cons]
 
 # Solve dynamics & opt control
 options = {'maxiter': 10000, 'ftol': 1e-8}
-
 fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,
     constraints=constraints, optim_options=options,
     scale_x_wec=scale_wec, scale_x_opt=scale_opt, scale_obj=scale_obj)
-
 # post-process: PTO
 tdom, fdom = pto_postproc(wec, tdom, fdom, x_opt)
 

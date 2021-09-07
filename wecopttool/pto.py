@@ -169,10 +169,10 @@ def pseudospectral_pto(
         x_pto = x_opt.reshape(ndof_pto, num_x_perdof)
 
         # frequency domain
-        f_pto_fd = wot.fd_folded_nomean(x_pto)
-        power_fd = kinematics @ freq_dom['vel'].values * f_pto_fd / (2*wec.f0)
         pos_fd = np.dot(kinematics, freq_dom['pos'].values)
         vel_fd = np.dot(kinematics, freq_dom['vel'].values)
+        f_pto_fd = wot.fd_folded_nomean(x_pto)
+        power_fd = vel_fd * f_pto_fd
 
         # time domain
         f_pto_td = (x_pto @ wec.phi[1:, :])

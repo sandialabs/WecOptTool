@@ -283,7 +283,7 @@ class WEC:
         return np.fft.irfft(fd/(2/self.nfd), n=self.nfd)
 
     # bem & impedance
-    def run_bem(self, wave_dirs: npt.ArrayLike = [0]) -> None:
+    def run_bem(self, wave_dirs: npt.ArrayLike = [0], tol: float = 1e-6) -> None:
         """ Run the BEM for the specified wave directions.
 
         See ``wot.run_bem``.
@@ -292,6 +292,9 @@ class WEC:
         ----------
         wave_dirs: list[float]
             List of wave directions to evaluate BEM at.
+        tol: float
+            Minimum value for real component of diagonal impedance
+            terms.
         """
         log.info(f"Running Capytaine (BEM): {self.num_freq} frequencies x " +
                  f"{len(wave_dirs)} wave directions.")
@@ -305,15 +308,18 @@ class WEC:
         # calculate impedance
         self._bem_calc_impedance()
         # post-processing needed for solving dynamics
-        self._post_process_impedance()
+        self._post_process_impedance(tol=tol)
 
-    def read_bem(self, fpath: str | Path) -> None:
+    def read_bem(self, fpath: str | Path, tol: float = 1e-6) -> None:
         """ Read a BEM solution from a NetCDF file.
 
         Parameters
         ----------
         fpath: str
             Name of file to read BEM data from.
+        tol: float
+            Minimum value for real component of diagonal impedance
+            terms.
         """
         log.info(f"Reading BEM data from {fpath}.")
         data = from_netcdf(fpath)
@@ -332,7 +338,7 @@ class WEC:
         if not 'Zi' in self.hydro:
             self._bem_calc_impedance()
         # post-processing needed for solving dynamics
-        self._post_process_impedance()
+        self._post_process_impedance(tol=tol)
 
     def write_bem(self, fpath: str | Path) -> None:
         """
@@ -356,41 +362,28 @@ class WEC:
     def _bem_calc_impedance(self) -> None:
         """ Calculate the impedance matrix.
         """
-        # TODO: Move this to outside WEC.
-        #       wrapper on Capytaine impedance that makes symmetric, etc.
         log.info("Calculating impedance matrix.")
-        # TODO: Capytaine: use capytaine after next release
-        # impedance = cpy.post_pro.impedance(
-        #     self.hydro, self.dissipation, self.stiffness)
-        impedance = _cpy_impedance(
+        self.hydro['Zi'] = sym_impedance(
             self.hydro, self.dissipation, self.stiffness)
-        impedance = impedance * -1j/impedance.omega
 
-        # TODO: Should not be zero either (maybe % of max?)
+    def _post_process_impedance(self, tol=1e-6) -> None:
+        """ Enforce real diagonal >= 0 and calculate the Gi block. """
         # ensure non-negative diagonal
-        for iw in impedance['omega'].values:
-            B = np.real(impedance.sel(omega=iw).values).diagonal()
-            B_min = B.min()
-            if B_min < 0.0:
-                log.warning("Impedance matrix has negative diagonal terms." +
-                            " Setting to zero.")
-                for j, jB in enumerate(B):
-                    impedance.loc[{"omega": iw}][j, j] = (
-                        np.max([0.0, jB]) +
-                        1j * np.imag(impedance.loc[{"omega": iw}][j, j]))
+        for idof in range(self.ndof):
+            impedance = np.real(self.hydro['Zi'].isel(
+                radiating_dof=idof, influenced_dof=idof))
+            if impedance.min().values <= 0.0 + tol:
+                dof = self.hydro['Zi'].influenced_dof.values[idof]
+                log.warning(f'Impedance for DOF "{dof}" has negative or ' +
+                            'zero terms. Shifting impedance up by 1% of ' +
+                            'maximum.')
+                impedance[:] = impedance[:] + 0.01*impedance.max()
+            if impedance.min().values <= 0.0 + tol:
+                raise ValueError(f'Impedance for DOF "{dof}" has large' +
+                                 'negative terms. Check BEM results or' +
+                                 'add additional dissipation.')
 
-        # make symmetric
-        impedance = impedance.transpose(
-            'omega', 'radiating_dof', 'influenced_dof')
-        impedance_transp = impedance.transpose(
-            'omega', 'influenced_dof', 'radiating_dof')
-        impedance = (impedance + impedance_transp) / 2
-
-        # store
-        self.hydro['Zi'] = impedance
-
-    def _post_process_impedance(self) -> None:
-        """ Calculate the Gi block. """
+        # Gi block
         _gi_block = self._make_gi_block()
         _gi_scale = 1/np.linalg.norm(_gi_block.toarray())
         _gi_block_scaled = _gi_scale * _gi_block.toarray()
@@ -437,12 +430,50 @@ class WEC:
         return fig, axs
 
     # solve
+    def scale(self, scale_x_wec: list | None = None,
+              scale_x_opt: npt.ArrayLike | float = 1.0,
+              num_x_opt: int | None = None):
+        """ Create a combined scaling array for the state vector.
+
+        Parameters
+        ----------
+        scale_x_wec: list
+            Factors to scale each DOF in ``x_wec`` by, to improve
+            convergence. List length ``ndof``.
+        scale_x_opt: npt.ArrayLike | float
+            Factor to scale ``x_opt`` by, to improve convergence.
+            A single float or an array of size ``num_x_opt``.
+        num_x_opt: int
+            Length of the optimization (controls) state vector.
+
+        Returns
+        -------
+        scale_x: np.ndarray
+            Combined scale array.
+        """
+        if isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
+            scale_x_wec = [scale_x_wec]
+
+        if scale_x_wec == None:
+            scale_x_wec = np.ones(self.num_x_wec)
+        else:
+            scale_x_wec = scale_dofs(scale_x_wec, self.nfd)
+
+        if isinstance(scale_x_opt, float) or isinstance(scale_x_opt, int):
+            if num_x_opt is None:
+                raise ValueError("If 'scale_x_opt' is a scalar, " +
+                                 "'num_x_opt' must be provided")
+            scale_x_opt = scale_x_opt * np.ones(num_x_opt)
+
+        return np.concatenate([scale_x_wec, scale_x_opt])
+
     def solve(self, waves: xr.Dataset,
               obj_fun: Callable[[WEC, np.ndarray, np, ndarray], float],
               num_x_opt: int, constraints: list[dict] = [],
               x_wec_0: np.ndarray | None = None,
               x_opt_0: np.ndarray | None = None,
-              scale_x_wec: float = 1.0, scale_x_opt: float = 1.0,
+              scale_x_wec: list | None = None,
+              scale_x_opt: npt.ArrayLike | float = 1.0,
               scale_obj: float = 1.0, optim_options: dict[str, Any] = {}
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
                          optimize.optimize.OptimizeResult]:
@@ -476,10 +507,12 @@ class WEC:
         x_opt_0: np.ndarray
             Initial guess for the optimization (controls) state.
             If ``None`` it is randomly initiated.
-        scale_x_wec: float
-            Factor to scale ``x_wec`` by, to improve convergence.
-        scale_x_opt: float
+        scale_x_wec: list
+            Factors to scale each DOF in ``x_wec`` by, to improve
+            convergence. List length ``ndof``.
+        scale_x_opt: npt.ArrayLike | float
             Factor to scale ``x_opt`` by, to improve convergence.
+            A single float or an array of size ``num_x_opt``.
         scale_obj: float
             Factor to scale ``obj_fun`` by, to improve convergence.
         optim_options: dict
@@ -510,9 +543,7 @@ class WEC:
         f_exc = td_we['excitation_force']
 
         # scale
-        scale = np.concatenate([
-            scale_x_wec * np.ones(self.num_x_wec),
-            scale_x_opt * np.ones(num_x_opt)])
+        scale = self.scale(scale_x_wec, scale_x_opt, num_x_opt)
 
         # objective function
         def obj_fun_scaled(x):
@@ -569,6 +600,7 @@ class WEC:
         fd_we = fd_we.reset_coords(drop=True)
         freq_dom = xr.merge([freq_dom_x, fd_we])
         time_dom = xr.merge([time_dom_x, td_we])
+
         return freq_dom, time_dom, x_opt, res
 
     def _dynamic_residual(self, x: np.ndarray, f_exc: np.ndarray
@@ -604,7 +636,6 @@ class WEC:
         tmp_1_1 = -np.imag(fi_fd[:, 1::])
         fi_fd = np.hstack((fi_fd_tmp_0, tmp_1_0, tmp_1_1))
         f_i = np.dot(fi_fd, self._phi_for_fi)
-
         if self.f_add is not None:
             f_add = self.f_add(self, x_wec, x_opt)
         else:
@@ -833,6 +864,8 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
     freq: list[float]
         Frequencies in Hz.
     style: {'Bode','complex'}
+        Whether to plot magnitude and angle (``Bode``) or real and
+        imaginary (``complex``) parts.
     option: {'diagonal', 'symmetric', 'all'}
         Which terms of the matrix to plot:
         'diagonal' to plot only the diagonal terms,
@@ -858,9 +891,21 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
         dof_names = [f"DOF {i}" for i in range(ndof)]
 
     colors = (plt.rcParams['axes.prop_cycle'].by_key()['color']*10)[:ndof]
-    phase_pad = 18
-    mag_max = np.max(20*np.log10(np.abs(Zi)))
-    mag_pad = 0.05 * mag_max
+
+
+    def get_ylim(xmin, xmax, pad_factor=0.05):
+        pad = pad_factor * (xmax - xmin)
+        return (xmin-pad, xmax+pad)
+
+    phase_ylim = get_ylim(-180, 180)
+    mag_ylim = get_ylim(0.0, np.max(20*np.log10(np.abs(Zi))))
+    real_ylim = get_ylim(np.min([0.0, np.min(np.real(Zi))]),
+                         np.max(np.real(Zi)))
+    # imag_ylim = get_ylim(np.min([0.0, np.min(np.imag(Zi))]),
+    #                      np.max([0.0, np.max(np.imag(Zi))]))
+    imag_ylim = get_ylim(-np.max(np.abs(np.imag(Zi))),
+                         +np.max(np.abs(np.imag(Zi))))
+
 
     def delaxes(axs, idof, jdof, ndof):
         for i, ax in enumerate([axs[idof*2, jdof], axs[idof*2+1, jdof]]):
@@ -881,7 +926,7 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
                 if style == 'Bode':
                     l1 = 'Magnitude (dB)'
                     l2 = 'Phase (deg)'
-                    
+
                 elif style == 'complex':
                     l1 = 'Real'
                     l2 = 'Imaginary'
@@ -917,25 +962,25 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
                 if style == 'Bode':
                     p1 = np.squeeze(20*np.log10(np.abs(iZi)))
                     p2 = np.squeeze(np.rad2deg(np.angle(iZi)))
+                    yl1, yh1 = mag_ylim
+                    yl2, yh2 = phase_ylim
                 elif style == 'complex':
                     p1 = np.squeeze(np.real(iZi))
                     p2 = np.squeeze(np.imag(iZi))
-                axs[idof*2, jdof].semilogx(freq, p1, '-o', 
+                    yl1, yh1 = real_ylim
+                    yl2, yh2 = imag_ylim
+                axs[idof*2, jdof].semilogx(freq, p1, '-o',
                                            color=color,
                                            markersize=4,
                                            )
-                axs[idof*2+1, jdof].semilogx(freq, p2, '-o', 
+                axs[idof*2+1, jdof].semilogx(freq, p2, '-o',
                                             color=color,
                                             markersize=4,
                                             )
-
                 axs[idof*2, jdof].grid(True, which='both')
                 axs[idof*2+1, jdof].grid(True, which='both')
-
-                if style == 'Bode':
-                    axs[idof*2, jdof].set_ylim(0-mag_pad, mag_max+mag_pad)
-                    axs[idof*2+1, jdof].set_ylim(-180-phase_pad, 180+phase_pad)
-
+                axs[idof*2, jdof].set_ylim(yl1, yh1)
+                axs[idof*2+1, jdof].set_ylim(yl2, yh2)
             else:
                 delaxes(axs, idof, jdof, ndof)
 
@@ -963,14 +1008,73 @@ def to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
     cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
 
 
-def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
-    # TODO: Capytaine: this is in Capytaine but not in release yet
-    omega = bem_data.coords['omega']
-    impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +
-                 1j*omega*bem_data['radiation_damping'] +
-                 bem_data['hydrostatic_stiffness'])
-    if dissipation is not None:
-        impedance = impedance + 1j*omega*dissipation
-    if stiffness is not None:
-        impedance = impedance + stiffness
+def sym_impedance(bem_data: xr.Dataset,
+                  dissipation: np.ndarray | None = None,
+                  stiffness: np.ndarray | None = None) -> None:
+    """ Calculate the symmetric impedance matrix.
+
+    Parameters
+    ----------
+    bem_data: xarray.Dataset
+        BEM data for the WEC obtained from `capytaine`.
+    dissipation: np.ndarray
+        Additional dissipiation for the impedance calculation in
+        ``capytaine.post_pro.impedance``. Shape:
+        (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``num_freq``).
+    stiffness: np.ndarray
+        Additional stiffness for the impedance calculation in
+        ``capytaine.post_pro.impedance``. Scalar or array shape:
+        (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``num_freq``).
+
+    Returns
+    -------
+    xr.DataArray
+        Impedance, shape (``ndof``x``ndof``x``num_freq``).
+    """
+    # TODO: Capytaine: use capytaine after next release
+    # impedance = cpy.post_pro.impedance(
+    #     self.hydro, self.dissipation, self.stiffness)
+
+    def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
+        omega = bem_data.coords['omega']
+        impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +
+                    1j*omega*bem_data['radiation_damping'] +
+                    bem_data['hydrostatic_stiffness'])
+        if dissipation is not None:
+            impedance = impedance + 1j*omega*dissipation
+        if stiffness is not None:
+            impedance = impedance + stiffness
+        return impedance
+
+    impedance = _cpy_impedance(bem_data, dissipation, stiffness)
+
+    impedance = impedance * -1j/impedance.omega
+
+    # make symmetric
+    impedance = impedance.transpose('omega', 'radiating_dof', 'influenced_dof')
+    impedance_transp = impedance.transpose(
+        'omega', 'influenced_dof', 'radiating_dof')
+    impedance = (impedance + impedance_transp) / 2
+
     return impedance
+
+
+def scale_dofs(scale_list: list[float], x_per_dof: int):
+    """ Create a scaling vector based on a different scale for each DOF.
+
+    Parameters
+    ----------
+    scale_list: list
+        Scale for each DOF.
+    x_per_dof: int
+        Number of elements in the state vector for each DOF.
+
+    Returns
+    -------
+    np.ndarray: Scaling vector.
+    """
+    ndof = len(scale_list)
+    scale = []
+    for dof in range(ndof):
+        scale += [scale_list[dof]] * x_per_dof
+    return np.array(scale)

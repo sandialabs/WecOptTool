@@ -33,12 +33,15 @@ ndof = 4
 if ndof == 2:
     rm3_translation_dofs = []
     rm3_rotation_dofs = []
+    dof_idx = [1, 1, 0, 0, 0, 0, 0]
 elif ndof == 4:
     rm3_translation_dofs = ['SURGE']
     rm3_rotation_dofs = ['PITCH']
+    dof_idx = [1, 1, 1, 0, 0, 1, 0]
 elif ndof == 7:
     rm3_translation_dofs = ['SURGE', 'SWAY']
     rm3_rotation_dofs = ['ROLL', 'PITCH', 'YAW']
+    dof_idx = [1, 1, 1, 1, 1, 1, 1]
 else:
     raise ValueError('`ndof` must be 2, 4 or 7.')
 rm3_dofs = rm3_translation_dofs + rm3_rotation_dofs
@@ -131,18 +134,34 @@ else:
     wec.run_bem()
     wec.write_bem(bem_file)
 
-# solve
-f_dom, t_dom, x_opt, res = wec.solve(waves, power_pto, num_x_pto)
+# Scale
+# float heave, spar heave, surge, sway, roll, pitch, yaw
+scale_wec_all = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+scale_opt = 1000.0
+scale_obj = 1.0
+
+scale_wec = [v for (v, i) in zip(scale_wec_all, dof_idx) if i]
+
+# Constraints
+constraints = []
+
+# Solve dynamics & opt control
+options = {'maxiter': 10000, 'ftol': 1e-8}
+
+fdom, tdom, x_opt, res = wec.solve(
+    waves, power_pto, num_x_pto,
+    constraints=constraints, optim_options=options,
+    scale_x_wec=scale_wec, scale_x_opt=scale_opt, scale_obj=scale_obj)
 
 # post-process: PTO
-t_dom, f_dom = pto_postproc(wec, t_dom, f_dom, x_opt)
+tdom, fdom = pto_postproc(wec, tdom, fdom, x_opt)
 
 # save
 save_dir = 'results'
 if not os.path.exists(save_dir):
     os.makedirs(save_dir)
-t_dom.to_netcdf(os.path.join(save_dir, f't_dom_{ndof}d.nc'))
-wot.to_netcdf(os.path.join(save_dir, f'f_dom_{ndof}d.nc'), f_dom)
+tdom.to_netcdf(os.path.join(save_dir, f'tdom_{ndof}d.nc'))
+wot.to_netcdf(os.path.join(save_dir, f'fdom_{ndof}d.nc'), fdom)
 
 # plots
 figw = 10
@@ -150,15 +169,15 @@ figh = 2.5
 
 # time domain plots - wave
 plt.figure(figsize=(figw, figh*1))
-t_dom['wave_elevation'].plot()
+tdom['wave_elevation'].plot()
 plt.tight_layout()
 
 # time domain plots - WEC
 fig, axs = plt.subplots(ndof, 1, figsize=(figw, figh*ndof), sharex=True)
-t_dom['pos'].sel(influenced_dof='float__HEAVE').plot(ax=axs[0])
-t_dom['pos'].sel(influenced_dof='spar__HEAVE').plot(ax=axs[1])
+tdom['pos'].sel(influenced_dof='float__HEAVE').plot(ax=axs[0])
+tdom['pos'].sel(influenced_dof='spar__HEAVE').plot(ax=axs[1])
 for i, dof in enumerate(rm3_dofs):
-    t_dom['pos'].sel(influenced_dof=dof).plot(ax=axs[i+2])
+    tdom['pos'].sel(influenced_dof=dof).plot(ax=axs[i+2])
 plt.tight_layout()
 fig.align_ylabels(axs)
 
@@ -167,7 +186,7 @@ keys = ['pto_pos', 'pto_vel', 'pto_force', 'power']
 nkeys = len(keys)
 fig, axs = plt.subplots(nkeys, 1, figsize=(figw, figh*nkeys), sharex=True)
 for i, key in enumerate(keys):
-    t_dom[key].plot(ax=axs[i])
+    tdom[key].plot(ax=axs[i])
     axs[i].set_title('')
 plt.tight_layout()
 fig.align_ylabels(axs)
