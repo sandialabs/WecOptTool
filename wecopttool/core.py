@@ -375,13 +375,18 @@ class WEC:
             if impedance.min().values <= 0.0 + tol:
                 dof = self.hydro['Zi'].influenced_dof.values[idof]
                 log.warning(f'Impedance for DOF "{dof}" has negative or ' +
-                            'zero terms. Shifting impedance up by 1% of ' +
-                            'maximum.')
-                impedance[:] = impedance[:] + 0.01*impedance.max()
-            if impedance.min().values <= 0.0 + tol:
-                raise ValueError(f'Impedance for DOF "{dof}" has large' +
-                                 'negative terms. Check BEM results or' +
-                                 'add additional dissipation.')
+                            'close to zero terms. Shifting impedance up.')
+                impedance[:] = impedance[:] + (tol-impedance.min())
+            # if impedance.min().values <= 0.0 + tol:
+            #     dof = self.hydro['Zi'].influenced_dof.values[idof]
+            #     log.warning(f'Impedance for DOF "{dof}" has negative or ' +
+            #                 'zero terms. Shifting impedance up by 1% of ' +
+            #                 'maximum.')
+            #     impedance[:] = impedance[:] + 0.01*impedance.max()
+            # if impedance.min().values <= 0.0 + tol:
+            #     raise ValueError(f'Impedance for DOF "{dof}" has large' +
+            #                      'negative terms. Check BEM results or' +
+            #                      'add additional dissipation.')
 
         # Gi block
         _gi_block = self._make_gi_block()
@@ -419,7 +424,7 @@ class WEC:
         self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
 
     def plot_impedance(self, style: str = 'Bode',
-        option: str = 'symmetric', show: bool = True):
+                       option: str = 'symmetric', show: bool = True):
         """ Plot impedance.
 
         See `wot.plot_impedance()`.
@@ -892,7 +897,6 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
 
     colors = (plt.rcParams['axes.prop_cycle'].by_key()['color']*10)[:ndof]
 
-
     def get_ylim(xmin, xmax, pad_factor=0.05):
         pad = pad_factor * (xmax - xmin)
         return (xmin-pad, xmax+pad)
@@ -905,7 +909,6 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
     #                      np.max([0.0, np.max(np.imag(Zi))]))
     imag_ylim = get_ylim(-np.max(np.abs(np.imag(Zi))),
                          +np.max(np.abs(np.imag(Zi))))
-
 
     def delaxes(axs, idof, jdof, ndof):
         for i, ax in enumerate([axs[idof*2, jdof], axs[idof*2+1, jdof]]):
@@ -974,9 +977,9 @@ def plot_impedance(Zi: npt.ArrayLike, freq: npt.ArrayLike,
                                            markersize=4,
                                            )
                 axs[idof*2+1, jdof].semilogx(freq, p2, '-o',
-                                            color=color,
-                                            markersize=4,
-                                            )
+                                             color=color,
+                                             markersize=4,
+                                             )
                 axs[idof*2, jdof].grid(True, which='both')
                 axs[idof*2+1, jdof].grid(True, which='both')
                 axs[idof*2, jdof].set_ylim(yl1, yh1)
@@ -1038,8 +1041,8 @@ def sym_impedance(bem_data: xr.Dataset,
     def _cpy_impedance(bem_data, dissipation=None, stiffness=None):
         omega = bem_data.coords['omega']
         impedance = (-omega**2*(bem_data['mass'] + bem_data['added_mass']) +
-                    1j*omega*bem_data['radiation_damping'] +
-                    bem_data['hydrostatic_stiffness'])
+                     1j*omega*bem_data['radiation_damping'] +
+                     bem_data['hydrostatic_stiffness'])
         if dissipation is not None:
             impedance = impedance + 1j*omega*dissipation
         if stiffness is not None:
