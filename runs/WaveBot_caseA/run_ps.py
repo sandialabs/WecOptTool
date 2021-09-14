@@ -48,7 +48,7 @@ waves = xr.open_dataset(os.path.join(data_dir, 'waves.nc'))
 
 # Scale
 scale_wec = [1.0]
-scale_opt = 1e9
+scale_opt = 1e3
 scale_obj = 1.0
 
 # Constraints
@@ -71,7 +71,7 @@ ineq_cons = {'type': 'ineq',
 constraints = [ineq_cons]
 
 # Solve dynamics & opt control
-options = {'maxiter': 10000, 'ftol': 1e-8}
+options = {'maxiter': 10000, 'ftol': 1e-10}
 fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,
     constraints=constraints, optim_options=options,

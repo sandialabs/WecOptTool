@@ -17,45 +17,6 @@ import wecopttool as wot
 _finput = [wot.WEC, npt.ArrayLike,  npt.ArrayLike]
 
 
-# power upper bound
-def power_ub(wec: wot.WEC, freq_dom: xr.Dataset, kinematics: np.ndarray
-             ) -> tuple[np.ndarray, np.ndarray]:
-    """ Calculate the upper bound for PTO power.
-
-    Parameters
-    ----------
-    wec: wecopttool.WEC
-        The WEC.
-    kinematics: np.ndarray
-        Matrix that converts from the WEC DOFs to the PTO DOFs.
-        Shape: (PTO DOFs, WEC DOFs).
-    freq_dom: xr.Dataset
-        Frequency domain results output from ``wecopttool.WEC.solve``.
-
-    Returns
-    -------
-    pub_fd: np.ndarray
-        Power upper bound in the frequency domain.
-    pub_td: np.ndarray
-        Power upper bound in the time domain.
-    """
-    ndof_pto = kinematics.shape[0]
-
-    # frequency domain
-    f_exc = np.abs(freq_dom.excitation_force.values[:, 1:])
-    f_exc = np.dot(kinematics, f_exc)
-    zi = wec.hydro.Zi
-    zi = np.array([np.real(zi.values[:, i, i]) for i in range(wec.ndof)])
-    zi = np.dot(kinematics, zi)
-    pub_fd = 1/8 * f_exc**2 / zi
-    pub_fd = np.concatenate([np.zeros((ndof_pto, 1)), pub_fd], axis=1)
-
-    # time_domain
-    pub_td = wec.fd_to_td(pub_fd)
-
-    return pub_fd, pub_td
-
-
 def pseudospectral_pto(
         num_freq: int, kinematics: np.ndarray,
         pto_names: list[str] | None = None) -> tuple[
@@ -383,3 +344,42 @@ def _add_pto_info(time_dom: xr.Dataset, freq_dom: xr.Dataset,
     freq_dom['power_ub'] = pub_fd
 
     return time_dom, freq_dom
+
+
+# power upper bound
+def power_ub(wec: wot.WEC, freq_dom: xr.Dataset, kinematics: np.ndarray
+             ) -> tuple[np.ndarray, np.ndarray]:
+    """ Calculate the upper bound for PTO power.
+
+    Parameters
+    ----------
+    wec: wecopttool.WEC
+        The WEC.
+    kinematics: np.ndarray
+        Matrix that converts from the WEC DOFs to the PTO DOFs.
+        Shape: (PTO DOFs, WEC DOFs).
+    freq_dom: xr.Dataset
+        Frequency domain results output from ``wecopttool.WEC.solve``.
+
+    Returns
+    -------
+    pub_fd: np.ndarray
+        Power upper bound in the frequency domain.
+    pub_td: np.ndarray
+        Power upper bound in the time domain.
+    """
+    ndof_pto = kinematics.shape[0]
+
+    # frequency domain
+    f_exc = np.abs(freq_dom.excitation_force.values[:, 1:])
+    f_exc = np.dot(kinematics, f_exc)
+    zi = wec.hydro.Zi
+    zi = np.array([np.real(zi.values[:, i, i]) for i in range(wec.ndof)])
+    zi = np.dot(kinematics, zi)
+    pub_fd = 1/8 * f_exc**2 / zi
+    pub_fd = np.concatenate([np.zeros((ndof_pto, 1)), pub_fd], axis=1)
+
+    # time_domain
+    pub_td = wec.fd_to_td(pub_fd)
+
+    return pub_fd, pub_td
