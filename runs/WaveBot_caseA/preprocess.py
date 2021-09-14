@@ -30,8 +30,8 @@ if __name__ == "__main__":
 
     # create results directory
     data_dir = 'data'
-    # TODO: if not exist (Windows)
-    os.makedirs(data_dir)
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
 
     # mesh
     # TODO: Capytaine fb from meshio/pygmsh mesh (Issues #13, #62)
