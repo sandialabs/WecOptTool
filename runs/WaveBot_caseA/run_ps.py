@@ -4,7 +4,7 @@ import os
 import logging
 
 import autograd.numpy as np
-from autograd import jacobian
+from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
 import xarray as xr
 
@@ -66,12 +66,13 @@ def const_f_pto(x):
 
 ineq_cons = {'type': 'ineq',
              'fun': const_f_pto,
-             'jac': jacobian(const_f_pto),
              }
 constraints = [ineq_cons]
 
 # Solve dynamics & opt control
-options = {'maxiter': 10000, 'ftol': 1e-9}
+# options = {'maxiter': 10000, 'ftol': 1e-9}  # scipy
+options = {}  # ipopt
+
 fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,
     constraints=constraints, optim_options=options,

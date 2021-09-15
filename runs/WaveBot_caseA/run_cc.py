@@ -4,6 +4,7 @@ import os
 import logging
 
 import autograd.numpy as np
+from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
 import xarray as xr
 
@@ -54,7 +55,8 @@ scale_obj = 1.0
 constraints = []
 
 # Solve dynamics & opt control
-options = {'maxiter': 10000, 'ftol': 1e-8}
+# options = {'maxiter': 10000, 'ftol': 1e-8}  # scipy
+options = {}  # ipopt
 
 fdom, tdom, x_opt, res = wec.solve(
     waves, power_pto, num_x_pto,

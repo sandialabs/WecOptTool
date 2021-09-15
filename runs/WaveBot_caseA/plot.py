@@ -75,7 +75,6 @@ fig.tight_layout()
 # Plot frequency domain
 fig, axs = plt.subplots(2, ncases, sharex='col', sharey='row')
 
-
 def plot_fd(axs, fdom, marker, label, rmface=False):
 
     def _plot_fd(ax, omega, fdom, marker, label, rmface=False):
@@ -135,7 +134,6 @@ for i in range(ncases):
         fig.align_ylabels(iaxs)
 
 fig.tight_layout()
-
 
 # # Plot time domain (INTERPOLATED)
 # time = np.arange(0, 10, 0.01)
@@ -227,4 +225,5 @@ fig.tight_layout()
 # fig.tight_layout()
 
 # show
+# plt.show(block=False); _=input("Press [enter] to close figures.")
 plt.show()
