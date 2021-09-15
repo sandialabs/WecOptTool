@@ -174,7 +174,7 @@ class WEC:
     @property
     def omegap0(self):
         """ Like ``omega`` but also includes zero frequency: [0, ω]. """
-        return np.concatenate([[0.0], self.omega])
+        return np.concatenate([np.array([0.0]), self.omega])
 
     @property
     def phi(self):
@@ -257,9 +257,9 @@ class WEC:
         t = np.linspace(0, 1/self.f0, self.nfd, endpoint=False).reshape(1, -1)
         w = self.omega.reshape(1, -1)
         mm = w.T @ t
-        phi = np.ones((self.nfd, self.nfd))
-        phi[1::2, ::] = np.cos(mm)
-        phi[2::2, ::] = np.sin(mm)
+        phi = np.ones((1, self.nfd))
+        for i in range(mm.shape[0]):
+            phi = np.vstack([phi, np.cos(mm[i:i+1, :]), np.sin(mm[i:i+1, :])])
         return phi
 
     def _make_phi_for_fi(self) -> np.ndarray:
@@ -407,7 +407,7 @@ class WEC:
                 K = self.hydrostatic_stiffness[idof, jdof]
                 w_impedance = self.omega*impedance[:, idof, jdof]
                 elem[idof][jdof] = np.diag(
-                    np.concatenate(([K], 1j * w_impedance)))
+                    np.concatenate((np.array([K]), 1j * w_impedance)))
 
         return sparse.dia_matrix(np.block(elem))
 
