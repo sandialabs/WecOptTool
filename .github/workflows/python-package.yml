@@ -27,6 +27,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install WecOptTool
+      shell: bash -l {0}
       run: |
         python -m pip install --upgrade pip
         conda create -n wecopttool
@@ -36,11 +37,13 @@ jobs:
         conda install -c conda-forge capytaine
 
     - name: Run Test
+      shell: bash -l {0}
       run: |
         conda activate wecopttool
         coverage run -m pytest
 
     - name: Upload coverage data to coveralls.io
+      shell: bash -l {0}
       run: |
         conda activate wecopttool
         coveralls --service=github
