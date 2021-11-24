@@ -34,7 +34,7 @@ def wec():
     r1 = 0.88
     r2 = 0.35
     freeboard = 0.01
-    mesh_size_factor = 0.1
+    mesh_size_factor = 1.0
 
     with pygmsh.occ.Geometry() as geom:
         gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
