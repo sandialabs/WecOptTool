@@ -819,7 +819,9 @@ def scale_dofs(scale_list: list[float], ncomponents: int):
 def complex_xarray_from_netcdf(fpath: str | Path) -> xr.Dataset:
     """Read a NetCDF file with commplex entries as an xarray dataSet.
     """
-    return cpy.io.xarray.merge_complex_values(xr.open_dataset(fpath))
+    with xr.open_dataset(fpath) as ds:
+        ds.load()
+    return cpy.io.xarray.merge_complex_values(ds)
 
 
 def complex_xarray_to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
