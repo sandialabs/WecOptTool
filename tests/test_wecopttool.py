@@ -81,3 +81,11 @@ def test_wave_excitation(wec):
 
     # wave excitation
     _, _ = wot.wave_excitation(wec.hydro, waves)
+
+# def test_waves():
+#     # wave
+#     freq = 0.2
+#     amplitude = 0.25
+#     phase = 0.0
+#     waves = wot.waves.regular_wave(
+#         wec.f0, wec.nfreq, freq, amplitude, phase)
