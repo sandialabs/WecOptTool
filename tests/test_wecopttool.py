@@ -6,9 +6,9 @@ import os
 import pytest
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
-import capytaine as cpy
 import pygmsh
 import gmsh
+import capytaine as cpy
 
 import wecopttool as wot
 
