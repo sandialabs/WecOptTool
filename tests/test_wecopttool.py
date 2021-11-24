@@ -59,6 +59,22 @@ def wec():
     return wec
 
 
+@pytest.fixture(scope="module")
+def wave(wec):
+    freq = 0.2
+    amplitude = 0.25
+    phase = 0.0
+    wave = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
+    return wave
+
+
+@pytest.fixture(scope="module")
+def pto(wec):
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
+    return pto
+
+
 def test_bem_io(wec):
     # write BEM file
     bem_file = 'bem.nc'
@@ -71,21 +87,46 @@ def test_bem_io(wec):
     os.remove(bem_file)
 
 
-def test_wave_excitation(wec):
-    # wave
-    freq = 0.2
-    amplitude = 0.25
-    phase = 0.0
-    waves = wot.waves.regular_wave(
-        wec.f0, wec.nfreq, freq, amplitude, phase)
-
+def test_wave_excitation(wec, wave):
     # wave excitation
-    _, _ = wot.wave_excitation(wec.hydro, waves)
+    _, _ = wot.wave_excitation(wec.hydro, wave)
 
-# def test_waves():
-#     # wave
-#     freq = 0.2
-#     amplitude = 0.25
-#     phase = 0.0
-#     waves = wot.waves.regular_wave(
-#         wec.f0, wec.nfreq, freq, amplitude, phase)
+
+def test_solve(wec, wave, pto):
+    # solve
+    options = {}
+    obj_fun = pto.energy
+    nstate_opt = pto.nstate
+    maximize = True
+    _, _, x_wec, x_opt, res = wec.solve(
+        wave, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
+
+    # post-process
+    _, _ = pto.post_process(wec, x_wec, x_opt)
+
+
+def test_waves_module(wec):
+    # irregular waves
+    hs = 1.5
+    fp = 1.0/8.0
+    s_max = 10.0
+
+    def spectrum_func(f):
+        return wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
+
+    def spread_func(f, d):
+        return wot.waves.spread_cos2s(f, d, fp, s_max)
+
+    spectrum_name = 'Pierson Moskowitz'
+    spread_name = 'Cosine-2S'
+
+    # multidirection
+    directions = np.linspace(0, 360, 36, endpoint=False)
+    _ = wot.waves.irregular_wave(
+        wec.f0, wec.nfreq, directions, spectrum_func, spread_func,
+                   spectrum_name, spread_name)
+
+    # long-crested
+    direction = 0.0
+    _ = wot.waves.long_crested_wave(
+        wec.f0, wec.nfreq, spectrum_func, direction, spectrum_name)
