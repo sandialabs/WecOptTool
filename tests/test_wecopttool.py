@@ -6,8 +6,6 @@ import os
 import pytest
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
-import pygmsh
-import gmsh
 import capytaine as cpy
 
 import wecopttool as wot
@@ -29,24 +27,10 @@ def wec():
     nfreq = 18
 
     #  mesh
-    h1 = 0.17
-    h2 = 0.37
-    r1 = 0.88
-    r2 = 0.35
-    freeboard = 0.01
-    mesh_size_factor = 1.0
-
-    with pygmsh.occ.Geometry() as geom:
-        gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
-        cyl = geom.add_cylinder([0, 0, 0], [0, 0, -h1], r1)
-        cone = geom.add_cone([0, 0, -h1], [0, 0, -h2], r1, r2)
-        geom.translate(cyl, [0, 0, freeboard])
-        geom.translate(cone, [0, 0, freeboard])
-        geom.boolean_union([cyl, cone])
-        mesh = geom.generate_mesh()
+    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
 
     # capytaine floating body
-    fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
     fb.add_translation_dof(name="HEAVE")
 
     # mass and hydrostativ stiffness
