@@ -1,4 +1,4 @@
-name: Py 3.7,3.8,3.9|Windows Mac Linux
+name: Build
 
 on:
   push:
@@ -16,8 +16,6 @@ jobs:
         python-version: [3.7, 3.8, 3.9]
 
     steps:
-    - uses: conda-incubator/setup-miniconda@v2
-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
@@ -26,12 +24,10 @@ jobs:
     - name: Set up Git repository
       uses: actions/checkout@v2
 
-    - name: Create environment, Activate environment & Run pytest
+    - name: Install WecOptTool & Run pytest
       shell: bash -l {0}
       run: |
         python -m pip install --upgrade pip
-        conda env create --file environment.yml
-        conda activate _wecopttool
         pip install coveralls
         pip install -e .
         coverage run -m pytest
@@ -39,7 +35,6 @@ jobs:
     - name: Upload coverage data to coveralls.io
       shell: bash -l {0}
       run: |
-          conda activate _wecopttool
           coveralls --service=github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,8 +48,7 @@ jobs:
     steps:
     - name: Finished
       run: |
-        pip3 install --upgrade coveralls
+        pip install --upgrade coveralls
         coveralls --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

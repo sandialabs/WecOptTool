@@ -1,6 +1,7 @@
-""" This modules provides functions for calculating hydrstatic and mass
+"""Provide functions for calculating hydrostatic and mass
 properties for floating bodies.
 """
+
 
 from __future__ import annotations  # TODO: delete after python 3.10
 from typing import Any
@@ -12,11 +13,9 @@ from meshmagick.hydrostatics import compute_hydrostatics
 import capytaine as cpy
 
 
-# hydrostatics & mass (MeshMagick)
-
 def hydrostatics(wec: cpy.FloatingBody, rho: float = 1025, g: float = 9.81,
                  cog: npt.ArrayLike = [0.0, 0.0, 0.0]) -> dict[str, Any]:
-    """ Compute the hydrostatic properties of a Capytaine floating body
+    """Compute the hydrostatic properties of a Capytaine floating body
     using MeshMagick
 
     Parameters
@@ -40,7 +39,7 @@ def hydrostatics(wec: cpy.FloatingBody, rho: float = 1025, g: float = 9.81,
 
 
 def stiffness_matrix(hs_data: dict[str, Any]) -> np.ndarray:
-    """ Get 6x6 hydrostatic stiffness matrix from MeshMagick
+    """Get 6x6 hydrostatic stiffness matrix from MeshMagick
     hydrostatic data.
 
     Parameters
@@ -59,7 +58,7 @@ def stiffness_matrix(hs_data: dict[str, Any]) -> np.ndarray:
 def mass_matrix_constant_density(hs_data: dict[str, Any],
                                  mass: float | None = None
                                  ) -> np.ndarray:
-    """ Create the 6x6 mass matrix assuming a constant density for the
+    """Create the 6x6 mass matrix assuming a constant density for the
     WEC.
 
     Parameters

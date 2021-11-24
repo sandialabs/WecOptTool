@@ -1,7 +1,13 @@
-""" This module provides PTO force and power functions for commonn PTO
-control approaches. The PTO power can be used as the objective function
-for the control optimization.
+
+"""Provide power take-off (PTO) forces and produced energy functions
+for common PTO control approaches.
+
+The PTO produced energy can be used as the objective function for the
+control optimization.
+The PTO force can be included as an additional force in the WEC
+dynamics.
 """
+
 
 from __future__ import annotations  # TODO: delete after python 3.10
 from typing import Callable
@@ -11,54 +17,62 @@ import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import xarray as xr
 
-import wecopttool as wot
+from wecopttool.core import WEC, real_to_complex_amplitudes
 
 
-_finput = [wot.WEC, npt.ArrayLike,  npt.ArrayLike]
+class PseudoSpectralPTO:
+    """PSeudo-spectral PTO control.
 
-
-def pseudospectral_pto(
-        num_freq: int, kinematics: np.ndarray,
-        pto_names: list[str] | None = None) -> tuple[
-        int, Callable[_finput, np.ndarray], Callable[_finput, float],
-        Callable[_finput, tuple(xr.Dataset, xr.Dataset)]]:
-    """ Create the relevant parameters and functions for a
-    peudo-spectral PTO control.
-
-    Pseudo-spectral (PS) control: Optimal time-dependent PTO-force.
+    Optimal time-dependent PTO-force.
     Equivalent to conjugate gradient (CC) if no additional constraints.
-
-    Parameters
-    ----------
-    num_freq: int
-        Number of frequencies in pseudo-spectral problem. Should match
-        the BEM and wave frequencies.
-    kinematics: np.ndarray
-        Matrix that converts from the WEC DOFs to the PTO DOFs.
-        Shape: (PTO DOFs, WEC DOFs).
-    pto_names: list, optional
-        Names of the PTOs in each DOF. List of strings of length PTO
-        DOFs.
-
-    Returns
-    -------
-    num_x: int
-        Number of states describing the PTO controller.
-    f_pto: function
-        Function that outputs the PTO force for a given state.
-    power: function
-        Function that outputs the PTO power for a given state.
-    post_process: function
-        Function for postprocessing the optimization results.
     """
-    ndof_pto = kinematics.shape[0]
-    num_x_perdof = 2 * num_freq
-    num_x = num_x_perdof * ndof_pto
 
-    def f_pto(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
-              ) -> np.ndarray:
+    def __init__(self, nfreq: int, kinematics: np.ndarray,
+                 names: list[str] | None = None) -> None:
         """
-        Calculate the PTO force for a given system state.
+        Parameters
+        ----------
+        nfreq: int
+            Number of frequencies in pseudo-spectral problem. Should match
+            the BEM and wave frequencies.
+        kinematics: np.ndarray
+            Matrix that converts from the WEC DOFs to the PTO DOFs.
+            Shape: (PTO DOFs, WEC DOFs).
+        names: list, optional
+            Names of the PTOs in each DOF. List of strings of length PTO
+            DOFs.
+        """
+        self.nfreq = nfreq
+        self.kinematics = kinematics
+        self.names = _set_names(names, self.ndof)
+
+    @property
+    def ndof(self):
+        """Number of PTO degrees of freedom. """
+        return self.kinematics.shape[0]
+
+    @property
+    def ndof_wec(self):
+        """Number of WEC degrees of freedom. """
+        return self.kinematics.shape[1]
+
+    @property
+    def nstate_per_dof(self):
+        return 2 * self.nfreq
+
+    @property
+    def nstate(self):
+        return self.nstate_per_dof * self.ndof
+
+    @property
+    def _kinematics_T(self):
+        return np.transpose(self.kinematics)
+
+    def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+              nsubsteps: int = 1) -> np.ndarray:
+        """
+        Calculate the PTO forces time-series in each PTO DOF for a
+        given system state.
 
         Parameters
         ----------
@@ -67,26 +81,40 @@ def pseudospectral_pto(
         x_wec: np.ndarray
             WEC dynamics state.
         x_opt: np.ndarray
-            Optimization (PTO controller) state.
+            Optimization (PTO control) state.
+        nsubsteps: int
+            Number of subdivisions between the default (implied) time
+            steps.
 
         Returns
         -------
         np.ndarray
-            PTO force in the time domain.
+            PTO force in the time domain in the PTO's DOFs.
         """
-        x_pto = np.reshape(x_opt, (ndof_pto, num_x_perdof))
-        fpto_td = np.dot(np.dot(np.transpose(kinematics), x_pto),
-                         wec.phi[1::, ::])
-        return fpto_td
+        x_pto = np.reshape(x_opt, (self.nstate_per_dof, self.ndof), order='F')
+        time_mat = _get_time_mat(wec, nsubsteps)
+        return np.dot(time_mat, x_pto)
 
-    def power(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
-              ) -> np.ndarray:
+    def force_on_wec(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+              nsubsteps: int = 1) -> np.ndarray:
         """
-        Calculate the PTO power for a given system state.
+        Calculate the PTO forces time-series in the WEC DOFs for a
+        given system state.
+
+        See ``force``.
+        """
+        fpto_td = self.force(wec, x_wec, x_opt, nsubsteps)
+        return np.dot(fpto_td, self.kinematics)
+
+    def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
+              ) -> float:
+        """
+        Calculate the energy (in Joules) produced by the PTO during the
+        period t=0-T=1/f0.
 
         Parameters
         ----------
-        wec: wot.WEC
+        wec: WEC
             The WEC.
         x_wec: np.ndarray
             WEC dynamics state.
@@ -96,290 +124,138 @@ def pseudospectral_pto(
         Returns
         -------
         float
-            PTO power produced over the simulation time.
+            Energy (in Joules) produced over the period t=0-T.
         """
-        x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = np.dot(x_wec, wec.dphi)
-        pto_vel_fd = np.dot(kinematics, wec_vel_fd)
-        return np.dot(np.reshape(pto_vel_fd, -1), x_opt) / (2*wec.f0)
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        wec_vel = np.dot(wec.derivative_mat, wec_pos)[1:, :]
+        pto_vel = np.dot(wec_vel, self._kinematics_T)
+        pto_vel_vec = wec.dofmat_to_vec(pto_vel)
+        return -1/(2*wec.f0) * np.dot(pto_vel_vec, x_opt)
 
-    def post_process(wec: wot.WEC, time_dom: xr.Dataset, freq_dom: xr.Dataset,
-                     x_opt: npt.ArrayLike) -> tuple[xr.Dataset, xr.Dataset]:
-        """ Calculate the time and frequency domain PTO position,
-        velocity, force and power, and add these to the results
-        datasets.
+    def power(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+              nsubsteps: int = 1) -> np.ndarray:
+        """
+        Calculate the PTO extracted power time-series in each PTO DOF
+        for a given system state.
 
         Parameters
         ----------
-        wec: capytaine.FloatingBody
+        wec: wecopttool.WEC
             The WEC.
-        time_dom: xr.Dataset
-            Time domain results output from ``wecopttool.WEC.solve``.
-        freq_dom: xr.Dataset
-            Frequency domain results output from ``wecopttool.WEC.solve``.
-        x_opt: np.ndarray
-            Final (optimized) PTO controller state.
-
-        Returns
-        -------
-        time_dom: xr.Dataset
-            Time domain results with PTO force and power added.
-        freq_dom: xr.Dataset
-            Frequency domain results with PTO force and power added.
-        """
-        x_pto = x_opt.reshape(ndof_pto, num_x_perdof)
-
-        # frequency domain
-        pos_fd = np.dot(kinematics, freq_dom['pos'].values)
-        vel_fd = np.dot(kinematics, freq_dom['vel'].values)
-        f_pto_fd = wot.fd_folded_nomean(x_pto)
-        power_fd = vel_fd * f_pto_fd
-
-        # time domain
-        f_pto_td = (x_pto @ wec.phi[1:, :])
-        power_td = kinematics @ time_dom['vel'].values * f_pto_td
-        pos_td = np.dot(kinematics, time_dom['pos'].values)
-        vel_td = np.dot(kinematics, time_dom['vel'].values)
-
-        # power upper bound
-        pub_fd, pub_td = power_ub(wec, freq_dom, kinematics)
-
-        time_dom, freq_dom = _add_pto_info(
-            time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd, pub_fd,
-            f_pto_td, power_td, pos_td, vel_td, pub_td, pto_names)
-
-        return time_dom, freq_dom
-
-    return num_x, f_pto, power, post_process
-
-
-def proportional_pto(
-        kinematics: np.ndarray, pto_names: list[str] | None = None) -> tuple[
-        int, Callable[_finput, np.ndarray], Callable[_finput, float],
-        Callable[_finput, tuple(xr.Dataset, xr.Dataset)]]:
-    """ Create the relevant parameters and functions for a
-    proportional PTO control.
-
-    Proportional (P) control: PTO force proportional to velocity.
-
-    Parameters
-    ----------
-    kinematics: np.ndarray
-        Matrix that converts from the WEC DOFs to the PTO DOFs.
-        Shape: (PTO DOFs, WEC DOFs).
-    pto_names: list, optional
-        Names of the PTOs in each DOF. List of strings of length PTO
-        DOFs.
-
-    Returns
-    -------
-    num_x: int
-        Number of states describing the PTO controller.
-    f_pto: function
-        Function that outputs the PTO force for a given state.
-    power: function
-        Function that outputs the PTO power for a given state.
-    post_process: function
-        Function for postprocessing the optimization results.
-    """
-    ndof_pto = kinematics.shape[0]
-    num_x_perdof = 1
-    num_x = num_x_perdof * ndof_pto
-
-    def f_pto(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
-              ) -> np.ndarray:
-        """
-        Calculate the PTO force for a given system state.
-
-        Parameters
-        ----------
-        wec: wot.WEC
-            The WEC as a capytaine floating body (mesh + DOFs).
         x_wec: np.ndarray
             WEC dynamics state.
         x_opt: np.ndarray
-            Optimization (PTO controller) state.
+            Optimization (PTO control) state.
+        nsubsteps: int
+            Number of subdivisions between the default (implied) time
+            steps.
 
         Returns
         -------
         np.ndarray
-            PTO force in the time domain.
+            PTO extracted power in the time domain in the PTO's DOFs.
         """
-        x_pto = x_opt.reshape([ndof_pto, 1])
-        x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = np.dot(x_wec, wec.dphi)
-        wec_vel_td = np.dot(wec_vel_fd, wec.phi[1:, :])
-        pto_vel_td = np.dot(kinematics, wec_vel_td)
-        f_pto_td = -1.0 * x_pto * pto_vel_td
-        return np.dot(np.transpose(kinematics), f_pto_td)
+        force_td = self.force(wec, x_wec, x_opt)
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        wec_vel = np.dot(wec.derivative_mat, wec_pos)[1:, :]
+        vel = np.dot(wec_vel, self._kinematics_T)
+        time_mat = _get_time_mat(wec, nsubsteps)
+        vel_td = np.dot(time_mat, vel)
+        return -1*vel_td * force_td
 
-    def power(wec: wot.WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
-              ) -> np.ndarray:
+    def post_process(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
+                     ) -> tuple[xr.Dataset, xr.Dataset]:
+        """Transform the results from optimization solution to a form
+        that the user can work with directly.
         """
-        Calculate the PTO power for a given system state.
+        # position
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        pos = wec_pos @ self._kinematics_T
+        pos_fd = real_to_complex_amplitudes(pos)
+        pos_td = wec.time_mat @ pos
 
-        Parameters
-        ----------
-        wec: wot.WEC
-            The WEC.
-        x_wec: np.ndarray
-            WEC dynamics state.
-        x_opt: np.ndarray
-            Optimization (PTO controller) state.
+        # velocity
+        vel = wec.derivative_mat @ pos
+        vel_fd = real_to_complex_amplitudes(vel)
+        vel_td = wec.time_mat @ vel
 
-        Returns
-        -------
-        float
-            PTO power produced over the simulation time.
-        """
-        x_pto = np.reshape(x_opt, (ndof_pto, 1))
-        x_wec = wec.vec_to_dofmat(x_wec)
-        wec_vel_fd = np.dot(x_wec, wec.dphi)
-        pto_vel_fd = np.dot(kinematics, wec_vel_fd)
-        f_pto_fd = -1.0 * x_pto * pto_vel_fd
-        power = np.sum(np.reshape(pto_vel_fd, -1) *
-                       np.reshape(f_pto_fd, -1)) / (2*wec.f0)
-        return power
+        # acceleration
+        acc = wec.derivative_mat @ vel
+        acc_fd = real_to_complex_amplitudes(acc)
+        acc_td = wec.time_mat @ acc
 
-    def post_process(wec: wot.WEC, time_dom: xr.Dataset, freq_dom: xr.Dataset,
-                     x_opt: npt.ArrayLike) -> [xr.Dataset, xr.Dataset]:
-        """ Calculate the time and frequency domain PTO force and
-        power, and add these to the results datasets.
+        # force
+        force_td = self.force(wec, x_wec, x_opt)
+        force_fd = wec.td_to_fd(force_td)
 
-        Parameters
-        ----------
-        wec: wot.WEC
-            The WEC.
-        time_dom: xr.Dataset
-            Time domain results output from ``wecopttool.WEC.solve``.
-        freq_dom: xr.Dataset
-            Frequency domain results output from ``wecopttool.WEC.solve``.
-        x_opt: np.ndarray
-            Final (optimized) PTO controller state.
+        # power
+        power_td = self.power(wec, x_wec, x_opt)
+        power_fd = wec.td_to_fd(power_td)
 
-        Returns
-        -------
-        time_dom: xr.Dataset
-            Time domain results with PTO force and power added.
-        freq_dom: xr.Dataset
-            Frequency domain results with PTO force and power added.
-        """
-        x_pto = x_opt.reshape([ndof_pto, 1])
+        omega = np.concatenate([np.array([0.0]), wec.omega])
 
-        # frequency domain
-        pto_vel_fd = kinematics @ freq_dom['vel'].values
-        f_pto_fd = x_pto * pto_vel_fd
-        power_fd = pto_vel_fd * f_pto_fd / (2*wec.f0)
-        pos_fd = np.dot(kinematics, freq_dom['pos'].values)
-        vel_fd = np.dot(kinematics, freq_dom['vel'].values)
-
-        # time domain
-        pto_vel_td = kinematics @ time_dom['vel'].values
-        f_pto_td = -1.0 * x_pto * pto_vel_td
-        power_td = pto_vel_td * f_pto_td
-        pos_td = np.dot(kinematics, time_dom['pos'].values)
-        vel_td = np.dot(kinematics, time_dom['vel'].values)
-
-        # power upper bound
-        pub_fd, pub_td = power_ub(wec, freq_dom, kinematics)
-
-        time_dom, freq_dom = _add_pto_info(
-            time_dom, freq_dom, f_pto_fd, power_fd, pos_fd, vel_fd, pub_fd,
-            f_pto_td, power_td, pos_td, vel_td, pub_td, pto_names)
-
+        time_dom, freq_dom = _assemble_xarrays(
+            wec.time, omega, self.names, pos_td, pos_fd, vel_td, vel_fd,
+            acc_td, acc_fd, force_td, force_fd, power_td, power_fd)
         return time_dom, freq_dom
 
-    return num_x, f_pto, power, post_process
+
+# TODO: class ProportionalPTO:
 
 
-def _add_pto_info(time_dom: xr.Dataset, freq_dom: xr.Dataset,
-                  f_pto_fd: np.ndarray, power_fd: np.ndarray,
-                  pos_fd: np.ndarray, vel_fd: np.ndarray, pub_fd: np.ndarray,
-                  f_pto_td: np.ndarray, power_td: np.ndarray,
-                  pos_td: np.ndarray, vel_td: np.ndarray, pub_td: np.ndarray,
-                  pto_names: list[str] | None = None):
-    """ Add the PTO force and power to the time and frequency domain
-    datasets.
-    """
-    ndof_pto = f_pto_td.shape[0]
-    if pto_names is None:
-        pto_names = [f'pto_{i+1}' for i in range(ndof_pto)]
-    else:
-        assert len(pto_names) == ndof_pto
-    dims = ['dof_pto', 'time']
-    coords = [(dims[0], pto_names), time_dom.time]
+def _assemble_xarrays(time: np.ndarray, omega: np.ndarray, names: list[str],
+                      pos_td: np.ndarray, pos_fd: np.ndarray,
+                      vel_td: np.ndarray, vel_fd: np.ndarray,
+                      acc_td: np.ndarray, acc_fd: np.ndarray,
+                      force_td: np.ndarray, force_fd: np.ndarray,
+                      power_td: np.ndarray, power_fd: np.ndarray
+                      ) -> tuple[xr.Dataset, xr.Dataset]:
+    # assemble time-domain xarray
+    dims = ['time', 'dof_pto']
+    coords = [(dims[0], time, {'units': 's'}), (dims[1], names)]
     attrs_f = {'long_name': 'PTO force', 'units': 'N or N*m'}
     attrs_p = {'long_name': 'PTO power', 'units': 'W'}
     attrs_pos = {'long_name': 'PTO position', 'units': 'm or (rad)'}
     attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or (rad)/s'}
-    attrs_pub = {'long_name': 'PTO power upper bound', 'units': 'W'}
-    f_pto_td = xr.DataArray(f_pto_td, dims=dims, coords=coords, attrs=attrs_f)
+    attrs_acc = {'long_name': 'PTO acceleration', 'units': 'm/s^2 or (rad)/s^2'}
+    force_td = xr.DataArray(force_td, dims=dims, coords=coords, attrs=attrs_f)
     power_td = xr.DataArray(power_td, dims=dims, coords=coords, attrs=attrs_p)
     pos_td = xr.DataArray(pos_td, dims=dims, coords=coords, attrs=attrs_pos)
     vel_td = xr.DataArray(vel_td, dims=dims, coords=coords, attrs=attrs_vel)
-    pub_td = xr.DataArray(pub_td, dims=dims, coords=coords, attrs=attrs_pub)
+    acc_td = xr.DataArray(acc_td, dims=dims, coords=coords, attrs=attrs_acc)
+    time_dom = xr.Dataset({'pos': pos_td, 'vel': vel_td, 'acc': acc_td,
+                           'force': force_td, 'power': power_td},)
 
-    time_dom['pto_force'] = f_pto_td
-    time_dom['power'] = power_td
-    time_dom['pto_pos'] = pos_td
-    time_dom['pto_vel'] = vel_td
-    time_dom['power_ub'] = pub_td
-
-    dims[1] = 'omega'
-    coords[1] = freq_dom.omega
+    # assemble frequency-domain xarray
+    dims[0] = 'omega'
+    coords[0] = (dims[0], omega, {'units': '(rad)'})
     attrs_f['units'] = 'N^2*s'
     attrs_p['units'] = 'W^2*s'
     attrs_pos['units'] = 'm^2*s or (rad)^2*s'
     attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-    attrs_pub['units'] = 'W^2*s'
-    f_pto_fd = xr.DataArray(f_pto_fd, dims=dims, coords=coords, attrs=attrs_f)
+    attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+    force_fd = xr.DataArray(force_fd, dims=dims, coords=coords, attrs=attrs_f)
     power_fd = xr.DataArray(power_fd, dims=dims, coords=coords, attrs=attrs_p)
     pos_fd = xr.DataArray(pos_fd, dims=dims, coords=coords, attrs=attrs_pos)
     vel_fd = xr.DataArray(vel_fd, dims=dims, coords=coords, attrs=attrs_vel)
-    pub_fd = xr.DataArray(pub_fd, dims=dims, coords=coords, attrs=attrs_pub)
-    freq_dom['pto_force'] = f_pto_fd
-    freq_dom['power'] = power_fd
-    freq_dom['pto_pos'] = pos_fd
-    freq_dom['pto_vel'] = vel_fd
-    freq_dom['power_ub'] = pub_fd
+    acc_fd = xr.DataArray(acc_fd, dims=dims, coords=coords, attrs=attrs_acc)
+    freq_dom = xr.Dataset({'pos': pos_fd, 'vel': vel_fd, 'acc': acc_fd,
+                           'force': force_fd, 'power': power_fd},)
 
     return time_dom, freq_dom
 
 
-# power upper bound
-def power_ub(wec: wot.WEC, freq_dom: xr.Dataset, kinematics: np.ndarray
-             ) -> tuple[np.ndarray, np.ndarray]:
-    """ Calculate the upper bound for PTO power.
+def _set_names(names: list[str] | None, ndof: int) -> list[str]:
+    if names is None:
+        names = [f'pto_{i+1}' for i in range(ndof)]
+    else:
+        assert len(names) == ndof
+    return names
 
-    Parameters
-    ----------
-    wec: wecopttool.WEC
-        The WEC.
-    kinematics: np.ndarray
-        Matrix that converts from the WEC DOFs to the PTO DOFs.
-        Shape: (PTO DOFs, WEC DOFs).
-    freq_dom: xr.Dataset
-        Frequency domain results output from ``wecopttool.WEC.solve``.
 
-    Returns
-    -------
-    pub_fd: np.ndarray
-        Power upper bound in the frequency domain.
-    pub_td: np.ndarray
-        Power upper bound in the time domain.
-    """
-    ndof_pto = kinematics.shape[0]
-
-    # frequency domain
-    f_exc = np.abs(freq_dom.excitation_force.values[:, 1:])
-    f_exc = np.dot(kinematics, f_exc)
-    zi = wec.hydro.Zi
-    zi = np.array([np.real(zi.values[:, i, i]) for i in range(wec.ndof)])
-    zi = np.dot(kinematics, zi)
-    pub_fd = 1/8 * f_exc**2 / zi
-    pub_fd = np.concatenate([np.zeros((ndof_pto, 1)), pub_fd], axis=1)
-
-    # time_domain
-    pub_td = wec.fd_to_td(pub_fd)
-
-    return pub_fd, pub_td
+def _get_time_mat(wec: WEC, nsubsteps: int) -> np.ndarray:
+    if nsubsteps == 1:
+        time_mat = wec.time_mat[:, 1:]
+    else:
+        time_mat = wec.make_time_mat(nsubsteps, False)
+    return time_mat

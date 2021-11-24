@@ -1,12 +1,16 @@
-""" This module provides the (empty) dataset structure for waves in
-``wecopttool``. It also provides functions for creating common types of
-waves such as reggular waves and irregular waves.
+"""Provide the wave definition structure and provide
+functions for creating different common types of waves.
 
+This module provides the (empty) dataset structure for waves in
+``wecopttool``.
+It also provides functions for creating common types of waves such as
+regular waves and irregular waves.
 The dataset structure is an xarray.Dataset containing the following two
 2D xarray.DataArrray: (1)  the amplitude spectrum  magnitude ``S``
 (m^2*s) and (2) the phase  ``phase`` (rad). The 2D coordinates are:
 wave frequency ``omega`` (rad)  and direction ``wave_direction`` (rad).
 """
+
 
 from __future__ import annotations  # TODO: delete after python 3.10
 import warnings
@@ -20,35 +24,35 @@ from scipy.special import gamma
 from wecopttool.core import freq_array
 
 
-def wave_dataset(f0: float, num_freq: int,
+def wave_dataset(f0: float, nfreq: int,
                  directions: float | npt.ArrayLike) -> xr.Dataset:
-    """ Create an empty wave dataset with correct dimensions and
+    """Create an empty wave dataset with correct dimensions and
     coordinates.
 
     Parameters
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., num_freq*f0].
-    num_freq: int
+        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+    nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
-        Wave directions. 1D array.
+        Wave directions in degrees. 1D array.
 
     Returns
     -------
     xr.Dataset
         Empty wave dataset.
     """
-    directions = np.atleast_1d(degrees_to_radians(directions))
-    num_directions = len(directions)
-    freqs = freq_array(f0, num_freq)
+    directions = np.atleast_1d(_degrees_to_radians(directions))
+    ndirections = len(directions)
+    freqs = freq_array(f0, nfreq)
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
     rad_units = {'units': '(radians)'}
     coords = [(dims[0], omega, rad_units), (dims[1], directions, rad_units)]
-    tmp = np.zeros([num_freq, num_directions])
+    tmp = np.zeros([nfreq, ndirections])
 
     attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
     spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
@@ -59,17 +63,17 @@ def wave_dataset(f0: float, num_freq: int,
     return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
 
 
-def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
+def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
                  phase: float | None = None, direction: float = 0.0
                  ) -> xr.Dataset:
-    """ Create the dataset for a regular wave.
+    """Create the dataset for a regular wave.
 
     Parameters
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., num_freq*f0].
-    num_freq: int
+        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+    nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     freq: float
         Frequency (in Hz) of the regular wave. If ``freq`` not in the
@@ -88,7 +92,7 @@ def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
         Wave dataset.
     """
     # empty dataset
-    waves = wave_dataset(f0, num_freq, direction)
+    waves = wave_dataset(f0, nfreq, direction)
 
     # get index
     omega = freq*2*np.pi
@@ -103,10 +107,10 @@ def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
 
     # phase
     if phase is None:
-        rphase = random_phase()
+        rphase = _random_phase()
         phase = np.degrees(rphase)
     else:
-        rphase = degrees_to_radians(phase)
+        rphase = _degrees_to_radians(phase)
     waves['phase'].loc[{'omega': iomega}] = rphase
 
     # attributes
@@ -120,17 +124,17 @@ def regular_wave(f0: float, num_freq: int, freq: float, amplitude: float,
     return waves
 
 
-def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
+def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
                       direction: float = 0.0, spectrum_name: str = '',
                       seed: int | None = None) -> xr.Dataset:
-    """ Create the dataset for a long-crested irregular wave.
+    """Create the dataset for a long-crested irregular wave.
 
     Parameters
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., num_freq*f0].
-    num_freq: int
+        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+    nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
         Wave spectrum function. Maps frequecies to amplitude spectrum.
@@ -148,12 +152,12 @@ def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
         Wave dataset.
     """
     # empty dataset
-    waves = wave_dataset(f0, num_freq, direction)
+    waves = wave_dataset(f0, nfreq, direction)
 
     # amplitude & phase
-    freqs = freq_array(f0, num_freq)
-    waves['S'].values = spectrum_func(freqs).reshape(num_freq, 1)
-    waves['phase'].values = random_phase([num_freq, 1], seed)
+    freqs = freq_array(f0, nfreq)
+    waves['S'].values = spectrum_func(freqs).reshape(nfreq, 1)
+    waves['phase'].values = _random_phase([nfreq, 1], seed)
 
     # attributes
     waves.attrs['Wave type'] = 'Long-crested irregular'
@@ -163,22 +167,22 @@ def long_crested_wave(f0: float, num_freq: int, spectrum_func: Callable,
     return waves
 
 
-def irregular_wave(f0: float, num_freq: int,
+def irregular_wave(f0: float, nfreq: int,
                    directions: float | npt.ArrayLike,
                    spectrum_func: Callable, spread_func: Callable,
                    spectrum_name: str = '', spread_name: str = '',
                    seed: int | None = None) -> xr.Dataset:
-    """ Create the dataset for an irregular wave field.
+    """Create the dataset for an irregular wave field.
 
     Parameters
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., num_freq*f0].
-    num_freq: int
+        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+    nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
-        Wave directions. 1D array.
+        Wave directions in degrees. 1D array.
     spectrum_func: function
         Wave spectrum function. Maps frequencies to amplitude spectrum.
         float | npt.ArrayLike -> float | np.ndarray
@@ -200,16 +204,16 @@ def irregular_wave(f0: float, num_freq: int,
         Wave dataset.
     """
     # empty dataset
-    waves = wave_dataset(f0, num_freq, directions)
+    waves = wave_dataset(f0, nfreq, directions)
 
     # amplitude & phase
-    num_directions = len(directions)
-    freqs = freq_array(f0, num_freq)
-    spectrum = spectrum_func(freqs).reshape(num_freq, 1)
+    ndirections = len(directions)
+    freqs = freq_array(f0, nfreq)
+    spectrum = spectrum_func(freqs).reshape(nfreq, 1)
     spread = spread_func(freqs, directions)
-    assert spread.shape == (num_freq, num_directions)
+    assert spread.shape == (nfreq, ndirections)
     waves['S'].values = spectrum * spread
-    waves['phase'].values = random_phase([num_freq, num_directions], seed)
+    waves['phase'].values = _random_phase([nfreq, ndirections], seed)
 
     # attributes
     waves.attrs['Wave type'] = 'Irregular'
@@ -219,9 +223,9 @@ def irregular_wave(f0: float, num_freq: int,
     return waves
 
 
-def degrees_to_radians(degrees: float | npt.ArrayLike
+def _degrees_to_radians(degrees: float | npt.ArrayLike
                        ) -> float | np.ndarray:
-    """ Convert degrees to radians in range -π to π and sort.
+    """Convert degrees to radians in range -π to π and sort.
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
@@ -229,22 +233,43 @@ def degrees_to_radians(degrees: float | npt.ArrayLike
     return radians
 
 
-def random_phase(shape: list[int] | int | None = None,
+def _random_phase(shape: list[int] | int | None = None,
                  seed: float | None = None) -> float | np.ndarray:
-    """ Generate random phases in range -π to π radians.
+    """Generate random phases in range -π to π radians.
     """
     rng = np.random.default_rng(seed)
     return rng.random(shape)*2*np.pi - np.pi
 
 
+def pierson_moskowitz_spectrum(
+    freq: float | npt.ArrayLike, fp: float, hs: float) -> float | np.ndarray:
+    """Calculate the Pierson-Moskowitz omni-directional spectrum for the
+    specified frequencies.
+
+    This is included as one example of a spectrum function.
+
+    Parameters
+    ----------
+    freq: np.ndarray
+        Wave frequencies.
+    fp: float
+        Peak frequency of the sea-state in :math:`Hz`.
+    hs: float
+        Significant wave height (zeroth moment) of the sea-state in
+        :math:`m`.
+    """
+    b = (1.057*fp)**4
+    a = hs**2 / 4 * b
+    return a * freq**(-5) * np.exp(-b * freq**(-4))
+
+
 def spread_cos2s(freq: float | npt.ArrayLike,
                  directions: float | npt.ArrayLike,
-                 fp: float, s_max: float) -> np.ndarray:
-    """ Calculate the Cosine-2s spreading function for the specified
+                 fp: float, s_max: float) -> float | np.ndarray:
+    """Calculate the Cosine-2s spreading function for the specified
     frequencies and wave directions.
 
     This is included as one example of a spreading function.
-    See `Ocean Optics Book <https://www.oceanopticsbook.info/view/surfaces/level-2/spreading-function-effects>`_.
 
     Parameters
     ----------
@@ -253,7 +278,7 @@ def spread_cos2s(freq: float | npt.ArrayLike,
     directions: np.ndarray
         Wave directions.
     fp: float
-        Peak frequency of sea-state in :math:`Hz`.
+        Peak frequency of the sea-state in :math:`Hz`.
     s_max: float
         The spreading parameter. Larger values corresponds to less
         spread. For fully developed seas a value of 10 is a good choice.
@@ -265,7 +290,7 @@ def spread_cos2s(freq: float | npt.ArrayLike,
         frequency and wave direction.
     """
     freq = np.atleast_1d(freq)
-    rdir = degrees_to_radians(directions)
+    rdir = _degrees_to_radians(directions)
     pow = np.ones(len(freq)) * 5.0
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
