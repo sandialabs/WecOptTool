@@ -105,6 +105,10 @@ def test_solve(wec, wave, pto):
     _, _ = pto.post_process(wec, x_wec, x_opt)
 
 
+def test_plot(wec):
+    _, _ = wec.plot_impedance(show=False)
+
+
 def test_waves_module(wec):
     # irregular waves
     hs = 1.5
