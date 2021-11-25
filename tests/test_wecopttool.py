@@ -45,7 +45,20 @@ def wec():
     pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics)
 
     # constraints
-    constraints = []
+    nsubsteps = 4
+    f_max = 2000.0
+
+
+    def const_f_pto(wec, x_wec, x_opt):
+        f = pto.force_on_wec(wec, x_wec, x_opt, nsubsteps)
+        return f_max - np.abs(f.flatten())
+
+
+    ineq_cons = {'type': 'ineq',
+                'fun': const_f_pto,
+                }
+
+    constraints = [ineq_cons]
 
     # WEC
     f_add = pto.force_on_wec
@@ -107,6 +120,25 @@ def test_solve(wec, wave, pto):
 
 def test_plot(wec):
     _, _ = wec.plot_impedance(show=False)
+    _, _ = wec.plot_impedance(style='complex', show=False)
+
+
+def test_core(wec):
+    # set_attr
+    hydrostatic_stiffness = wec.hydrostatic_stiffness * 1
+    mass_matrix = wec.mass_matrix * 1
+    fb = wec.fb.copy()
+    wec.fb = fb
+    wec.mass_matrix = mass_matrix
+    wec.hydrostatic_stiffness = hydrostatic_stiffness
+    wec.run_bem()
+    # repr
+    print(wec)
+    # unused properties
+    _ = wec.period
+    # unused additional calculations
+    wec.bem_calc_rao()
+    wec.bem_calc_inf_added_mass()
 
 
 def test_waves_module(wec):
