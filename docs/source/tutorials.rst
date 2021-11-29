@@ -1,6 +1,6 @@
 Tutorials
 =========
-This section presents two turorials...
+This section presents turorials illustrating the application of WecOptTool.
 
 .. toctree::
     :maxdepth: 2
