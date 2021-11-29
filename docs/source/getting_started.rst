@@ -1,3 +1,5 @@
 Getting Started
 ===============
-Installation instructions...
+See installation instructions in the `README`_ on GitHub.
+
+.. _README: https://github.com/SNL-WaterPower/WecOptTool
