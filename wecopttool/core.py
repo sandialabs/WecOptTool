@@ -227,6 +227,16 @@ class WEC:
         return self._time
 
     @property
+    def dt(self):
+        """Time spacing."""
+        return self._time[1]
+
+    @property
+    def tf(self):
+        """Final time (period)."""
+        return 1/self.f0
+
+    @property
     def time_mat(self):
         """Matrix to convert from the state vector to a time-series.
         """
@@ -525,7 +535,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
-              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
+              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          optimize.optimize.OptimizeResult]:
         """Solve the WEC co-design problem.
 
@@ -581,6 +591,8 @@ class WEC:
             Optimal WEC state.
         x_opt: np.ndarray
             Optimal control state.
+        objective: float
+            optimized value of the objective function.
         res: optimize.optimize.OptimizeResult
             Raw optimization results.
         """
@@ -602,13 +614,12 @@ class WEC:
 
 
         # objective function
-        if maximize:
-            scale_obj = scale_obj * -1
+        sign = -1.0 if maximize else 1.0
 
 
         def obj_fun_scaled(x):
             x_wec, x_opt = self.decompose_decision_var(x/scale)
-            return obj_fun(self, x_wec, x_opt)*scale_obj
+            return obj_fun(self, x_wec, x_opt)*scale_obj*sign
 
 
         # constraints
@@ -676,7 +687,9 @@ class WEC:
         time_dom = xr.merge([td_x, td_we])
         freq_dom = xr.merge([fd_x, fd_we])
 
-        return time_dom, freq_dom, x_wec, x_opt, res
+        objective = res.fun * sign
+
+        return time_dom, freq_dom, x_wec, x_opt, objective, res
 
     def _dynamic_residual(self, x: np.ndarray, f_exc: np.ndarray
                           ) -> np.ndarray:
