@@ -276,7 +276,7 @@ def spread_cos2s(freq: float | npt.ArrayLike,
     freq: np.ndarray
         Wave frequencies.
     directions: np.ndarray
-        Wave directions.
+        Wave directions relative to mean/wind direction.
     fp: float
         Peak frequency of the sea-state in :math:`Hz`.
     s_max: float
