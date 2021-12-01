@@ -41,7 +41,7 @@ mesh_spar = os.path.join(mesh_dir, mesh_spar)
 float_cog = np.array([0.0, 0.0, -0.7200])
 float_moi = np.diag([20907301, 21306090.66, 37085481.11])
 spar_cog = np.array([0.0, 0.0, -21.2900])
-spar_moi = np.diag([20907301, 21306090.66, 37085481.11])
+spar_moi = np.diag([94419614.57, 94407091.24, 28542224.82])
 
 # water properties
 rho = 1000
@@ -126,7 +126,7 @@ pto = wot.pto.ProportionalPTO(kinematics)
 
 # frequencies
 f0 = 0.0032
-nfreq = 100  # 260
+nfreq = 100
 
 # WEC
 f_add = pto.force_on_wec
@@ -137,18 +137,11 @@ results_dir = 'results_tutorial_2'
 if not os.path.exists(results_dir):
   os.makedirs(results_dir)
 
-# read BEM if available, else run & save
-fname = os.path.join(results_dir, 'bem.nc')
-if os.path.exists(fname):
-    wec.read_bem(fname)
-else:
-    wec.run_bem()
-    wec.write_bem(fname)
-
 # wave
 peak_frequency = 1.0/8.0
 significant_height = 2.5
-directions = np.linspace(0, 360, 36, )
+directions = np.arange(-180, 180, 20.0)
+mean_direction = 40.0
 s_max = 10.0
 
 
@@ -158,7 +151,7 @@ def spectrum_func(f):
 
 
 def spread_func(f, d):
-    return wot.waves.spread_cos2s(f, d, peak_frequency, s_max)
+    return wot.waves.spread_cos2s(f, d, mean_direction, peak_frequency, s_max)
 
 
 spectrum_name = 'JONSWAP'
@@ -167,13 +160,24 @@ waves = wot.waves.irregular_wave(
     f0, nfreq, directions, spectrum_func, spread_func,
     spectrum_name, spread_name)
 
+# BEM
+fname = os.path.join(results_dir, 'bem.nc')
+if os.path.exists(fname):
+    wec.read_bem(fname)
+else:
+    wec.run_bem(wave_dirs=waves['wave_direction'].values)
+    wec.write_bem(fname)
+
+
 ## SOLVE
 options = {'maxiter': 1000, 'ftol': 1e-8}
+scale_x_opt = 1000
 obj_fun = pto.energy
 nstate_opt = pto.nstate
 maximize = True
 wec_tdom, wec_fdom, x_wec, x_opt, obj, res = wec.solve(
-    waves, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
+    waves, obj_fun, nstate_opt, optim_options=options, maximize=maximize,
+    scale_x_opt=scale_x_opt)
 
 ## POST-PROCESS PTO
 pto_tdom, pto_fdom = pto.post_process(wec, x_wec, x_opt)
@@ -206,10 +210,34 @@ wec.fb.show()
 wec.plot_impedance()  # see function doc for options.
 
 # example time domain plots
-# TODO: plot WEC positions (1 fig, ndof subplots)
-# TODO: plot PTO extension, force, power
+# wave elevation
+plt.figure()
+wec_tdom['wave_elevation'].plot()
+
+# WEC positions (1 fig, ndof subplots)
+fig, axs = plt.subplots(nrows=ndof, sharex=True)
+wec_tdom['pos'].sel(influenced_dof="float__HEAVE").plot(ax=axs[0])
+wec_tdom['pos'].sel(influenced_dof="spar__HEAVE").plot(ax=axs[1])
+if ndof==4 or ndof==7:
+    wec_tdom['pos'].sel(influenced_dof="SURGE").plot(ax=axs[2])
+    wec_tdom['pos'].sel(influenced_dof="PITCH").plot(ax=axs[3])
+if ndof==7:
+    wec_tdom['pos'].sel(influenced_dof="SWAY").plot(ax=axs[4])
+    wec_tdom['pos'].sel(influenced_dof="ROLL").plot(ax=axs[5])
+    wec_tdom['pos'].sel(influenced_dof="YAW").plot(ax=axs[6])
+fig.align_ylabels(axs)
+fig.tight_layout()
+
+# PTO extension, force, power (1 figure)
+fig, axs = plt.subplots(nrows=3, sharex=True)
+pto_tdom['pos'].plot(ax=axs[0])
+pto_tdom['force'].plot(ax=axs[1])
+pto_tdom['power'].plot(ax=axs[2])
+fig.align_ylabels(axs)
+fig.tight_layout()
 
 # example frequency domain plots
-# TODO: tricky because of multiple directions
-# TODO: plot excitation force
-# TODO: plot pto extension RAO
+# plot excitation force & PTO extension.
+# TODO: tricky because of multiple wave directions
+
+plt.show()

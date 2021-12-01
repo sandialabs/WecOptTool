@@ -265,7 +265,7 @@ def pierson_moskowitz_spectrum(
 
 def spread_cos2s(freq: float | npt.ArrayLike,
                  directions: float | npt.ArrayLike,
-                 fp: float, s_max: float) -> float | np.ndarray:
+                 dm: float, fp: float, s_max: float) -> float | np.ndarray:
     """Calculate the Cosine-2s spreading function for the specified
     frequencies and wave directions.
 
@@ -276,7 +276,9 @@ def spread_cos2s(freq: float | npt.ArrayLike,
     freq: np.ndarray
         Wave frequencies.
     directions: np.ndarray
-        Wave directions relative to mean/wind direction.
+        Wave directions relative to mean/wind direction in degrees.
+    dm: float
+        Mean wave direction in degrees.
     fp: float
         Peak frequency of the sea-state in :math:`Hz`.
     s_max: float
@@ -290,7 +292,7 @@ def spread_cos2s(freq: float | npt.ArrayLike,
         frequency and wave direction.
     """
     freq = np.atleast_1d(freq)
-    rdir = _degrees_to_radians(directions)
+    rdir = _degrees_to_radians(directions-dm)
     pow = np.ones(len(freq)) * 5.0
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
