@@ -112,8 +112,12 @@ class WEC:
 
         # additional WEC dynamics forces
         super().__setattr__('f_add', f_add)
-        super().__setattr__('dissipation', dissipation)
+        if stiffness is None:
+            stiffness = 0.0
         super().__setattr__('stiffness', stiffness)
+        if dissipation is None:
+            dissipation = 0.0
+        super().__setattr__('dissipation', dissipation)
 
         # constraints
         super().__setattr__('constraints', constraints)
@@ -146,9 +150,9 @@ class WEC:
             log.info("  BEM data deleted. To run BEM use self.run_bem(...) ")
         if name in _attrs_delete_impedance_not_bem:
             if 'Gi' in self.hydro:
-                self.hydro['Gi'] = None
+                self.hydro['Gi'] = 'None'
             if 'Zi' in self.hydro:
-                self.hydro['Zi'] = None
+                self.hydro['Zi'] = 'None'
             super().__setattr__('_transfer_mat', None)
             log.info("  Impedance matrix deleted. To calculate " +
                         "impedance call 'self.bem_calc_impedance()'")
@@ -225,6 +229,16 @@ class WEC:
     def time(self):
         """Time array."""
         return self._time
+
+    @property
+    def dt(self):
+        """Time spacing."""
+        return self._time[1]
+
+    @property
+    def tf(self):
+        """Final time (period)."""
+        return 1/self.f0
 
     @property
     def time_mat(self):
@@ -380,10 +394,20 @@ class WEC:
                                self.hydrostatic_stiffness)
         if not (bmass and bstiffness):
             self._bem_add_hydrostatics()
+        # additional linear stiffness and dissipation
+        bstiffness = 'stiffness' in self.hydro
+        bdissipation = 'dissipation' in self.hydro
+        if bstiffness:
+            assert np.allclose(self.hydro['stiffness'].values, self.stiffness)
+        if bdissipation:
+            assert np.allclose(self.hydro['dissipation'].values,
+                                self.dissipation)
+        if not (bstiffness and bdissipation):
+            self._bem_add_linear_forces()
         # add impedance
-        if not 'Gi' in self.hydro or self.hydro.Gi is None:
+        if not 'Gi' in self.hydro or self.hydro.Gi == 'None':
             self._bem_calc_transfer_func()
-        elif not 'Zi' in self.hydro or self.hydro.Zi is None:
+        elif not 'Zi' in self.hydro or self.hydro.Zi == 'None':
             self._bem_calc_impedance()
         # post-process impedance: no negative or too small damping diagonal
         self._post_process_impedance(tol=tol)
@@ -405,6 +429,7 @@ class WEC:
         """Calculate the impedance, ensure positive real diagonal, and
         create impedance MIMO matrix. """
         self._bem_add_hydrostatics()
+        self._bem_add_linear_forces()
         self._bem_calc_transfer_func()
         # post-process impedance: no negative or too small damping diagonal
         self._post_process_impedance(tol=tol)
@@ -429,11 +454,19 @@ class WEC:
         self.hydro['mass'] = (dims, self.mass_matrix)
         self.hydro['hydrostatic_stiffness'] = (
             dims, self.hydrostatic_stiffness)
-        # delete impedance
+        self._del_impedance()
+
+    def _bem_add_linear_forces(self) -> None:
+        hydro = self.hydro.assign_coords({'dissipation': self.dissipation})
+        hydro = self.hydro.assign_coords({'stiffness': self.stiffness})
+        super().__setattr__('hydro', hydro)
+        self._del_impedance()
+
+    def _del_impedance(self) -> None:
         log.info("  Impedance matrix deleted. To calculate " +
                  "impedance call 'self.bem_calc_impedance()'")
-        self.hydro['Gi'] = None
-        self.hydro['Zi'] = None
+        self.hydro['Gi'] = 'None'
+        self.hydro['Zi'] = 'None'
         super().__setattr__('_transfer_mat', None)
 
     def _post_process_impedance(self, tol=1e-6) -> None:
@@ -525,7 +558,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
-              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
+              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          optimize.optimize.OptimizeResult]:
         """Solve the WEC co-design problem.
 
@@ -581,6 +614,8 @@ class WEC:
             Optimal WEC state.
         x_opt: np.ndarray
             Optimal control state.
+        objective: float
+            optimized value of the objective function.
         res: optimize.optimize.OptimizeResult
             Raw optimization results.
         """
@@ -602,13 +637,12 @@ class WEC:
 
 
         # objective function
-        if maximize:
-            scale_obj = scale_obj * -1
+        sign = -1.0 if maximize else 1.0
 
 
         def obj_fun_scaled(x):
             x_wec, x_opt = self.decompose_decision_var(x/scale)
-            return obj_fun(self, x_wec, x_opt)*scale_obj
+            return obj_fun(self, x_wec, x_opt)*scale_obj*sign
 
 
         # constraints
@@ -676,7 +710,9 @@ class WEC:
         time_dom = xr.merge([td_x, td_we])
         freq_dom = xr.merge([fd_x, fd_we])
 
-        return time_dom, freq_dom, x_wec, x_opt, res
+        objective = res.fun * sign
+
+        return time_dom, freq_dom, x_wec, x_opt, objective, res
 
     def _dynamic_residual(self, x: np.ndarray, f_exc: np.ndarray
                           ) -> np.ndarray:

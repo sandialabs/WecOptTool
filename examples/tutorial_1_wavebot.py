@@ -79,7 +79,7 @@ constraints = [ineq_cons]
 ## CREATE WEC
 f_add = pto.force_on_wec # PTO force
 
-wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
+wec = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho,
               f_add=f_add, constraints=constraints)
 
 ## RUN/READ BEM
@@ -107,7 +107,7 @@ options = {'maxiter': 1000, 'ftol': 1e-8}
 obj_fun = pto.energy
 nstate_opt = pto.nstate
 maximize = True
-wec_tdom, wec_fdom, x_wec, x_opt, res = wec.solve(
+wec_tdom, wec_fdom, x_wec, x_opt, obj, res = wec.solve(
     waves, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
 
 ## POST-PROCESS PTO
@@ -117,6 +117,10 @@ pto_tdom, pto_fdom = pto.post_process(wec, x_wec, x_opt)
 ########################################################################
 ## SAVE, VIEW, & PLOT RESULTS
 ########################################################################
+# print
+print(f"\nEnergy produced from 0-{wec.tf}s: {obj} J")
+print(f"Average power: {obj/wec.tf} W\n")
+
 # save
 fname = os.path.join(results_dir, 'wec_tdom.nc')
 wec_tdom.to_netcdf(fname)
@@ -187,7 +191,6 @@ cc_power_fd = wec.td_to_fd(cc_power_td)
 Fe = wec_fdom['excitation_force'][:, idof]
 
 # plot
-plt.rcParams.update({"text.usetex": True, })
 ncases = 2
 
 label_cc = 'CC'
@@ -224,8 +227,8 @@ pto_tdom['power'].sel(dof_pto='pto_1').plot(
 
 # format subplots
 ylims = [0.05, 1000.0, 0.2, 0.5, 5000.0, 500.0]
-names = ['$\eta$ [$m$]', '$F_e$ [$N$]', '$z$ [$m$]', '$u$ [$m/s$]',
-         '$F_u$ [$N$]', '$P$ [$W$]']
+names = ['η [m]', 'Fₑ [N]', 'z [m]', 'u [m/s]',
+         'Fᵤ [N]', 'P [W]']
 for ax, ylim, name in zip(axs, ylims, names):
     ax.set_title('')
     if ax is not axs[-1]:
@@ -241,7 +244,7 @@ for ax, ylim, name in zip(axs, ylims, names):
     ax.set_yticks([-2*ylim, -ylim, 0, ylim], minor=False)
 axs[2].legend(ncol=ncases, loc='upper right')
 
-fig.align_ylabels(ax)
+fig.align_ylabels(axs)
 fig.tight_layout()
 
 
@@ -271,25 +274,27 @@ def plot_fd(axs, omega, fdom, marker, label, rmface=False):
             markers.set_markerfacecolor('none')
 
     omega = omega / (wfreq*2*np.pi)
-    mag = np.squeeze(20*np.log10(np.abs(fdom)))
+    mag = np.squeeze(20*np.log10(np.abs(fdom),
+                     out=np.ones(fdom.shape)*np.nan, where=fdom != 0))
     ang = np.squeeze(np.angle(fdom))
 
     _plot_fd(axs[0], omega, mag, marker, label, rmface)
     _plot_fd(axs[1], omega, ang, marker, label, rmface)
 
+
 iaxs = axs[:, 0]
-plot_fd(iaxs, omega, Fe, 'o', '$F_e$', True)
-plot_fd(iaxs, omega, cc_vel_fd, '.', '$u$')
-plot_fd(iaxs, omega, cc_force_fd, '_', '$F_u$')
+plot_fd(iaxs, omega, Fe, 'o', 'Fₑ', True)
+plot_fd(iaxs, omega, cc_vel_fd, '.', 'u')
+plot_fd(iaxs, omega, cc_force_fd, '_', 'Fᵤ')
 
 iaxs = axs[:, 1]
-plot_fd(iaxs, omega, Fe, 'o', '$F_e$', True)
-plot_fd(iaxs, omega, wec_fdom['vel'], '.', '$u$')
-plot_fd(iaxs, omega, pto_fdom['force'], '_', '$F_u$')
+plot_fd(iaxs, omega, Fe, 'o', 'Fₑ', True)
+plot_fd(iaxs, omega, wec_fdom['vel'], '.', 'u')
+plot_fd(iaxs, omega, pto_fdom['force'], '_', 'Fᵤ')
 
 # format subplots
 locs = [1, 3, 5, 7]
-ylims = [100.0, 2.0]
+ylims = [100.0, np.pi]
 xlims = [0, omega[-1]/(wfreq*2*np.pi)]
 for i in range(ncases):
     iaxs = axs if ncases == 1 else axs[:, i]
@@ -303,7 +308,8 @@ for i in range(ncases):
         iaxs[j].spines['right'].set_visible(False)
         iaxs[j].spines['top'].set_visible(False)
         iaxs[j].set_xlim(xlims)
-        iaxs[j].set_xticklabels(['0']+[f'${k} \omega_0$' for k in locs])
+        iaxs[j].set_xticklabels(['0']+[f'{k} ω₀' for k in locs])
+    iaxs[1].set_yticklabels(["-π", 0, "π"], minor=False)
     iaxs[0].set_title(cases[i])
     iaxs[1].set_xlabel('Frequency [rad/s]')
     iaxs[1].set_ylim([-np.pi, np.pi])
