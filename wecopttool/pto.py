@@ -83,8 +83,9 @@ class _PTO:
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, vel)
 
-    def acceleration(self, wec: WEC, x_wec: npt.ArrayLike, nsubsteps: int = 1
-                 ) -> np.ndarray:
+    def acceleration(self, wec: WEC, x_wec: npt.ArrayLike,
+                     x_opt: npt.ArrayLike, nsubsteps: int = 1
+                     ) -> np.ndarray:
         """Calculate the PTO acceleration time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
         wec_vel = np.dot(wec.derivative_mat, wec_pos)

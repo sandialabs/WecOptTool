@@ -64,7 +64,7 @@ def wec():
     f_add = pto.force_on_wec
 
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
-                  f_add=f_add, constraints=constraints)
+                    f_add=f_add, constraints=constraints)
 
     # BEM
     wec.run_bem()
@@ -167,3 +167,14 @@ def test_waves_module(wec):
     direction = 0.0
     _ = wot.waves.long_crested_wave(
         wec.f0, wec.nfreq, spectrum_func, direction, spectrum_name)
+
+
+def test_pto(wec):
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalPTO(kinematics, ['DOF_1'])
+    _ = pto.ndof_wec
+    x_wec = np.zeros(wec.nstate_wec)
+    x_pto = np.zeros(pto.nstate)
+    _ = pto.position(wec, x_wec, x_pto)
+    _ = pto.acceleration(wec, x_wec, x_pto)
+    _ = pto.energy(wec, x_wec, x_pto)
