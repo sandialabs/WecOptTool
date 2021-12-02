@@ -823,12 +823,12 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
 
 
-def fd_to_td(fd: np.ndarray, n: int) -> np.ndarray:
+def fd_to_td(fd: np.ndarray, n: int | None = None) -> np.ndarray:
     return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
 
 
-def td_to_fd(td: np.ndarray, n: int) -> np.ndarray:
-    return np.fft.rfft(td/2, n=n, axis=0, norm='forward')
+def td_to_fd(td: np.ndarray, n: int | None = None) -> np.ndarray:
+    return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
 
 def scale_dofs(scale_list: list[float], ncomponents: int):
