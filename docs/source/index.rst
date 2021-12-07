@@ -1,16 +1,14 @@
 
 WecOptTool Documentation
 ========================
-The WEC Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies while including different control strategies.
-In particular, this tool's key feature is the usage of a pseudo spectral solution method capable of dealing with both constraints and nonlinear dynamics.
-This allows for the optimization study to find the best possible power capture performance within the system constraints (e.g., maximum power take-off force).
-The WEC Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies while including different control strategies.
-In particular, this tool's key feature is the usage of a pseudo spectral solution method capable of dealing with both constraints and nonlinear dynamics.
+The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies while including different control strategies.
+In particular, this tool's key feature is the usage of a pseudo-spectral solution method capable of dealing with both constraints and nonlinear dynamics.
 This allows for the optimization study to find the best possible power capture performance within the system constraints (e.g., maximum power take-off force).
 
 Getting Started
 ===============
 See installation instructions in the `README`_ on GitHub.
+The `README`_ also includes instructions for raising issues, asking questions, and contributing.
 You can work through examples provided on the :ref:`tutorials` page.
 
 .. _README: https://github.com/SNL-WaterPower/WecOptTool
