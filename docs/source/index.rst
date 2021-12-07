@@ -8,14 +8,21 @@ The WEC Design Optimization Toolbox (WecOptTool) allows users to perform wave en
 In particular, this tool's key feature is the usage of a pseudo spectral solution method capable of dealing with both constraints and nonlinear dynamics.
 This allows for the optimization study to find the best possible power capture performance within the system constraints (e.g., maximum power take-off force).
 
+Getting Started
+===============
+See installation instructions in the `README`_ on GitHub.
+You can work through examples provided on the :ref:`tutorials` page.
+
+.. _README: https://github.com/SNL-WaterPower/WecOptTool
+
 
 .. toctree::
     :maxdepth: 2
     :caption: Contents:
 
-    getting_started.rst
     theory.rst
     tutorials.rst
+    references.rst
     source_code.rst
 
 
