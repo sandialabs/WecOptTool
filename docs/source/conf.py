@@ -61,7 +61,7 @@ napoleon_attr_annotations = True
 
 # BibTeX settings
 # See: https://sphinxcontrib-bibtex.readthedocs.io/en/latest/usage.html#configuration
-bibtex_bibfiles = []
+bibtex_bibfiles = ['wecopttool_refs.bib']
 bibtex_encoding = 'utf-8-sig'
 bibtex_default_style = 'alpha'
 bibtex_reference_style = 'label'
