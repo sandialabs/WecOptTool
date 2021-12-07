@@ -2,20 +2,12 @@
 [![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
 
 # WecOptTool
-The WEC Design Optimization MATLAB Toolbox (WecOptTool) allows users to perform
-wave energy converter (WEC) device design optimization studies with constrained
-optimal control.
+The Wave Energy Converter Design Optimization MATLAB Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies with constrained optimal control.
 
 **NOTE:** If you are looking for the WecOptTool code used in previous published work (MATLAB version) please see [WecOptTool-MATLAB](https://github.com/SNL-WaterPower/WecOptTool-MATLAB).
 
-**NOTE:** This repository is under development. It will be a Python version of WecOptTool.
-
 ## Project Information
 Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/main/index.html) for more information including project overview, tutorials, theory, and API documentation.
-
-## Citing
-Please cite:
-> [Main Publication or Code DOI (can make this a badge instead)]
 
 ## Getting started
 ### General users
@@ -25,7 +17,7 @@ WecOptTool requires Python 3.9 (waiting on vtk -> 3.10).
 
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
-pip install wecoptool
+pip install wecopttool
 ```
 
 **Option 2** - using `Conda` for [capytiane](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
@@ -33,7 +25,7 @@ pip install wecoptool
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 conda install -c conda-forge capytaine
-pip install wecoptool
+pip install wecopttool
 ```
 
 **Tutorials** - if running tutorials, to also install additional requirements do
@@ -139,8 +131,3 @@ For this, when building hte documentation locally you will need have installed [
 ### Issue tracking
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
 For general discussion use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
-
-## Publications
-[1] Pub 1
-
-[2] Pub 2
