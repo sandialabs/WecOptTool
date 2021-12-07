@@ -22,7 +22,7 @@ Please cite:
 WecOptTool requires Python 3.9 (waiting on vtk -> 3.10).
 
 **Option 1** - using `pip` for [Capytiane](https://github.com/mancellin/capytaine) (requires Fortran compilers):
-    
+
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 pip install wecoptool
@@ -63,6 +63,13 @@ If using conda to install Capytaine:
 
 ```bash
 conda install -c conda-forge capytaine
+```
+
+If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html).
+Using conda this can be done as:
+
+```bash
+conda install -c conda-forge pandoc
 ```
 
 Install WecOptTool in editable mode:
@@ -125,6 +132,9 @@ make
 
 The built documentation will be in `./docs/_build` and the homepage is `./docs/_build/index.html`.
 To delete do `make clean`.
+
+The documentation uses the Jupyter notebook tutorials in the `examples` directory.
+For this, when building hte documentation locally you will need have installed [pandoc](https://pandoc.org/installing.html).
 
 ### Issue tracking
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).

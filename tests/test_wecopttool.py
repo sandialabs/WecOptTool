@@ -64,7 +64,7 @@ def wec():
     f_add = pto.force_on_wec
 
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
-                  f_add=f_add, constraints=constraints)
+                    f_add=f_add, constraints=constraints)
 
     # BEM
     wec.run_bem()
@@ -111,7 +111,7 @@ def test_solve(wec, wave, pto):
     obj_fun = pto.energy
     nstate_opt = pto.nstate
     maximize = True
-    _, _, x_wec, x_opt, res = wec.solve(
+    _, _, x_wec, x_opt, _, _ = wec.solve(
         wave, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
 
     # post-process
@@ -145,13 +145,14 @@ def test_waves_module(wec):
     # irregular waves
     hs = 1.5
     fp = 1.0/8.0
+    dm = 10.0
     s_max = 10.0
 
     def spectrum_func(f):
         return wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
 
     def spread_func(f, d):
-        return wot.waves.spread_cos2s(f, d, fp, s_max)
+        return wot.waves.spread_cos2s(f, d, dm, fp, s_max)
 
     spectrum_name = 'Pierson Moskowitz'
     spread_name = 'Cosine-2S'
@@ -166,3 +167,14 @@ def test_waves_module(wec):
     direction = 0.0
     _ = wot.waves.long_crested_wave(
         wec.f0, wec.nfreq, spectrum_func, direction, spectrum_name)
+
+
+def test_pto(wec):
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalPTO(kinematics, ['DOF_1'])
+    _ = pto.ndof_wec
+    x_wec = np.zeros(wec.nstate_wec)
+    x_pto = np.zeros(pto.nstate)
+    _ = pto.position(wec, x_wec, x_pto)
+    _ = pto.acceleration(wec, x_wec, x_pto)
+    _ = pto.energy(wec, x_wec, x_pto)

@@ -6,11 +6,13 @@
 # -- Path setup --------------------------------------------------------------
 import os
 import sys
+import shutil
 
 from wecopttool import __version__, __version_info__
 
 
-sys.path.insert(0, os.path.abspath('../../../'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+sys.path.insert(0, project_root)
 
 
 # -- Project information -----------------------------------------------------
@@ -29,6 +31,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
     'sphinx.ext.autosectionlabel',
+    'nbsphinx',
 ]
 
 
@@ -66,3 +69,21 @@ bibtex_encoding = 'utf-8-sig'
 bibtex_default_style = 'alpha'
 bibtex_reference_style = 'label'
 bibtex_foot_reference_style = 'foot'
+
+# Jupyter Notebooks
+print("Copy example notebooks into docs/_examples")
+
+def all_but_ipynb(dir, contents):
+    result = []
+    for c in contents:
+        # if os.path.isfile(os.path.join(dir, c)) and (not c.endswith(".ipynb")):
+        if not c.endswith(".ipynb"):
+            result += [c]
+    return result
+
+
+shutil.rmtree(os.path.join(
+    project_root,  "docs/source/_examples"), ignore_errors=True)
+shutil.copytree(os.path.join(project_root,  "examples"),
+                os.path.join(project_root,  "docs/source/_examples"),
+                ignore=all_but_ipynb)
