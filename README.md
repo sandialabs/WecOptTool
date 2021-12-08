@@ -7,7 +7,7 @@ The Wave Energy Converter Design Optimization MATLAB Toolbox (WecOptTool) allows
 **NOTE:** If you are looking for the WecOptTool code used in previous published work (MATLAB version) please see [WecOptTool-MATLAB](https://github.com/SNL-WaterPower/WecOptTool-MATLAB).
 
 ## Project Information
-Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/main/index.html) for more information including project overview, tutorials, theory, and API documentation.
+Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/) for more information including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
 ### General users
@@ -109,7 +109,7 @@ pytest
 This project uses [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions) to run tests on pull requests.
 
 ### Documentation:
-See [Documentation](https://snl-waterpower.github.io/WecOptTool/main/index.html).
+See [Documentation](https://snl-waterpower.github.io/WecOptTool/).
 
 #### Editing the documentation
 The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/), and the [Napoleon extension](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) for automatic code documentation.
