@@ -119,7 +119,7 @@ To build the documentation
 
 ```bash
 cd docs
-make
+make html
 ```
 
 The built documentation will be in `./docs/_build` and the homepage is `./docs/_build/index.html`.
