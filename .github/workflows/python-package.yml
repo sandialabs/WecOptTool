@@ -59,3 +59,25 @@ jobs:
         coveralls --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  documentation:
+    name: Build documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: 3.9
+        channels: defaults,conda-forge
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: docs/
+        pre-build-command: |
+          python -m pip install --upgrade pip
+          conda install capytaine=1.3
+          conda install -c conda-forge pandoc
+          pip install git+https://github.com/LHEEA/meshmagick.git@3.3
+          pip install .[doc]
+        # build-command: make html
