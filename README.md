@@ -11,7 +11,7 @@ optimal control.
 **NOTE:** This repository is under development. It will be a Python version of WecOptTool.
 
 ## Project Information
-Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/main/index.html) for more information including project overview, tutorials, theory, and API documentation.
+Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/) for more information including project overview, tutorials, theory, and API documentation.
 
 ## Citing
 Please cite:
@@ -117,7 +117,7 @@ pytest
 This project uses [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions) to run tests on pull requests.
 
 ### Documentation:
-See [Documentation](https://snl-waterpower.github.io/WecOptTool/main/index.html).
+See [Documentation](https://snl-waterpower.github.io/WecOptTool/).
 
 #### Editing the documentation
 The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/), and the [Napoleon extension](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) for automatic code documentation.
