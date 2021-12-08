@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wecopttool.pto &mdash; WecOptTool 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wecopttool.pto</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wecopttool.pto</h1><div class="highlight"><pre>
+<span></span>
+<span class="sd">&quot;&quot;&quot;Provide power take-off (PTO) forces and produced energy functions</span>
+<span class="sd">for common PTO control approaches.</span>
+
+<span class="sd">The PTO produced energy can be used as the objective function for the</span>
+<span class="sd">control optimization.</span>
+<span class="sd">The PTO force can be included as an additional force in the WEC</span>
+<span class="sd">dynamics.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># TODO: delete after python 3.10</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">autograd.builtins</span> <span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+<span class="kn">from</span> <span class="nn">wecopttool.core</span> <span class="kn">import</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">real_to_complex_amplitudes</span>
+
+
+<span class="k">class</span> <span class="nc">_PTO</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Base PTO class for subclassing.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kinematics: np.ndarray</span>
+<span class="sd">            Matrix that converts from the WEC DOFs to the PTO DOFs.</span>
+<span class="sd">            Shape: (PTO DOFs, WEC DOFs).</span>
+<span class="sd">        names: list, optional</span>
+<span class="sd">            Names of the PTOs in each DOF. List of strings of length PTO</span>
+<span class="sd">            DOFs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span> <span class="o">=</span> <span class="n">kinematics</span>
+        <span class="c1"># names</span>
+        <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;pto_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="n">names</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of PTO degrees of freedom.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndof_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of WEC degrees of freedom.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total number of PTO states.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nstate_per_dof</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_kinematics_t</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_pto_to_wec_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pto</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pto</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_wec_to_pto_dofs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pto</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pto</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kinematics_t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                 <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO position time-series.&quot;&quot;&quot;</span>
+        <span class="n">wec_pos</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wec_to_pto_dofs</span><span class="p">(</span><span class="n">wec_pos</span><span class="p">)</span>
+        <span class="n">time_mat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">make_time_mat</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">velocity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                 <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO velocity time-series.&quot;&quot;&quot;</span>
+        <span class="n">wec_pos</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">wec_vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">wec_pos</span><span class="p">)</span>
+        <span class="n">vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wec_to_pto_dofs</span><span class="p">(</span><span class="n">wec_vel</span><span class="p">)</span>
+        <span class="n">time_mat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">make_time_mat</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">vel</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">acceleration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                     <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+                     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO acceleration time-series.&quot;&quot;&quot;</span>
+        <span class="n">wec_pos</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">wec_vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">wec_pos</span><span class="p">)</span>
+        <span class="n">wec_acc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">wec_vel</span><span class="p">)</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wec_to_pto_dofs</span><span class="p">(</span><span class="n">wec_acc</span><span class="p">)</span>
+        <span class="n">time_mat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">make_time_mat</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">acc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+              <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO extracted power time-series in each PTO DOF</span>
+<span class="sd">        for a given system state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">force_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">vel_td</span> <span class="o">*</span> <span class="n">force_td</span>
+
+    <span class="k">def</span> <span class="nf">force_on_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                     <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO forces time-series in the WEC DOFs for a</span>
+<span class="sd">        given system state.</span>
+
+<span class="sd">        See ``force``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fpto_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pto_to_wec_dofs</span><span class="p">(</span><span class="n">fpto_td</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+               <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the energy (in Joules) produced by the PTO during</span>
+<span class="sd">        the period t=0-T=1/f0.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec: WEC</span>
+<span class="sd">            The WEC.</span>
+<span class="sd">        x_wec: np.ndarray</span>
+<span class="sd">            WEC dynamics state.</span>
+<span class="sd">        x_opt: np.ndarray</span>
+<span class="sd">            Optimization (PTO controller) state.</span>
+<span class="sd">        nsubsteps: int</span>
+<span class="sd">            Number of subdivisions between the default (implied) time</span>
+<span class="sd">            steps.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Energy (in Joules) produced over the period t=0-T.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span>
+
+    <span class="k">def</span> <span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+                     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
+<span class="sd">        that the user can work with directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># position</span>
+        <span class="n">wec_pos</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="n">wec_pos</span> <span class="o">@</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kinematics_t</span>
+        <span class="n">pos_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">pos_td</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">pos</span>
+
+        <span class="c1"># velocity</span>
+        <span class="n">vel</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span> <span class="o">@</span> <span class="n">pos</span>
+        <span class="n">vel_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">vel</span>
+
+        <span class="c1"># acceleration</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span> <span class="o">@</span> <span class="n">vel</span>
+        <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+        <span class="n">acc_td</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">acc</span>
+
+        <span class="c1"># force</span>
+        <span class="n">force_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">force_td</span><span class="p">)</span>
+
+        <span class="c1"># power</span>
+        <span class="n">power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+        <span class="n">power_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span>
+
+        <span class="c1"># assemble time-domain xarray</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;dof_pto&#39;</span><span class="p">]</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wec</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">}),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">)]</span>
+        <span class="n">attrs_f</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO force&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;N or N*m&#39;</span><span class="p">}</span>
+        <span class="n">attrs_p</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO power&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">}</span>
+        <span class="n">attrs_pos</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO position&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m or (rad)&#39;</span><span class="p">}</span>
+        <span class="n">attrs_vel</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s or (rad)/s&#39;</span><span class="p">}</span>
+        <span class="n">attrs_acc</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO acceleration&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or (rad)/s^2&#39;</span><span class="p">}</span>
+        <span class="n">force_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">force_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_f</span><span class="p">)</span>
+        <span class="n">power_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">power_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_p</span><span class="p">)</span>
+        <span class="n">pos_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">pos_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_pos</span><span class="p">)</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">vel_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_vel</span><span class="p">)</span>
+        <span class="n">acc_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">acc_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
+        <span class="n">time_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_td</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_td</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_td</span><span class="p">,</span>
+                            <span class="s1">&#39;force&#39;</span><span class="p">:</span> <span class="n">force_td</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="n">power_td</span><span class="p">},)</span>
+
+        <span class="c1"># assemble frequency-domain xarray</span>
+        <span class="n">omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]),</span> <span class="n">wec</span><span class="o">.</span><span class="n">omega</span><span class="p">])</span>
+        <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;omega&#39;</span>
+        <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;(rad)&#39;</span><span class="p">})</span>
+        <span class="n">attrs_f</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;N^2*s&#39;</span>
+        <span class="n">attrs_p</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;W^2*s&#39;</span>
+        <span class="n">attrs_pos</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2*s or (rad)^2*s&#39;</span>
+        <span class="n">attrs_vel</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2/s or (rad)^2/s&#39;</span>
+        <span class="n">attrs_acc</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2/s^3 or (rad)^2/s^3&#39;</span>
+        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">force_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_f</span><span class="p">)</span>
+        <span class="n">power_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">power_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_p</span><span class="p">)</span>
+        <span class="n">pos_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">pos_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_pos</span><span class="p">)</span>
+        <span class="n">vel_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">vel_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_vel</span><span class="p">)</span>
+        <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">acc_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
+        <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_fd</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_fd</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_fd</span><span class="p">,</span>
+                            <span class="s1">&#39;force&#39;</span><span class="p">:</span> <span class="n">force_fd</span><span class="p">,</span> <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="n">power_fd</span><span class="p">},)</span>
+
+        <span class="k">return</span> <span class="n">time_dom</span><span class="p">,</span> <span class="n">freq_dom</span>
+
+    <span class="c1"># define in subclass:</span>
+    <span class="n">_errmsg</span> <span class="o">=</span> <span class="s2">&quot;This should be implemented in the subclasses.&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate_per_dof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of PTO states per PTO DOF.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_errmsg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+              <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO forces time-series in each PTO DOF for a</span>
+<span class="sd">        given system state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec: wecopttool.WEC</span>
+<span class="sd">            The WEC.</span>
+<span class="sd">        x_wec: np.ndarray</span>
+<span class="sd">            WEC dynamics state.</span>
+<span class="sd">        x_opt: np.ndarray</span>
+<span class="sd">            Optimization (PTO control) state.</span>
+<span class="sd">        nsubsteps: int</span>
+<span class="sd">            Number of subdivisions between the default (implied) time</span>
+<span class="sd">            steps.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            PTO force in the time domain in the PTO&#39;s DOFs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_errmsg</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="PseudoSpectralPTO"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.PseudoSpectralPTO">[docs]</a><span class="k">class</span> <span class="nc">PseudoSpectralPTO</span><span class="p">(</span><span class="n">_PTO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pseudo-spectral PTO control.</span>
+
+<span class="sd">    Optimal time-dependent PTO-force.</span>
+<span class="sd">    Equivalent to conjugate gradient (CC) if no additional constraints.</span>
+<span class="sd">    See ``_PTO``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PseudoSpectralPTO.__init__"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.PseudoSpectralPTO.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nfreq: int</span>
+<span class="sd">            Number of frequencies in pseudo-spectral problem. Should match</span>
+<span class="sd">            the BEM and wave frequencies.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematics</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span> <span class="o">=</span> <span class="n">nfreq</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate_per_dof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span>
+
+<div class="viewcode-block" id="PseudoSpectralPTO.force"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.PseudoSpectralPTO.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+              <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">x_pto</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_per_dof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+        <span class="n">time_mat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">make_time_mat</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">,</span> <span class="n">include_mean</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">x_pto</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PseudoSpectralPTO.energy"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.PseudoSpectralPTO.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+               <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nsubsteps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">wec_pos</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+            <span class="n">wec_vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">wec_pos</span><span class="p">)</span>
+            <span class="n">vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wec_to_pto_dofs</span><span class="p">(</span><span class="n">wec_vel</span><span class="p">)</span>
+            <span class="n">vel_vec</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">vel</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+            <span class="n">energy_produced</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wec</span><span class="o">.</span><span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vel_vec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energy_produced</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">energy_produced</span></div></div>
+
+
+<div class="viewcode-block" id="ProportionalPTO"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalPTO">[docs]</a><span class="k">class</span> <span class="nc">ProportionalPTO</span><span class="p">(</span><span class="n">_PTO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proportional PTO control.</span>
+
+<span class="sd">    PTO force is a constant times the velocity.</span>
+<span class="sd">    See ``_PTO``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematics</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate_per_dof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="ProportionalPTO.force"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalPTO.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+              <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">vel_td</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

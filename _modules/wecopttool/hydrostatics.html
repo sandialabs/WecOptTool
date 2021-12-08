@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wecopttool.hydrostatics &mdash; WecOptTool 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wecopttool.hydrostatics</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wecopttool.hydrostatics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Provide functions for calculating hydrostatic and mass</span>
+<span class="sd">properties for floating bodies.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># TODO: delete after python 3.10</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span>
+<span class="kn">from</span> <span class="nn">meshmagick.hydrostatics</span> <span class="kn">import</span> <span class="n">compute_hydrostatics</span>
+<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+
+
+<div class="viewcode-block" id="hydrostatics"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.hydrostatics">[docs]</a><span class="k">def</span> <span class="nf">hydrostatics</span><span class="p">(</span><span class="n">wec</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1025</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">9.81</span><span class="p">,</span>
+                 <span class="n">cog</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the hydrostatic properties of a Capytaine floating body</span>
+<span class="sd">    using MeshMagick</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        wec: capytaine.FloatingBody</span>
+<span class="sd">            The WEC as a capytaine floating body (mesh + DOFs).</span>
+<span class="sd">        rho: float, optional</span>
+<span class="sd">            Water density in :math:`kg/m^3`.</span>
+<span class="sd">        g: float, optional</span>
+<span class="sd">            Gravitational acceleration in :math:`m/s^2`.</span>
+<span class="sd">        cog: list, optional</span>
+<span class="sd">            WEC&#39;s center of gravity: :math:`[C_x, C_y, C_z]`</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            MeshMagick hydrostatic data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">merged</span><span class="p">()</span><span class="o">.</span><span class="n">to_meshmagick</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">compute_hydrostatics</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cog</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">at_cog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="stiffness_matrix"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.stiffness_matrix">[docs]</a><span class="k">def</span> <span class="nf">stiffness_matrix</span><span class="p">(</span><span class="n">hs_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get 6x6 hydrostatic stiffness matrix from MeshMagick</span>
+<span class="sd">    hydrostatic data.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        hs_data: dict</span>
+<span class="sd">            MeshMagick hydrostatic data</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Hydrostatic stiffness matrix. Shape: 6x6.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">block_diag</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;stiffness_matrix&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="mass_matrix_constant_density"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.mass_matrix_constant_density">[docs]</a><span class="k">def</span> <span class="nf">mass_matrix_constant_density</span><span class="p">(</span><span class="n">hs_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+                                 <span class="n">mass</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create the 6x6 mass matrix assuming a constant density for the</span>
+<span class="sd">    WEC.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hs_data: dict</span>
+<span class="sd">        Hydrostatic data from MeshMagick</span>
+<span class="sd">    mass: float, optional</span>
+<span class="sd">        Mass of the floating object, if ``None`` use displaced mass</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">     np.array</span>
+<span class="sd">        The mass matrix. Shape: (6, 6).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mass</span> <span class="o">=</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;disp_mass&#39;</span><span class="p">]</span>
+    <span class="n">rho_wec</span> <span class="o">=</span> <span class="n">mass</span> <span class="o">/</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">volume</span>
+    <span class="n">rho_ratio</span> <span class="o">=</span> <span class="n">rho_wec</span> <span class="o">/</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;rho_water&#39;</span><span class="p">]</span>
+    <span class="n">mom_inertia</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+        <span class="p">[</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixx&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixy&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixz&#39;</span><span class="p">]],</span>
+        <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixy&#39;</span><span class="p">],</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyy&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyz&#39;</span><span class="p">]],</span>
+        <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixz&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyz&#39;</span><span class="p">],</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Izz&#39;</span><span class="p">]]])</span>
+    <span class="n">mom_inertia</span> <span class="o">*=</span> <span class="n">rho_ratio</span>
+    <span class="k">return</span> <span class="n">block_diag</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">mom_inertia</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation &mdash; WecOptTool 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wecopttool.waves" href="source_code_waves.html" />
+    <link rel="prev" title="Tutorial 3" href="tutorial_3.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source_code_waves.html">wecopttool.waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_code_pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_code_hydrostatics.html">wecopttool.hydrostatics</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/source_code.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Modules:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source_code_waves.html">wecopttool.waves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_code_pto.html">wecopttool.pto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_code_hydrostatics.html">wecopttool.hydrostatics</a></li>
+</ul>
+</div>
+<span class="target" id="module-wecopttool.core"></span><p>Provide core functionality for solving the pseudospectral problem.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="wecopttool.core.WEC">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">WEC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">cpy.FloatingBody</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wecopttool.core.WEC" title="wecopttool.core.WEC"><span class="pre">WEC</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1025.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9.81</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#WEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC" title="Permalink to this definition"></a></dt>
+<dd><p>Class representing a specific wave energy converter (WEC).
+An instance contains the  following information about the WEC,
+environment, and dynamic modeling:</p>
+<ul class="simple">
+<li><p>Geometry</p></li>
+<li><p>Degrees of freedom</p></li>
+<li><p>Mass properties</p></li>
+<li><p>Hydrostatic porperties</p></li>
+<li><p>Linear frequency domain hydrodynamic coefficients</p></li>
+<li><p>Water properties</p></li>
+<li><p>Additional dynamic forces (power take-off, mooring, nonlinear
+hydrodynamics, etc.)</p></li>
+<li><p>Constraints</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">cpy.FloatingBody</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wecopttool.core.WEC" title="wecopttool.core.WEC"><span class="pre">WEC</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1025.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9.81</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fb</strong> (<em>capytaine.FloatingBody</em>) – The WEC as a capytaine floating body (mesh + DOFs).</p></li>
+<li><p><strong>mass_matrix</strong> (<em>np.ndarray</em>) – Mass matrix shape of (<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code>).</p></li>
+<li><p><strong>hydrostatic_stiffness</strong> (<em>np.ndarray</em>) – Hydrstatic stiffness matrix matrix of shape
+(<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code>).</p></li>
+<li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
+Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+<li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
+<li><p><strong>dissipation</strong> (<em>np.ndarray</em>) – Additional dissipiation for the impedance calculation in
+<code class="docutils literal notranslate"><span class="pre">capytaine.post_pro.impedance</span></code>. Shape:
+(<code class="docutils literal notranslate"><span class="pre">ndof``x``ndof``x1)</span> <span class="pre">or</span> <span class="pre">(``ndof``x``ndof``x``nfreq</span></code>).</p></li>
+<li><p><strong>stiffness</strong> (<em>np.ndarray</em>) – Additional stiffness for the impedance calculation in
+<code class="docutils literal notranslate"><span class="pre">capytaine.post_pro.impedance</span></code>. Shape:
+(<code class="docutils literal notranslate"><span class="pre">ndof``x``ndof``x1)</span> <span class="pre">or</span> <span class="pre">(``ndof``x``ndof``x``nfreq</span></code>).</p></li>
+<li><p><strong>f_add</strong> (<em>function</em>) – Additional forcing terms (e.g. PTO, mooring, etc.) for the
+WEC dynamics in the time-domain. Takes three inputs:
+(1) the WEC object,
+(2) the WEC dynamics state (1D np.ndarray), and
+(3) the optimization state (1D np.ndarray)
+and outputs the force time-series (1D np.ndarray).</p></li>
+<li><p><strong>constraints</strong> (<em>list</em><em>[</em><em>dict</em><em>]</em>) – Constraints for the constrained optimization.
+See <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em>, </em><em>optional</em>) – Water density in <span class="math notranslate nohighlight">\(kg/m^3\)</span>. Default is 1025.</p></li>
+<li><p><strong>depth</strong> (<em>float</em><em>, </em><em>optional</em>) – Water depth in <span class="math notranslate nohighlight">\(m\)</span>. Default is np.inf</p></li>
+<li><p><strong>g</strong> (<em>float</em><em>, </em><em>optional</em>) – Gravitational acceleration in <span class="math notranslate nohighlight">\(m/s^2\)</span>.
+Default is 9.81.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.__setattr__">
+<span class="sig-name descname"><span class="pre">__setattr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.__setattr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.__setattr__" title="Permalink to this definition"></a></dt>
+<dd><p>Delete dependent attributes  when user manually modifies
+an attribute.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.bem_calc_impedance">
+<span class="sig-name descname"><span class="pre">bem_calc_impedance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.bem_calc_impedance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.bem_calc_impedance" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the impedance, ensure positive real diagonal, and
+create impedance MIMO matrix.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.bem_calc_inf_added_mass">
+<span class="sig-name descname"><span class="pre">bem_calc_inf_added_mass</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.bem_calc_inf_added_mass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.bem_calc_inf_added_mass" title="Permalink to this definition"></a></dt>
+<dd><p>Run the BEM to obtain the infinite added mass.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.bem_calc_rao">
+<span class="sig-name descname"><span class="pre">bem_calc_rao</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.bem_calc_rao"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.bem_calc_rao" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate BEM RAOs using capytaine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.decompose_decision_var">
+<span class="sig-name descname"><span class="pre">decompose_decision_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autograd.builtins.tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.decompose_decision_var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.decompose_decision_var" title="Permalink to this definition"></a></dt>
+<dd><p>Split the state vector into the WEC dynamics state and the
+optimization (control) state. x = [x_wec, x_opt].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.derivative_mat">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">derivative_mat</span></span><a class="headerlink" href="#wecopttool.core.WEC.derivative_mat" title="Permalink to this definition"></a></dt>
+<dd><p>Derivative matrix for the state vector.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.dofmat_to_vec">
+<span class="sig-name descname"><span class="pre">dofmat_to_vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.dofmat_to_vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.dofmat_to_vec" title="Permalink to this definition"></a></dt>
+<dd><p>Flatten a matrix that has one column per DOF.
+Opposite of <code class="docutils literal notranslate"><span class="pre">vec_to_dofmat</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.dt">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dt</span></span><a class="headerlink" href="#wecopttool.core.WEC.dt" title="Permalink to this definition"></a></dt>
+<dd><p>Time spacing.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.f0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">f0</span></span><a class="headerlink" href="#wecopttool.core.WEC.f0" title="Permalink to this definition"></a></dt>
+<dd><p>Initial frequency (and spacing) in Hz. See <code class="docutils literal notranslate"><span class="pre">freq</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.fd_to_td">
+<span class="sig-name descname"><span class="pre">fd_to_td</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.fd_to_td"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.fd_to_td" title="Permalink to this definition"></a></dt>
+<dd><p>Convert from frequency domain to time domain using the FFT.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.freq">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">freq</span></span><a class="headerlink" href="#wecopttool.core.WEC.freq" title="Permalink to this definition"></a></dt>
+<dd><p>Frequency array f=[f0, 2*f0, …, nfreq*f0] in Hz.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.from_file">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#wecopttool.core.WEC" title="wecopttool.core.WEC"><span class="pre">WEC</span></a></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.from_file" title="Permalink to this definition"></a></dt>
+<dd><p>Create a WEC instance from a file saved using <cite>WEC.to_file</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.make_time_mat">
+<span class="sig-name descname"><span class="pre">make_time_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsubsteps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.make_time_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.make_time_mat" title="Permalink to this definition"></a></dt>
+<dd><p>Assemble the time matrix that converts the state to
+time-series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsubsteps</strong> (<em>int</em>) – Number of subdivisions between the default (implied) time
+steps.</p></li>
+<li><p><strong>include_mean</strong> (<em>bool</em>) – Whether the state vector includes a mean component.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>time_mat</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.make_time_vec">
+<span class="sig-name descname"><span class="pre">make_time_vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsubsteps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.make_time_vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.make_time_vec" title="Permalink to this definition"></a></dt>
+<dd><p>Assemble the time vector with n subdivisions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>nsubsteps</strong> (<em>int</em>) – Number of subdivisions between the default (implied) time
+steps.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>time_vec</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.ncomponents">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ncomponents</span></span><a class="headerlink" href="#wecopttool.core.WEC.ncomponents" title="Permalink to this definition"></a></dt>
+<dd><p>Number of state values for each DOF in the WEC dynamics.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.ndof">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ndof</span></span><a class="headerlink" href="#wecopttool.core.WEC.ndof" title="Permalink to this definition"></a></dt>
+<dd><p>Number of degrees of freedom of the WEC.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.nfreq">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nfreq</span></span><a class="headerlink" href="#wecopttool.core.WEC.nfreq" title="Permalink to this definition"></a></dt>
+<dd><p>Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">freq</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.nstate_wec">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nstate_wec</span></span><a class="headerlink" href="#wecopttool.core.WEC.nstate_wec" title="Permalink to this definition"></a></dt>
+<dd><p>Length of the  WEC dynamics state vector.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.omega">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">omega</span></span><a class="headerlink" href="#wecopttool.core.WEC.omega" title="Permalink to this definition"></a></dt>
+<dd><p>Frequency array in radians per second ω=2πf.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.period">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">period</span></span><a class="headerlink" href="#wecopttool.core.WEC.period" title="Permalink to this definition"></a></dt>
+<dd><p>math:T=1/f in seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Period</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.plot_impedance">
+<span class="sig-name descname"><span class="pre">plot_impedance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Bode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'symmetric'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.plot_impedance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.plot_impedance" title="Permalink to this definition"></a></dt>
+<dd><p>Plot impedance.</p>
+<p>See <cite>wot.plot_impedance()</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.read_bem">
+<span class="sig-name descname"><span class="pre">read_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.read_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.read_bem" title="Permalink to this definition"></a></dt>
+<dd><p>Read a BEM solution from a NetCDF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fpath</strong> (<em>str</em>) – Name of file to read BEM data from.</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – Minimum value for the diagonal terms of
+(radiation damping + dissipation).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.run_bem">
+<span class="sig-name descname"><span class="pre">run_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wave_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.dtype</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.dtype</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.dtype</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.dtype</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.typing._array_like._SupportsArray</span><span class="p"><span class="pre">[</span></span><span class="pre">numpy.dtype</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bool</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">complex</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.run_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.run_bem" title="Permalink to this definition"></a></dt>
+<dd><p>Run the BEM for the specified wave directions.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">wot.run_bem</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>wave_dirs</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of wave directions to evaluate BEM at.</p></li>
+<li><p><strong>tol</strong> (<em>float</em>) – Minimum value for the diagonal terms of
+(radiation damping + dissipation).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waves</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">xr.Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_fun</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wecopttool.core.WEC" title="wecopttool.core.WEC"><span class="pre">WEC</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nstate_opt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_wec_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_opt_0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x_wec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x_opt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_grad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">xr.Dataset</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">xr.Dataset</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">optimize.optimize.OptimizeResult</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.solve" title="Permalink to this definition"></a></dt>
+<dd><p>Solve the WEC co-design problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>waves</strong> (<em>xr.Dataset</em>) – The wave, described by two 2D DataArrays:
+elevation variance <cite>S</cite> (m^2*s) and phase <cite>phase</cite> (radians)
+with coordinates of radial frequency <cite>omega</cite> (radians)
+and wave direction <cite>wave_direction</cite> (radians).
+The frequencies and  wave directions must match those in
+the <cite>bem_data</cite> in <cite>self.hydro</cite>.</p></li>
+<li><p><strong>obj_fun</strong> (<em>function</em>) – Objective function for the control optimization.
+Takes three inputs:
+(1) the WEC object,
+(2) the WEC dynamics state (1D np.ndarray), and
+(3) the optimization state (1D np.ndarray)
+and outputs the scalar objective function:
+tuple[WEC, np.ndarray, np.ndarray] -&gt; float.</p></li>
+<li><p><strong>nstate_opt</strong> (<em>int</em>) – Length of the optimization (controls) state vector.</p></li>
+<li><p><strong>x_wec_0</strong> (<em>np.ndarray</em>) – Initial guess for the WEC dynamics state.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code> it is randomly initiated.</p></li>
+<li><p><strong>x_opt_0</strong> (<em>np.ndarray</em>) – Initial guess for the optimization (control) state.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code> it is randomly initiated.</p></li>
+<li><p><strong>scale_x_wec</strong> (<em>list</em>) – Factors to scale each DOF in <code class="docutils literal notranslate"><span class="pre">x_wec</span></code> by, to improve
+convergence. List length <code class="docutils literal notranslate"><span class="pre">ndof</span></code>.</p></li>
+<li><p><strong>scale_x_opt</strong> (<em>npt.ArrayLike</em><em> | </em><em>float</em>) – Factor to scale <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> by, to improve convergence.
+A single float or an array of size <code class="docutils literal notranslate"><span class="pre">nstate_opt</span></code>.</p></li>
+<li><p><strong>scale_obj</strong> (<em>float</em>) – Factor to scale <code class="docutils literal notranslate"><span class="pre">obj_fun</span></code> by, to improve convergence.</p></li>
+<li><p><strong>optim_options</strong> (<em>dict</em>) – Optimization options passed to the optimizer.
+See <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>.</p></li>
+<li><p><strong>use_grad</strong> (<em>bool</em>) – Whether to use gradient information in the optimization.</p></li>
+<li><p><strong>maximize</strong> (<em>bool</em>) – Whether to maximize the objective function. The default is
+<code class="docutils literal notranslate"><span class="pre">False</span></code> to minimize the objective function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>time_dom</strong> (<em>xr.Dataset</em>) – Dataset containing the time-domain results.</p></li>
+<li><p><strong>freq_dom</strong> (<em>xr.Dataset</em>) – Dataset containing the frequency-domain results.</p></li>
+<li><p><strong>x_wec</strong> (<em>np.ndarray</em>) – Optimal WEC state.</p></li>
+<li><p><strong>x_opt</strong> (<em>np.ndarray</em>) – Optimal control state.</p></li>
+<li><p><strong>objective</strong> (<em>float</em>) – optimized value of the objective function.</p></li>
+<li><p><strong>res</strong> (<em>optimize.optimize.OptimizeResult</em>) – Raw optimization results.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.td_to_fd">
+<span class="sig-name descname"><span class="pre">td_to_fd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.td_to_fd"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.td_to_fd" title="Permalink to this definition"></a></dt>
+<dd><p>Convert from frequency domain to time domain using the iFFT.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.tf">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tf</span></span><a class="headerlink" href="#wecopttool.core.WEC.tf" title="Permalink to this definition"></a></dt>
+<dd><p>Final time (period).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.time">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">time</span></span><a class="headerlink" href="#wecopttool.core.WEC.time" title="Permalink to this definition"></a></dt>
+<dd><p>Time array.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.time_mat">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">time_mat</span></span><a class="headerlink" href="#wecopttool.core.WEC.time_mat" title="Permalink to this definition"></a></dt>
+<dd><p>Matrix to convert from the state vector to a time-series.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.to_file">
+<span class="sig-name descname"><span class="pre">to_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.to_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.to_file" title="Permalink to this definition"></a></dt>
+<dd><p>Save the WEC to a file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.vec_to_dofmat">
+<span class="sig-name descname"><span class="pre">vec_to_dofmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.vec_to_dofmat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.vec_to_dofmat" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a vector back to a matrix with one column per DOF.
+Opposite of <code class="docutils literal notranslate"><span class="pre">dofmat_to_vec</span></code>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.w0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">w0</span></span><a class="headerlink" href="#wecopttool.core.WEC.w0" title="Permalink to this definition"></a></dt>
+<dd><p>Initial frequency (and spacing) in rad/s. See <code class="docutils literal notranslate"><span class="pre">freq</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="wecopttool.core.WEC.write_bem">
+<span class="sig-name descname"><span class="pre">write_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#WEC.write_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.write_bem" title="Permalink to this definition"></a></dt>
+<dd><p>Write the BEM solution to a NetCDF file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fpath</strong> (<em>str</em>) – Name of file to write BEM data to.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.complex_xarray_from_netcdf">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">complex_xarray_from_netcdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xr.Dataset</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#complex_xarray_from_netcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.complex_xarray_from_netcdf" title="Permalink to this definition"></a></dt>
+<dd><p>Read a NetCDF file with commplex entries as an xarray dataSet.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.complex_xarray_to_netcdf">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">complex_xarray_to_netcdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bem_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">xr.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#complex_xarray_to_netcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.complex_xarray_to_netcdf" title="Permalink to this definition"></a></dt>
+<dd><p>Save an xarray dataSet with complex entries as a NetCDF file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.freq_array">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">freq_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#freq_array"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.freq_array" title="Permalink to this definition"></a></dt>
+<dd><p>Construct equally spaced frequency array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.plot_impedance">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">plot_impedance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">impedance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Bode'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'diagonal'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#plot_impedance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.plot_impedance" title="Permalink to this definition"></a></dt>
+<dd><p>Plot the impedance matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>impedance</strong> (<em>np.ndarray</em>) – Complex impedance matrix. Shape: nfreq x ndof x ndof</p></li>
+<li><p><strong>freq</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Frequencies in Hz.</p></li>
+<li><p><strong>style</strong> (<em>{'Bode'</em><em>,</em><em>'complex'}</em>) – Wether to plot magnitude and angle (<code class="docutils literal notranslate"><span class="pre">Bode</span></code>) or real and
+imaginary (<code class="docutils literal notranslate"><span class="pre">complex</span></code>) parts.</p></li>
+<li><p><strong>option</strong> (<em>{'diagonal'</em><em>, </em><em>'symmetric'</em><em>, </em><em>'all'}</em>) – Which terms of the matrix to plot:
+‘diagonal’ to plot only the diagonal terms,
+‘symmetric’ to plot only the lower triangular terms, and
+‘all’ to plot all terms.</p></li>
+<li><p><strong>show</strong> (<em>bool</em>) – Whether to show the figure.</p></li>
+<li><p><strong>dof_names</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>fig</strong> (<em>matplotlib.figure.Figure</em>)</p></li>
+<li><p><strong>axs</strong> (<em>np.ndarray[matplotlib.axes._subplots.AxesSubplot]</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.real_to_complex_amplitudes">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">real_to_complex_amplitudes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_row_is_mean</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">numpy.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#real_to_complex_amplitudes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.real_to_complex_amplitudes" title="Permalink to this definition"></a></dt>
+<dd><p>Convert from two real amplitudes to one complex amplitude per
+frequency.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.run_bem">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">run_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">capytaine.bodies.bodies.FloatingBody</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[inf]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave_dirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[0]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1025.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9.81</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xarray.core.dataset.Dataset</span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#run_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.run_bem" title="Permalink to this definition"></a></dt>
+<dd><p>Run Capytaine for a range of frequencies and wave directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fb</strong> (<em>capytaine.FloatingBody</em>) – The WEC as a capytaine floating body (mesh + DOFs).</p></li>
+<li><p><strong>freq</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of frequencies to evaluate BEM at.</p></li>
+<li><p><strong>wave_dirs</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of wave directions to evaluate BEM at.</p></li>
+<li><p><strong>rho</strong> (<em>float</em><em>, </em><em>optional</em>) – Water density in <span class="math notranslate nohighlight">\(kg/m^3\)</span>.</p></li>
+<li><p><strong>g</strong> (<em>float</em><em>, </em><em>optional</em>) – Gravitational acceleration in <span class="math notranslate nohighlight">\(m/s^2\)</span>.</p></li>
+<li><p><strong>depth</strong> (<em>float</em><em>, </em><em>optional</em>) – Water depth in <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
+<li><p><strong>write_info</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of informmation to keep, passed to <cite>capytaine</cite> solver.
+Options are: <cite>wavenumber</cite>, <cite>wavelength</cite>, <cite>mesh</cite>, <cite>hydrostatics</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>BEM results from capytaine.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>xarray.Dataset</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.scale_dofs">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">scale_dofs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">autograd.builtins.list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncomponents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#scale_dofs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.scale_dofs" title="Permalink to this definition"></a></dt>
+<dd><p>Create a scaling vector based on a different scale for each DOF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>scale_list</strong> (<em>list</em>) – Scale for each DOF.</p></li>
+<li><p><strong>ncomponents</strong> (<em>int</em>) – Number of elements in the state vector for each DOF.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>np.ndarray</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Scaling vector.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.core.wave_excitation">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">wave_excitation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">xarray.core.dataset.Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">xarray.core.dataset.Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">autograd.builtins.tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">xarray.core.dataset.Dataset</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/wecopttool/core.html#wave_excitation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.wave_excitation" title="Permalink to this definition"></a></dt>
+<dd><p>Compute the frequency- and time-domain wave excitation force.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bem_data</strong> (<em>xarray.Dataset</em>) – BEM data for the WEC obtained from <cite>capytaine</cite>.</p></li>
+<li><p><strong>waves</strong> (<em>xarray.Dataset</em>) – The wave, described by two 2D DataArrays:
+elevation variance <cite>S</cite> (m^2*s) and phase <cite>phase</cite> (radians)
+with coordinates of radial frequency <cite>omega</cite> (radians)
+and wave direction <cite>wave_direction</cite> (radians). The frequencies
+and  wave directions must match those in the <cite>bem_data</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>freq_dom</strong> (<em>xarray.Dataset</em>) – Frequency domain wave excitation and elevation.</p></li>
+<li><p><strong>time_dom</strong> (<em>xarray.Dataset</em>) – Time domain wave excitation and elevation.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial_3.html" class="btn btn-neutral float-left" title="Tutorial 3" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="source_code_waves.html" class="btn btn-neutral float-right" title="wecopttool.waves" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

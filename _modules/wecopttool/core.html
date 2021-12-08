@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wecopttool.core &mdash; WecOptTool 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>wecopttool.core</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for wecopttool.core</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Provide core functionality for solving the pseudospectral problem.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># TODO: delete after python 3.10</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;WEC&#39;</span><span class="p">,</span> <span class="s1">&#39;freq_array&#39;</span><span class="p">,</span> <span class="s1">&#39;real_to_complex_amplitudes&#39;</span><span class="p">,</span> <span class="s1">&#39;scale_dofs&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;complex_xarray_from_netcdf&#39;</span><span class="p">,</span> <span class="s1">&#39;complex_xarray_to_netcdf&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;wave_excitation&#39;</span><span class="p">,</span> <span class="s1">&#39;run_bem&#39;</span><span class="p">,</span> <span class="s1">&#39;plot_impedance&#39;</span><span class="p">]</span>
+
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">autograd.builtins</span> <span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
+<span class="kn">from</span> <span class="nn">autograd</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jacobian</span>
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Default values</span>
+<span class="n">_default_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">1025.0</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="mf">9.81</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">}</span>
+
+<div class="viewcode-block" id="WEC"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC">[docs]</a><span class="k">class</span> <span class="nc">WEC</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Class representing a specific wave energy converter (WEC).</span>
+<span class="sd">    An instance contains the  following information about the WEC,</span>
+<span class="sd">    environment, and dynamic modeling:</span>
+
+<span class="sd">    * Geometry</span>
+<span class="sd">    * Degrees of freedom</span>
+<span class="sd">    * Mass properties</span>
+<span class="sd">    * Hydrostatic porperties</span>
+<span class="sd">    * Linear frequency domain hydrodynamic coefficients</span>
+<span class="sd">    * Water properties</span>
+<span class="sd">    * Additional dynamic forces (power take-off, mooring, nonlinear</span>
+<span class="sd">      hydrodynamics, etc.)</span>
+<span class="sd">    * Constraints</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="WEC.__init__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">mass_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                 <span class="n">hydrostatic_stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">f0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">dissipation</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">f_add</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">WEC</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span>
+                 <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+                 <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
+                 <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">],</span>
+                 <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fb: capytaine.FloatingBody</span>
+<span class="sd">            The WEC as a capytaine floating body (mesh + DOFs).</span>
+<span class="sd">        mass_matrix: np.ndarray</span>
+<span class="sd">            Mass matrix shape of (``ndof`` x ``ndof``).</span>
+<span class="sd">        hydrostatic_stiffness: np.ndarray</span>
+<span class="sd">            Hydrstatic stiffness matrix matrix of shape</span>
+<span class="sd">            (``ndof`` x ``ndof``).</span>
+<span class="sd">        f0: float</span>
+<span class="sd">            Initial frequency (in Hz) for frequency array.</span>
+<span class="sd">            Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">        nfreq: int</span>
+<span class="sd">            Number of frequencies in frequency array. See ``f0``.</span>
+<span class="sd">        dissipation: np.ndarray</span>
+<span class="sd">            Additional dissipiation for the impedance calculation in</span>
+<span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
+<span class="sd">            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).</span>
+<span class="sd">        stiffness: np.ndarray</span>
+<span class="sd">            Additional stiffness for the impedance calculation in</span>
+<span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
+<span class="sd">            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).</span>
+<span class="sd">        f_add: function</span>
+<span class="sd">            Additional forcing terms (e.g. PTO, mooring, etc.) for the</span>
+<span class="sd">            WEC dynamics in the time-domain. Takes three inputs:</span>
+<span class="sd">            (1) the WEC object,</span>
+<span class="sd">            (2) the WEC dynamics state (1D np.ndarray), and</span>
+<span class="sd">            (3) the optimization state (1D np.ndarray)</span>
+<span class="sd">            and outputs the force time-series (1D np.ndarray).</span>
+<span class="sd">        constraints: list[dict]</span>
+<span class="sd">            Constraints for the constrained optimization.</span>
+<span class="sd">            See ``scipy.optimize.minimize``.</span>
+<span class="sd">        rho: float, optional</span>
+<span class="sd">            Water density in :math:`kg/m^3`. Default is 1025.</span>
+<span class="sd">        depth: float, optional</span>
+<span class="sd">            Water depth in :math:`m`. Default is np.inf</span>
+<span class="sd">        g: float, optional</span>
+<span class="sd">            Gravitational acceleration in :math:`m/s^2`.</span>
+<span class="sd">            Default is 9.81.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># water properties</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+
+        <span class="c1"># WEC</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="n">fb</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="n">mass_matrix</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">,</span> <span class="n">hydrostatic_stiffness</span><span class="p">)</span>
+
+        <span class="c1"># frequency</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">))</span>
+
+        <span class="c1"># additional WEC dynamics forces</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;f_add&#39;</span><span class="p">,</span> <span class="n">f_add</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">stiffness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">stiffness</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;stiffness&#39;</span><span class="p">,</span> <span class="n">stiffness</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dissipation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dissipation</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;dissipation&#39;</span><span class="p">,</span> <span class="n">dissipation</span><span class="p">)</span>
+
+        <span class="c1"># constraints</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;constraints&#39;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+
+        <span class="c1"># log</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New WEC: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="si">}</span><span class="s2"> DOF.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.__setattr__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__setattr__">[docs]</a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete dependent attributes  when user manually modifies</span>
+<span class="sd">        an attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_attrs_delete_mass</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">]</span>
+        <span class="n">_attrs_delete_stiffness</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">]</span>
+        <span class="n">_attrs_delete_bem</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="s1">&#39;freq&#39;</span><span class="p">]</span>
+        <span class="n">_attrs_delete_impedance_not_bem</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;dissipation&#39;</span><span class="p">,</span> <span class="s1">&#39;stiffness&#39;</span><span class="p">,</span> <span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Changing value of &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span> <span class="o">+</span>
+                 <span class="s2">&quot;This might cause some attributes to be reset.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_mass</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Mass matrix deleted. &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;Assign new values to &#39;self.mass_matrix&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_stiffness</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Hydrostatic stiffness deleted. &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;Assign new values to &#39;self.hydrostatic_stiffness&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_bem</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">())</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  BEM data deleted. To run BEM use self.run_bem(...) &quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_impedance_not_bem</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="k">if</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
+                        <span class="s2">&quot;impedance call &#39;self.bem_calc_impedance()&#39;&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">str_info</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
+                    <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="si">}</span><span class="s1"> DOF.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">str_info</span>
+
+    <span class="c1"># PROPERTIES</span>
+    <span class="c1"># properties: frequency</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Frequency array f=[f0, 2*f0, ..., nfreq*f0] in Hz.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span>
+
+    <span class="nd">@freq</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">freq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">freq</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;To set the frequency provide a tuple (f0, nfreq).&quot;</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span> <span class="o">=</span> <span class="n">freq</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_freq&#39;</span><span class="p">,</span> <span class="n">freq_array</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">))</span>
+        <span class="c1"># update time vector</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_time_vec</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="c1"># update transformation matrixes</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_time_mat&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_time_mat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_derivative_mat&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_derivative_mat</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">f0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initial frequency (and spacing) in Hz. See ``freq``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of frequencies in frequency array. See ``freq``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">period</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Period :math:T=1/f in seconds.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">omega</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Frequency array in radians per second ω=2πf.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">w0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initial frequency (and spacing) in rad/s. See ``freq``.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="c1"># properties: problem size</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of degrees of freedom of the WEC.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ncomponents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Number of state values for each DOF in the WEC dynamics.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Length of the  WEC dynamics state vector.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span>
+
+    <span class="c1"># properties: time</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Time array.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Time spacing.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Final time (period).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">f0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">time_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Matrix to convert from the state vector to a time-series.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_mat</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">derivative_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Derivative matrix for the state vector.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derivative_mat</span>
+
+    <span class="c1">## METHODS</span>
+    <span class="c1"># methods: class I/O</span>
+<div class="viewcode-block" id="WEC.to_file"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.to_file">[docs]</a>    <span class="k">def</span> <span class="nf">to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the WEC to a file. &quot;&quot;&quot;</span>
+        <span class="c1"># TODO</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WEC.from_file"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.from_file">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WEC</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a WEC instance from a file saved using `WEC.to_file`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="c1"># methods: state vector</span>
+<div class="viewcode-block" id="WEC.decompose_decision_var"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.decompose_decision_var">[docs]</a>    <span class="k">def</span> <span class="nf">decompose_decision_var</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+                               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Split the state vector into the WEC dynamics state and the</span>
+<span class="sd">        optimization (control) state. x = [x_wec, x_opt].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">state</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">],</span> <span class="n">state</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">:]</span></div>
+
+<div class="viewcode-block" id="WEC.vec_to_dofmat"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.vec_to_dofmat">[docs]</a>    <span class="k">def</span> <span class="nf">vec_to_dofmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert a vector back to a matrix with one column per DOF.</span>
+<span class="sd">        Opposite of ``dofmat_to_vec``. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.dofmat_to_vec"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.dofmat_to_vec">[docs]</a>    <span class="k">def</span> <span class="nf">dofmat_to_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Flatten a matrix that has one column per DOF.</span>
+<span class="sd">        Opposite of ``vec_to_dofmat``. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
+
+    <span class="c1"># methods: transformation matrices</span>
+<div class="viewcode-block" id="WEC.make_time_vec"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.make_time_vec">[docs]</a>    <span class="k">def</span> <span class="nf">make_time_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Assemble the time vector with n subdivisions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsubsteps: int</span>
+<span class="sd">            Number of subdivisions between the default (implied) time</span>
+<span class="sd">            steps.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time_vec: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">nsubsteps</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">f0</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.make_time_mat"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.make_time_mat">[docs]</a>    <span class="k">def</span> <span class="nf">make_time_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">include_mean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+                     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Assemble the time matrix that converts the state to</span>
+<span class="sd">        time-series.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ---------</span>
+<span class="sd">        nsubsteps: int</span>
+<span class="sd">            Number of subdivisions between the default (implied) time</span>
+<span class="sd">            steps.</span>
+<span class="sd">        include_mean: bool</span>
+<span class="sd">            Whether the state vector includes a mean component.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time_mat: np.ndarray</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_time_vec</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="n">wt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">)</span>
+        <span class="n">time_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsubsteps</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">))</span>
+        <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span>
+        <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">include_mean</span><span class="p">:</span>
+            <span class="n">time_mat</span> <span class="o">=</span> <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">time_mat</span></div>
+
+    <span class="k">def</span> <span class="nf">_make_derivative_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_mean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="o">*</span> <span class="n">n</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">w0</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">include_mean</span><span class="p">:</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span>
+        <span class="k">return</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+
+    <span class="c1"># methods: fft</span>
+<div class="viewcode-block" id="WEC.fd_to_td"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.fd_to_td">[docs]</a>    <span class="k">def</span> <span class="nf">fd_to_td</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert from frequency domain to time domain using the FFT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">fd_to_td</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.td_to_fd"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.td_to_fd">[docs]</a>    <span class="k">def</span> <span class="nf">td_to_fd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">td</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert from frequency domain to time domain using the iFFT.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">td_to_fd</span><span class="p">(</span><span class="n">td</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">)</span></div>
+
+    <span class="c1"># methods: bem &amp; impedance</span>
+<div class="viewcode-block" id="WEC.run_bem"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.run_bem">[docs]</a>    <span class="k">def</span> <span class="nf">run_bem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wave_dirs</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+               <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Run the BEM for the specified wave directions.</span>
+
+<span class="sd">        See ``wot.run_bem``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wave_dirs: list[float]</span>
+<span class="sd">            List of wave directions to evaluate BEM at.</span>
+<span class="sd">        tol: float</span>
+<span class="sd">            Minimum value for the diagonal terms of</span>
+<span class="sd">            (radiation damping + dissipation).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running Capytaine (BEM): </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="si">}</span><span class="s2"> frequencies x &quot;</span> <span class="o">+</span>
+                 <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wave_dirs</span><span class="p">)</span><span class="si">}</span><span class="s2"> wave directions.&quot;</span><span class="p">)</span>
+        <span class="n">write_info</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;hydrostatics&#39;</span><span class="p">,</span> <span class="s1">&#39;mesh&#39;</span><span class="p">,</span> <span class="s1">&#39;wavelength&#39;</span><span class="p">,</span> <span class="s1">&#39;wavenumber&#39;</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">run_bem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="n">wave_dirs</span><span class="p">,</span>
+                       <span class="n">rho</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span>
+                       <span class="n">write_info</span><span class="o">=</span><span class="n">write_info</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="c1"># calculate impedance, ensure positive, create matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bem_calc_impedance</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.read_bem"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.read_bem">[docs]</a>    <span class="k">def</span> <span class="nf">read_bem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">tol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Read a BEM solution from a NetCDF file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fpath: str</span>
+<span class="sd">            Name of file to read BEM data from.</span>
+<span class="sd">        tol: float</span>
+<span class="sd">            Minimum value for the diagonal terms of</span>
+<span class="sd">            (radiation damping + dissipation).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading BEM data from </span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">complex_xarray_from_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="c1"># add mass and stiffness</span>
+        <span class="n">bmass</span> <span class="o">=</span> <span class="s1">&#39;mass&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
+        <span class="n">bstiffness</span> <span class="o">=</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
+        <span class="k">if</span> <span class="n">bmass</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_matrix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bstiffness</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">bmass</span> <span class="ow">and</span> <span class="n">bstiffness</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_hydrostatics</span><span class="p">()</span>
+        <span class="c1"># additional linear stiffness and dissipation</span>
+        <span class="n">bstiffness</span> <span class="o">=</span> <span class="s1">&#39;stiffness&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
+        <span class="n">bdissipation</span> <span class="o">=</span> <span class="s1">&#39;dissipation&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
+        <span class="k">if</span> <span class="n">bstiffness</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bdissipation</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;dissipation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">bstiffness</span> <span class="ow">and</span> <span class="n">bdissipation</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_linear_forces</span><span class="p">()</span>
+        <span class="c1"># add impedance</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Gi</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_transfer_func</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Zi</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_impedance</span><span class="p">()</span>
+        <span class="c1"># post-process impedance: no negative or too small damping diagonal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_impedance</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="c1"># create MIMO transfer matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_make_mimo_transfer_mat</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="WEC.write_bem"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.write_bem">[docs]</a>    <span class="k">def</span> <span class="nf">write_bem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Write the BEM solution to a NetCDF file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fpath: str</span>
+<span class="sd">            Name of file to write BEM data to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Writting BEM data to </span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">complex_xarray_to_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.bem_calc_impedance"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.bem_calc_impedance">[docs]</a>    <span class="k">def</span> <span class="nf">bem_calc_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the impedance, ensure positive real diagonal, and</span>
+<span class="sd">        create impedance MIMO matrix. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_hydrostatics</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_linear_forces</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_transfer_func</span><span class="p">()</span>
+        <span class="c1"># post-process impedance: no negative or too small damping diagonal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_impedance</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
+        <span class="c1"># create impedance MIMO matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_make_mimo_transfer_mat</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_bem_calc_transfer_func</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the transfer function matrix using Capytaine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Calculating impedance matrix.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">post_pro</span><span class="o">.</span><span class="n">impedance</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_impedance</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_bem_calc_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the impedance matrix.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">omega</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_bem_add_hydrostatics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Add hydrostatic data to self.hydro. &quot;&quot;&quot;</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;radiating_dof&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_del_impedance</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_bem_add_linear_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">hydro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">({</span><span class="s1">&#39;dissipation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">})</span>
+        <span class="n">hydro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">({</span><span class="s1">&#39;stiffness&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">})</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">hydro</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_del_impedance</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_del_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
+                 <span class="s2">&quot;impedance call &#39;self.bem_calc_impedance()&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_post_process_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Enforce damping diagonal &gt;= 0 + tol. &quot;&quot;&quot;</span>
+        <span class="c1"># ensure non-negative linear damping diagonal</span>
+        <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">):</span>
+            <span class="n">Gi_imag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
+                <span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">))</span>
+            <span class="n">damping</span> <span class="o">=</span> <span class="n">Gi_imag</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span>
+            <span class="n">dmin</span> <span class="o">=</span> <span class="n">damping</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span>  <span class="n">dmin</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="n">tol</span><span class="p">:</span>
+                <span class="n">dof</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idof</span><span class="p">]</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Linear damping for DOF &quot;</span><span class="si">{</span><span class="n">dof</span><span class="si">}</span><span class="s1">&quot; has negative&#39;</span> <span class="o">+</span>
+                            <span class="s1">&#39; or close to zero terms. Shifting up.&#39;</span><span class="p">)</span>
+                <span class="n">damping</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">damping</span><span class="p">[:]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">tol</span><span class="o">-</span><span class="n">dmin</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_make_mimo_transfer_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a block matrix of the MIMO transfer function +</span>
+<span class="sd">        position.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elem</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">)]</span>
+        <span class="n">block</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
+        <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">):</span>
+                <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">[</span><span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]])</span>
+                <span class="n">Zp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span>
+                <span class="n">re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
+                <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
+                <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">)]</span>
+                <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">K</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span>
+                <span class="n">elem</span><span class="p">[</span><span class="n">idof</span><span class="p">][</span><span class="n">jdof</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">elem</span><span class="p">))</span>
+
+<div class="viewcode-block" id="WEC.bem_calc_inf_added_mass"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.bem_calc_inf_added_mass">[docs]</a>    <span class="k">def</span> <span class="nf">bem_calc_inf_added_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Run the BEM to obtain the infinite added mass. &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running Capytaine for infinite frequency.&quot;</span><span class="p">)</span>
+        <span class="n">inf_data</span> <span class="o">=</span> <span class="n">run_bem</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">],</span> <span class="n">wave_dirs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Ainf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">inf_data</span><span class="o">.</span><span class="n">added_mass</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span></div>
+
+<div class="viewcode-block" id="WEC.bem_calc_rao"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.bem_calc_rao">[docs]</a>    <span class="k">def</span> <span class="nf">bem_calc_rao</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate BEM RAOs using capytaine. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;rao&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">post_pro</span><span class="o">.</span><span class="n">rao</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WEC.plot_impedance"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.plot_impedance">[docs]</a>    <span class="k">def</span> <span class="nf">plot_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Bode&#39;</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;symmetric&#39;</span><span class="p">,</span>
+                       <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Plot impedance.</span>
+
+<span class="sd">        See `wot.plot_impedance()`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plot_impedance</span><span class="p">(</span>
+            <span class="n">impedance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Zi</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="n">style</span><span class="p">,</span>
+            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">dof_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span></div>
+
+    <span class="c1"># methods: solve</span>
+    <span class="k">def</span> <span class="nf">_get_state_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">scale_x_wec</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">scale_x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+              <span class="n">nstate_opt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a combined scaling array for the state vector. &quot;&quot;&quot;</span>
+        <span class="c1"># scale for x_wec</span>
+        <span class="k">if</span> <span class="n">scale_x_wec</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">scale_x_wec</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">scale_x_wec</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale_x_wec</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span>
+        <span class="n">scale_x_wec</span> <span class="o">=</span> <span class="n">scale_dofs</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">)</span>
+
+        <span class="c1"># scale for x_opt</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale_x_opt</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">scale_x_opt</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">nstate_opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If &#39;scale_x_opt&#39; is a scalar, &quot;</span> <span class="o">+</span>
+                                 <span class="s2">&quot;&#39;nstate_opt&#39; must be provided&quot;</span><span class="p">)</span>
+            <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="n">scale_dofs</span><span class="p">([</span><span class="n">scale_x_opt</span><span class="p">],</span> <span class="n">nstate_opt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_x_opt</span><span class="p">])</span>
+
+<div class="viewcode-block" id="WEC.solve"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+              <span class="n">waves</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+              <span class="n">obj_fun</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">WEC</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="nb">float</span><span class="p">],</span>
+              <span class="n">nstate_opt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+              <span class="n">x_wec_0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">x_opt_0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">scale_x_wec</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">scale_x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+              <span class="n">scale_obj</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+              <span class="n">optim_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
+              <span class="n">use_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+              <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+              <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span>
+                         <span class="n">optimize</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">OptimizeResult</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Solve the WEC co-design problem.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        waves: xr.Dataset</span>
+<span class="sd">            The wave, described by two 2D DataArrays:</span>
+<span class="sd">            elevation variance `S` (m^2*s) and phase `phase` (radians)</span>
+<span class="sd">            with coordinates of radial frequency `omega` (radians)</span>
+<span class="sd">            and wave direction `wave_direction` (radians).</span>
+<span class="sd">            The frequencies and  wave directions must match those in</span>
+<span class="sd">            the `bem_data` in `self.hydro`.</span>
+<span class="sd">        obj_fun: function</span>
+<span class="sd">            Objective function for the control optimization.</span>
+<span class="sd">            Takes three inputs:</span>
+<span class="sd">            (1) the WEC object,</span>
+<span class="sd">            (2) the WEC dynamics state (1D np.ndarray), and</span>
+<span class="sd">            (3) the optimization state (1D np.ndarray)</span>
+<span class="sd">            and outputs the scalar objective function:</span>
+<span class="sd">            tuple[WEC, np.ndarray, np.ndarray] -&gt; float.</span>
+<span class="sd">        nstate_opt: int</span>
+<span class="sd">            Length of the optimization (controls) state vector.</span>
+<span class="sd">        x_wec_0: np.ndarray</span>
+<span class="sd">            Initial guess for the WEC dynamics state.</span>
+<span class="sd">            If ``None`` it is randomly initiated.</span>
+<span class="sd">        x_opt_0: np.ndarray</span>
+<span class="sd">            Initial guess for the optimization (control) state.</span>
+<span class="sd">            If ``None`` it is randomly initiated.</span>
+<span class="sd">        scale_x_wec: list</span>
+<span class="sd">            Factors to scale each DOF in ``x_wec`` by, to improve</span>
+<span class="sd">            convergence. List length ``ndof``.</span>
+<span class="sd">        scale_x_opt: npt.ArrayLike | float</span>
+<span class="sd">            Factor to scale ``x_opt`` by, to improve convergence.</span>
+<span class="sd">            A single float or an array of size ``nstate_opt``.</span>
+<span class="sd">        scale_obj: float</span>
+<span class="sd">            Factor to scale ``obj_fun`` by, to improve convergence.</span>
+<span class="sd">        optim_options: dict</span>
+<span class="sd">            Optimization options passed to the optimizer.</span>
+<span class="sd">            See ``scipy.optimize.minimize``.</span>
+<span class="sd">        use_grad: bool</span>
+<span class="sd">            Whether to use gradient information in the optimization.</span>
+<span class="sd">        maximize: bool</span>
+<span class="sd">            Whether to maximize the objective function. The default is</span>
+<span class="sd">            ``False`` to minimize the objective function.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        time_dom: xr.Dataset</span>
+<span class="sd">            Dataset containing the time-domain results.</span>
+<span class="sd">        freq_dom: xr.Dataset</span>
+<span class="sd">            Dataset containing the frequency-domain results.</span>
+<span class="sd">        x_wec: np.ndarray</span>
+<span class="sd">            Optimal WEC state.</span>
+<span class="sd">        x_opt: np.ndarray</span>
+<span class="sd">            Optimal control state.</span>
+<span class="sd">        objective: float</span>
+<span class="sd">            optimized value of the objective function.</span>
+<span class="sd">        res: optimize.optimize.OptimizeResult</span>
+<span class="sd">            Raw optimization results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Solving pseudo-spectral control problem.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># initial state</span>
+        <span class="k">if</span> <span class="n">x_wec_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_wec_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x_opt_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_wec_0</span><span class="p">,</span> <span class="n">x_opt_0</span><span class="p">])</span>
+
+        <span class="c1"># wave excitation force</span>
+        <span class="n">fd_we</span><span class="p">,</span> <span class="n">td_we</span> <span class="o">=</span> <span class="n">wave_excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+        <span class="n">f_exc</span> <span class="o">=</span> <span class="n">td_we</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">]</span>
+
+        <span class="c1"># scale</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_scale</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_x_opt</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">)</span>
+
+
+        <span class="c1"># objective function</span>
+        <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+
+        <span class="k">def</span> <span class="nf">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">obj_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span><span class="o">*</span><span class="n">scale_obj</span><span class="o">*</span><span class="n">sign</span>
+
+
+        <span class="c1"># constraints</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># constraints &amp; Jacobians</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">icons</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">constraints</span><span class="p">):</span>
+            <span class="n">icons_new</span> <span class="o">=</span> <span class="n">icons</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+
+            <span class="k">def</span> <span class="nf">tmp_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">icons</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+
+
+            <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_func</span>
+            <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
+                <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">])</span>
+            <span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">icons_new</span>
+
+
+        <span class="c1"># system dynamics through equality constraint</span>
+        <span class="k">def</span> <span class="nf">resid_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynamic_residual</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">,</span> <span class="n">f_exc</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">ri</span><span class="p">)</span>
+
+
+        <span class="n">eq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">resid_fun</span><span class="p">,</span>
+                   <span class="p">}</span>
+        <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
+            <span class="n">eq_cons</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">resid_fun</span><span class="p">)</span>
+        <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eq_cons</span><span class="p">)</span>
+
+        <span class="c1"># minimize</span>
+        <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">problem</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">obj_fun_scaled</span><span class="p">,</span>
+                   <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
+                   <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">,</span>
+                   <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">optim_options</span><span class="p">,</span> <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
+            <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="o">**</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s1">    (Exit mode </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">res</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># unscale</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="n">scale</span>
+        <span class="n">res</span><span class="o">.</span><span class="n">fun</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">fun</span> <span class="o">/</span> <span class="n">scale_obj</span>
+
+        <span class="c1"># post-process</span>
+        <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">fd_x</span><span class="p">,</span> <span class="n">td_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_wec_dynamics</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">fd_we</span> <span class="o">=</span> <span class="n">fd_we</span><span class="o">.</span><span class="n">reset_coords</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">time_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">td_x</span><span class="p">,</span> <span class="n">td_we</span><span class="p">])</span>
+        <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">fd_x</span><span class="p">,</span> <span class="n">fd_we</span><span class="p">])</span>
+
+        <span class="n">objective</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">fun</span> <span class="o">*</span> <span class="n">sign</span>
+
+        <span class="k">return</span> <span class="n">time_dom</span><span class="p">,</span> <span class="n">freq_dom</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">objective</span><span class="p">,</span> <span class="n">res</span></div>
+
+    <span class="k">def</span> <span class="nf">_dynamic_residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">f_exc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+                          <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Solve WEC dynamics in residual form so that they may be</span>
+<span class="sd">        enforced through a nonlinear constraint within an optimization</span>
+<span class="sd">        problem.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : np.ndarray</span>
+<span class="sd">            Decision variable for optimization problem</span>
+<span class="sd">        f_exc : np.ndarray</span>
+<span class="sd">            Time history of excitation forcing at collocation points in</span>
+<span class="sd">            body coordinate system</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            Residuals at collocation points</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># linear hydrodynamic forces</span>
+        <span class="n">f_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_transfer_mat</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">))</span>
+        <span class="n">f_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">f_i</span><span class="p">)</span>
+
+        <span class="c1"># additional forces</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">f_add</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">f_add</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">f_i</span> <span class="o">-</span> <span class="n">f_exc</span> <span class="o">-</span> <span class="n">f_add</span>
+
+    <span class="k">def</span> <span class="nf">_post_process_wec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+                            <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
+<span class="sd">        that the user can work with directly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># position</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">pos_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">pos_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">pos</span>
+
+        <span class="c1"># velocity</span>
+        <span class="n">vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivative_mat</span> <span class="o">@</span> <span class="n">pos</span>
+        <span class="n">vel_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">vel</span><span class="p">)</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">vel</span>
+
+        <span class="c1"># acceleration</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">derivative_mat</span> <span class="o">@</span> <span class="n">vel</span>
+        <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">acc</span><span class="p">)</span>
+        <span class="n">acc_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_mat</span> <span class="o">@</span> <span class="n">acc</span>
+
+        <span class="c1"># xarray - time domain</span>
+        <span class="n">dims_td</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">)</span>
+        <span class="n">coords_td</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">dims_td</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">}),</span>
+            <span class="p">(</span><span class="n">dims_td</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
+        <span class="n">attrs_pos</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;WEC position&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m or (rad)&#39;</span><span class="p">}</span>
+        <span class="n">attrs_vel</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;WEC velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s or (rad)/s&#39;</span><span class="p">}</span>
+        <span class="n">attrs_acc</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;WEC acceleration&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or (rad)/s^2&#39;</span><span class="p">}</span>
+        <span class="n">pos_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">pos_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_td</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_td</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_pos</span><span class="p">)</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">vel_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_td</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_td</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_vel</span><span class="p">)</span>
+        <span class="n">acc_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">acc_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_td</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_td</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
+        <span class="n">time_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_td</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_td</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_td</span><span class="p">},)</span>
+
+        <span class="c1"># xarray - frequency domain</span>
+        <span class="n">omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">])</span>
+        <span class="n">dims_fd</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">)</span>
+        <span class="n">coords_fd</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">dims_fd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;(rad)&#39;</span><span class="p">}),</span>
+            <span class="p">(</span><span class="n">dims_fd</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">)]</span>
+        <span class="n">attrs_pos</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2*s or (rad)^2*s&#39;</span>
+        <span class="n">attrs_vel</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2/s or (rad)^2/s&#39;</span>
+        <span class="n">attrs_acc</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2/s^3 or (rad)^2/s^3&#39;</span>
+        <span class="n">pos_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">pos_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_fd</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_fd</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_pos</span><span class="p">)</span>
+        <span class="n">vel_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">vel_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_fd</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_fd</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_vel</span><span class="p">)</span>
+        <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">acc_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_fd</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_fd</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
+        <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_fd</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_fd</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_fd</span><span class="p">},)</span>
+
+        <span class="k">return</span> <span class="n">freq_dom</span><span class="p">,</span> <span class="n">time_dom</span></div>
+
+
+<div class="viewcode-block" id="freq_array"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.freq_array">[docs]</a><span class="k">def</span> <span class="nf">freq_array</span><span class="p">(</span><span class="n">f0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Construct equally spaced frequency array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nfreq</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">f0</span></div>
+
+
+<div class="viewcode-block" id="real_to_complex_amplitudes"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.real_to_complex_amplitudes">[docs]</a><span class="k">def</span> <span class="nf">real_to_complex_amplitudes</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">first_row_is_mean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+                               <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert from two real amplitudes to one complex amplitude per</span>
+<span class="sd">    frequency. &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">first_row_is_mean</span><span class="p">:</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ndof</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">mean</span><span class="p">,</span> <span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">fd_to_td</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">irfft</span><span class="p">(</span><span class="n">fd</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">td_to_fd</span><span class="p">(</span><span class="n">td</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">td</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="scale_dofs"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.scale_dofs">[docs]</a><span class="k">def</span> <span class="nf">scale_dofs</span><span class="p">(</span><span class="n">scale_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ncomponents</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a scaling vector based on a different scale for each DOF.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    scale_list: list</span>
+<span class="sd">        Scale for each DOF.</span>
+<span class="sd">    ncomponents: int</span>
+<span class="sd">        Number of elements in the state vector for each DOF.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray: Scaling vector.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scale_list</span><span class="p">)</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">dof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
+        <span class="n">scale</span> <span class="o">+=</span> <span class="p">[</span><span class="n">scale_list</span><span class="p">[</span><span class="n">dof</span><span class="p">]]</span> <span class="o">*</span> <span class="n">ncomponents</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="complex_xarray_from_netcdf"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.complex_xarray_from_netcdf">[docs]</a><span class="k">def</span> <span class="nf">complex_xarray_from_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read a NetCDF file with commplex entries as an xarray dataSet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span> <span class="k">as</span> <span class="n">ds</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">cpy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">xarray</span><span class="o">.</span><span class="n">merge_complex_values</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="complex_xarray_to_netcdf"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.complex_xarray_to_netcdf">[docs]</a><span class="k">def</span> <span class="nf">complex_xarray_to_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Save an xarray dataSet with complex entries as a NetCDF file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cpy</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">xarray</span><span class="o">.</span><span class="n">separate_complex_values</span><span class="p">(</span><span class="n">bem_data</span><span class="p">)</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="wave_excitation"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.wave_excitation">[docs]</a><span class="k">def</span> <span class="nf">wave_excitation</span><span class="p">(</span><span class="n">bem_data</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span>
+                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the frequency- and time-domain wave excitation force.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bem_data: xarray.Dataset</span>
+<span class="sd">        BEM data for the WEC obtained from `capytaine`.</span>
+<span class="sd">    waves : xarray.Dataset</span>
+<span class="sd">        The wave, described by two 2D DataArrays:</span>
+<span class="sd">        elevation variance `S` (m^2*s) and phase `phase` (radians)</span>
+<span class="sd">        with coordinates of radial frequency `omega` (radians)</span>
+<span class="sd">        and wave direction `wave_direction` (radians). The frequencies</span>
+<span class="sd">        and  wave directions must match those in the `bem_data`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    freq_dom: xarray.Dataset</span>
+<span class="sd">        Frequency domain wave excitation and elevation.</span>
+<span class="sd">    time_dom: xarray.Dataset</span>
+<span class="sd">        Time domain wave excitation and elevation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                       <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="c1"># excitation BEM</span>
+    <span class="n">exc_coeff</span> <span class="o">=</span> <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov_force&#39;</span><span class="p">]</span> <span class="o">+</span> \
+        <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;diffraction_force&#39;</span><span class="p">]</span>
+
+    <span class="c1"># add zero frequency</span>
+    <span class="k">assert</span> <span class="n">waves</span><span class="o">.</span><span class="n">omega</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">waves</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">0</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">0</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">0</span>
+    <span class="n">waves_p0</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tmp</span><span class="p">,</span> <span class="n">waves</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;omega&#39;</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">exc_coeff</span><span class="o">.</span><span class="n">omega</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">exc_coeff</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">0</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">*</span> <span class="mi">0</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;wavenumber&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">tmp</span><span class="p">[</span><span class="s1">&#39;wavelength&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="n">exc_coeff_p0</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tmp</span><span class="p">,</span> <span class="n">exc_coeff</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;omega&#39;</span><span class="p">)</span>
+
+    <span class="c1"># complex amplitude</span>
+    <span class="n">dw</span> <span class="o">=</span> <span class="n">waves_p0</span><span class="o">.</span><span class="n">omega</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">waves_p0</span><span class="o">.</span><span class="n">omega</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">wave_elev_fd</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">waves_p0</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">dw</span><span class="p">)</span> <span class="o">*</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">waves_p0</span><span class="p">[</span><span class="s1">&#39;phase&#39;</span><span class="p">]))</span>
+    <span class="n">wave_elev_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;wave elevation&#39;</span>
+    <span class="n">wave_elev_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m^2*s&#39;</span>
+    <span class="n">wave_elev_fd</span> <span class="o">=</span> <span class="n">wave_elev_fd</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
+
+    <span class="c1"># excitation force</span>
+    <span class="n">f_exc_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">exc_coeff_p0</span><span class="p">,</span> <span class="n">wave_elev_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wave_direction&quot;</span><span class="p">])</span>
+    <span class="n">f_exc_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;wave excitation force&#39;</span>
+    <span class="n">f_exc_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;N^2*s or N^2*m^2*s&#39;</span>
+    <span class="n">f_exc_fd</span> <span class="o">=</span> <span class="n">f_exc_fd</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">)</span>
+
+    <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;wave_elevation&#39;</span><span class="p">:</span> <span class="n">wave_elev_fd</span><span class="p">,</span> <span class="s1">&#39;excitation_force&#39;</span><span class="p">:</span> <span class="n">f_exc_fd</span><span class="p">},)</span>
+    <span class="n">freq_dom</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;frequency&#39;</span>
+    <span class="n">freq_dom</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;(radians)&#39;</span>
+
+    <span class="c1"># time domain</span>
+    <span class="n">nfd</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfd</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">dims_td</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="p">]</span>
+    <span class="n">coords_td</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims_td</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">time</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">}),</span> <span class="p">]</span>
+
+    <span class="n">f_exc_td</span> <span class="o">=</span> <span class="n">fd_to_td</span><span class="p">(</span><span class="n">f_exc_fd</span><span class="p">,</span> <span class="n">nfd</span><span class="p">)</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">dims_td</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;influenced_dof&#39;</span><span class="p">]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">coords_td</span> <span class="o">+</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f_exc_fd</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">data</span><span class="p">,)]</span>
+    <span class="n">f_exc_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="n">f_exc_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">f_exc_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+    <span class="n">f_exc_td</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;N or N*m&#39;</span>
+    <span class="n">time_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">:</span> <span class="n">f_exc_td</span><span class="p">},)</span>
+
+    <span class="n">eta_all</span> <span class="o">=</span> <span class="n">fd_to_td</span><span class="p">(</span><span class="n">wave_elev_fd</span><span class="p">,</span> <span class="n">nfd</span><span class="p">)</span>
+    <span class="n">wave_elev_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eta_all</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wave_elev_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="n">wave_elev_td</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_td</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_td</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">wave_elev_fd</span><span class="o">.</span><span class="n">attrs</span><span class="p">)</span>
+    <span class="n">wave_elev_td</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;m&#39;</span>
+    <span class="n">time_dom</span><span class="p">[</span><span class="s1">&#39;wave_elevation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wave_elev_td</span>
+
+    <span class="k">return</span> <span class="n">freq_dom</span><span class="p">,</span> <span class="n">time_dom</span></div>
+
+
+<div class="viewcode-block" id="run_bem"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.run_bem">[docs]</a><span class="k">def</span> <span class="nf">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">],</span>
+            <span class="n">wave_dirs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
+            <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span>
+            <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">],</span>
+            <span class="n">write_info</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Run Capytaine for a range of frequencies and wave directions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fb: capytaine.FloatingBody</span>
+<span class="sd">        The WEC as a capytaine floating body (mesh + DOFs).</span>
+<span class="sd">    freq: list[float]</span>
+<span class="sd">        List of frequencies to evaluate BEM at.</span>
+<span class="sd">    wave_dirs: list[float]</span>
+<span class="sd">        List of wave directions to evaluate BEM at.</span>
+<span class="sd">    rho: float, optional</span>
+<span class="sd">        Water density in :math:`kg/m^3`.</span>
+<span class="sd">    g: float, optional</span>
+<span class="sd">        Gravitational acceleration in :math:`m/s^2`.</span>
+<span class="sd">    depth: float, optional</span>
+<span class="sd">        Water depth in :math:`m`.</span>
+<span class="sd">    write_info: list[str], optional</span>
+<span class="sd">        List of informmation to keep, passed to `capytaine` solver.</span>
+<span class="sd">        Options are: `wavenumber`, `wavelength`, `mesh`, `hydrostatics`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xarray.Dataset</span>
+<span class="sd">        BEM results from capytaine.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">BEMSolver</span><span class="p">()</span>
+    <span class="n">test_matrix</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">rho</span><span class="p">],</span>
+        <span class="s1">&#39;water_depth&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">depth</span><span class="p">],</span>
+        <span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">ifreq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="k">for</span> <span class="n">ifreq</span> <span class="ow">in</span> <span class="n">freq</span><span class="p">],</span>
+        <span class="s1">&#39;wave_direction&#39;</span><span class="p">:</span> <span class="n">wave_dirs</span><span class="p">,</span>
+        <span class="s1">&#39;radiating_dof&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">dofs</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+        <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">g</span><span class="p">],</span>
+    <span class="p">})</span>
+    <span class="k">if</span> <span class="n">wave_dirs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># radiation only problem, no diffraction or excitation</span>
+        <span class="n">test_matrix</span> <span class="o">=</span> <span class="n">test_matrix</span><span class="o">.</span><span class="n">drop_vars</span><span class="p">(</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
+    <span class="n">write_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">write_info</span><span class="p">}</span>
+    <span class="n">wec_im</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_immersed&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">fill_dataset</span><span class="p">(</span><span class="n">test_matrix</span><span class="p">,</span> <span class="p">[</span><span class="n">wec_im</span><span class="p">],</span> <span class="o">**</span><span class="n">write_info</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_impedance"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.plot_impedance">[docs]</a><span class="k">def</span> <span class="nf">plot_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                   <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Bode&#39;</span><span class="p">,</span>
+                   <span class="n">option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;diagonal&#39;</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                   <span class="n">dof_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Plot the impedance matrix.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    impedance: np.ndarray</span>
+<span class="sd">        Complex impedance matrix. Shape: nfreq x ndof x ndof</span>
+<span class="sd">    freq: list[float]</span>
+<span class="sd">        Frequencies in Hz.</span>
+<span class="sd">    style: {&#39;Bode&#39;,&#39;complex&#39;}</span>
+<span class="sd">        Wether to plot magnitude and angle (``Bode``) or real and</span>
+<span class="sd">        imaginary (``complex``) parts.</span>
+<span class="sd">    option: {&#39;diagonal&#39;, &#39;symmetric&#39;, &#39;all&#39;}</span>
+<span class="sd">        Which terms of the matrix to plot:</span>
+<span class="sd">        &#39;diagonal&#39; to plot only the diagonal terms,</span>
+<span class="sd">        &#39;symmetric&#39; to plot only the lower triangular terms, and</span>
+<span class="sd">        &#39;all&#39; to plot all terms.</span>
+<span class="sd">    show: bool</span>
+<span class="sd">        Whether to show the figure.</span>
+<span class="sd">    dof_names: list[str]</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    fig: matplotlib.figure.Figure</span>
+<span class="sd">    axs: np.ndarray[matplotlib.axes._subplots.AxesSubplot]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">figh</span> <span class="o">=</span> <span class="mf">3.5</span>
+    <span class="n">figw</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">figh</span>
+    <span class="n">ndof</span> <span class="o">=</span> <span class="n">impedance</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+        <span class="n">ndof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">ndof</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">ndof</span><span class="o">*</span><span class="n">figw</span><span class="p">,</span> <span class="n">ndof</span><span class="o">*</span><span class="n">figh</span><span class="p">),</span>
+        <span class="n">sharex</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s1">&#39;row&#39;</span><span class="p">,</span> <span class="n">squeeze</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dof_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dof_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;DOF </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">)]</span>
+
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">(</span><span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">by_key</span><span class="p">()[</span><span class="s1">&#39;color&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">10</span><span class="p">)[:</span><span class="n">ndof</span><span class="p">]</span>
+
+
+    <span class="k">def</span> <span class="nf">get_ylim</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">pad_factor</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
+        <span class="n">pad</span> <span class="o">=</span> <span class="n">pad_factor</span> <span class="o">*</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">xmin</span><span class="o">-</span><span class="n">pad</span><span class="p">,</span> <span class="n">xmax</span><span class="o">+</span><span class="n">pad</span><span class="p">)</span>
+
+
+    <span class="n">phase_ylim</span> <span class="o">=</span> <span class="n">get_ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+    <span class="n">mag_ylim</span> <span class="o">=</span> <span class="n">get_ylim</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">20</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">impedance</span><span class="p">))))</span>
+    <span class="n">real_ylim</span> <span class="o">=</span> <span class="n">get_ylim</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">impedance</span><span class="p">))]),</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">impedance</span><span class="p">)))</span>
+    <span class="n">imag_ylim</span> <span class="o">=</span> <span class="n">get_ylim</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">impedance</span><span class="p">))),</span>
+                         <span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">impedance</span><span class="p">))))</span>
+
+
+    <span class="k">def</span> <span class="nf">delaxes</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">],</span> <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]]):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idof</span> <span class="o">!=</span> <span class="n">ndof</span><span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="n">idof</span> <span class="o">==</span> <span class="n">ndof</span><span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;bottom&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">jdof</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+
+    <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">idof</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
+            <span class="c1"># labels, ticks, etc</span>
+            <span class="k">if</span> <span class="n">jdof</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;Bode&#39;</span><span class="p">:</span>
+                    <span class="n">l1</span> <span class="o">=</span> <span class="s1">&#39;Magnitude (dB)&#39;</span>
+                    <span class="n">l2</span> <span class="o">=</span> <span class="s1">&#39;Phase (deg)&#39;</span>
+
+                <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;complex&#39;</span><span class="p">:</span>
+                    <span class="n">l1</span> <span class="o">=</span> <span class="s1">&#39;Real&#39;</span>
+                    <span class="n">l2</span> <span class="o">=</span> <span class="s1">&#39;Imaginary&#39;</span>
+
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">l2</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">idof</span> <span class="o">==</span> <span class="n">ndof</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency (Hz)&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">idof</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="n">dof_names</span><span class="p">[</span><span class="n">jdof</span><span class="p">])</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;top&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">jdof</span> <span class="o">==</span> <span class="n">ndof</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">ax_ylabel</span> <span class="o">=</span> <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">dof_names</span><span class="p">[</span><span class="n">idof</span><span class="p">],</span> <span class="n">rotation</span><span class="o">=-</span><span class="mi">90</span><span class="p">,</span>
+                                     <span class="n">labelpad</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_position</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                      <span class="n">right</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelright</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">ax_ylabel</span><span class="o">.</span><span class="n">spines</span><span class="p">[:]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># plot</span>
+            <span class="nb">all</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">)</span>
+            <span class="n">sym</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;symmetric&#39;</span> <span class="ow">and</span> <span class="n">jdof</span> <span class="o">&lt;=</span> <span class="n">idof</span><span class="p">)</span>
+            <span class="n">diag</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;diagonal&#39;</span> <span class="ow">and</span> <span class="n">jdof</span> <span class="o">==</span> <span class="n">idof</span><span class="p">)</span>
+            <span class="n">plot</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="p">(</span><span class="nb">all</span> <span class="ow">or</span> <span class="n">sym</span> <span class="ow">or</span> <span class="n">diag</span><span class="p">)</span> <span class="k">else</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">plot</span><span class="p">:</span>
+                <span class="n">iZi</span> <span class="o">=</span> <span class="n">impedance</span><span class="p">[:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;Bode&#39;</span><span class="p">:</span>
+                    <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">20</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">iZi</span><span class="p">)))</span>
+                    <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">iZi</span><span class="p">)))</span>
+                    <span class="n">yl1</span><span class="p">,</span> <span class="n">yh1</span> <span class="o">=</span> <span class="n">mag_ylim</span>
+                    <span class="n">yl2</span><span class="p">,</span> <span class="n">yh2</span> <span class="o">=</span> <span class="n">phase_ylim</span>
+                <span class="k">elif</span> <span class="n">style</span> <span class="o">==</span> <span class="s1">&#39;complex&#39;</span><span class="p">:</span>
+                    <span class="n">p1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">iZi</span><span class="p">))</span>
+                    <span class="n">p2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">iZi</span><span class="p">))</span>
+                    <span class="n">yl1</span><span class="p">,</span> <span class="n">yh1</span> <span class="o">=</span> <span class="n">real_ylim</span>
+                    <span class="n">yl2</span><span class="p">,</span> <span class="n">yh2</span> <span class="o">=</span> <span class="n">imag_ylim</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">p1</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+                                           <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                                           <span class="n">markersize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                           <span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="n">p2</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+                                             <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                                             <span class="n">markersize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                                             <span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">yl1</span><span class="p">,</span> <span class="n">yh1</span><span class="p">)</span>
+                <span class="n">axs</span><span class="p">[</span><span class="n">idof</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">yl2</span><span class="p">,</span> <span class="n">yh2</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delaxes</span><span class="p">(</span><span class="n">axs</span><span class="p">,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">(</span><span class="n">axs</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">(</span><span class="n">axs</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_xlabels</span><span class="p">(</span><span class="n">axs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">align_xlabels</span><span class="p">(</span><span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:])</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
