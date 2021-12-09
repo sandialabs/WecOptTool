@@ -8,5 +8,4 @@ The source for these tutorials is also included within the WecOptTool installati
     :caption: Contents:
 
     _examples/tutorial_1_wavebot
-    tutorial_2.rst
-    tutorial_3.rst
+    _examples/tutorial_2_rm3
