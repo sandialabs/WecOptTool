@@ -71,6 +71,7 @@ jobs:
         auto-update-conda: true
         python-version: 3.9
         channels: defaults,conda-forge
+
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
@@ -79,8 +80,10 @@ jobs:
         conda install -c conda-forge pandoc
         pip install git+https://github.com/LHEEA/meshmagick.git@3.3
         pip install .[doc]
-    - uses: ammaraskar/sphinx-action@master
-      with:
-        docs-folder: ./docs/
-        pre-build-command: conda activate test
-        build-command: make html
+
+    - name: Build documentation
+      shell: bash -l {0}
+      run: |
+        cd docs
+        make html
+        cd ../
