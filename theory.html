@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Theory &mdash; WecOptTool 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="WecOptTool Documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source_code.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Theory</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/theory.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="theory">
+<h1>Theory<a class="headerlink" href="#theory" title="Permalink to this headline"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
+For a more detailed explanation, please see <span id="id1">[<a class="reference internal" href="references.html#id2" title="Giorgio Bacelli. Optimal control of wave energy converters. PhD, National University of Ireland, Maynooth, Maynooth, Ireland, 2014. URL: http://mural.maynoothuniversity.ie/6753/.">1</a>, <a class="reference internal" href="references.html#id6" title="Giorgio Bacelli and John V Ringwood. Numerical optimal control of wave energy converters. IEEE Transactions on Sustainable Energy, 6(2):294–302, 2014. doi:10.1109/TSTE.2014.2371536.">2</a>, <a class="reference internal" href="references.html#id4" title="Ryan G. Coe, Giorgio Bacelli, Sterling Olson, Vincent S. Neary, and Mathew B. R. Topper. Initial conceptual demonstration of control co-design for WEC optimization. Journal of Ocean Engineering and Marine Energy, 6(4):441–449, 2020. doi:10.1007/s40722-020-00181-9.">3</a>]</span>.
+A journal paper will be available soon.</p>
+</div>
+<p>WecOptTool uses a pseudo-spectral method <span id="id2">[<a class="reference internal" href="references.html#id3" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks synchronously:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Optimize the solution for maximum power generation/absorption</p></li>
+<li><p>Simulate the WEC dynamics</p></li>
+</ol>
+</div></blockquote>
+<p>This can be written as a traditional optimization problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\min\limits_x p(x) \\
+\textrm{s.t.}&amp; \\
+r(x) &amp;= 0 \\
+c(x) &amp;\leq 0 \\
+c_{eq}(x) &amp;= 0\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(x\)</span> is the decision vector, and we wish to find optimal values for <span class="math notranslate nohighlight">\(x\)</span> to minimize power (<span class="math notranslate nohighlight">\(p(x)\)</span>), where negative power is absorbed by the device.
+This accomplishes task 1. from above.
+The solution is forced to follow the dynamics of the system via the constraint <span class="math notranslate nohighlight">\(r(x) = 0\)</span>, where <span class="math notranslate nohighlight">\(r(x)\)</span> is a residual equation.
+The remaining constraints dealing with <span class="math notranslate nohighlight">\(c(x)\)</span> allow for the user to enforce additional limits, such as requiring a tether to remain in tension or limiting the maximum force exerted by a power take-off (PTO).</p>
+<p>Solving this optimization problem, we can find the optimal power for a given WEC design subject to arbitrary constraints and including nonlinear dynamics.
+The pseudo-spectral solution method is a number of key attributes that make it well-suited to this application:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Explicit constraints:</strong> Dynamic and kinematic constraints can be enforced explicitly, negating the need to run unfeasible solutions and thus reducing computational cost.</p></li>
+<li><p><strong>Efficient simulation of nonlinear dynamics:</strong> Frequency-domain solutions cannot include nonlinear dynamics and time-domain solutions can only do so with significant computational cost; the pseudo-spectral method can efficiently handle nonlinear systems, <em>as long as the motion is periodic.</em></p></li>
+<li><p><strong>Arbitrary or fixed controller structure:</strong> As a starting point, one may desired to consider optimal control without a given structure. Later on, it may be useful to consider, e.g., a proportional feedback or latching controllers. This can be accomplished in via the pseudo-spectral method by structuring the system dynamics and the decision vector (<span class="math notranslate nohighlight">\(x\)</span>).</p></li>
+</ul>
+</div></blockquote>
+<p>The solution to this optimization problem can be wrapped with a <em>outer</em> design optimization problem, in which any optimization algorithm can be applied.
+Some examples of problems which can be addressed within this framework include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Optimization of geometry dimensions for a hull</p></li>
+<li><p>Optimization of PTO components (e.g., inertia of a flywheel, a gear ratio)</p></li>
+<li><p>Optimization of ballast versus pre-tension</p></li>
+<li><p>Optimization of the layout for a WEC array</p></li>
+</ul>
+</div></blockquote>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="WecOptTool Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
