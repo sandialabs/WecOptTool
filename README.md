@@ -19,7 +19,7 @@ pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 pip install wecopttool
 ```
 
-**Option 2** - using `Conda` for [capytiane](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
+**Option 2** - using `Conda` for [Capytiane](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
 
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
@@ -28,7 +28,7 @@ pip install wecopttool
 ```
 
 ## Tutorials
-The tutorials can be found in the `examples` directory. 
+The tutorials can be found in the `examples` directory.
 Some of the tutorials have additional required packages. To install these, do
 
 ```bash
