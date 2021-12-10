@@ -55,7 +55,7 @@ Autograd does not support all NumPy and SciPy functionalities, see [autograd doc
 ## Pull Requests
   1. Create a fork of WecOptTool
   2. Create a branch for the specific issue
-  3. Add desired code modifications. Put a note in the changelog. For enhancements add to documentation. Add or modify a test. Make sure all tests pass and documentation builds. Follow style guide above.
+  3. Add desired code modifications. Put a note in the [Changelog](https://github.com/SNL-WaterPower/WecOptTool/blob/main/CHANGES.md). For enhancements add to documentation. Add or modify a test. Make sure all tests pass and documentation builds. Follow style guide above.
   4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags.
 
 ## Tests
