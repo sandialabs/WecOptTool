@@ -7,9 +7,6 @@ import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
 import matplotlib.pyplot as plt
-import pygmsh
-import gmsh
-import os
 from scipy.optimize import brute
 
 import wecopttool as wot
@@ -128,7 +125,6 @@ def design_obj_fun(x):
     options = {'maxiter': 1000, 'ftol': 1e-8}
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    maximize = True
 
     wec_tdom, wec_fdom, x_wec, x_opt, obj, _ = my_wec.solve(waves, 
                                                             obj_fun, 
@@ -164,3 +160,4 @@ ax2.plot(res[2],res[3],'k', zorder=0)
 ax2.scatter(res[2],res[3],c=colors,zorder=1)
 ax2.set_xlabel('h1 [m]')
 ax2.set_ylabel('Obj. fun')
+ax2.set_title('Design optimization results')
