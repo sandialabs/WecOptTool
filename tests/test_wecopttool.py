@@ -7,8 +7,10 @@ import pytest
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
+import meshio
 
 import wecopttool as wot
+from wecopttool.example_devices import WaveBot
 
 
 # TODO: Currently just testing that it runs.
@@ -178,3 +180,9 @@ def test_pto(wec):
     _ = pto.position(wec, x_wec, x_pto)
     _ = pto.acceleration(wec, x_wec, x_pto)
     _ = pto.energy(wec, x_wec, x_pto)
+
+def test_examples_device_wavebot_mesh():
+    wb = WaveBot()
+    mesh = wb.mesh(mesh_size_factor=0.5)
+    assert type(mesh) is meshio._mesh.Mesh
+
