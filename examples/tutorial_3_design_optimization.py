@@ -117,7 +117,7 @@ def design_obj_fun(x):
         mesh.write(os.path.join(results_dir,f"{x[0]:.2f}.stl"))
         
         
-    wfreq = 0.8
+    wfreq = 0.6
     amplitude = 0.0625
     phase = -40
     waves = wot.waves.regular_wave(f0, nfreq, wfreq, amplitude, phase)
@@ -154,10 +154,16 @@ ax.set_title('WaveBot hull cross sections')
 
 fig, ax2 = plt.subplots()
 
-prop_cycle = plt.rcParams['axes.prop_cycle']
-colors = prop_cycle.by_key()['color'][:len(res[2])]
-ax2.plot(res[2],res[3],'k', zorder=0)
-ax2.scatter(res[2],res[3],c=colors,zorder=1)
+ax2.plot(res[2],res[3],
+         'k',
+         zorder=0)
+ax2.scatter(res[2],res[3],
+            c=plt.rcParams['axes.prop_cycle'].by_key()['color'][:len(res[2])],
+            zorder=1)
+
 ax2.set_xlabel('h1 [m]')
-ax2.set_ylabel('Obj. fun')
+ax2.set_ylabel('Power absorbed')
 ax2.set_title('Design optimization results')
+fig.tight_layout()
+
+plt.show()
