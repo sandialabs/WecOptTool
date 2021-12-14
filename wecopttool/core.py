@@ -138,23 +138,23 @@ class WEC:
                  "This might cause some attributes to be reset.")
         if name in _attrs_delete_mass:
             super().__setattr__('mass_matrix', None)
-            log.info("  Mass matrix deleted. " +
+            log.info("Mass matrix deleted. " +
                      "Assign new values to 'self.mass_matrix'")
         if name in _attrs_delete_stiffness:
             super().__setattr__('hydrostatic_stiffness', None)
-            log.info("  Hydrostatic stiffness deleted. " +
+            log.info("Hydrostatic stiffness deleted. " +
                      "Assign new values to 'self.hydrostatic_stiffness'")
         if name in _attrs_delete_bem:
             super().__setattr__('hydro', xr.DataArray())
             super().__setattr__('_transfer_mat', None)
-            log.info("  BEM data deleted. To run BEM use self.run_bem(...) ")
+            log.info("BEM data deleted. To run BEM use self.run_bem(...) ")
         if name in _attrs_delete_impedance_not_bem:
             if 'Gi' in self.hydro:
                 self.hydro['Gi'] = 'None'
             if 'Zi' in self.hydro:
                 self.hydro['Zi'] = 'None'
             super().__setattr__('_transfer_mat', None)
-            log.info("  Impedance matrix deleted. To calculate " +
+            log.info("Impedance matrix deleted. To calculate " +
                         "impedance call 'self.bem_calc_impedance()'")
         super().__setattr__(name, value)
 
@@ -463,7 +463,7 @@ class WEC:
         self._del_impedance()
 
     def _del_impedance(self) -> None:
-        log.info("  Impedance matrix deleted. To calculate " +
+        log.info("Impedance matrix deleted. To calculate " +
                  "impedance call 'self.bem_calc_impedance()'")
         self.hydro['Gi'] = 'None'
         self.hydro['Zi'] = 'None'
