@@ -162,7 +162,7 @@ ax2.scatter(res[2],res[3],
             zorder=1)
 
 ax2.set_xlabel('h1 [m]')
-ax2.set_ylabel('Power absorbed')
+ax2.set_ylabel('Power absorbed [W]')
 ax2.set_title('Design optimization results')
 fig.tight_layout()
 
