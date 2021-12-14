@@ -257,6 +257,9 @@ class PseudoSpectralPTO(_PTO):
         nfreq: int
             Number of frequencies in pseudo-spectral problem. Should match
             the BEM and wave frequencies.
+        kinematics: np.ndarray
+            Matrix that converts from the WEC DOFs to the PTO DOFs.
+            Shape: (PTO DOFs, WEC DOFs).
         """
         super().__init__(kinematics, names)
         self.nfreq = nfreq
