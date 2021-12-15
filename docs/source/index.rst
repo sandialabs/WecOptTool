@@ -24,8 +24,8 @@ The code is written as a Python package and the source code can be found in the 
 
 Getting Started
 ===============
-See installation instructions in the `GitHubrepository`_.
-The `README`_ also has instructions for raising issues, asking questions, and contributing.
+See installation instructions in the `GitHub repository`_.
+The `GitHub repository`_ also has instructions for raising issues, asking questions, and contributing.
 You can work through examples provided on the :ref:`tutorials` page.
 
 Developers
