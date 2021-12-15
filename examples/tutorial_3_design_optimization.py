@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import brute
 
 import wecopttool as wot
-from wecopttool.example_devices import WaveBot
+from wecopttool.geom import WaveBot
 
 os.chdir(os.path.split(os.path.realpath(__file__))[0])
 

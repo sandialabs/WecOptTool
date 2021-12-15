@@ -10,7 +10,7 @@ import capytaine as cpy
 import meshio
 
 import wecopttool as wot
-from wecopttool.example_devices import WaveBot
+from wecopttool.geom import WaveBot
 
 
 # TODO: Currently just testing that it runs.
