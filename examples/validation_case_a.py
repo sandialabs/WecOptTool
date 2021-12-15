@@ -16,21 +16,9 @@ import wecopttool as wot
 logging.basicConfig(level=logging.INFO)
 
 #  mesh
-h1 = 0.17
-h2 = 0.37
-r1 = 0.88
-r2 = 0.35
-freeboard = 0.01
 mesh_size_factor = 0.1
-
-with pygmsh.occ.Geometry() as geom:
-    gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
-    cyl = geom.add_cylinder([0, 0, 0], [0, 0, -h1], r1)
-    cone = geom.add_cone([0, 0, -h1], [0, 0, -h2], r1, r2)
-    geom.translate(cyl, [0, 0, freeboard])
-    geom.translate(cone, [0, 0, freeboard])
-    geom.boolean_union([cyl, cone])
-    mesh = geom.generate_mesh()
+wb = wot.geom.WaveBot()
+mesh = wb.mesh(mesh_size_factor)
 
 # capytaine floating body (mesh + DOFs)
 fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
