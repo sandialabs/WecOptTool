@@ -5,7 +5,8 @@ The source for these tutorials is also included within the WecOptTool installati
 
 .. toctree::
     :maxdepth: 1
-    :caption: Contents:
+    :hidden:
 
     _examples/tutorial_1_wavebot
     _examples/tutorial_2_rm3
+    _examples/tutorial_3_optimization
