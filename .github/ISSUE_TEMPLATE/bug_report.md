@@ -25,7 +25,7 @@ Wrong solution or errors. Include error logs or screenshots if applicable.
 
 **System:**
  - OS: [e.g. Ubuntu 20.04]
- - Python version: [e.g. chrome, safari]
+ - Python version: [e.g. 3.9.7]
  - WecOptTool version: [e.g. 1.0.0]
  - Any other relevant package version: [e.g. Capytaine 1.3.0]
 
