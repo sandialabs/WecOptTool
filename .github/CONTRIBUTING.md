@@ -90,6 +90,12 @@ To delete do `make clean`.
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
 When building the documentation locally you will need have installed [pandoc](https://pandoc.org/installing.html).
 
+### Editing the tutorials
+The tutorials are used as part of the Documentation.
+Before pushing any changes make sure that the saved version of the notebooks have the results in them, and the cells were run in order starting with `1`.
+To achieve this click `clear outputs`, `restart`, `run all`, and `save` in that order.
+For tutorials that have the option to read saved BEM results make sure that the saved version ran the BEM (didn't read them) by deleting the results folder before running.
+
 ## Issue tracking
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
 For general discussion use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)

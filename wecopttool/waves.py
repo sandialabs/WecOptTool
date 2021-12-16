@@ -8,7 +8,7 @@ regular waves and irregular waves.
 The dataset structure is an xarray.Dataset containing the following two
 2D xarray.DataArrray: (1)  the amplitude spectrum  magnitude ``S``
 (m^2*s) and (2) the phase  ``phase`` (rad). The 2D coordinates are:
-wave frequency ``omega`` (rad)  and direction ``wave_direction`` (rad).
+wave frequency ``omega`` (rad/s)  and direction ``wave_direction`` (rad).
 """
 
 

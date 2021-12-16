@@ -14,9 +14,9 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) is an open-so
 The software uses a co-design (WEC & controls) approach where for each WEC design considered in the optimization, the optimal control statetegy for that design is found.
 Practically this is implemented as two nested optimization loops.
 One key feature is the use of a pseudo-spectral solution method capable of dealing with both arbitrary nonlinear constraints and nonlinear dynamics.
-This allows for the optimization study (e.g., to find the WEC geometry that results in the largest power capture performance) within the WEC's constraints (e.g., maximum power take-off force).
+This allows for the optimization study (e.g., to find the WEC geometry that results in the largest power capture performance) within the WEC's constraints (e.g., maximum power take-off force, maximum PTO extension, etc.).
 The code is written to support arbitrary optimization studies, control strategies, and constraints.
-However, common functionalities such as optimal PTO force and average PTO force, are implemented.
+However, common functionalities such as optimal PTO force and average PTO power, are implemented.
 The code is written as a Python package and the source code can be found in the `GitHub repository`_.
 
 .. note::
