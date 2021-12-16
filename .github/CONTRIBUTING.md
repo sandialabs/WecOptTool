@@ -93,3 +93,7 @@ When building the documentation locally you will need have installed [pandoc](ht
 ## Issue tracking
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
 For general discussion use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
+
+
+## Releasing (developers only)
+See [releasing instructions](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/RELEASING.md).
