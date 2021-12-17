@@ -1,44 +1,41 @@
-
-WecOptTool Documentation
-========================
-The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies while including different control strategies.
-In particular, this tool's key feature is the usage of a pseudo-spectral solution method capable of dealing with both constraints and nonlinear dynamics.
-This allows for the optimization study to find the best possible power capture performance within the system constraints (e.g., maximum power take-off force).
-
-Getting Started
-===============
-See installation instructions in the `README`_ on GitHub.
-The `README`_ also includes instructions for raising issues, asking questions, and contributing.
-You can work through examples provided on the :ref:`tutorials` page.
-
-.. _README: https://github.com/SNL-WaterPower/WecOptTool
-
-
+##########
+WecOptTool
+##########
 .. toctree::
     :maxdepth: 2
-    :caption: Contents:
+    :hidden:
 
     theory.rst
     tutorials.rst
     references.rst
     source_code.rst
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-  
-WecOptTool is developed by `Sandia National Laboratories`_.
-The developers would also like to acknowledge benefit from past collaborations with `Data Only Greater`_ and the `Oregon State University Design Engineering Lab`_.
-
-Sandia National Laboratories is a multi-mission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525. 
+The Wave Energy Converter Design Optimization Toolbox (WecOptTool) is an open-source software for conducting optimization studies of wave energy converters (WEC) and their control strategies.
+The software uses a co-design (WEC & controls) approach where for each WEC design considered in the optimization, the optimal control statetegy for that design is found.
+Practically this is implemented as two nested optimization loops.
+One key feature is the use of a pseudo-spectral solution method capable of dealing with both arbitrary nonlinear constraints and nonlinear dynamics.
+This allows for the optimization study (e.g., to find the WEC geometry that results in the largest power capture performance) within the WEC's constraints (e.g., maximum power take-off force, maximum PTO extension, etc.).
+The code is written to support arbitrary optimization studies, control strategies, and constraints.
+However, common functionalities such as optimal PTO force and average PTO power, are implemented.
+The code is written as a Python package and the source code can be found in the `GitHub repository`_.
 
 .. note::
     A MATLAB version of WecOptTool was previously released and, while no longer being developed, is still available on GitHub: `WecOptTool-MATLAB`_.
 
+Getting Started
+===============
+See installation instructions in the `GitHub repository`_.
+The `GitHub repository`_ also has instructions for raising issues, asking questions, and contributing.
+You can work through examples provided on the :ref:`tutorials` page.
+
+Developers
+==========
+WecOptTool is developed by `Sandia National Laboratories`_.
+The developers would also like to acknowledge benefit from past collaborations with `Data Only Greater`_ and the `Oregon State University Design Engineering Lab`_.
+
+Sandia National Laboratories is a multi-mission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.
+
+.. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool
 .. _Data Only Greater: https://www.dataonlygreater.com
 .. _Oregon State University Design Engineering Lab: https://design.engr.oregonstate.edu
 .. _Sandia National Laboratories: https://www.sandia.gov

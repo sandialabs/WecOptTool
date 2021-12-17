@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.pto &mdash; WecOptTool 1.0.0 documentation</title>
+  <title>wecopttool.pto &mdash; WecOptTool 1.0.0b0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -38,8 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
@@ -169,12 +168,12 @@
 
     <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
               <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the PTO extracted power time-series in each PTO DOF</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the PTO power time-series in each PTO DOF</span>
 <span class="sd">        for a given system state.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">force_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">vel_td</span> <span class="o">*</span> <span class="n">force_td</span>
+        <span class="k">return</span> <span class="n">vel_td</span> <span class="o">*</span> <span class="n">force_td</span>
 
     <span class="k">def</span> <span class="nf">force_on_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
                      <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -188,7 +187,7 @@
 
     <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
                <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the energy (in Joules) produced by the PTO during</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the energy (in Joules) by the PTO during</span>
 <span class="sd">        the period t=0-T=1/f0.</span>
 
 <span class="sd">        Parameters</span>
@@ -206,10 +205,34 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        float</span>
-<span class="sd">            Energy (in Joules) produced over the period t=0-T.</span>
+<span class="sd">            Energy (in Joules) over the period t=0-T.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span>
+
+    <span class="k">def</span> <span class="nf">average_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                      <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the average power of the PTO for the given wave</span>
+<span class="sd">        spectrum.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec: WEC</span>
+<span class="sd">            The WEC.</span>
+<span class="sd">        x_wec: np.ndarray</span>
+<span class="sd">            WEC dynamics state.</span>
+<span class="sd">        x_opt: np.ndarray</span>
+<span class="sd">            Optimization (PTO controller) state.</span>
+<span class="sd">        nsubsteps: int</span>
+<span class="sd">            Number of subdivisions between the default (implied) time</span>
+<span class="sd">            steps.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">            Average power (in Watts).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">wec</span><span class="o">.</span><span class="n">tf</span>
 
     <span class="k">def</span> <span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
                      <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">]:</span>
@@ -330,6 +353,9 @@
 <span class="sd">        nfreq: int</span>
 <span class="sd">            Number of frequencies in pseudo-spectral problem. Should match</span>
 <span class="sd">            the BEM and wave frequencies.</span>
+<span class="sd">        kinematics: np.ndarray</span>
+<span class="sd">            Matrix that converts from the WEC DOFs to the PTO DOFs.</span>
+<span class="sd">            Shape: (PTO DOFs, WEC DOFs).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematics</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span> <span class="o">=</span> <span class="n">nfreq</span></div>
@@ -351,7 +377,7 @@
             <span class="n">wec_vel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">wec_pos</span><span class="p">)</span>
             <span class="n">vel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wec_to_pto_dofs</span><span class="p">(</span><span class="n">wec_vel</span><span class="p">)</span>
             <span class="n">vel_vec</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">vel</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
-            <span class="n">energy_produced</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wec</span><span class="o">.</span><span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vel_vec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+            <span class="n">energy_produced</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">wec</span><span class="o">.</span><span class="n">f0</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">vel_vec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">energy_produced</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">energy_produced</span></div></div>
@@ -375,7 +401,7 @@
 <div class="viewcode-block" id="ProportionalPTO.force"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalPTO.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
               <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">vel_td</span></div></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">vel_td</span></div></div>
 </pre></div>
 
            </div>

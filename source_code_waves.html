@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves &mdash; WecOptTool 1.0.0 documentation</title>
+  <title>wecopttool.waves &mdash; WecOptTool 1.0.0b0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -43,8 +43,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -52,6 +51,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="source_code_pto.html">wecopttool.pto</a></li>
 <li class="toctree-l2"><a class="reference internal" href="source_code_hydrostatics.html">wecopttool.hydrostatics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source_code_geom.html">wecopttool.geom</a></li>
 </ul>
 </li>
 </ul>
@@ -116,7 +116,7 @@ regular waves and irregular waves.
 The dataset structure is an xarray.Dataset containing the following two
 2D xarray.DataArrray: (1)  the amplitude spectrum  magnitude <code class="docutils literal notranslate"><span class="pre">S</span></code>
 (m^2*s) and (2) the phase  <code class="docutils literal notranslate"><span class="pre">phase</span></code> (rad). The 2D coordinates are:
-wave frequency <code class="docutils literal notranslate"><span class="pre">omega</span></code> (rad)  and direction <code class="docutils literal notranslate"><span class="pre">wave_direction</span></code> (rad).</p>
+wave frequency <code class="docutils literal notranslate"><span class="pre">omega</span></code> (rad/s)  and direction <code class="docutils literal notranslate"><span class="pre">wave_direction</span></code> (rad).</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.waves.irregular_wave">
 <span class="sig-prename descclassname"><span class="pre">wecopttool.waves.</span></span><span class="sig-name descname"><span class="pre">irregular_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">directions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spread_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xr.Dataset</span></span></span><a class="reference internal" href="_modules/wecopttool/waves.html#irregular_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.irregular_wave" title="Permalink to this definition"></a></dt>

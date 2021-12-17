@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.core &mdash; WecOptTool 1.0.0 documentation</title>
+  <title>wecopttool.core &mdash; WecOptTool 1.0.0b0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -38,8 +38,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul>
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
@@ -211,23 +210,23 @@
                  <span class="s2">&quot;This might cause some attributes to be reset.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_mass</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Mass matrix deleted. &quot;</span> <span class="o">+</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mass matrix deleted. &quot;</span> <span class="o">+</span>
                      <span class="s2">&quot;Assign new values to &#39;self.mass_matrix&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_stiffness</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Hydrostatic stiffness deleted. &quot;</span> <span class="o">+</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Hydrostatic stiffness deleted. &quot;</span> <span class="o">+</span>
                      <span class="s2">&quot;Assign new values to &#39;self.hydrostatic_stiffness&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_bem</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">())</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  BEM data deleted. To run BEM use self.run_bem(...) &quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;BEM data deleted. To run BEM use self.run_bem(...) &quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_impedance_not_bem</span><span class="p">:</span>
             <span class="k">if</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
             <span class="k">if</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
                         <span class="s2">&quot;impedance call &#39;self.bem_calc_impedance()&#39;&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
 
@@ -536,7 +535,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_del_impedance</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_del_impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;  Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
                  <span class="s2">&quot;impedance call &#39;self.bem_calc_impedance()&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 2 - WaveBot Optimization &mdash; WecOptTool 1.0.0b0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="References" href="../references.html" />
+    <link rel="prev" title="Tutorial 1 - WaveBot" href="tutorial_1_wavebot.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial_1_wavebot.html">Tutorial 1 - WaveBot</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 2 - WaveBot Optimization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Problem-setup">Problem setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Solve">Solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Results">Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../source_code.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../tutorials.html">Tutorials</a> &raquo;</li>
+      <li>Tutorial 2 - WaveBot Optimization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/_examples/tutorial_2_wavebot_optimization.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt *,
+div.nbinput.container div.input_area pre,
+div.nboutput.container div.output_area pre,
+div.nbinput.container div.input_area .highlight,
+div.nboutput.container div.output_area .highlight {
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+div.nbinput.container > div[class*=highlight],
+div.nboutput.container > div[class*=highlight] {
+    margin: 0;
+}
+
+div.nbinput.container div.prompt *,
+div.nboutput.container div.prompt * {
+    background: none;
+}
+
+div.nboutput.container div.output_area .highlight,
+div.nboutput.container div.output_area pre {
+    background: unset;
+}
+
+div.nboutput.container div.output_area div.highlight {
+    color: unset;  /* override Pygments text color */
+}
+
+/* avoid gaps between output lines */
+div.nboutput.container div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput.container,
+div.nboutput.container {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput.container,
+    div.nboutput.container {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput.container {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast.container {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput.container div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput.container div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput.container div.prompt,
+div.nboutput.container div.prompt {
+    width: 4.5ex;
+    padding-top: 5px;
+    position: relative;
+    user-select: none;
+}
+
+div.nbinput.container div.prompt > div,
+div.nboutput.container div.prompt > div {
+    position: absolute;
+    right: 0;
+    margin-right: 0.3ex;
+}
+
+@media (max-width: 540px) {
+    div.nbinput.container div.prompt,
+    div.nboutput.container div.prompt {
+        width: unset;
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput.container div.prompt.empty {
+        padding: 0;
+    }
+
+    div.nbinput.container div.prompt > div,
+    div.nboutput.container div.prompt > div {
+        position: unset;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput.container div.prompt pre,
+div.nboutput.container div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput.container div.input_area,
+div.nboutput.container div.output_area {
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput.container div.input_area,
+    div.nboutput.container div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput.container div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    /*background: #f5f5f5;*/
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput.container div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput.container div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput.container div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+
+div.nbinput.container div.input_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight] > pre,
+div.nboutput.container div.output_area div[class*=highlight].math,
+div.nboutput.container div.output_area.rendered_html,
+div.nboutput.container div.output_area > div.output_javascript,
+div.nboutput.container div.output_area:not(.rendered_html) > img{
+    padding: 5px;
+    margin: 0;
+}
+
+/* fix copybtn overflow problem in chromium (needed for 'sphinx_copybutton') */
+div.nbinput.container div.input_area > div[class^='highlight'],
+div.nboutput.container div.output_area > div[class^='highlight']{
+    overflow-y: hidden;
+}
+
+/* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
+.prompt a.copybtn {
+    display: none;
+}
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="Tutorial-2---WaveBot-Optimization">
+<h1>Tutorial 2 - WaveBot Optimization<a class="headerlink" href="#Tutorial-2---WaveBot-Optimization" title="Permalink to this headline"></a></h1>
+<p>The goal of this tutorial is to show a simple example of using both outer and inner optimization loops in WecOptTool. Like the first tutorial, it uses the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius (``r2``)</strong> that maximizes the average aborbed power, while maintaining a constant volume. A constant volume is acheived by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius (<code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p>
+<p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geomtery (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in <em>Tutorial 1</em> and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to
+setup. Note however that automatic differentiation is not an option due to the presence of the inner optimization loop. In this example we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>.</p>
+<img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" />
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">autograd.builtins</span> <span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
+<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brute</span>
+
+<span class="kn">import</span> <span class="nn">wecopttool</span> <span class="k">as</span> <span class="nn">wot</span>
+
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+<span class="n">results_super_dir</span> <span class="o">=</span> <span class="s1">&#39;results_tutorial_2&#39;</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">results_super_dir</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">results_super_dir</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+<section id="Problem-setup">
+<h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this headline"></a></h2>
+<p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">r1</span> <span class="o">=</span> <span class="mf">0.88</span>
+<span class="n">r2_0</span> <span class="o">=</span> <span class="mf">0.35</span>
+<span class="n">h2_0</span> <span class="o">=</span> <span class="mf">0.37</span>
+<span class="n">V0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">h2_0</span><span class="o">*</span><span class="p">(</span><span class="n">r1</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">r2_0</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">r1</span><span class="o">*</span><span class="n">r2_0</span><span class="p">))</span>
+
+<span class="n">r2_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span><span class="n">r1</span><span class="p">]])</span>
+
+
+<span class="k">def</span> <span class="nf">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="n">V0</span><span class="p">,</span> <span class="n">r1</span><span class="o">=</span><span class="n">r1</span><span class="p">):</span>
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">V</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">r1</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">r2</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">r1</span><span class="o">*</span><span class="n">r2</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">h2</span>
+
+
+<span class="c1"># plot</span>
+<span class="n">mapres</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">h2_from_r2</span><span class="p">,</span> <span class="n">r2_vals</span><span class="p">)</span>
+<span class="n">h2_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapres</span><span class="p">)</span>
+
+<span class="n">fig1</span><span class="p">,</span> <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">r2</span><span class="p">,</span> <span class="n">h2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">r2_vals</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">h2_vals</span><span class="p">):</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">(</span><span class="n">r2</span><span class="o">=</span><span class="n">r2</span><span class="p">,</span> <span class="n">h2</span><span class="o">=</span><span class="n">h2</span><span class="p">)</span><span class="o">.</span><span class="n">plot_cross_section</span><span class="p">(</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;r2=</span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, h2=</span><span class="si">{</span><span class="n">h2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;WaveBot hull cross-sections&#39;</span><span class="p">)</span>
+
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_2_wavebot_optimization_3_0.png" src="../_images/_examples_tutorial_2_wavebot_optimization_3_0.png" />
+</div>
+</div>
+<p>Next we will define an objective function for our design optimization problem. We use the same workflow illustrated in Tutorial 1 to set up a WaveBot device, but wrap this in a function definition which can set <code class="docutils literal notranslate"><span class="pre">r2</span></code> and (indirectly) <code class="docutils literal notranslate"><span class="pre">h2</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">r2 = </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="c1">## WEC ##</span>
+    <span class="c1"># geometry</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span>
+
+    <span class="c1"># mesh</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">(</span><span class="n">r2</span><span class="o">=</span><span class="n">r2</span><span class="p">,</span> <span class="n">h2</span><span class="o">=</span><span class="n">h2</span><span class="p">)</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">mesh_size_factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+    <span class="c1"># capytaine floating body (mesh + DOFs)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;WaveBot&quot;</span><span class="p">)</span>
+    <span class="n">fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;HEAVE&quot;</span><span class="p">)</span>
+
+    <span class="c1"># mass &amp; hydrostatic stiffness</span>
+    <span class="n">hs_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">hydrostatics</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+    <span class="n">mass_33</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">mass_matrix_constant_density</span><span class="p">(</span><span class="n">hs_data</span><span class="p">)[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">mass_33</span><span class="p">)</span>
+    <span class="n">stiffness_33</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">stiffness_matrix</span><span class="p">(</span><span class="n">hs_data</span><span class="p">)[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="n">stiffness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">stiffness_33</span><span class="p">)</span>
+
+    <span class="c1"># frequencies</span>
+    <span class="n">f0</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">nfreq</span> <span class="o">=</span> <span class="mi">50</span>
+
+    <span class="c1"># PTOs (additional force + constraint + objective function)</span>
+    <span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="p">)</span>
+    <span class="n">pto</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PseudoSpectralPTO</span><span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">)</span>
+
+    <span class="c1"># constraints at 4x points</span>
+    <span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">f_max</span> <span class="o">=</span> <span class="mf">2000.0</span>
+
+    <span class="k">def</span> <span class="nf">const_f_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto</span><span class="p">,</span>
+                 <span class="p">}</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
+
+    <span class="c1"># additional friction</span>
+    <span class="n">dissipation</span> <span class="o">=</span> <span class="mf">160.3</span>
+
+    <span class="c1"># create WECs</span>
+    <span class="n">f_added</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span>
+
+    <span class="n">my_wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">stiffness</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">f_add</span><span class="o">=</span><span class="n">f_added</span><span class="p">,</span>
+                     <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dissipation</span><span class="o">=</span><span class="n">dissipation</span><span class="p">)</span>
+
+    <span class="c1"># create save directory</span>
+    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_super_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">results_dir</span><span class="p">):</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
+
+    <span class="c1"># read BEM if available, else run &amp; save</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="s1">&#39;bem.nc&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="n">my_wec</span><span class="o">.</span><span class="n">read_bem</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">my_wec</span><span class="o">.</span><span class="n">run_bem</span><span class="p">()</span>
+        <span class="n">my_wec</span><span class="o">.</span><span class="n">write_bem</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.stl&quot;</span><span class="p">))</span>
+
+    <span class="c1">## WAVE ##</span>
+    <span class="n">wfreq</span> <span class="o">=</span> <span class="mf">0.6</span>
+    <span class="n">amplitude</span> <span class="o">=</span> <span class="mf">0.0625</span>
+    <span class="n">phase</span> <span class="o">=</span> <span class="o">-</span><span class="mi">40</span>
+    <span class="n">waves</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">regular_wave</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">wfreq</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
+
+    <span class="c1">## OBJECTIVE FUNCTION ##</span>
+    <span class="n">obj_fun</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">average_power</span>
+    <span class="n">nstate_opt</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">nstate</span>
+
+    <span class="c1">## SOLVE ##</span>
+    <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">}</span>
+
+
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">avg_power</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">my_wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">waves</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">,</span> <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;time (hh:mm:ss): </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">avg_power</span>
+
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Solve">
+<h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this headline"></a></h2>
+<p>Finally, we may call this objective function with an optimization algorithm. Here, a simple <em>brute force</em> optimization approach is used for illustrative purposes, but any variety of options could be applied. The optimization algorithm will call our objective function, which in turn will create a new WaveBot hull, run the necessary BEM calculations for the hull, and find the PTO force that provides the most absorbed power for that hull. This process will be conducted for the range of <code class="docutils literal notranslate"><span class="pre">r2</span></code>
+values that we specify.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># range over which to search</span>
+<span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r2_vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),)</span>
+
+<span class="c1"># solve</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">brute</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">design_obj_fun</span><span class="p">,</span> <span class="n">ranges</span><span class="o">=</span><span class="n">ranges</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">finish</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+r2 = 0.0:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.947138894176044
+            Iterations: 186
+            Function evaluations: 192
+            Gradient evaluations: 186
+time (hh:mm:ss): 0:00:42.533285
+
+r2 = 0.1:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -16.00762799797489
+            Iterations: 195
+            Function evaluations: 203
+            Gradient evaluations: 195
+time (hh:mm:ss): 0:00:45.508277
+
+r2 = 0.2:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.958391310115555
+            Iterations: 194
+            Function evaluations: 201
+            Gradient evaluations: 194
+time (hh:mm:ss): 0:00:40.635843
+
+r2 = 0.30000000000000004:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.92397695677865
+            Iterations: 196
+            Function evaluations: 202
+            Gradient evaluations: 196
+time (hh:mm:ss): 0:00:42.352057
+
+r2 = 0.4:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.911066496288848
+            Iterations: 180
+            Function evaluations: 186
+            Gradient evaluations: 180
+time (hh:mm:ss): 0:00:50.660561
+
+r2 = 0.5:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.886466459091583
+            Iterations: 180
+            Function evaluations: 187
+            Gradient evaluations: 180
+time (hh:mm:ss): 0:01:00.046873
+
+r2 = 0.6000000000000001:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.842136485885046
+            Iterations: 193
+            Function evaluations: 200
+            Gradient evaluations: 193
+time (hh:mm:ss): 0:00:48.030269
+
+r2 = 0.7000000000000001:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.842882429659761
+            Iterations: 193
+            Function evaluations: 201
+            Gradient evaluations: 193
+time (hh:mm:ss): 0:00:48.767861
+
+r2 = 0.8:
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -15.761207099289132
+            Iterations: 200
+            Function evaluations: 206
+            Gradient evaluations: 200
+time (hh:mm:ss): 0:00:52.184659
+</pre></div></div>
+</div>
+</section>
+<section id="Results">
+<h2>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h2>
+<p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> with the optimal somewhere between <span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(0.2\)</span>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fig2</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">by_key</span><span class="p">()[</span><span class="s1">&#39;color&#39;</span><span class="p">][:</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">res</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;h1 [m]&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Average Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Design optimization results&#39;</span><span class="p">)</span>
+<span class="n">fig2</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_2_wavebot_optimization_9_0.png" src="../_images/_examples_tutorial_2_wavebot_optimization_9_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial_1_wavebot.html" class="btn btn-neutral float-left" title="Tutorial 1 - WaveBot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
