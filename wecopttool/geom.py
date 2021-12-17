@@ -1,4 +1,4 @@
-"""Example devices geometry and parameters.
+"""Provide geometry and parameters for some example devices (WEC).
 """
 
 
