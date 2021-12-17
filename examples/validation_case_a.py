@@ -16,21 +16,9 @@ import wecopttool as wot
 logging.basicConfig(level=logging.INFO)
 
 #  mesh
-h1 = 0.17
-h2 = 0.37
-r1 = 0.88
-r2 = 0.35
-freeboard = 0.01
 mesh_size_factor = 0.1
-
-with pygmsh.occ.Geometry() as geom:
-    gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
-    cyl = geom.add_cylinder([0, 0, 0], [0, 0, -h1], r1)
-    cone = geom.add_cone([0, 0, -h1], [0, 0, -h2], r1, r2)
-    geom.translate(cyl, [0, 0, freeboard])
-    geom.translate(cone, [0, 0, freeboard])
-    geom.boolean_union([cyl, cone])
-    mesh = geom.generate_mesh()
+wb = wot.geom.WaveBot()
+mesh = wb.mesh(mesh_size_factor)
 
 # capytaine floating body (mesh + DOFs)
 fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
@@ -108,49 +96,42 @@ waves = wot.waves.regular_wave(f0, nfreq, wfreq, amplitude, phase)
 
 # solve
 options = {'maxiter': 1000, 'ftol': 1e-8}
-scale_x_opt = 1000.0
-obj_fun_ps = pto_ps.energy
+obj_fun_ps = pto_ps.average_power
 nstate_opt_ps = pto_ps.nstate
-obj_fun_p = pto_p.energy
+obj_fun_p = pto_p.average_power
 nstate_opt_p = pto_p.nstate
-maximize = True
 
 wec_tdom_cc, wec_fdom_cc, x_wec_cc, x_opt_cc, obj_cc, _ = wec_cc.solve(
-    waves, obj_fun_ps, nstate_opt_ps, optim_options=options, maximize=maximize,
-    scale_x_opt=scale_x_opt)
+    waves, obj_fun_ps, nstate_opt_ps, optim_options=options)
 print("\nCC-controller:")
-print(f"    Energy produced from 0-{wec_cc.tf} s: {obj_cc} J")
-print(f"    Average power: {obj_cc/wec_cc.tf} W")
-print("    MATLAB: 121 W\n")
+print(f"    Average power: {obj_cc} W")
+print("    MATLAB: -121 W\n")
 
 wec_tdom_ps, wec_fdom_ps, x_wec_ps, x_opt_ps, obj_ps, _ = wec_ps.solve(
-    waves, obj_fun_ps, nstate_opt_ps, optim_options=options, maximize=maximize)
+    waves, obj_fun_ps, nstate_opt_ps, optim_options=options)
 print("\nPS-controller:")
-print(f"    Energy produced from 0-{wec_ps.tf}s: {obj_ps} J")
-print(f"    Average power: {obj_ps/wec_ps.tf} W")
-print("    MATLAB: 97 W\n")
+print(f"    Average power: {obj_ps} W")
+print("    MATLAB: -97 W\n")
 
 wec_tdom_p, wec_fdom_p, x_wec_p, x_opt_p, obj_p, _ = wec_p.solve(
-    waves, obj_fun_p, nstate_opt_p, optim_options=options, maximize=maximize,
-    scale_x_opt=scale_x_opt)
+    waves, obj_fun_p, nstate_opt_p, optim_options=options)
 print("\nP-controller:")
-print(f"    Energy produced from 0-{wec_p.tf}s: {obj_p} J")
-print(f"    Average power: {obj_p/wec_p.tf} W")
-print("    MATLAB: 28 W\n")
+print(f"    Average power: {obj_p} W")
+print("    MATLAB: -28 W\n")
 
 # post-process PTO
 pto_tdom_ps, pto_fdom_ps = pto_ps.post_process(wec_ps, x_wec_ps, x_opt_ps)
 pto_tdom_cc, pto_fdom_cc = pto_ps.post_process(wec_cc, x_wec_cc, x_opt_cc)
 pto_tdom_p, pto_fdom_p = pto_p.post_process(wec_p, x_wec_p, x_opt_p)
 
-# theoretical conjugate gradient
+# # theoretical conjugate gradient
 idof = 0
 Fe = wec_fdom_cc['excitation_force'][1:, idof]
 Zi = wec_cc.hydro.Zi[:, idof, idof]
 
 cct_vel_fd = Fe / (2*Zi.real)
 cct_pos_fd = cct_vel_fd / (1j*cct_vel_fd.omega)
-cct_force_fd = -1.0 * Zi.conj() * cct_vel_fd
+cct_force_fd = -Zi.conj() * cct_vel_fd
 
 cct_pos_fd = np.concatenate([[0.0], cct_pos_fd])
 cct_vel_fd = np.concatenate([[0.0], cct_vel_fd])
@@ -160,7 +141,7 @@ cct_pos_td = wec_cc.fd_to_td(cct_pos_fd)
 cct_vel_td = wec_cc.fd_to_td(cct_vel_fd)
 cct_force_td = wec_cc.fd_to_td(cct_force_fd)
 
-cct_power_td = -cct_vel_td * cct_force_td
+cct_power_td = cct_vel_td * cct_force_td
 cct_power_fd = wec_cc.td_to_fd(cct_power_td)
 
 Fe = wec_fdom_cc['excitation_force'][:, idof]

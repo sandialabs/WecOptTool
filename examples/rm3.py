@@ -14,7 +14,7 @@ import wecopttool as wot
 
 logging.basicConfig(level=logging.INFO)
 
-ndof = 4  # number of DOFs: {2, 4, 7}
+ndof = 4  # SELECT {2, 4, 7}
 
 
 def parallel_ax(inertia, mass, distance_vec):
@@ -30,14 +30,14 @@ def idx(body, dof):
 bodies = {'float': 0, 'spar': 1, 'rm3': 2}
 dofs = {'SURGE': 0, 'SWAY': 1, 'HEAVE': 2, 'ROLL': 3, 'PITCH': 4, 'YAW': 5}
 
-# mesh files
+# mesh
 mesh_dir = 'data'
 mesh_float = 'rm3_float.stl'
 mesh_spar = 'rm3_spar.stl'
 mesh_float = os.path.join(mesh_dir, mesh_float)
 mesh_spar = os.path.join(mesh_dir, mesh_spar)
 
-# mass properties
+# mass & hydrostatic properties
 float_cog = np.array([0.0, 0.0, -0.7200])
 float_moi = np.diag([20907301, 21306090.66, 37085481.11])
 spar_cog = np.array([0.0, 0.0, -21.2900])
@@ -63,7 +63,6 @@ else:
     raise ValueError('`ndof` must be 2, 4 or 7.')
 rm3_dofs = rm3_translation_dofs + rm3_rotation_dofs
 rm3_ndofs = len(rm3_dofs)
-
 
 # float - heave
 float_fb = cpy.FloatingBody.from_file(
@@ -132,12 +131,12 @@ nfreq = 100
 f_add = pto.force_on_wec
 wec = wot.WEC(rm3_fb, mass, stiffness, f0, nfreq, rho=rho, f_add=f_add)
 
-# create save directory
-results_dir = 'results_tutorial_2'
+# results directory
+results_dir = 'results_rm3'
 if not os.path.exists(results_dir):
   os.makedirs(results_dir)
 
-# wave
+# waves
 peak_frequency = 1.0/8.0
 significant_height = 2.5
 directions = np.arange(-180, 180, 20.0)
@@ -168,29 +167,22 @@ else:
     wec.run_bem(wave_dirs=waves['wave_direction'].values)
     wec.write_bem(fname)
 
-
-## SOLVE
+# solve
 options = {'maxiter': 1000, 'ftol': 1e-8}
 scale_x_opt = 1000
-obj_fun = pto.energy
+obj_fun = pto.average_power
 nstate_opt = pto.nstate
-maximize = True
+
 wec_tdom, wec_fdom, x_wec, x_opt, obj, res = wec.solve(
-    waves, obj_fun, nstate_opt, optim_options=options, maximize=maximize,
+    waves, obj_fun, nstate_opt, optim_options=options,
     scale_x_opt=scale_x_opt)
 
-## POST-PROCESS PTO
 pto_tdom, pto_fdom = pto.post_process(wec, x_wec, x_opt)
 
+# print results
+print(f"Average power: {obj} W\n")
 
-########################################################################
-## SAVE, VIEW, & PLOT RESULTS
-########################################################################
-# print
-print(f"\nEnergy produced from 0-{wec.tf}s: {obj} J")
-print(f"Average power: {obj/wec.tf} W\n")
-
-# save
+# save results
 fname = os.path.join(results_dir, 'wec_tdom.nc')
 wec_tdom.to_netcdf(fname)
 
@@ -207,28 +199,27 @@ wot.complex_xarray_to_netcdf(fname, pto_fdom)
 wec.fb.show()
 
 # plot impedance
-wec.plot_impedance()  # see function doc for options.
+wec.plot_impedance()
 
-# example time domain plots
-# wave elevation
+# plot wave elevation
 plt.figure()
 wec_tdom['wave_elevation'].plot()
 
-# WEC positions (1 fig, ndof subplots)
+# plot WEC position (1 fig, ndof subplots)
 fig, axs = plt.subplots(nrows=ndof, sharex=True)
 wec_tdom['pos'].sel(influenced_dof="float__HEAVE").plot(ax=axs[0])
 wec_tdom['pos'].sel(influenced_dof="spar__HEAVE").plot(ax=axs[1])
-if ndof==4 or ndof==7:
+if ndof == 4 or ndof == 7:
     wec_tdom['pos'].sel(influenced_dof="SURGE").plot(ax=axs[2])
     wec_tdom['pos'].sel(influenced_dof="PITCH").plot(ax=axs[3])
-if ndof==7:
+if ndof == 7:
     wec_tdom['pos'].sel(influenced_dof="SWAY").plot(ax=axs[4])
     wec_tdom['pos'].sel(influenced_dof="ROLL").plot(ax=axs[5])
     wec_tdom['pos'].sel(influenced_dof="YAW").plot(ax=axs[6])
 fig.align_ylabels(axs)
 fig.tight_layout()
 
-# PTO extension, force, power (1 figure)
+# plot PTO extension, force, power (1 figure)
 fig, axs = plt.subplots(nrows=3, sharex=True)
 pto_tdom['pos'].plot(ax=axs[0])
 pto_tdom['force'].plot(ax=axs[1])
@@ -236,8 +227,7 @@ pto_tdom['power'].plot(ax=axs[2])
 fig.align_ylabels(axs)
 fig.tight_layout()
 
-# example frequency domain plots
-# plot excitation force & PTO extension.
-# TODO: tricky because of multiple wave directions
+# plot frequency-domain excitation force and PTO extension
+# TODO: tricky because of multiple wave directions)
 
 plt.show()

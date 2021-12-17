@@ -19,7 +19,7 @@ pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 pip install wecopttool
 ```
 
-**Option 2** - using `Conda` for [capytiane](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
+**Option 2** - using `Conda` for [Capytiane](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
 
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
@@ -28,14 +28,19 @@ pip install wecopttool
 ```
 
 ## Tutorials
-The tutorials can be found in the `examples` directory. 
-Some of the tutorials have additional required packages. To install these, do
+The tutorials can be found in the `examples` directory and are written as [Jupyter Notebooks](https://jupyter.org/).
+There are many ways to interact with Jupyter Notebooks.
+To run the notebooks on your local machine, first install the classical Jupyter Notebook locally:
 
 ```bash
-pip install wecopttool.[tutorials]
+pip install notebook
 ```
 
-**Note:** on a ZSH shell (Macs) do `pip install wecopttool.\[tutorials]` instead.
+To run the tutorials, from the directory containing the notebooks run
+
+``bash
+jupyter notebook
+``
 
 ## Getting help
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).

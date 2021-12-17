@@ -96,12 +96,12 @@ class _PTO:
 
     def power(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
-        """Calculate the PTO extracted power time-series in each PTO DOF
+        """Calculate the PTO power time-series in each PTO DOF
         for a given system state.
         """
         force_td = self.force(wec, x_wec, x_opt, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        return -1 * vel_td * force_td
+        return vel_td * force_td
 
     def force_on_wec(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                      nsubsteps: int = 1) -> np.ndarray:
@@ -115,7 +115,7 @@ class _PTO:
 
     def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                nsubsteps: int = 1) -> float:
-        """Calculate the energy (in Joules) produced by the PTO during
+        """Calculate the energy (in Joules) by the PTO during
         the period t=0-T=1/f0.
 
         Parameters
@@ -133,10 +133,34 @@ class _PTO:
         Returns
         -------
         float
-            Energy (in Joules) produced over the period t=0-T.
+            Energy (in Joules) over the period t=0-T.
         """
         power_td = self.power(wec, x_wec, x_opt, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
+
+    def average_power(self, wec: WEC, x_wec: npt.ArrayLike,
+                      x_opt: npt.ArrayLike, nsubsteps: int = 1) -> float:
+        """Calculate the average power of the PTO for the given wave
+        spectrum.
+
+        Parameters
+        ----------
+        wec: WEC
+            The WEC.
+        x_wec: np.ndarray
+            WEC dynamics state.
+        x_opt: np.ndarray
+            Optimization (PTO controller) state.
+        nsubsteps: int
+            Number of subdivisions between the default (implied) time
+            steps.
+
+        Returns
+        -------
+        float
+            Average power (in Watts).
+        """
+        return self.energy(wec, x_wec, x_opt, nsubsteps) / wec.tf
 
     def post_process(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
                      ) -> tuple[xr.Dataset, xr.Dataset]:
@@ -257,6 +281,9 @@ class PseudoSpectralPTO(_PTO):
         nfreq: int
             Number of frequencies in pseudo-spectral problem. Should match
             the BEM and wave frequencies.
+        kinematics: np.ndarray
+            Matrix that converts from the WEC DOFs to the PTO DOFs.
+            Shape: (PTO DOFs, WEC DOFs).
         """
         super().__init__(kinematics, names)
         self.nfreq = nfreq
@@ -278,7 +305,7 @@ class PseudoSpectralPTO(_PTO):
             wec_vel = np.dot(wec.derivative_mat, wec_pos)
             vel = self._wec_to_pto_dofs(wec_vel)
             vel_vec = wec.dofmat_to_vec(vel[1:, :])
-            energy_produced = -1/(2*wec.f0) * np.dot(vel_vec, x_opt)
+            energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
         else:
             energy_produced = super().energy(wec, x_wec, x_opt, nsubsteps)
         return energy_produced
@@ -302,4 +329,4 @@ class ProportionalPTO(_PTO):
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        return -1.0 * np.reshape(x_opt, [-1, 1]) * vel_td
+        return np.reshape(x_opt, [-1, 1]) * vel_td

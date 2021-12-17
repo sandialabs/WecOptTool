@@ -7,8 +7,10 @@ import pytest
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
+import meshio
 
 import wecopttool as wot
+from wecopttool.geom import WaveBot
 
 
 # TODO: Currently just testing that it runs.
@@ -178,3 +180,31 @@ def test_pto(wec):
     _ = pto.position(wec, x_wec, x_pto)
     _ = pto.acceleration(wec, x_wec, x_pto)
     _ = pto.energy(wec, x_wec, x_pto)
+
+
+def test_wavebot_ps_cc(wec,wave,pto):
+    """Check that power obtained using pseudo-spectral with no constraints 
+    equals theoretical limit.
+    """
+    wec.constraints = []
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    wec_tdom, wec_fdom, x_wec, x_opt, average_power, _ = wec.solve(
+    wave, obj_fun, nstate_opt, optim_options={'maxiter': 1000, 'ftol': 1e-8},
+    scale_x_opt=1e3)
+    idof = 0
+    Fe = wec_fdom['excitation_force'][1:, idof]
+    Zi = wec.hydro.Zi[:, idof, idof]
+    power_limit = -1*np.sum(np.abs(Fe)**2 / (8*np.real(Zi))).values.item()
+
+    assert pytest.approx(average_power, 1e-5) == power_limit
+
+def test_examples_device_wavebot_mesh():
+    wb = WaveBot()
+    mesh = wb.mesh(mesh_size_factor=0.5)
+    assert type(mesh) is meshio._mesh.Mesh
+
+
+def test_examples_device_wavebot_plot_cross_section():
+    wb = WaveBot()
+    wb.plot_cross_section()

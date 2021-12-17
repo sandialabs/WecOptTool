@@ -44,6 +44,10 @@ html_theme_options = {
 html_static_path = ['_static']
 
 
+# nbsphinx and austosectionlabel do not play well together
+suppress_warnings = ["autosectionlabel.*"]
+
+
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings (autodoc)
 # See: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
