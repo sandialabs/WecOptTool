@@ -250,7 +250,7 @@ class WEC:
     def derivative_mat(self):
         """Derivative matrix for the state vector."""
         return self._derivative_mat
-
+    
     ## METHODS
     # methods: class I/O
     def to_file(self, fpath: str | Path) -> None:
@@ -523,6 +523,13 @@ class WEC:
             option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
             show=show)
         return fig, axs
+
+    def natural_frequency(self):
+        """Return natural frequency or frequencies.
+
+        See `wot.natural_frequency()`.
+        """
+        return natural_frequency(self.hydro.Zi.values, freq=self.freq)
 
     # methods: solve
     def _get_state_scale(self,
@@ -1003,6 +1010,51 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     write_info = {key: True for key in write_info}
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
+
+
+def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike):
+    """Find upper limit for power.
+
+    Parameters
+    ----------
+    exctiation: np.ndarray
+        Complex exctitation spectrum. Shape: nfreq x ndof
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: nfreq x ndof x ndof
+
+    Returns
+    -------
+    power_limit
+        Upper limit for power absorpton.
+    """
+
+    power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
+
+    return power_limit
+
+
+def natural_frequency(impdeance: npt.ArrayLike, freq: npt.ArrayLike):
+    """Find the natural frequency based on the lowest magnitude impedance.
+
+    Parameters
+    ----------
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: nfreq x ndof x ndof
+    freq: list[float]
+        Frequencies.
+
+    Returns
+    -------
+    f_n: float
+        Natural frequency.
+    ind: int
+        Index of natural frequency.
+    """
+
+    ind = np.argmin(np.abs(impdeance), axis=0)
+    f_n = freq[ind]
+
+    return f_n, ind
 
 
 def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
