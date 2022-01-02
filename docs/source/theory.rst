@@ -6,6 +6,8 @@ Theory
     For a more detailed explanation, please see :cite:`Bacelli2014Optimal,Bacelli2014Numerical,Coe2020Initial`.
     A journal paper will be available soon.
 
+Basic concept
+-------------
 
 WecOptTool uses a pseudo-spectral method :cite:`Elnagar1995pseudospectral` to perform two tasks synchronously:
 
@@ -44,3 +46,24 @@ Some examples of problems which can be addressed within this framework include:
    * Optimization of PTO components (e.g., inertia of a flywheel, a gear ratio)
    * Optimization of ballast versus pre-tension
    * Optimization of the layout for a WEC array
+     
+How's this different from what I'm used to?
+--------------------------------------------
+
+Most users will be more familiar with time-domain solutions for differential equations--this is the method applied in Simulink (and therefore `WEC-Sim`_).
+Starting from an initial time (e.g., :math:`t=0`), the solution is solved by iteratively stepping forward in time.
+
+.. image:: theory_animations/theory_animation_td.gif
+  :width: 600
+  :alt: Time-domain solution animation
+  :align: center
+
+Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
+At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.
+
+.. image:: theory_animations/theory_animation_ps.gif
+  :width: 600
+  :alt: Pseudo-spectral solution animation
+  :align: center
+
+.. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
