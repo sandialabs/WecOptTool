@@ -15,6 +15,10 @@ import tempfile
 # get relative paths
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
+odir = os.path.join(current_directory,"theory_animations") 
+
+if not os.path.exists(odir):
+    os.makedirs(odir)
 
 gif_name = 'theory_animation'
 
@@ -101,9 +105,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     
     for key in fnames:
         fnames[key] = fnames[key] + [fnames[key][-1]]*M
-        oname = os.path.join(current_directory,
-                             "theory_animations",
-                             f"{gif_name}_{key}.gif")
+        oname = os.path.join(odir,f"{gif_name}_{key}.gif")
         with imageio.get_writer(oname, mode='I') as writer:
             for filename in fnames[key]:
                 image = imageio.imread(filename)
