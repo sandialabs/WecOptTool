@@ -1,7 +1,7 @@
 Tutorials
 =========
 This section presents two tutorials illustrating the application of WecOptTool.
-The tutorials are written as Jupyter Notebooks which are available in the [GitHub repository](https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples).
+The tutorials are written as Jupyter Notebooks which are available in the `GitHub repository`_.
 The two tutorials use the `WaveBot`_ WEC, which is a single-body WEC developed at Sandia.
 The tutorials are meant to be sequential.
 The first tutorial solves only the inner optimization loop, and serves as an introduction to WecOptTool.
@@ -11,6 +11,7 @@ The second tutorial builds on the first to solve a design opotimization problem,
 - **Tutorial 2** - Simple example of a design optimization problem (*outer* and *inner* optimization loops). The example optimizes the WEC geometry (outer loop) while finding the optimal control strategy for each design considered (inner loop).
 
 
+.. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples
 .. _WaveBot: https://doi.org/10.3390/en10040472
 .. _Reference Model 3: https://energy.sandia.gov/programs/renewable-energy/water-power/projects/reference-model-project-rmp/
 
