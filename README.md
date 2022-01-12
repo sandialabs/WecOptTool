@@ -38,9 +38,9 @@ pip install notebook
 
 To run the tutorials, from the directory containing the notebooks run
 
-``bash
+```bash
 jupyter notebook
-``
+```
 
 ## Getting help
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
