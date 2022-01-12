@@ -7,7 +7,7 @@ The tutorials are meant to be sequential.
 The first tutorial solves only the inner optimization loop, and serves as an introduction to WecOptTool.
 The second tutorial builds on the first to solve a design opotimization problem, using both the inner and outer optimization loops, and is more reflective of the optimization problems WecOptTool is designed to solve.
 
-- **Tutorial 1** - Simple example of the *inner loop* using a single-body WEC, moving in one degree of freedom, in regular waves. The example finds the optimal control strategy for a fixed WEC design.
+- **Tutorial 1** - Simple example of the *inner loop* using a single-body WEC moving in one degree of freedom in regular waves. The example finds the optimal control strategy for a fixed WEC design.
 - **Tutorial 2** - Simple example of a design optimization problem (*outer* and *inner* optimization loops). The example optimizes the WEC geometry (outer loop) while finding the optimal control strategy for each design considered (inner loop).
 
 
