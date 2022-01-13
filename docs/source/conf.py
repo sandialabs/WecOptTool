@@ -84,9 +84,6 @@ def all_but_ipynb(dir, contents):
             result += [c]
     return result
 
-# To avoid 403 errors during linkcheck
-user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0'
-
 shutil.rmtree(os.path.join(
     project_root,  "docs/source/_examples"), ignore_errors=True)
 shutil.copytree(os.path.join(project_root,  "examples"),
