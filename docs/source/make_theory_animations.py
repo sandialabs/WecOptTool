@@ -15,7 +15,7 @@ import tempfile
 # get relative paths
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
-odir = os.path.join(current_directory,"theory_animations") 
+odir = os.path.join(current_directory, "_static") 
 
 if not os.path.exists(odir):
     os.makedirs(odir)

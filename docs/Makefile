@@ -20,4 +20,5 @@ clean:
 %: Makefile
 	python "$(SOURCEDIR)"/make_theory_animations.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-	@-rm -rf "$(SOURCEDIR)"/theory_animations
+	@-rm -rf "$(SOURCEDIR)"/_static/theory_animation_ps.gif
+	@-rm -rf "$(SOURCEDIR)"/_static/theory_animation_td.gif
