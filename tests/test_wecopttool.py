@@ -128,10 +128,10 @@ def test_plot(wec):
 def test_core(wec):
     # set_attr
     hydrostatic_stiffness = wec.hydrostatic_stiffness * 1
-    mass_matrix = wec.mass_matrix * 1
-    fb = wec.fb.copy()
-    wec.fb = fb
-    wec.mass_matrix = mass_matrix
+    mass_matrix = wec.mass * 1
+    # fb = wec.fb.copy()  # TODO
+    # wec.fb = fb  # TODO
+    wec.mass = mass_matrix
     wec.hydrostatic_stiffness = hydrostatic_stiffness
     wec.run_bem()
     # repr
@@ -183,7 +183,7 @@ def test_pto(wec):
 
 
 def test_wavebot_ps_cc(wec,wave,pto):
-    """Check that power obtained using pseudo-spectral with no constraints 
+    """Check that power obtained using pseudo-spectral with no constraints
     equals theoretical limit.
     """
     wec.constraints = []

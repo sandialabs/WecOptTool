@@ -47,7 +47,7 @@ class WEC:
 
     """
 
-    def __init__(self, fb: cpy.FloatingBody, mass_matrix: np.ndarray,
+    def __init__(self, fb: cpy.FloatingBody, mass: np.ndarray,
                  hydrostatic_stiffness: np.ndarray, f0: float, nfreq: int,
                  dissipation: np.ndarray | None = None,
                  stiffness: np.ndarray | None = None,
@@ -61,7 +61,7 @@ class WEC:
         ----------
         fb: capytaine.FloatingBody
             The WEC as a capytaine floating body (mesh + DOFs).
-        mass_matrix: np.ndarray
+        mass: np.ndarray
             Mass matrix shape of (``ndof`` x ``ndof``).
         hydrostatic_stiffness: np.ndarray
             Hydrstatic stiffness matrix matrix of shape
@@ -104,7 +104,7 @@ class WEC:
 
         # WEC
         super().__setattr__('fb', fb)
-        super().__setattr__('mass_matrix', mass_matrix)
+        super().__setattr__('mass', mass)
         super().__setattr__('hydrostatic_stiffness', hydrostatic_stiffness)
 
         # frequency
@@ -133,15 +133,20 @@ class WEC:
         _attrs_delete_stiffness = ['fb', 'rho', 'g']
         _attrs_delete_bem = ['fb', 'rho', 'g', 'depth', 'freq']
         _attrs_delete_impedance_not_bem = [
-            'dissipation', 'stiffness', 'mass_matrix', 'hydrostatic_stiffness']
+            'dissipation', 'stiffness', 'mass', 'hydrostatic_stiffness']
         log.info(f"Changing value of '{name}'. " +
                  "This might cause some attributes to be reset.")
+        if name == 'fb':
+            # TODO
+            raise NotImplementedError("Currently cannot modify fb.")
         if name in _attrs_delete_mass:
-            super().__setattr__('mass_matrix', None)
+            super().__setattr__('mass', None)
+            self.hydro['mass'] = 'None'
             log.info("Mass matrix deleted. " +
-                     "Assign new values to 'self.mass_matrix'")
+                     "Assign new values to 'self.mass'")
         if name in _attrs_delete_stiffness:
             super().__setattr__('hydrostatic_stiffness', None)
+            self.hydro['hydrostatic_stiffness'] = 'None'
             log.info("Hydrostatic stiffness deleted. " +
                      "Assign new values to 'self.hydrostatic_stiffness'")
         if name in _attrs_delete_bem:
@@ -156,7 +161,14 @@ class WEC:
             super().__setattr__('_transfer_mat', None)
             log.info("Impedance matrix deleted. To calculate " +
                         "impedance call 'self.bem_calc_impedance()'")
+
+        # set attribute
         super().__setattr__(name, value)
+
+        if name in _attrs_delete_impedance_not_bem:
+            # keep BEM coefficients but update all other values of 'hydro'
+            self._bem_add_hydrostatics()
+            self._bem_add_linear_forces()
 
     def __repr__(self):
         str_info = (f'{self.__class__.__name__} ' +
@@ -384,35 +396,35 @@ class WEC:
         log.info(f"Reading BEM data from {fpath}.")
         data = complex_xarray_from_netcdf(fpath)
         super().__setattr__('hydro', data)
-        # add mass and stiffness
+
+
+        def diff(v1, v2, var):
+            if not np.allclose(v1, v2):
+                msg = f"Current and saved values of '{var}' are different."
+                msg += "Using current value."
+                log.warning(msg)
+
+
+        # check: mass and stiffness
         bmass = 'mass' in self.hydro
         bstiffness = 'hydrostatic_stiffness' in self.hydro
         if bmass:
-            assert np.allclose(self.hydro['mass'].values, self.mass_matrix)
+            diff(self.hydro['mass'].values, self.mass, 'mass')
         if bstiffness:
-            assert np.allclose(self.hydro['hydrostatic_stiffness'].values,
-                               self.hydrostatic_stiffness)
-        if not (bmass and bstiffness):
-            self._bem_add_hydrostatics()
-        # additional linear stiffness and dissipation
+            diff(self.hydro['hydrostatic_stiffness'].values,
+                 self.hydrostatic_stiffness, 'hydrostatic_stiffness')
+
+        # check: additional linear stiffness and dissipation
         bstiffness = 'stiffness' in self.hydro
         bdissipation = 'dissipation' in self.hydro
         if bstiffness:
-            assert np.allclose(self.hydro['stiffness'].values, self.stiffness)
+            diff(self.hydro['stiffness'].values, self.stiffness, 'stiffness')
         if bdissipation:
-            assert np.allclose(self.hydro['dissipation'].values,
-                                self.dissipation)
-        if not (bstiffness and bdissipation):
-            self._bem_add_linear_forces()
+            diff(self.hydro['dissipation'].values, self.dissipation,
+                 'dissipation')
+
         # add impedance
-        if not 'Gi' in self.hydro or self.hydro.Gi == 'None':
-            self._bem_calc_transfer_func()
-        elif not 'Zi' in self.hydro or self.hydro.Zi == 'None':
-            self._bem_calc_impedance()
-        # post-process impedance: no negative or too small damping diagonal
-        self._post_process_impedance(tol=tol)
-        # create MIMO transfer matrix
-        self._make_mimo_transfer_mat()
+        self.bem_calc_impedance(tol)
 
     def write_bem(self, fpath: str | Path) -> None:
         """Write the BEM solution to a NetCDF file.
@@ -451,14 +463,14 @@ class WEC:
     def _bem_add_hydrostatics(self) -> None:
         """Add hydrostatic data to self.hydro. """
         dims = ['radiating_dof', 'influenced_dof']
-        self.hydro['mass'] = (dims, self.mass_matrix)
+        self.hydro['mass'] = (dims, self.mass)
         self.hydro['hydrostatic_stiffness'] = (
             dims, self.hydrostatic_stiffness)
         self._del_impedance()
 
     def _bem_add_linear_forces(self) -> None:
         hydro = self.hydro.assign_coords({'dissipation': self.dissipation})
-        hydro = self.hydro.assign_coords({'stiffness': self.stiffness})
+        hydro = hydro.assign_coords({'stiffness': self.stiffness})
         super().__setattr__('hydro', hydro)
         self._del_impedance()
 
