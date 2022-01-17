@@ -31,7 +31,7 @@ This accomplishes *task 1* from above.
 The solution is forced to follow the dynamics of the system via the constraint :math:`r(x) = 0`, where :math:`r(x)` is the WEC dynamics equation in residual form.
 This accomplishes *task 2* from above.
 The dynamic residual includes the linear hydrodynamic forces from a BEM solution plus any number of arbitrary nonlinear forces such as power take-off (PTO) force, mooring forces, and non-linear hydrodynamic forces.
-Additionally, any number of arbitrary nonlinear constraints, such as requiring a tether to remain in tension or limiting the maximum force exerted by the PTO, can be includded in :math:`c_{ineq}(x)` and :math:`c_{eq}(x)`.
+Additionally, any number of arbitrary nonlinear constraints, such as requiring a tether to remain in tension or limiting the maximum force exerted by the PTO, can be included in :math:`c_{ineq}(x)` and :math:`c_{eq}(x)`.
 
 Solving :eq:`optim_prob`, we can find the optimal control state :math:`x_{u}` (e.g., PTO force) that minimizes our objective function (e.g., power generation) for a given WEC design subject to arbitrary constraints and including nonlinear dynamics.
 The pseudo-spectral method has a number of key attributes that make it well-suited to this application:
