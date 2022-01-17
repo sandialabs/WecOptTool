@@ -33,7 +33,7 @@ def wave_dataset(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
@@ -72,7 +72,7 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     freq: float
@@ -133,16 +133,16 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
-        Wave spectrum function. Maps frequecies to amplitude spectrum.
+        Wave spectrum function. Maps frequencies to amplitude spectrum.
         float | npt.ArrayLike -> float | np.ndarray
     direction: float, optional
         Direction (in degrees) of the regular wave.
     spectrum_name: str, optional
-        Name of the spectrum fnction.
+        Name of the spectrum function.
     seed: int, optional
         Random seed for reproducing the same results.
 
@@ -178,7 +178,7 @@ def irregular_wave(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
