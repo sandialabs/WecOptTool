@@ -7,7 +7,7 @@
 import os
 import sys
 import shutil
-from docs_conf.conf import *
+# from docs_conf.conf import *
 
 from wecopttool import __version__, __version_info__
 
