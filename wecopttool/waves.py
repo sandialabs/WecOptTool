@@ -151,6 +151,22 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     -------
      xr.Dataset
         Wave dataset.
+
+    Examples
+    --------
+    Define wave parameters.
+    
+    >>> from wecopttool.waves import long_crested_wave as lcw
+    >>> from wecopttool.waves import pierson_moskowitz_spectrum as pm
+    >>> Hs = 5
+    >>> Tp = 6
+    >>> fp = 1/Tp
+
+    Generate the wave using a Pierson-Moskowitz idealized spectrum.
+
+    >>> wave = lcw(f0=fp/10, 
+    ...            nfreq=30, 
+    ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
     """
     # empty dataset
     waves = wave_dataset(f0, nfreq, direction)
@@ -203,6 +219,41 @@ def irregular_wave(f0: float, nfreq: int,
     -------
      xr.Dataset
         Wave dataset.
+
+    Examples
+    --------
+    Define the desired wave parameters.
+
+    >>> import wecopttool as wot
+    >>> import numpy as np
+    >>> Hs = 5
+    >>> Tp = 6
+    >>> fp = 1/Tp
+    >>> directions = np.linspace(0, 360, 36, endpoint=False)
+
+    Create a function handle to define the spectral density,
+
+    >>> def spectrum_func(f):
+    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f, 
+    ...                                                fp=fp, 
+    ...                                                hs=Hs)
+
+    and spreading a function handle for spreading.
+
+    >>> def spread_func(f, d):
+    ...     return wot.waves.spread_cos2s(freq=f, 
+    ...                                   directions=d, 
+    ...                                   dm=10, 
+    ...                                   fp=fp, 
+    ...                                   s_max=10)
+
+    Generate the wave.
+
+    >>> wave = wot.waves.irregular_wave(f0=fp/10, 
+    ...                                 nfreq=20, 
+    ...                                 directions=directions, 
+    ...                                 spectrum_func=spectrum_func, 
+    ...                                 spread_func=spread_func)
     """
     # empty dataset
     waves = wave_dataset(f0, nfreq, directions)
