@@ -42,6 +42,8 @@ html_theme_options = {
 }
 html_static_path = ['_static']
 
+def setup(app):
+    app.add_css_file('css/custom.css')
 
 # nbsphinx and austosectionlabel do not play well together
 suppress_warnings = ["autosectionlabel.*"]
