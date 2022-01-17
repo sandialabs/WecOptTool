@@ -3,15 +3,14 @@
 # For a full list of options see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
 import os
 import sys
 import shutil
-# from docs_conf.conf import *
 
 from wecopttool import __version__, __version_info__
 
 
+# -- Path setup --------------------------------------------------------------
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
