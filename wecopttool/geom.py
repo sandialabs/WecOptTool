@@ -15,7 +15,7 @@ import meshio
 class WaveBot:
     """Class representing the Sandia WaveBot. See, e.g.,
 
-        https://www.mdpi.com/1996-1073/10/4/472
+        https://doi.org/10.3390/en10040472
         https://doi.org/10.2172/1330189
 
     """

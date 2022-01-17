@@ -7,6 +7,7 @@
 import os
 import sys
 import shutil
+from docs_conf.conf import *
 
 from wecopttool import __version__, __version_info__
 
@@ -45,6 +46,12 @@ html_static_path = ['_static']
 
 # nbsphinx and austosectionlabel do not play well together
 suppress_warnings = ["autosectionlabel.*"]
+
+
+# ignore 403 error
+linkcheck_ignore = [
+    'https://doi.org/10.3390/en10040472',
+]
 
 
 # -- Extension configuration -------------------------------------------------

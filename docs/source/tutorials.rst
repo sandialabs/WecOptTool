@@ -12,7 +12,7 @@ The second tutorial builds on the first to solve a design opotimization problem,
 
 
 .. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples
-.. _WaveBot: https://www.mdpi.com/1996-1073/10/4/472
+.. _WaveBot: https://doi.org/10.3390/en10040472
 .. _Reference Model 3: https://energy.sandia.gov/programs/renewable-energy/water-power/projects/reference-model-project-rmp/
 
 .. toctree::
