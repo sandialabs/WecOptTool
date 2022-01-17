@@ -45,7 +45,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     
     xdata, ydata = [], []
     ln, = ax.plot([], [], 'ro',
-                  markersize=4,
+                  markersize=5,
                   markerfacecolor='none',
                   label='time-stepping solution',
                   )
@@ -83,7 +83,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
                 label='correct solution')
     
         ax.plot(xx,yy*(ind+1)/N, 'bs',
-                markersize=4,
+                markersize=5,
                 markerfacecolor='none',
                 label='pseudo-spectral solution',
                 )
