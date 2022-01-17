@@ -6,6 +6,7 @@ Theory
     For a more detailed explanation, please see :cite:`Bacelli2014Optimal,Bacelli2014Numerical,Coe2020Initial`.
     A journal paper will be available soon.
 
+
 Basic concept
 -------------
 
@@ -66,5 +67,25 @@ At first the solution will not be correct, but as the optimization algorithm ite
   :width: 600
   :alt: Pseudo-spectral solution animation
   :align: center
+
+.. note::
+    These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.
+
+
+Scaling
+-------
+For many WEC problems, :eq:`optim_prob` will be poorly scaled.
+Recall that :math:`x = [x_{w}, x_{u}]`, where :math:`x_{w}` describes the state of the WEC (e.g., velocities) and :math:`x_{u}` is a vector to be optimized to maximize power absorption.
+Consider, for example, a general case without a controller structure, in which :math:`x_{u}` would relate to PTO forces.
+For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e-1)`, but the forces could be :math:`\mathcal{O}(1e3)`.
+For larger WECs, this discrepancy in the orders of magnitude may be even worse.
+Scaling mismatches can lead to problems with convergence.
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`core.WEC.solve`).
+
+
+Constraints
+-----------
+As illustrated in :doc:`_examples/tutorial_1_wavebot`, the pseudo-spectral method employed in WecOptTool lends itself to implementing constraints (e.g., limiting the force applied by the PTO).
+
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
