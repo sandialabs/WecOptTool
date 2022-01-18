@@ -83,9 +83,4 @@ Scaling mismatches can lead to problems with convergence.
 To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`core.WEC.solve`).
 
 
-Constraints
------------
-As illustrated in :doc:`_examples/tutorial_1_wavebot`, the pseudo-spectral method employed in WecOptTool lends itself to implementing constraints (e.g., limiting the force applied by the PTO).
-
-
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
