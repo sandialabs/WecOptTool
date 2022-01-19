@@ -76,8 +76,8 @@ def wec():
 
 
 @pytest.fixture(scope="module")
-def wave(wec):
-    freq = 0.2
+def regular_wave(wec):
+    freq = 0.5
     amplitude = 0.25
     phase = 0.0
     wave = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
@@ -118,19 +118,19 @@ def test_bem_io(wec):
     os.remove(bem_file)
 
 
-def test_wave_excitation(wec, wave):
+def test_wave_excitation(wec, regular_wave):
     # wave excitation
-    _, _ = wot.wave_excitation(wec.hydro, wave)
+    _, _ = wot.wave_excitation(wec.hydro, regular_wave)
 
 
-def test_solve(wec, wave, pto):
+def test_solve(wec, regular_wave, pto):
     # solve
     options = {}
     obj_fun = pto.energy
     nstate_opt = pto.nstate
     maximize = True
-    _, _, x_wec, x_opt, _, _ = wec.solve(
-        wave, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
+    _, _, x_wec, x_opt, _, _ = wec.solve(regular_wave, obj_fun, 
+        nstate_opt, optim_options=options, maximize=maximize)
 
     # post-process
     _, _ = pto.post_process(wec, x_wec, x_opt)
@@ -198,14 +198,14 @@ def test_pto(wec):
     _ = pto.energy(wec, x_wec, x_pto)
 
 
-def test_wavebot_ps_theoretical_limit(wec,wave,pto):
+def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
     """Check that power obtained using pseudo-spectral with no constraints 
     equals theoretical limit.
     """
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, fdom, _, _, average_power, _ = wec.solve(wave, obj_fun, nstate_opt, 
+    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt, 
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
     plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
 
@@ -214,7 +214,7 @@ def test_wavebot_ps_theoretical_limit(wec,wave,pto):
 
 def test_wavebot_p_cc(wec,resonant_wave):
     """Check that power from proportional damping controller can match 
-    theorectical limit 
+    theorectical limit at the natural resonance.
     """
 
     # remove contraints
