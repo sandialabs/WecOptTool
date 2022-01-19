@@ -268,7 +268,7 @@ class _PTO:
 class PseudoSpectralPTO(_PTO):
     """Pseudo-spectral PTO control.
 
-    Optimal time-dependent PTO-force.
+    Unstructured numerical optimal time-dependent PTO-force.
     Equivalent to conjugate gradient (CC) if no additional constraints.
     See ``_PTO``.
     """
@@ -312,7 +312,7 @@ class PseudoSpectralPTO(_PTO):
 
 
 class ProportionalPTO(_PTO):
-    """Proportional PTO control.
+    """Proportional (P) PTO controller (a.k.a., "proportional damping").
 
     PTO force is a constant times the velocity.
     See ``_PTO``.
@@ -329,4 +329,30 @@ class ProportionalPTO(_PTO):
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        return np.reshape(x_opt, [-1, 1]) * vel_td
+        force_td = np.reshape(x_opt, [-1, 1]) * vel_td
+        return force_td
+
+
+class ProportionalIntegralPTO(_PTO):
+    """Proportional integral (PI) PTO controller.
+
+    PTO force is a constant times the velocity plus a constant times position.
+    See ``_PTO``.
+    """
+
+    def __init__(self, kinematics: np.ndarray, names: list[str] | None = None
+                 ) -> None:
+        super().__init__(kinematics, names)
+
+    @property
+    def nstate_per_dof(self):
+        return 2
+
+    def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+              nsubsteps: int = 1) -> np.ndarray:
+        vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
+        pos_td = self.position(wec, x_wec, x_opt, nsubsteps)
+        u = np.reshape(x_opt, [-1, 1])
+        B = np.hstack([vel_td, pos_td])
+        force_td = np.dot(B,u)
+        return force_td
