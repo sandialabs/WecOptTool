@@ -52,7 +52,7 @@ Some examples of problems which can be addressed within this framework include:
 How's this different from what I'm used to?
 --------------------------------------------
 
-Most users will be more familiar with time-domain solutions for differential equations--this is the method applied in Simulink (and therefore `WEC-Sim`_).
+Most users will be more familiar with a time-stepping approach for differential equations--this is the method applied in Simulink (and therefore `WEC-Sim`_).
 Starting from an initial time (e.g., :math:`t=0`), the solution is solved by iteratively stepping forward in time.
 
 .. image:: _static/theory_animation_td.gif
@@ -78,7 +78,7 @@ Practical concerns
 Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` will often be quite large.
-For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`, potentially :math:`\mathcal{O}(1e3)`.
+For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`.
 To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Autograd`_.
 In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the `Autograd`_ replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
 
@@ -89,13 +89,13 @@ Recall that :math:`x = [x_{w}, x_{u}]`, where :math:`x_{w}` describes the state 
 Consider, for example, a general case without a controller structure, in which :math:`x_{u}` would relate to PTO forces.
 For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e-1)`, but the forces could be :math:`\mathcal{O}(1e3)`.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
-Scaling mismatches can lead to problems with convergence.
+Scaling mismatches in the decision variable :math:`x` and with the objective function :math:`J(x)` can lead to problems with convergence.
 To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`core.WEC.solve`).
 
 Constraints
 ^^^^^^^^^^^
 Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
-This functionality is well illustrated in :doc:`_examples/tutorial_1_wavebot`.
+This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :meth:`pto.PseudoSpectralPTO.force`).
