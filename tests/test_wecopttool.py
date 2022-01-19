@@ -14,12 +14,6 @@ from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
-# TODO: Currently just testing that it runs.
-#       Should test that it behaves correctly.
-#       E.g. check types, check dimensions, compare to stored data, etc.
-#       Use ``assert ...``.
-
-
 @pytest.fixture(scope="module")
 def wec():
     # water properties
@@ -126,14 +120,20 @@ def test_wave_excitation(wec, regular_wave):
 def test_solve(wec, regular_wave, pto):
     # solve
     options = {}
-    obj_fun = pto.energy
+    obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    maximize = True
-    _, _, x_wec, x_opt, _, _ = wec.solve(regular_wave, obj_fun, 
-        nstate_opt, optim_options=options, maximize=maximize)
+    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun, 
+        nstate_opt, 
+        scale_x_wec = 1.0,
+        scale_x_opt = 0.01,
+        scale_obj = 1e-1,
+        optim_options=options)
+
+    avg_pow_exp = -474.133896724959
+    assert pytest.approx(avg_pow, 1e-5) == avg_pow_exp
 
     # post-process
-    _, _ = pto.post_process(wec, x_wec, x_opt)
+    tdom, fdom = pto.post_process(wec, x_wec, x_opt)
 
 
 def test_plot(wec):
