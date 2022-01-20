@@ -50,9 +50,9 @@ suppress_warnings = ["autosectionlabel.*"]
 
 
 # ignore 403 error
-linkcheck_ignore = [
-    'https://doi.org/10.3390/en10040472',
-]
+# linkcheck_ignore = [
+#     'https://doi.org/10.3390/en10040472',
+# ]
 
 
 # -- Extension configuration -------------------------------------------------

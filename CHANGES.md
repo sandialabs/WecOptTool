@@ -10,7 +10,6 @@
 
 **Bug fixes**
 
-* Ignore linkcheck for https://doi.org/10.3390/en10040472 (funny 403 error)
 * Fix broken link in RELEASING
 
 **New features**
