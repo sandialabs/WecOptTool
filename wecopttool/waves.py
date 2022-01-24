@@ -299,8 +299,8 @@ def _random_phase(shape: list[int] | int | None = None,
 
 def pierson_moskowitz_spectrum(
     freq: float | npt.ArrayLike, fp: float, hs: float) -> float | np.ndarray:
-    """Calculate the Pierson-Moskowitz omni-directional spectrum for the
-    specified frequencies.
+    """Calculate the Pierson-Moskowitz omni-directional wave spectrum
+    for the specified frequencies  and parameters.
 
     This is included as one example of a spectrum function.
 
@@ -317,6 +317,55 @@ def pierson_moskowitz_spectrum(
     b = (1.057*fp)**4
     a = hs**2 / 4 * b
     return a * freq**(-5) * np.exp(-b * freq**(-4))
+
+
+def jonswap_spectrum(freq:float | npt.ArrayLike, fp:float, hs:float,
+    gamma:float=3.3) -> float | np.ndarray:
+    """Calculate the Joint North Sea Wave Project (JONSWAP)
+    omni-directional wave spectrum for the specified frequencies and
+    parameters.
+
+    See, e.g., DNV-RP-C205
+
+    Parameters
+    ----------
+    freq : float | npt.ArrayLike
+        Wave frequencies in :math:`Hz`.
+    fp : float
+        Peak frequency in :math:`Hz`.
+    hs : float
+        Significant wave height in :math:`m`.
+    gamma : float, optional
+        Peakedness factor. The default is 3.3.
+
+    Returns
+    -------
+    Sf : np.array
+        Spectral density in :math:`m^2/Hz`
+
+    Notes
+    -----
+    For ``gamma = 1``, the JONSWAP spectrum reduces to a Pierson-Moskowitz
+    spectrum.
+
+    """
+    # spectral width parameter
+    sigma_a = 0.07
+    sigma_b = 0.09
+    sigma = np.piecewise(freq,
+                         condlist=[freq <= fp, freq > fp],
+                         funclist=[sigma_a, sigma_b])
+
+
+    # Pieson-Moskowitz spectrum
+    Spm = 5/16 * hs**2 * fp**4 * freq**-5 * np.exp(-5/4 * (freq / fp)**-4)
+
+    # Modify PM to get JONSWAP spectrum
+    G = gamma**np.exp(-1*(freq - fp)**2/(2*sigma**2 * fp**2))
+    alpha = 1/16*hs**2 * np.trapz(Spm*G, freq)**-1
+    Sj = alpha * Spm * G
+
+    return Sj
 
 
 def spread_cos2s(freq: float | npt.ArrayLike,

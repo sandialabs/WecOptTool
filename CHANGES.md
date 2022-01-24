@@ -17,6 +17,7 @@
 * Expand Theory page in documentation to include
 	* Animations and comparison between pseudo-spectral and time-stepping solutions
 	* Discussion of scaling
+* Add JONSWAP spectrum
 
 ## Version 1.0.0 (12/16/2021)
 Initial release.
