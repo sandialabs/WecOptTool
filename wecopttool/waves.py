@@ -51,15 +51,15 @@ def wave_dataset(f0: float, nfreq: int,
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_units = {'units': 'radians/s'}
-    rad_units = {'units': 'radians'}
+    freq_units = {'units': 'rad/s'}
+    rad_units = {'units': 'rad'}
     coords = [(dims[0], omega, freq_units), (dims[1], directions, rad_units)]
     tmp = np.zeros([nfreq, ndirections])
 
     attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
     spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
 
-    attrs = {'units': 'radians', 'long_name': 'wave phase'}
+    attrs = {'units': 'rad', 'long_name': 'wave phase'}
     phase = xr.DataArray(tmp.copy(), dims=dims, coords=coords, attrs=attrs)
 
     return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
