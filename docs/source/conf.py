@@ -45,6 +45,11 @@ def setup(app):
 # nbsphinx and austosectionlabel do not play well together
 suppress_warnings = ["autosectionlabel.*"]
 
+# linkcheck ignore
+linkcheck_ignore = [
+    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
+]
+
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings (autodoc)
 # See: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
