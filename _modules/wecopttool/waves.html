@@ -372,8 +372,8 @@
 
 <div class="viewcode-block" id="pierson_moskowitz_spectrum"><a class="viewcode-back" href="../../source_code_waves.html#wecopttool.waves.pierson_moskowitz_spectrum">[docs]</a><span class="k">def</span> <span class="nf">pierson_moskowitz_spectrum</span><span class="p">(</span>
     <span class="n">freq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Calculate the Pierson-Moskowitz omni-directional spectrum for the</span>
-<span class="sd">    specified frequencies.</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the Pierson-Moskowitz omni-directional wave spectrum</span>
+<span class="sd">    for the specified frequencies  and parameters.</span>
 
 <span class="sd">    This is included as one example of a spectrum function.</span>
 
@@ -390,6 +390,55 @@
     <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.057</span><span class="o">*</span><span class="n">fp</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">hs</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">b</span>
     <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">b</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="jonswap_spectrum"><a class="viewcode-back" href="../../source_code_waves.html#wecopttool.waves.jonswap_spectrum">[docs]</a><span class="k">def</span> <span class="nf">jonswap_spectrum</span><span class="p">(</span><span class="n">freq</span><span class="p">:</span><span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">fp</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">hs</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span>
+    <span class="n">gamma</span><span class="p">:</span><span class="nb">float</span><span class="o">=</span><span class="mf">3.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the Joint North Sea Wave Project (JONSWAP)</span>
+<span class="sd">    omni-directional wave spectrum for the specified frequencies and</span>
+<span class="sd">    parameters.</span>
+
+<span class="sd">    See, e.g., DNV-RP-C205</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    freq : float | npt.ArrayLike</span>
+<span class="sd">        Wave frequencies in :math:`Hz`.</span>
+<span class="sd">    fp : float</span>
+<span class="sd">        Peak frequency in :math:`Hz`.</span>
+<span class="sd">    hs : float</span>
+<span class="sd">        Significant wave height in :math:`m`.</span>
+<span class="sd">    gamma : float, optional</span>
+<span class="sd">        Peakedness factor. The default is 3.3.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Sf : np.array</span>
+<span class="sd">        Spectral density in :math:`m^2/Hz`</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For ``gamma = 1``, the JONSWAP spectrum reduces to a Pierson-Moskowitz</span>
+<span class="sd">    spectrum.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># spectral width parameter</span>
+    <span class="n">sigma_a</span> <span class="o">=</span> <span class="mf">0.07</span>
+    <span class="n">sigma_b</span> <span class="o">=</span> <span class="mf">0.09</span>
+    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">piecewise</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span>
+                         <span class="n">condlist</span><span class="o">=</span><span class="p">[</span><span class="n">freq</span> <span class="o">&lt;=</span> <span class="n">fp</span><span class="p">,</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="p">],</span>
+                         <span class="n">funclist</span><span class="o">=</span><span class="p">[</span><span class="n">sigma_a</span><span class="p">,</span> <span class="n">sigma_b</span><span class="p">])</span>
+
+
+    <span class="c1"># Pieson-Moskowitz spectrum</span>
+    <span class="n">Spm</span> <span class="o">=</span> <span class="mi">5</span><span class="o">/</span><span class="mi">16</span> <span class="o">*</span> <span class="n">hs</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">fp</span><span class="o">**</span><span class="mi">4</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**-</span><span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="o">/</span><span class="mi">4</span> <span class="o">*</span> <span class="p">(</span><span class="n">freq</span> <span class="o">/</span> <span class="n">fp</span><span class="p">)</span><span class="o">**-</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="c1"># Modify PM to get JONSWAP spectrum</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">freq</span> <span class="o">-</span> <span class="n">fp</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">fp</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span><span class="o">*</span><span class="n">hs</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">Spm</span><span class="o">*</span><span class="n">G</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span><span class="o">**-</span><span class="mi">1</span>
+    <span class="n">Sj</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">Spm</span> <span class="o">*</span> <span class="n">G</span>
+
+    <span class="k">return</span> <span class="n">Sj</span></div>
 
 
 <div class="viewcode-block" id="spread_cos2s"><a class="viewcode-back" href="../../source_code_waves.html#wecopttool.waves.spread_cos2s">[docs]</a><span class="k">def</span> <span class="nf">spread_cos2s</span><span class="p">(</span><span class="n">freq</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>

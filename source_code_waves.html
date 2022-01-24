@@ -185,6 +185,34 @@ tuple[float | npt.ArrayLike, float | npt.ArrayLike
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.waves.jonswap_spectrum">
+<span class="sig-prename descclassname"><span class="pre">wecopttool.waves.</span></span><span class="sig-name descname"><span class="pre">jonswap_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3.3</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">np.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/waves.html#jonswap_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.jonswap_spectrum" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the Joint North Sea Wave Project (JONSWAP)
+omni-directional wave spectrum for the specified frequencies and
+parameters.</p>
+<p>See, e.g., DNV-RP-C205</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>freq</strong> (<em>float</em><em> | </em><em>npt.ArrayLike</em>) – Wave frequencies in <span class="math notranslate nohighlight">\(Hz\)</span>.</p></li>
+<li><p><strong>fp</strong> (<em>float</em>) – Peak frequency in <span class="math notranslate nohighlight">\(Hz\)</span>.</p></li>
+<li><p><strong>hs</strong> (<em>float</em>) – Significant wave height in <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
+<li><p><strong>gamma</strong> (<em>float</em><em>, </em><em>optional</em>) – Peakedness factor. The default is 3.3.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>Sf</strong> – Spectral density in <span class="math notranslate nohighlight">\(m^2/Hz\)</span></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>np.array</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">=</span> <span class="pre">1</span></code>, the JONSWAP spectrum reduces to a Pierson-Moskowitz
+spectrum.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.waves.long_crested_wave">
 <span class="sig-prename descclassname"><span class="pre">wecopttool.waves.</span></span><span class="sig-name descname"><span class="pre">long_crested_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spectrum_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">xr.Dataset</span></span></span><a class="reference internal" href="_modules/wecopttool/waves.html#long_crested_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.long_crested_wave" title="Permalink to this definition"></a></dt>
 <dd><p>Create the dataset for a long-crested irregular wave.</p>
@@ -229,8 +257,8 @@ float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.waves.pierson_moskowitz_spectrum">
 <span class="sig-prename descclassname"><span class="pre">wecopttool.waves.</span></span><span class="sig-name descname"><span class="pre">pierson_moskowitz_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">npt.ArrayLike</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">np.ndarray</span></span></span><a class="reference internal" href="_modules/wecopttool/waves.html#pierson_moskowitz_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.pierson_moskowitz_spectrum" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the Pierson-Moskowitz omni-directional spectrum for the
-specified frequencies.</p>
+<dd><p>Calculate the Pierson-Moskowitz omni-directional wave spectrum
+for the specified frequencies  and parameters.</p>
 <p>This is included as one example of a spectrum function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
