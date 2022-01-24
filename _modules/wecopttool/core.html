@@ -6,6 +6,7 @@
   <title>wecopttool.core &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -39,7 +40,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
@@ -70,7 +71,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for wecopttool.core</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Provide core functionality for solving the pseudospectral problem.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Provide core functionality for solving the pseudo-spectral problem.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
@@ -110,7 +111,7 @@
 <span class="sd">    * Geometry</span>
 <span class="sd">    * Degrees of freedom</span>
 <span class="sd">    * Mass properties</span>
-<span class="sd">    * Hydrostatic porperties</span>
+<span class="sd">    * Hydrostatic properties</span>
 <span class="sd">    * Linear frequency domain hydrodynamic coefficients</span>
 <span class="sd">    * Water properties</span>
 <span class="sd">    * Additional dynamic forces (power take-off, mooring, nonlinear</span>
@@ -140,17 +141,17 @@
 <span class="sd">            (``ndof`` x ``ndof``).</span>
 <span class="sd">        f0: float</span>
 <span class="sd">            Initial frequency (in Hz) for frequency array.</span>
-<span class="sd">            Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">            Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].</span>
 <span class="sd">        nfreq: int</span>
 <span class="sd">            Number of frequencies in frequency array. See ``f0``.</span>
 <span class="sd">        dissipation: np.ndarray</span>
 <span class="sd">            Additional dissipiation for the impedance calculation in</span>
 <span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
-<span class="sd">            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).</span>
+<span class="sd">            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).</span>
 <span class="sd">        stiffness: np.ndarray</span>
 <span class="sd">            Additional stiffness for the impedance calculation in</span>
 <span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
-<span class="sd">            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).</span>
+<span class="sd">            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).</span>
 <span class="sd">        f_add: function</span>
 <span class="sd">            Additional forcing terms (e.g. PTO, mooring, etc.) for the</span>
 <span class="sd">            WEC dynamics in the time-domain. Takes three inputs:</span>
@@ -1040,7 +1041,7 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fb: capytaine.FloatingBody</span>
-<span class="sd">        The WEC as a capytaine floating body (mesh + DOFs).</span>
+<span class="sd">        The WEC as a Capytaine floating body (mesh + DOFs).</span>
 <span class="sd">    freq: list[float]</span>
 <span class="sd">        List of frequencies to evaluate BEM at.</span>
 <span class="sd">    wave_dirs: list[float]</span>
@@ -1052,7 +1053,7 @@
 <span class="sd">    depth: float, optional</span>
 <span class="sd">        Water depth in :math:`m`.</span>
 <span class="sd">    write_info: list[str], optional</span>
-<span class="sd">        List of informmation to keep, passed to `capytaine` solver.</span>
+<span class="sd">        List of information to keep, passed to `capytaine` solver.</span>
 <span class="sd">        Options are: `wavenumber`, `wavelength`, `mesh`, `hydrostatics`.</span>
 
 <span class="sd">    Returns</span>
@@ -1086,11 +1087,11 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    impedance: np.ndarray</span>
-<span class="sd">        Complex impedance matrix. Shape: nfreq x ndof x ndof</span>
+<span class="sd">        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``</span>
 <span class="sd">    freq: list[float]</span>
 <span class="sd">        Frequencies in Hz.</span>
 <span class="sd">    style: {&#39;Bode&#39;,&#39;complex&#39;}</span>
-<span class="sd">        Wether to plot magnitude and angle (``Bode``) or real and</span>
+<span class="sd">        Whether to plot magnitude and angle (``Bode``) or real and</span>
 <span class="sd">        imaginary (``complex``) parts.</span>
 <span class="sd">    option: {&#39;diagonal&#39;, &#39;symmetric&#39;, &#39;all&#39;}</span>
 <span class="sd">        Which terms of the matrix to plot:</span>

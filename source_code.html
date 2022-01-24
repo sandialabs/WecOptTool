@@ -7,6 +7,7 @@
   <title>API Documentation &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -16,8 +17,8 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -44,7 +45,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
@@ -108,7 +109,7 @@
 <h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-wecopttool.core"></span><p>Provide core functionality for solving the pseudospectral problem.</p>
+<span class="target" id="module-wecopttool.core"></span><p>Provide core functionality for solving the pseudo-spectral problem.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="wecopttool.core.WEC">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.core.</span></span><span class="sig-name descname"><span class="pre">WEC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">cpy.FloatingBody</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mass_matrix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dissipation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stiffness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#wecopttool.core.WEC" title="wecopttool.core.WEC"><span class="pre">WEC</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">np.ndarray</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1025.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">inf</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">9.81</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/core.html#WEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC" title="Permalink to this definition"></a></dt>
@@ -119,7 +120,7 @@ environment, and dynamic modeling:</p>
 <li><p>Geometry</p></li>
 <li><p>Degrees of freedom</p></li>
 <li><p>Mass properties</p></li>
-<li><p>Hydrostatic porperties</p></li>
+<li><p>Hydrostatic properties</p></li>
 <li><p>Linear frequency domain hydrodynamic coefficients</p></li>
 <li><p>Water properties</p></li>
 <li><p>Additional dynamic forces (power take-off, mooring, nonlinear
@@ -137,14 +138,14 @@ hydrodynamics, etc.)</p></li>
 <li><p><strong>hydrostatic_stiffness</strong> (<em>np.ndarray</em>) – Hydrstatic stiffness matrix matrix of shape
 (<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code>).</p></li>
 <li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
-Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+Frequency array given as [<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span> <span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
 <li><p><strong>dissipation</strong> (<em>np.ndarray</em>) – Additional dissipiation for the impedance calculation in
 <code class="docutils literal notranslate"><span class="pre">capytaine.post_pro.impedance</span></code>. Shape:
-(<code class="docutils literal notranslate"><span class="pre">ndof``x``ndof``x1)</span> <span class="pre">or</span> <span class="pre">(``ndof``x``ndof``x``nfreq</span></code>).</p></li>
+(<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">1</span></code>) or (<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">nfreq</span></code>).</p></li>
 <li><p><strong>stiffness</strong> (<em>np.ndarray</em>) – Additional stiffness for the impedance calculation in
 <code class="docutils literal notranslate"><span class="pre">capytaine.post_pro.impedance</span></code>. Shape:
-(<code class="docutils literal notranslate"><span class="pre">ndof``x``ndof``x1)</span> <span class="pre">or</span> <span class="pre">(``ndof``x``ndof``x``nfreq</span></code>).</p></li>
+(<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">1</span></code>) or (<code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">nfreq</span></code>).</p></li>
 <li><p><strong>f_add</strong> (<em>function</em>) – Additional forcing terms (e.g. PTO, mooring, etc.) for the
 WEC dynamics in the time-domain. Takes three inputs:
 (1) the WEC object,
@@ -489,9 +490,9 @@ Opposite of <code class="docutils literal notranslate"><span class="pre">dofmat_
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>impedance</strong> (<em>np.ndarray</em>) – Complex impedance matrix. Shape: nfreq x ndof x ndof</p></li>
+<li><p><strong>impedance</strong> (<em>np.ndarray</em>) – Complex impedance matrix. Shape: <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code> x <code class="docutils literal notranslate"><span class="pre">ndof</span></code></p></li>
 <li><p><strong>freq</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – Frequencies in Hz.</p></li>
-<li><p><strong>style</strong> (<em>{'Bode'</em><em>,</em><em>'complex'}</em>) – Wether to plot magnitude and angle (<code class="docutils literal notranslate"><span class="pre">Bode</span></code>) or real and
+<li><p><strong>style</strong> (<em>{'Bode'</em><em>,</em><em>'complex'}</em>) – Whether to plot magnitude and angle (<code class="docutils literal notranslate"><span class="pre">Bode</span></code>) or real and
 imaginary (<code class="docutils literal notranslate"><span class="pre">complex</span></code>) parts.</p></li>
 <li><p><strong>option</strong> (<em>{'diagonal'</em><em>, </em><em>'symmetric'</em><em>, </em><em>'all'}</em>) – Which terms of the matrix to plot:
 ‘diagonal’ to plot only the diagonal terms,
@@ -525,13 +526,13 @@ frequency.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fb</strong> (<em>capytaine.FloatingBody</em>) – The WEC as a capytaine floating body (mesh + DOFs).</p></li>
+<li><p><strong>fb</strong> (<em>capytaine.FloatingBody</em>) – The WEC as a Capytaine floating body (mesh + DOFs).</p></li>
 <li><p><strong>freq</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of frequencies to evaluate BEM at.</p></li>
 <li><p><strong>wave_dirs</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – List of wave directions to evaluate BEM at.</p></li>
 <li><p><strong>rho</strong> (<em>float</em><em>, </em><em>optional</em>) – Water density in <span class="math notranslate nohighlight">\(kg/m^3\)</span>.</p></li>
 <li><p><strong>g</strong> (<em>float</em><em>, </em><em>optional</em>) – Gravitational acceleration in <span class="math notranslate nohighlight">\(m/s^2\)</span>.</p></li>
 <li><p><strong>depth</strong> (<em>float</em><em>, </em><em>optional</em>) – Water depth in <span class="math notranslate nohighlight">\(m\)</span>.</p></li>
-<li><p><strong>write_info</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of informmation to keep, passed to <cite>capytaine</cite> solver.
+<li><p><strong>write_info</strong> (<em>list</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of information to keep, passed to <cite>capytaine</cite> solver.
 Options are: <cite>wavenumber</cite>, <cite>wavelength</cite>, <cite>mesh</cite>, <cite>hydrostatics</cite>.</p></li>
 </ul>
 </dd>

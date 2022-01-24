@@ -7,6 +7,7 @@
   <title>Tutorial 1 - WaveBot &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -16,8 +17,8 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -44,7 +45,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 1 - WaveBot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Problem-setup">Problem setup</a><ul>
@@ -300,7 +301,7 @@ div.nboutput.container div.output_area > div[class^='highlight']{
 }
 
 /* hide copybtn icon on prompts (needed for 'sphinx_copybutton') */
-.prompt a.copybtn {
+.prompt .copybtn {
     display: none;
 }
 
@@ -375,8 +376,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># logging</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># logging</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
@@ -412,8 +412,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">wb</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">()</span>  <span class="c1"># use standard dimensions</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wb</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">()</span>  <span class="c1"># use standard dimensions</span>
 <span class="n">mesh_size_factor</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># 1.0 for default, smaller to refine mesh</span>
 <span class="n">mesh</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">mesh_size_factor</span><span class="p">)</span>
 </pre></div>
@@ -424,8 +423,7 @@ div.rendered_html tbody tr:hover {
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;WaveBot&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;WaveBot&quot;</span><span class="p">)</span>
 <span class="n">fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;HEAVE&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -447,8 +445,7 @@ INFO:capytaine.bodies.bodies:New floating body: WaveBot.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fb</span><span class="o">.</span><span class="n">show_matplotlib</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fb</span><span class="o">.</span><span class="n">show_matplotlib</span><span class="p">()</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">plot_cross_section</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># specific to WaveBot</span>
 </pre></div>
 </div>
@@ -472,8 +469,7 @@ INFO:capytaine.bodies.bodies:New floating body: WaveBot.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">hs_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">hydrostatics</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hs_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">hydrostatics</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span>
 <span class="n">mass_33</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">mass_matrix_constant_density</span><span class="p">(</span><span class="n">hs_data</span><span class="p">)[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="n">mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">mass_33</span><span class="p">)</span>
 <span class="n">stiffness_33</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">stiffness_matrix</span><span class="p">(</span><span class="n">hs_data</span><span class="p">)[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
@@ -486,8 +482,7 @@ INFO:capytaine.bodies.bodies:New floating body: WaveBot.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">f0</span> <span class="o">=</span> <span class="mf">0.05</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f0</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="n">nfreq</span> <span class="o">=</span> <span class="mi">50</span>
 </pre></div>
 </div>
@@ -500,8 +495,7 @@ identity matrix.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="p">)</span>
 <span class="n">pto</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PseudoSpectralPTO</span><span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -512,8 +506,7 @@ identity matrix.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># constraints</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># constraints</span>
 <span class="n">f_max</span> <span class="o">=</span> <span class="mf">2000.0</span>
 <span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">4</span>
 
@@ -538,8 +531,7 @@ identity matrix.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">stiffness</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">stiffness</span><span class="p">,</span> <span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span>
               <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -557,8 +549,7 @@ INFO:wecopttool.core:New WEC: WaveBot with 1 DOF.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="s1">&#39;bem.nc&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="s1">&#39;bem.nc&#39;</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
     <span class="n">wec</span><span class="o">.</span><span class="n">read_bem</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
@@ -738,8 +729,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">wfreq</span> <span class="o">=</span> <span class="mf">0.3</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wfreq</span> <span class="o">=</span> <span class="mf">0.3</span>
 <span class="n">amplitude</span> <span class="o">=</span> <span class="mf">0.0625</span>
 <span class="n">phase</span> <span class="o">=</span> <span class="o">-</span><span class="mi">40</span>
 <span class="n">waves</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">regular_wave</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">wfreq</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span>
@@ -754,8 +744,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">obj_fun</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">average_power</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obj_fun</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">average_power</span>
 <span class="n">nstate_opt</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">nstate</span>
 </pre></div>
 </div>
@@ -771,8 +760,7 @@ optimizer to converge.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1.0</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1.0</span>
 <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">0.01</span>
 <span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1.0</span>
 </pre></div>
@@ -784,8 +772,7 @@ optimizer to converge.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">}</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">}</span>
 
 <span class="n">wec_tdom</span><span class="p">,</span> <span class="n">wec_fdom</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">res</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
     <span class="n">waves</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">,</span> <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
@@ -819,8 +806,7 @@ Optimization terminated successfully    (Exit mode 0)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">pto_tdom</span><span class="p">,</span> <span class="n">pto_fdom</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pto_tdom</span><span class="p">,</span> <span class="n">pto_fdom</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -832,8 +818,7 @@ Optimization terminated successfully    (Exit mode 0)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># print</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># print</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Average power: </span><span class="si">{</span><span class="n">obj</span><span class="si">}</span><span class="s2"> W</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="c1"># save</span>
@@ -865,8 +850,7 @@ Average power: -103.18562474150039 W
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">_</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">plot_impedance</span><span class="p">()</span>  <span class="c1"># see function doc for options.</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">_</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">plot_impedance</span><span class="p">()</span>  <span class="c1"># see function doc for options.</span>
 </pre></div>
 </div>
 </div>
@@ -883,8 +867,7 @@ Average power: -103.18562474150039 W
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">wec_tdom</span><span class="p">[</span><span class="s1">&#39;wave_elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
@@ -940,8 +923,7 @@ Average power: -103.18562474150039 W
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">fd_lines</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;marker&#39;</span><span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;linestyle&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;fillstyle&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fd_lines</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;marker&#39;</span><span class="p">:</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="s1">&#39;linestyle&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;fillstyle&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">}</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">wec_fdom</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">fd_lines</span><span class="p">)</span>
@@ -977,8 +959,7 @@ odd multiples of the excitation frequency.</p>
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">idof</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">idof</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">Fe</span> <span class="o">=</span> <span class="n">wec_fdom</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:,</span> <span class="n">idof</span><span class="p">]</span>
 <span class="n">Zi</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Zi</span><span class="p">[:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">idof</span><span class="p">]</span>
 
@@ -1129,8 +1110,7 @@ odd multiples of the excitation frequency.</p>
         <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">(</span><span class="n">iaxs</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-
-</pre></div>
+<br/></pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
@@ -1145,15 +1125,6 @@ odd multiples of the excitation frequency.</p>
 </div>
 <div class="output_area docutils container">
 <img alt="../_images/_examples_tutorial_1_wavebot_39_1.png" src="../_images/_examples_tutorial_1_wavebot_39_1.png" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span>
-</pre></div>
 </div>
 </div>
 </section>

@@ -7,6 +7,7 @@
   <title>wecopttool.waves &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -16,8 +17,8 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -44,7 +45,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="source_code.html">API Documentation</a><ul class="current">
@@ -125,7 +126,8 @@ wave frequency <code class="docutils literal notranslate"><span class="pre">omeg
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
-Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+Frequency array given as
+[<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
 <li><p><strong>directions</strong> (<em>np.ndarray</em>) – Wave directions in degrees. 1D array.</p></li>
 <li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave spectrum function. Maps frequencies to amplitude spectrum.
@@ -146,6 +148,40 @@ tuple[float | npt.ArrayLike, float | npt.ArrayLike
 <dd class="field-odd"><p>xr.Dataset</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<p>Define the desired wave parameters.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">wecopttool</span> <span class="k">as</span> <span class="nn">wot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hs</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Tp</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fp</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">Tp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Create a function handle to define the spectral density,</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">spectrum_func</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="k">return</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">pierson_moskowitz_spectrum</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+<span class="gp">... </span>                                               <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+<span class="gp">... </span>                                               <span class="n">hs</span><span class="o">=</span><span class="n">Hs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and a spreading function handle for spreading.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">spread_func</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">spread_cos2s</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+<span class="gp">... </span>                                  <span class="n">directions</span><span class="o">=</span><span class="n">d</span><span class="p">,</span>
+<span class="gp">... </span>                                  <span class="n">dm</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span>                                  <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+<span class="gp">... </span>                                  <span class="n">s_max</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Generate the wave.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wave</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">irregular_wave</span><span class="p">(</span><span class="n">f0</span><span class="o">=</span><span class="n">fp</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">nfreq</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">directions</span><span class="o">=</span><span class="n">directions</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">spectrum_func</span><span class="o">=</span><span class="n">spectrum_func</span><span class="p">,</span>
+<span class="gp">... </span>                                <span class="n">spread_func</span><span class="o">=</span><span class="n">spread_func</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -156,12 +192,13 @@ tuple[float | npt.ArrayLike, float | npt.ArrayLike
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
-Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+Frequency array given as
+[<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
-<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave spectrum function. Maps frequecies to amplitude spectrum.
+<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave spectrum function. Maps frequencies to amplitude spectrum.
 float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
 <li><p><strong>direction</strong> (<em>float</em><em>, </em><em>optional</em>) – Direction (in degrees) of the regular wave.</p></li>
-<li><p><strong>spectrum_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the spectrum fnction.</p></li>
+<li><p><strong>spectrum_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the spectrum function.</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Random seed for reproducing the same results.</p></li>
 </ul>
 </dd>
@@ -172,6 +209,21 @@ float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
 <dd class="field-odd"><p>xr.Dataset</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<p>Define wave parameters.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wecopttool.waves</span> <span class="kn">import</span> <span class="n">long_crested_wave</span> <span class="k">as</span> <span class="n">lcw</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">wecopttool.waves</span> <span class="kn">import</span> <span class="n">pierson_moskowitz_spectrum</span> <span class="k">as</span> <span class="n">pm</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Hs</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Tp</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fp</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">Tp</span>
+</pre></div>
+</div>
+<p>Generate the wave using a Pierson-Moskowitz idealized spectrum.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wave</span> <span class="o">=</span> <span class="n">lcw</span><span class="p">(</span><span class="n">f0</span><span class="o">=</span><span class="n">fp</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">nfreq</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="gp">... </span>           <span class="n">spectrum_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">pm</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="o">=</span><span class="n">Hs</span><span class="p">))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -200,7 +252,8 @@ specified frequencies.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
-Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+Frequency array given as
+[<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
 <li><p><strong>freq</strong> (<em>float</em>) – Frequency (in Hz) of the regular wave. If <code class="docutils literal notranslate"><span class="pre">freq</span></code> not in the
 frequency array, the closest value is used and a warning is
@@ -255,7 +308,8 @@ coordinates.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>f0</strong> (<em>float</em>) – Initial frequency (in Hz) for frequency array.
-Frequency array given as [f0, 2*f0, …, nfreq*f0].</p></li>
+Frequency array given as
+[<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
 <li><p><strong>directions</strong> (<em>np.ndarray</em>) – Wave directions in degrees. 1D array.</p></li>
 </ul>

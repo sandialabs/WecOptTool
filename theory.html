@@ -4,9 +4,10 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theory &mdash; WecOptTool 1.0.0 documentation</title>
+  <title>Theory &amp; Practice &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -16,8 +17,8 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -44,7 +45,17 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Theory</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Theory &amp; Practice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-concept">Basic concept</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-s-this-different-from-what-i-m-used-to">How’s this different from what I’m used to?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#practical-concerns">Practical concerns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-differentiation">Automatic differentiation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scaling">Scaling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source_code.html">API Documentation</a></li>
@@ -64,7 +75,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Theory</li>
+      <li>Theory &amp; Practice</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/theory.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -98,14 +109,16 @@
     text-align: unset;
 }
 </style>
-<section id="theory">
-<h1>Theory<a class="headerlink" href="#theory" title="Permalink to this headline"></a></h1>
+<section id="theory-practice">
+<h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Permalink to this headline"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
 For a more detailed explanation, please see <span id="id1">[<a class="reference internal" href="references.html#id2" title="Giorgio Bacelli. Optimal control of wave energy converters. PhD, National University of Ireland, Maynooth, Maynooth, Ireland, 2014. URL: http://mural.maynoothuniversity.ie/6753/.">1</a>, <a class="reference internal" href="references.html#id6" title="Giorgio Bacelli and John V Ringwood. Numerical optimal control of wave energy converters. IEEE Transactions on Sustainable Energy, 6(2):294–302, 2014. doi:10.1109/TSTE.2014.2371536.">2</a>, <a class="reference internal" href="references.html#id4" title="Ryan G. Coe, Giorgio Bacelli, Sterling Olson, Vincent S. Neary, and Mathew B. R. Topper. Initial conceptual demonstration of control co-design for WEC optimization. Journal of Ocean Engineering and Marine Energy, 6(4):441–449, 2020. doi:10.1007/s40722-020-00181-9.">3</a>]</span>.
 A journal paper will be available soon.</p>
 </div>
+<section id="basic-concept">
+<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Permalink to this headline"></a></h2>
 <p>WecOptTool uses a pseudo-spectral method <span id="id2">[<a class="reference internal" href="references.html#id3" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks synchronously:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -114,8 +127,8 @@ A journal paper will be available soon.</p>
 </ol>
 </div></blockquote>
 <p>This can be written as a traditional optimization problem:</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}\min\limits_x J(x) \\
+<div class="math notranslate nohighlight" id="equation-optim-prob">
+<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob" title="Permalink to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
 \textrm{s.t.}&amp; \\
 r(x) &amp;= 0 \\
 c_{ineq}(x) &amp;\leq 0 \\
@@ -126,8 +139,8 @@ This accomplishes <em>task 1</em> from above.
 The solution is forced to follow the dynamics of the system via the constraint <span class="math notranslate nohighlight">\(r(x) = 0\)</span>, where <span class="math notranslate nohighlight">\(r(x)\)</span> is the WEC dynamics equation in residual form.
 This accomplishes <em>task 2</em> from above.
 The dynamic residual includes the linear hydrodynamic forces from a BEM solution plus any number of arbitrary nonlinear forces such as power take-off (PTO) force, mooring forces, and non-linear hydrodynamic forces.
-Additionally, any number of arbitrary nonlinear constraints, such as requiring a tether to remain in tension or limiting the maximum force exerted by the PTO, can be includded in <span class="math notranslate nohighlight">\(c_{ineq}(x)\)</span> and <span class="math notranslate nohighlight">\(c_{eq}(x)\)</span>.</p>
-<p>Solving this optimization problem, we can find the optimal control state <span class="math notranslate nohighlight">\(x_{u}\)</span> (e.g. PTO force) that minimizes our objective function (e.g., power generation) for a given WEC design subject to arbitrary constraints and including nonlinear dynamics.
+Additionally, any number of arbitrary nonlinear constraints, such as requiring a tether to remain in tension or limiting the maximum force exerted by the PTO, can be included in <span class="math notranslate nohighlight">\(c_{ineq}(x)\)</span> and <span class="math notranslate nohighlight">\(c_{eq}(x)\)</span>.</p>
+<p>Solving <a class="reference internal" href="#equation-optim-prob">(1)</a>, we can find the optimal control state <span class="math notranslate nohighlight">\(x_{u}\)</span> (e.g., PTO force) that minimizes our objective function (e.g., power generation) for a given WEC design subject to arbitrary constraints and including nonlinear dynamics.
 The pseudo-spectral method has a number of key attributes that make it well-suited to this application:</p>
 <blockquote>
 <div><ul class="simple">
@@ -136,7 +149,7 @@ The pseudo-spectral method has a number of key attributes that make it well-suit
 <li><p><strong>Arbitrary or fixed controller structure:</strong> As a starting point, one may consider optimal control without a given structure. Later on, it may be useful to consider, e.g., a proportional feedback or latching controller. This can be accomplished via the pseudo-spectral method by structuring the system dynamics and the control vector (<span class="math notranslate nohighlight">\(x_{u}\)</span>).</p></li>
 </ul>
 </div></blockquote>
-<p>The solution to this optimization problem can be wrapped with an <em>outer</em> design optimization problem, in which any optimization algorithm can be applied.
+<p>The solution to <a class="reference internal" href="#equation-optim-prob">(1)</a> can be wrapped with an <em>outer</em> design optimization problem, in which any optimization algorithm can be applied.
 Some examples of problems which can be addressed within this framework include:</p>
 <blockquote>
 <div><ul class="simple">
@@ -146,6 +159,49 @@ Some examples of problems which can be addressed within this framework include:<
 <li><p>Optimization of the layout for a WEC array</p></li>
 </ul>
 </div></blockquote>
+</section>
+<section id="how-s-this-different-from-what-i-m-used-to">
+<h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Permalink to this headline"></a></h2>
+<p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
+Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
+<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" /></a>
+<p>Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
+At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.</p>
+<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" /></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.</p>
+</div>
+</section>
+<section id="practical-concerns">
+<h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Permalink to this headline"></a></h2>
+<section id="automatic-differentiation">
+<h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Permalink to this headline"></a></h3>
+<p>In practice, the size of the decision vector <span class="math notranslate nohighlight">\(x\)</span> from <a class="reference internal" href="#equation-optim-prob">(1)</a> will often be quite large.
+For a single degree of freedom device, <span class="math notranslate nohighlight">\(x\)</span> can easily be <span class="math notranslate nohighlight">\(\mathcal{O}(1e2)\)</span>.
+To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the <a class="reference external" href="https://en.wikipedia.org/wiki/Automatic_differentiation">automatic differentiation</a> package <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a>.
+In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a> replacement for <a class="reference external" href="https://numpy.org">NumPy</a> by calling <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">autograd.numpy</span> <span class="pre">as</span> <span class="pre">np</span></code>.
+Note that <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a> does not support all of <a class="reference external" href="https://numpy.org">NumPy</a> (see the <a class="reference external" href="https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy">Autograd documentation</a>) and using unsupported parts can result in silent failure of the automatic differentiation.</p>
+</section>
+<section id="scaling">
+<h3>Scaling<a class="headerlink" href="#scaling" title="Permalink to this headline"></a></h3>
+<p>For many WEC problems, <a class="reference internal" href="#equation-optim-prob">(1)</a> will be poorly scaled.
+Recall that <span class="math notranslate nohighlight">\(x = [x_{w}, x_{u}]\)</span>, where <span class="math notranslate nohighlight">\(x_{w}\)</span> describes the state of the WEC (e.g., velocities) and <span class="math notranslate nohighlight">\(x_{u}\)</span> is a vector to be optimized to maximize power absorption.
+Consider, for example, a general case without a controller structure, in which <span class="math notranslate nohighlight">\(x_{u}\)</span> would relate to PTO forces.
+For a wave tank scale device, one might expect velocities of <span class="math notranslate nohighlight">\(\mathcal{O}(1e-1)\)</span>, but the forces could be <span class="math notranslate nohighlight">\(\mathcal{O}(1e3)\)</span>.
+For larger WECs, this discrepancy in the orders of magnitude may be even worse.
+Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">core.WEC.solve()</span></code>).</p>
+</section>
+<section id="constraints">
+<h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline"></a></h3>
+<p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
+This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
+An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
+It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
+In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <code class="xref py py-meth docutils literal notranslate"><span class="pre">pto.PseudoSpectralPTO.force()</span></code>).</p>
+</section>
+</section>
 </section>
 
 

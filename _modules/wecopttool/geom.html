@@ -6,6 +6,7 @@
   <title>wecopttool.geom &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -39,7 +40,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
@@ -87,8 +88,8 @@
 <div class="viewcode-block" id="WaveBot"><a class="viewcode-back" href="../../source_code_geom.html#wecopttool.geom.WaveBot">[docs]</a><span class="k">class</span> <span class="nc">WaveBot</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Class representing the Sandia WaveBot. See, e.g.,</span>
 
-<span class="sd">        https://doi.org/10.3390/en10040472</span>
-<span class="sd">        https://doi.org/10.2172/1330189</span>
+<span class="sd">        - https://doi.org/10.3390/en10040472</span>
+<span class="sd">        - https://doi.org/10.2172/1330189</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -98,13 +99,13 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        r1 : float, optional</span>
-<span class="sd">            Outer most radius (of cylindrical section).</span>
+<span class="sd">            Outer-most radius (of cylindrical section).</span>
 <span class="sd">            The default is 0.88.</span>
 <span class="sd">        r2 : float, optional</span>
-<span class="sd">            Inner most radius (of the conic frustum).</span>
+<span class="sd">            Inner-most radius (of the conic frustum).</span>
 <span class="sd">            The default is 0.35.</span>
 <span class="sd">        h1 : float, optional</span>
-<span class="sd">            Heigth of the cylindrical section. The default is 0.17.</span>
+<span class="sd">            Height of the cylindrical section. The default is 0.17.</span>
 <span class="sd">        h2 : float, optional</span>
 <span class="sd">            Height of the conic frustum section. The default is 0.37.</span>
 <span class="sd">        freeboard : float, optional</span>
@@ -133,7 +134,6 @@
 <span class="sd">        -------</span>
 <span class="sd">        mesh : meshio._mesh.Mesh</span>
 <span class="sd">            Mesh object for the hull.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">with</span> <span class="n">pygmsh</span><span class="o">.</span><span class="n">occ</span><span class="o">.</span><span class="n">Geometry</span><span class="p">()</span> <span class="k">as</span> <span class="n">geom</span><span class="p">:</span>

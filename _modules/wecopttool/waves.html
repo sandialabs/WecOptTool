@@ -6,6 +6,7 @@
   <title>wecopttool.waves &mdash; WecOptTool 1.0.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -39,7 +40,7 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory &amp; Practice</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
@@ -105,7 +106,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    f0: float</span>
 <span class="sd">        Initial frequency (in Hz) for frequency array.</span>
-<span class="sd">        Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">        Frequency array given as</span>
+<span class="sd">        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].</span>
 <span class="sd">    nfreq: int</span>
 <span class="sd">        Number of frequencies in frequency array. See ``f0``.</span>
 <span class="sd">    directions: np.ndarray</span>
@@ -122,14 +124,15 @@
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freqs</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
     <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
-    <span class="n">rad_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;(radians)&#39;</span><span class="p">}</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">rad_units</span><span class="p">),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">rad_units</span><span class="p">)]</span>
+    <span class="n">freq_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
+    <span class="n">rad_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">}</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">freq_units</span><span class="p">),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">rad_units</span><span class="p">)]</span>
     <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">])</span>
 
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2*s&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave amplitude&#39;</span><span class="p">}</span>
     <span class="n">spectrum</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">)</span>
 
-    <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;(radians)&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave phase&#39;</span><span class="p">}</span>
+    <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave phase&#39;</span><span class="p">}</span>
     <span class="n">phase</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">tmp</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="n">spectrum</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">:</span> <span class="n">phase</span><span class="p">},</span> <span class="n">attrs</span><span class="o">=</span><span class="p">{})</span></div>
@@ -144,7 +147,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    f0: float</span>
 <span class="sd">        Initial frequency (in Hz) for frequency array.</span>
-<span class="sd">        Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">        Frequency array given as</span>
+<span class="sd">        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].</span>
 <span class="sd">    nfreq: int</span>
 <span class="sd">        Number of frequencies in frequency array. See ``f0``.</span>
 <span class="sd">    freq: float</span>
@@ -205,16 +209,17 @@
 <span class="sd">    ----------</span>
 <span class="sd">    f0: float</span>
 <span class="sd">        Initial frequency (in Hz) for frequency array.</span>
-<span class="sd">        Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">        Frequency array given as</span>
+<span class="sd">        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].</span>
 <span class="sd">    nfreq: int</span>
 <span class="sd">        Number of frequencies in frequency array. See ``f0``.</span>
 <span class="sd">    spectrum_func: function</span>
-<span class="sd">        Wave spectrum function. Maps frequecies to amplitude spectrum.</span>
+<span class="sd">        Wave spectrum function. Maps frequencies to amplitude spectrum.</span>
 <span class="sd">        float | npt.ArrayLike -&gt; float | np.ndarray</span>
 <span class="sd">    direction: float, optional</span>
 <span class="sd">        Direction (in degrees) of the regular wave.</span>
 <span class="sd">    spectrum_name: str, optional</span>
-<span class="sd">        Name of the spectrum fnction.</span>
+<span class="sd">        Name of the spectrum function.</span>
 <span class="sd">    seed: int, optional</span>
 <span class="sd">        Random seed for reproducing the same results.</span>
 
@@ -222,6 +227,22 @@
 <span class="sd">    -------</span>
 <span class="sd">     xr.Dataset</span>
 <span class="sd">        Wave dataset.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Define wave parameters.</span>
+
+<span class="sd">    &gt;&gt;&gt; from wecopttool.waves import long_crested_wave as lcw</span>
+<span class="sd">    &gt;&gt;&gt; from wecopttool.waves import pierson_moskowitz_spectrum as pm</span>
+<span class="sd">    &gt;&gt;&gt; Hs = 5</span>
+<span class="sd">    &gt;&gt;&gt; Tp = 6</span>
+<span class="sd">    &gt;&gt;&gt; fp = 1/Tp</span>
+
+<span class="sd">    Generate the wave using a Pierson-Moskowitz idealized spectrum.</span>
+
+<span class="sd">    &gt;&gt;&gt; wave = lcw(f0=fp/10,</span>
+<span class="sd">    ...            nfreq=30,</span>
+<span class="sd">    ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># empty dataset</span>
     <span class="n">waves</span> <span class="o">=</span> <span class="n">wave_dataset</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
@@ -250,7 +271,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    f0: float</span>
 <span class="sd">        Initial frequency (in Hz) for frequency array.</span>
-<span class="sd">        Frequency array given as [f0, 2*f0, ..., nfreq*f0].</span>
+<span class="sd">        Frequency array given as</span>
+<span class="sd">        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].</span>
 <span class="sd">    nfreq: int</span>
 <span class="sd">        Number of frequencies in frequency array. See ``f0``.</span>
 <span class="sd">    directions: np.ndarray</span>
@@ -274,6 +296,41 @@
 <span class="sd">    -------</span>
 <span class="sd">     xr.Dataset</span>
 <span class="sd">        Wave dataset.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Define the desired wave parameters.</span>
+
+<span class="sd">    &gt;&gt;&gt; import wecopttool as wot</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; Hs = 5</span>
+<span class="sd">    &gt;&gt;&gt; Tp = 6</span>
+<span class="sd">    &gt;&gt;&gt; fp = 1/Tp</span>
+<span class="sd">    &gt;&gt;&gt; directions = np.linspace(0, 360, 36, endpoint=False)</span>
+
+<span class="sd">    Create a function handle to define the spectral density,</span>
+
+<span class="sd">    &gt;&gt;&gt; def spectrum_func(f):</span>
+<span class="sd">    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f,</span>
+<span class="sd">    ...                                                fp=fp,</span>
+<span class="sd">    ...                                                hs=Hs)</span>
+
+<span class="sd">    and a spreading function handle for spreading.</span>
+
+<span class="sd">    &gt;&gt;&gt; def spread_func(f, d):</span>
+<span class="sd">    ...     return wot.waves.spread_cos2s(freq=f,</span>
+<span class="sd">    ...                                   directions=d,</span>
+<span class="sd">    ...                                   dm=10,</span>
+<span class="sd">    ...                                   fp=fp,</span>
+<span class="sd">    ...                                   s_max=10)</span>
+
+<span class="sd">    Generate the wave.</span>
+
+<span class="sd">    &gt;&gt;&gt; wave = wot.waves.irregular_wave(f0=fp/10,</span>
+<span class="sd">    ...                                 nfreq=20,</span>
+<span class="sd">    ...                                 directions=directions,</span>
+<span class="sd">    ...                                 spectrum_func=spectrum_func,</span>
+<span class="sd">    ...                                 spread_func=spread_func)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># empty dataset</span>
     <span class="n">waves</span> <span class="o">=</span> <span class="n">wave_dataset</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">directions</span><span class="p">)</span>
