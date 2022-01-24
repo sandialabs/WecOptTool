@@ -14,7 +14,6 @@ from wecopttool import __version__, __version_info__
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
 
-
 # -- Project information -----------------------------------------------------
 project = 'WecOptTool'
 copyright = 'Copyright 2020 National Technology & Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.'
@@ -33,9 +32,7 @@ extensions = [
     'nbsphinx',
 ]
 
-
 # -- Options for HTML output -------------------------------------------------
-
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'navigation_depth': 4,
@@ -48,12 +45,10 @@ def setup(app):
 # nbsphinx and austosectionlabel do not play well together
 suppress_warnings = ["autosectionlabel.*"]
 
-
-# ignore 403 error
-# linkcheck_ignore = [
-#     'https://doi.org/10.3390/en10040472',
-# ]
-
+# linkcheck ignore
+linkcheck_ignore = [
+    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
+]
 
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings (autodoc)
