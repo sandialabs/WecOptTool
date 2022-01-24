@@ -52,7 +52,7 @@ Some examples of problems which can be addressed within this framework include:
 How's this different from what I'm used to?
 --------------------------------------------
 
-Most users will be more familiar with a time-stepping approach for differential equations--this is the method applied in Simulink (and therefore `WEC-Sim`_).
+Most users will be more familiar with a time-stepping approach for differential equations--this is the method applied in Simulink and therefore `WEC-Sim`_.
 Starting from an initial time (e.g., :math:`t=0`), the solution is solved by iteratively stepping forward in time.
 
 .. image:: _static/theory_animation_td.gif
@@ -81,6 +81,7 @@ In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` wil
 For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`.
 To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Autograd`_.
 In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the `Autograd`_ replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
+Note that `Autograd`_ does not support all of `NumPy`_ (see the `Autograd documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
 
 Scaling
 ^^^^^^^
@@ -102,5 +103,6 @@ In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` 
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
+.. _Autograd documentation: https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy
 .. _automatic differentiation: https://en.wikipedia.org/wiki/Automatic_differentiation
 .. _NumPy: https://numpy.org

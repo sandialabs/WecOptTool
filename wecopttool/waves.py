@@ -33,7 +33,8 @@ def wave_dataset(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
@@ -50,7 +51,7 @@ def wave_dataset(f0: float, nfreq: int,
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_units = {'units': 'rad/s'} 
+    freq_units = {'units': 'radians/s'}
     rad_units = {'units': 'radians'}
     coords = [(dims[0], omega, freq_units), (dims[1], directions, rad_units)]
     tmp = np.zeros([nfreq, ndirections])
@@ -73,7 +74,8 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     freq: float
@@ -134,7 +136,8 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
@@ -155,7 +158,7 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     Examples
     --------
     Define wave parameters.
-    
+
     >>> from wecopttool.waves import long_crested_wave as lcw
     >>> from wecopttool.waves import pierson_moskowitz_spectrum as pm
     >>> Hs = 5
@@ -164,8 +167,8 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
 
     Generate the wave using a Pierson-Moskowitz idealized spectrum.
 
-    >>> wave = lcw(f0=fp/10, 
-    ...            nfreq=30, 
+    >>> wave = lcw(f0=fp/10,
+    ...            nfreq=30,
     ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
     """
     # empty dataset
@@ -195,7 +198,8 @@ def irregular_wave(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
@@ -234,25 +238,25 @@ def irregular_wave(f0: float, nfreq: int,
     Create a function handle to define the spectral density,
 
     >>> def spectrum_func(f):
-    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f, 
-    ...                                                fp=fp, 
+    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f,
+    ...                                                fp=fp,
     ...                                                hs=Hs)
 
-    and spreading a function handle for spreading.
+    and a spreading function handle for spreading.
 
     >>> def spread_func(f, d):
-    ...     return wot.waves.spread_cos2s(freq=f, 
-    ...                                   directions=d, 
-    ...                                   dm=10, 
-    ...                                   fp=fp, 
+    ...     return wot.waves.spread_cos2s(freq=f,
+    ...                                   directions=d,
+    ...                                   dm=10,
+    ...                                   fp=fp,
     ...                                   s_max=10)
 
     Generate the wave.
 
-    >>> wave = wot.waves.irregular_wave(f0=fp/10, 
-    ...                                 nfreq=20, 
-    ...                                 directions=directions, 
-    ...                                 spectrum_func=spectrum_func, 
+    >>> wave = wot.waves.irregular_wave(f0=fp/10,
+    ...                                 nfreq=20,
+    ...                                 directions=directions,
+    ...                                 spectrum_func=spectrum_func,
     ...                                 spread_func=spread_func)
     """
     # empty dataset
