@@ -336,8 +336,8 @@ class ProportionalPTO(_PTO):
 class ProportionalIntegralPTO(_PTO):
     """Proportional integral (PI) PTO controller.
 
-    PTO force is a constant times the velocity plus a constant times position.
-    See ``_PTO``.
+    PTO force is a constant times the velocity plus a constant times
+    position. See ``_PTO``.
     """
 
     def __init__(self, kinematics: np.ndarray, names: list[str] | None = None

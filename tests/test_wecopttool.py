@@ -122,8 +122,8 @@ def test_solve(wec, regular_wave, pto):
     options = {}
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun, 
-        nstate_opt, 
+    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
+        nstate_opt,
         scale_x_wec = 1.0,
         scale_x_opt = 0.01,
         scale_obj = 1e-1,
@@ -199,13 +199,13 @@ def test_pto(wec):
 
 
 def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
-    """Check that power obtained using pseudo-spectral with no constraints 
+    """Check that power obtained using pseudo-spectral with no constraints
     equals theoretical limit.
     """
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt, 
+    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
     plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
 
@@ -213,30 +213,30 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
 
 
 def test_wavebot_p_cc(wec,resonant_wave):
-    """Check that power from proportional damping controller can match 
+    """Check that power from proportional damping controller can match
     theorectical limit at the natural resonance.
     """
 
     # remove contraints
-    wec.constraints = [] 
+    wec.constraints = []
 
     # update PTO
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.ProportionalPTO(kinematics)
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec.f_add = pto.force_on_wec 
+    wec.f_add = pto.force_on_wec
 
-    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt, 
+    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
-    plim = power_limit(fdom['excitation_force'][1:, 0], 
+    plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(average_power, 0.03) == plim
 
 
 def test_wavebot_pi_cc(wec,regular_wave):
-    """Check that power from proportional integral (PI) controller can match 
+    """Check that power from proportional integral (PI) controller can match
     theorectical limit at any single wave frequency (i.e., regular wave).
     """
 
@@ -250,10 +250,10 @@ def test_wavebot_pi_cc(wec,regular_wave):
     nstate_opt = pto.nstate
     wec.f_add = pto.force_on_wec
 
-    tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave, 
-        obj_fun, nstate_opt, 
+    tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave,
+        obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
-    plim = power_limit(fdom['excitation_force'][1:, 0], 
+    plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(average_power, 0.03) == plim
