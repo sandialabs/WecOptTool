@@ -1,4 +1,4 @@
-"""Provide core functionality for solving the pseudospectral problem.
+"""Provide core functionality for solving the pseudo-spectral problem.
 """
 
 
@@ -38,7 +38,7 @@ class WEC:
     * Geometry
     * Degrees of freedom
     * Mass properties
-    * Hydrostatic porperties
+    * Hydrostatic properties
     * Linear frequency domain hydrodynamic coefficients
     * Water properties
     * Additional dynamic forces (power take-off, mooring, nonlinear
@@ -68,17 +68,17 @@ class WEC:
             (``ndof`` x ``ndof``).
         f0: float
             Initial frequency (in Hz) for frequency array.
-            Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+            Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
         nfreq: int
             Number of frequencies in frequency array. See ``f0``.
         dissipation: np.ndarray
             Additional dissipiation for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
-            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).
+            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         stiffness: np.ndarray
             Additional stiffness for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
-            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).
+            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         f_add: function
             Additional forcing terms (e.g. PTO, mooring, etc.) for the
             WEC dynamics in the time-domain. Takes three inputs:
@@ -968,7 +968,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     Parameters
     ----------
     fb: capytaine.FloatingBody
-        The WEC as a capytaine floating body (mesh + DOFs).
+        The WEC as a Capytaine floating body (mesh + DOFs).
     freq: list[float]
         List of frequencies to evaluate BEM at.
     wave_dirs: list[float]
@@ -980,7 +980,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     depth: float, optional
         Water depth in :math:`m`.
     write_info: list[str], optional
-        List of informmation to keep, passed to `capytaine` solver.
+        List of information to keep, passed to `capytaine` solver.
         Options are: `wavenumber`, `wavelength`, `mesh`, `hydrostatics`.
 
     Returns
@@ -1014,11 +1014,11 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
     Parameters
     ----------
     impedance: np.ndarray
-        Complex impedance matrix. Shape: nfreq x ndof x ndof
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
     freq: list[float]
         Frequencies in Hz.
     style: {'Bode','complex'}
-        Wether to plot magnitude and angle (``Bode``) or real and
+        Whether to plot magnitude and angle (``Bode``) or real and
         imaginary (``complex``) parts.
     option: {'diagonal', 'symmetric', 'all'}
         Which terms of the matrix to plot:
