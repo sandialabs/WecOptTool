@@ -3,7 +3,6 @@
 # For a full list of options see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# -- Path setup --------------------------------------------------------------
 import os
 import sys
 import shutil
@@ -11,9 +10,9 @@ import shutil
 from wecopttool import __version__, __version_info__
 
 
+# -- Path setup --------------------------------------------------------------
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
-
 
 # -- Project information -----------------------------------------------------
 project = 'WecOptTool'
@@ -21,7 +20,6 @@ copyright = 'Copyright 2020 National Technology & Engineering Solutions of Sandi
 author = 'Sandia National Laboratories'
 version = '.'.join(__version_info__[:2])
 release = __version__
-
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -34,19 +32,23 @@ extensions = [
     'nbsphinx',
 ]
 
-
 # -- Options for HTML output -------------------------------------------------
-
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'navigation_depth': 4,
 }
 html_static_path = ['_static']
 
+def setup(app):
+    app.add_css_file('css/custom.css')
 
 # nbsphinx and austosectionlabel do not play well together
 suppress_warnings = ["autosectionlabel.*"]
 
+# linkcheck ignore
+linkcheck_ignore = [
+    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
+]
 
 # -- Extension configuration -------------------------------------------------
 # Napoleon settings (autodoc)
@@ -84,7 +86,6 @@ def all_but_ipynb(dir, contents):
         if not c.endswith(".ipynb"):
             result += [c]
     return result
-
 
 shutil.rmtree(os.path.join(
     project_root,  "docs/source/_examples"), ignore_errors=True)

@@ -15,8 +15,8 @@ import meshio
 class WaveBot:
     """Class representing the Sandia WaveBot. See, e.g.,
 
-        https://doi.org/10.3390/en10040472
-        https://doi.org/10.2172/1330189
+        - https://doi.org/10.3390/en10040472
+        - https://doi.org/10.2172/1330189
 
     """
 
@@ -26,13 +26,13 @@ class WaveBot:
         Parameters
         ----------
         r1 : float, optional
-            Outer most radius (of cylindrical section).
+            Outer-most radius (of cylindrical section).
             The default is 0.88.
         r2 : float, optional
-            Inner most radius (of the conic frustum).
+            Inner-most radius (of the conic frustum).
             The default is 0.35.
         h1 : float, optional
-            Heigth of the cylindrical section. The default is 0.17.
+            Height of the cylindrical section. The default is 0.17.
         h2 : float, optional
             Height of the conic frustum section. The default is 0.37.
         freeboard : float, optional
@@ -61,7 +61,6 @@ class WaveBot:
         -------
         mesh : meshio._mesh.Mesh
             Mesh object for the hull.
-
         """
 
         with pygmsh.occ.Geometry() as geom:
