@@ -10,10 +10,15 @@
 
 **Bug fixes**
 
-*
+* Fix broken link in RELEASING
 
 **New features**
 
+* Expand Theory page in documentation to include
+	* Animations and comparison between pseudo-spectral and time-stepping solutions
+	* Discussion of scaling
+* Add JONSWAP spectrum
+* Optional logging of x and obj_fun(x) at each iteration
 * Add example PI controller to PTO module
 * Add core methods for
 	* Theoretical power limit

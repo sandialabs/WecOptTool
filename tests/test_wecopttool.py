@@ -187,6 +187,16 @@ def test_waves_module(wec):
         wec.f0, wec.nfreq, spectrum_func, direction, spectrum_name)
 
 
+def test_jonswap_spectrum(wec):
+    tp = 8
+    hs = 1.5
+    freq = wec.f0 * np.arange(1, wec.nfreq)
+    Sj = wot.waves.jonswap_spectrum(freq=freq, fp=1/tp, hs=hs, gamma=1)
+    Spm = wot.waves.pierson_moskowitz_spectrum(freq=freq, fp=1/tp, hs=hs)
+
+    assert pytest.approx(Sj, 1e-2) == Spm
+
+
 def test_pto(wec):
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.ProportionalPTO(kinematics, ['DOF_1'])
