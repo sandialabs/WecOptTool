@@ -33,7 +33,8 @@ def wave_dataset(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
@@ -50,14 +51,15 @@ def wave_dataset(f0: float, nfreq: int,
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    rad_units = {'units': '(radians)'}
-    coords = [(dims[0], omega, rad_units), (dims[1], directions, rad_units)]
+    freq_units = {'units': 'rad/s'}
+    rad_units = {'units': 'rad'}
+    coords = [(dims[0], omega, freq_units), (dims[1], directions, rad_units)]
     tmp = np.zeros([nfreq, ndirections])
 
     attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
     spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
 
-    attrs = {'units': '(radians)', 'long_name': 'wave phase'}
+    attrs = {'units': 'rad', 'long_name': 'wave phase'}
     phase = xr.DataArray(tmp.copy(), dims=dims, coords=coords, attrs=attrs)
 
     return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
@@ -72,7 +74,8 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     freq: float
@@ -133,16 +136,17 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
-        Wave spectrum function. Maps frequecies to amplitude spectrum.
+        Wave spectrum function. Maps frequencies to amplitude spectrum.
         float | npt.ArrayLike -> float | np.ndarray
     direction: float, optional
         Direction (in degrees) of the regular wave.
     spectrum_name: str, optional
-        Name of the spectrum fnction.
+        Name of the spectrum function.
     seed: int, optional
         Random seed for reproducing the same results.
 
@@ -150,6 +154,22 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     -------
      xr.Dataset
         Wave dataset.
+
+    Examples
+    --------
+    Define wave parameters.
+
+    >>> from wecopttool.waves import long_crested_wave as lcw
+    >>> from wecopttool.waves import pierson_moskowitz_spectrum as pm
+    >>> Hs = 5
+    >>> Tp = 6
+    >>> fp = 1/Tp
+
+    Generate the wave using a Pierson-Moskowitz idealized spectrum.
+
+    >>> wave = lcw(f0=fp/10,
+    ...            nfreq=30,
+    ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
     """
     # empty dataset
     waves = wave_dataset(f0, nfreq, direction)
@@ -178,7 +198,8 @@ def irregular_wave(f0: float, nfreq: int,
     ----------
     f0: float
         Initial frequency (in Hz) for frequency array.
-        Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+        Frequency array given as
+        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     directions: np.ndarray
@@ -202,6 +223,41 @@ def irregular_wave(f0: float, nfreq: int,
     -------
      xr.Dataset
         Wave dataset.
+
+    Examples
+    --------
+    Define the desired wave parameters.
+
+    >>> import wecopttool as wot
+    >>> import numpy as np
+    >>> Hs = 5
+    >>> Tp = 6
+    >>> fp = 1/Tp
+    >>> directions = np.linspace(0, 360, 36, endpoint=False)
+
+    Create a function handle to define the spectral density,
+
+    >>> def spectrum_func(f):
+    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f,
+    ...                                                fp=fp,
+    ...                                                hs=Hs)
+
+    and a spreading function handle for spreading.
+
+    >>> def spread_func(f, d):
+    ...     return wot.waves.spread_cos2s(freq=f,
+    ...                                   directions=d,
+    ...                                   dm=10,
+    ...                                   fp=fp,
+    ...                                   s_max=10)
+
+    Generate the wave.
+
+    >>> wave = wot.waves.irregular_wave(f0=fp/10,
+    ...                                 nfreq=20,
+    ...                                 directions=directions,
+    ...                                 spectrum_func=spectrum_func,
+    ...                                 spread_func=spread_func)
     """
     # empty dataset
     waves = wave_dataset(f0, nfreq, directions)
@@ -243,8 +299,8 @@ def _random_phase(shape: list[int] | int | None = None,
 
 def pierson_moskowitz_spectrum(
     freq: float | npt.ArrayLike, fp: float, hs: float) -> float | np.ndarray:
-    """Calculate the Pierson-Moskowitz omni-directional spectrum for the
-    specified frequencies.
+    """Calculate the Pierson-Moskowitz omni-directional wave spectrum
+    for the specified frequencies  and parameters.
 
     This is included as one example of a spectrum function.
 
@@ -261,6 +317,55 @@ def pierson_moskowitz_spectrum(
     b = (1.057*fp)**4
     a = hs**2 / 4 * b
     return a * freq**(-5) * np.exp(-b * freq**(-4))
+
+
+def jonswap_spectrum(freq:float | npt.ArrayLike, fp:float, hs:float,
+    gamma:float=3.3) -> float | np.ndarray:
+    """Calculate the Joint North Sea Wave Project (JONSWAP)
+    omni-directional wave spectrum for the specified frequencies and
+    parameters.
+
+    See, e.g., DNV-RP-C205
+
+    Parameters
+    ----------
+    freq : float | npt.ArrayLike
+        Wave frequencies in :math:`Hz`.
+    fp : float
+        Peak frequency in :math:`Hz`.
+    hs : float
+        Significant wave height in :math:`m`.
+    gamma : float, optional
+        Peakedness factor. The default is 3.3.
+
+    Returns
+    -------
+    Sf : np.array
+        Spectral density in :math:`m^2/Hz`
+
+    Notes
+    -----
+    For ``gamma = 1``, the JONSWAP spectrum reduces to a Pierson-Moskowitz
+    spectrum.
+
+    """
+    # spectral width parameter
+    sigma_a = 0.07
+    sigma_b = 0.09
+    sigma = np.piecewise(freq,
+                         condlist=[freq <= fp, freq > fp],
+                         funclist=[sigma_a, sigma_b])
+
+
+    # Pieson-Moskowitz spectrum
+    Spm = 5/16 * hs**2 * fp**4 * freq**-5 * np.exp(-5/4 * (freq / fp)**-4)
+
+    # Modify PM to get JONSWAP spectrum
+    G = gamma**np.exp(-1*(freq - fp)**2/(2*sigma**2 * fp**2))
+    alpha = 1/16*hs**2 * np.trapz(Spm*G, freq)**-1
+    Sj = alpha * Spm * G
+
+    return Sj
 
 
 def spread_cos2s(freq: float | npt.ArrayLike,

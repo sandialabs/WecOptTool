@@ -11,12 +11,7 @@ import meshio
 
 import wecopttool as wot
 from wecopttool.geom import WaveBot
-
-
-# TODO: Currently just testing that it runs.
-#       Should test that it behaves correctly.
-#       E.g. check types, check dimensions, compare to stored data, etc.
-#       Use ``assert ...``.
+from wecopttool.core import power_limit
 
 
 @pytest.fixture(scope="module")
@@ -75,8 +70,17 @@ def wec():
 
 
 @pytest.fixture(scope="module")
-def wave(wec):
-    freq = 0.2
+def regular_wave(wec):
+    freq = 0.5
+    amplitude = 0.25
+    phase = 0.0
+    wave = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
+    return wave
+
+
+@pytest.fixture(scope="module")
+def resonant_wave(wec):
+    freq = wec.natural_frequency()[0].squeeze().item()
     amplitude = 0.25
     phase = 0.0
     wave = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
@@ -88,6 +92,12 @@ def pto(wec):
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
     return pto
+
+
+def test_natural_frequency(wec):
+    freq = wec.natural_frequency()[0].squeeze().item()
+    expected = 0.65 # Based on v1.0.0 (also agrees with experimental results)
+    assert freq == expected
 
 
 def test_bem_io(wec):
@@ -102,19 +112,25 @@ def test_bem_io(wec):
     os.remove(bem_file)
 
 
-def test_wave_excitation(wec, wave):
+def test_wave_excitation(wec, regular_wave):
     # wave excitation
-    _, _ = wot.wave_excitation(wec.hydro, wave)
+    _, _ = wot.wave_excitation(wec.hydro, regular_wave)
 
 
-def test_solve(wec, wave, pto):
+def test_solve(wec, regular_wave, pto):
     # solve
     options = {}
-    obj_fun = pto.energy
+    obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    maximize = True
-    _, _, x_wec, x_opt, _, _ = wec.solve(
-        wave, obj_fun, nstate_opt, optim_options=options, maximize=maximize)
+    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
+        nstate_opt,
+        scale_x_wec = 1.0,
+        scale_x_opt = 0.01,
+        scale_obj = 1e-1,
+        optim_options=options)
+
+    avg_pow_exp = -474.133896724959
+    assert pytest.approx(avg_pow, 1e-5) == avg_pow_exp
 
     # post-process
     _, _ = pto.post_process(wec, x_wec, x_opt)
@@ -171,6 +187,16 @@ def test_waves_module(wec):
         wec.f0, wec.nfreq, spectrum_func, direction, spectrum_name)
 
 
+def test_jonswap_spectrum(wec):
+    tp = 8
+    hs = 1.5
+    freq = wec.f0 * np.arange(1, wec.nfreq)
+    Sj = wot.waves.jonswap_spectrum(freq=freq, fp=1/tp, hs=hs, gamma=1)
+    Spm = wot.waves.pierson_moskowitz_spectrum(freq=freq, fp=1/tp, hs=hs)
+
+    assert pytest.approx(Sj, 1e-2) == Spm
+
+
 def test_pto(wec):
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.ProportionalPTO(kinematics, ['DOF_1'])
@@ -182,22 +208,66 @@ def test_pto(wec):
     _ = pto.energy(wec, x_wec, x_pto)
 
 
-def test_wavebot_ps_cc(wec,wave,pto):
+def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
     """Check that power obtained using pseudo-spectral with no constraints
     equals theoretical limit.
     """
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec_tdom, wec_fdom, x_wec, x_opt, average_power, _ = wec.solve(
-    wave, obj_fun, nstate_opt, optim_options={'maxiter': 1000, 'ftol': 1e-8},
-    scale_x_opt=1e3)
-    idof = 0
-    Fe = wec_fdom['excitation_force'][1:, idof]
-    Zi = wec.hydro.Zi[:, idof, idof]
-    power_limit = -1*np.sum(np.abs(Fe)**2 / (8*np.real(Zi))).values.item()
+    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt,
+        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+    plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
 
-    assert pytest.approx(average_power, 1e-5) == power_limit
+    assert pytest.approx(average_power, 1e-5) == plim
+
+
+def test_wavebot_p_cc(wec,resonant_wave):
+    """Check that power from proportional damping controller can match
+    theorectical limit at the natural resonance.
+    """
+
+    # remove contraints
+    wec.constraints = []
+
+    # update PTO
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalPTO(kinematics)
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    wec.f_add = pto.force_on_wec
+
+    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
+        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+    plim = power_limit(fdom['excitation_force'][1:, 0],
+                       wec.hydro.Zi[:, 0, 0]).item()
+
+    assert pytest.approx(average_power, 0.03) == plim
+
+
+def test_wavebot_pi_cc(wec,regular_wave):
+    """Check that power from proportional integral (PI) controller can match
+    theorectical limit at any single wave frequency (i.e., regular wave).
+    """
+
+    # remove contraints
+    wec.constraints = []
+
+    # update PTO
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalIntegralPTO(kinematics)
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    wec.f_add = pto.force_on_wec
+
+    tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave,
+        obj_fun, nstate_opt,
+        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+    plim = power_limit(fdom['excitation_force'][1:, 0],
+                       wec.hydro.Zi[:, 0, 0]).item()
+
+    assert pytest.approx(average_power, 0.03) == plim
+
 
 def test_examples_device_wavebot_mesh():
     wb = WaveBot()

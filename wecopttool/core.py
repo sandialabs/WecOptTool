@@ -1,4 +1,4 @@
-"""Provide core functionality for solving the pseudospectral problem.
+"""Provide core functionality for solving the pseudo-spectral problem.
 """
 
 
@@ -23,6 +23,7 @@ import capytaine as cpy
 from scipy.optimize import minimize
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,7 @@ class WEC:
     * Geometry
     * Degrees of freedom
     * Mass properties
-    * Hydrostatic porperties
+    * Hydrostatic properties
     * Linear frequency domain hydrodynamic coefficients
     * Water properties
     * Additional dynamic forces (power take-off, mooring, nonlinear
@@ -68,17 +69,17 @@ class WEC:
             (``ndof`` x ``ndof``).
         f0: float
             Initial frequency (in Hz) for frequency array.
-            Frequency array given as [f0, 2*f0, ..., nfreq*f0].
+            Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
         nfreq: int
             Number of frequencies in frequency array. See ``f0``.
         dissipation: np.ndarray
             Additional dissipiation for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
-            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).
+            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         stiffness: np.ndarray
             Additional stiffness for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
-            (``ndof``x``ndof``x1) or (``ndof``x``ndof``x``nfreq``).
+            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         f_add: function
             Additional forcing terms (e.g. PTO, mooring, etc.) for the
             WEC dynamics in the time-domain. Takes three inputs:
@@ -542,6 +543,13 @@ class WEC:
             show=show)
         return fig, axs
 
+    def natural_frequency(self):
+        """Return natural frequency or frequencies.
+
+        See `wot.natural_frequency()`.
+        """
+        return natural_frequency(self.hydro.Zi.values, freq=self.freq)
+
     # methods: solve
     def _get_state_scale(self,
               scale_x_wec: list | None = None,
@@ -576,6 +584,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
+              scale_logging: bool = False,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          optimize.optimize.OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -621,6 +630,11 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
+        scale_logging: bool
+            If true, print the value of the decision variable (decomposed into
+            x_wec and x_opt) and objective function at each solver iteration.
+            Useful for setting ``scale_x_wec``, scale_x_opt``, and 
+            ``scale_obj``. The default is `False``.
 
         Returns
         -------
@@ -702,7 +716,17 @@ class WEC:
                    'x0': x0,
                    'method': 'SLSQP',
                    'constraints': constraints,
-                   'options': optim_options, }
+                   'options': optim_options, 
+                   }
+        
+        def callback(x):
+            x_wec, x_opt = self.decompose_decision_var(x)
+            log.info(f"x_wec: {x_wec}")
+            log.info(f"x_opt: {x_opt}")
+            log.info(f"obj_fun(x): {obj_fun_scaled(x)}")
+        
+        if scale_logging:
+            problem['callback'] = callback
 
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
@@ -849,7 +873,7 @@ def td_to_fd(td: np.ndarray, n: int | None = None) -> np.ndarray:
     return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
 
-def scale_dofs(scale_list: list[float], ncomponents: int):
+def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
     """Create a scaling vector based on a different scale for each DOF.
 
     Parameters
@@ -986,7 +1010,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     Parameters
     ----------
     fb: capytaine.FloatingBody
-        The WEC as a capytaine floating body (mesh + DOFs).
+        The WEC as a Capytaine floating body (mesh + DOFs).
     freq: list[float]
         List of frequencies to evaluate BEM at.
     wave_dirs: list[float]
@@ -998,7 +1022,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     depth: float, optional
         Water depth in :math:`m`.
     write_info: list[str], optional
-        List of informmation to keep, passed to `capytaine` solver.
+        List of information to keep, passed to `capytaine` solver.
         Options are: `wavenumber`, `wavelength`, `mesh`, `hydrostatics`.
 
     Returns
@@ -1023,20 +1047,68 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
-def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
-                   style: str = 'Bode',
-                   option: str = 'diagonal', show: bool = False,
-                   dof_names: list[str] | None = None):
-    """Plot the impedance matrix.
+def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
+                ) -> np.ndarray:
+    """Find upper limit for power.
+
+    Parameters
+    ----------
+    exctiation: np.ndarray
+        Complex exctitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    power_limit
+        Upper limit for power absorption.
+    """
+
+    power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
+
+    return power_limit
+
+
+def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
+                      ) -> tuple[npt.ArrayLike, int]:
+    """Find the natural frequency based on the lowest magnitude impedance.
 
     Parameters
     ----------
     impedance: np.ndarray
         Complex impedance matrix. Shape: nfreq x ndof x ndof
     freq: list[float]
+        Frequencies.
+
+    Returns
+    -------
+    f_n: float
+        Natural frequency.
+    ind: int
+        Index of natural frequency.
+    """
+
+    ind = np.argmin(np.abs(impedance), axis=0)
+    f_n = freq[ind]
+
+    return f_n, ind
+
+
+def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
+                   style: str = 'Bode',
+                   option: str = 'diagonal', show: bool = False,
+                   dof_names: list[str] | None = None
+                   ) -> tuple[mpl.figure.Figure, np.ndarray]:
+    """Plot the impedance matrix.
+
+    Parameters
+    ----------
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+    freq: list[float]
         Frequencies in Hz.
     style: {'Bode','complex'}
-        Wether to plot magnitude and angle (``Bode``) or real and
+        Whether to plot magnitude and angle (``Bode``) or real and
         imaginary (``complex``) parts.
     option: {'diagonal', 'symmetric', 'all'}
         Which terms of the matrix to plot:
