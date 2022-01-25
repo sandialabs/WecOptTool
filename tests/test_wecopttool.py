@@ -133,7 +133,7 @@ def test_solve(wec, regular_wave, pto):
     assert pytest.approx(avg_pow, 1e-5) == avg_pow_exp
 
     # post-process
-    tdom, fdom = pto.post_process(wec, x_wec, x_opt)
+    _, _ = pto.post_process(wec, x_wec, x_opt)
 
 
 def test_plot(wec):
@@ -144,10 +144,10 @@ def test_plot(wec):
 def test_core(wec):
     # set_attr
     hydrostatic_stiffness = wec.hydrostatic_stiffness * 1
-    mass_matrix = wec.mass_matrix * 1
+    mass_matrix = wec.mass * 1
     fb = wec.fb.copy()
     wec.fb = fb
-    wec.mass_matrix = mass_matrix
+    wec.mass = mass_matrix
     wec.hydrostatic_stiffness = hydrostatic_stiffness
     wec.run_bem()
     # repr

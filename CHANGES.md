@@ -2,7 +2,7 @@
 # Changelog
 
 
-## Version x.x.x
+## Version 1.0.1
 
 **Major Changes**
 
@@ -10,6 +10,7 @@
 
 **Bug fixes**
 
+* Fixed bug with modifying mass and other properties of the WEC object. Renamed `mass_matrix` to `mass`.
 * Fix broken link in RELEASING
 
 **New features**
