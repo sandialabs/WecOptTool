@@ -121,7 +121,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="WEC.__init__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">mass_matrix</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+<div class="viewcode-block" id="WEC.__init__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">mass</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                  <span class="n">hydrostatic_stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">f0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">dissipation</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -135,7 +135,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        fb: capytaine.FloatingBody</span>
 <span class="sd">            The WEC as a capytaine floating body (mesh + DOFs).</span>
-<span class="sd">        mass_matrix: np.ndarray</span>
+<span class="sd">        mass: np.ndarray</span>
 <span class="sd">            Mass matrix shape of (``ndof`` x ``ndof``).</span>
 <span class="sd">        hydrostatic_stiffness: np.ndarray</span>
 <span class="sd">            Hydrstatic stiffness matrix matrix of shape</span>
@@ -178,7 +178,7 @@
 
         <span class="c1"># WEC</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="n">fb</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="n">mass_matrix</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">,</span> <span class="n">hydrostatic_stiffness</span><span class="p">)</span>
 
         <span class="c1"># frequency</span>
@@ -197,7 +197,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;constraints&#39;</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 
         <span class="c1"># log</span>
-        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New WEC: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="si">}</span><span class="s2"> DOF.&quot;</span><span class="p">)</span></div>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New WEC: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span><span class="si">}</span><span class="s2"> DOF.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># BEM</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WEC.__setattr__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__setattr__">[docs]</a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Delete dependent attributes  when user manually modifies</span>
@@ -207,30 +210,45 @@
         <span class="n">_attrs_delete_stiffness</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">]</span>
         <span class="n">_attrs_delete_bem</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="s1">&#39;freq&#39;</span><span class="p">]</span>
         <span class="n">_attrs_delete_impedance_not_bem</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;dissipation&#39;</span><span class="p">,</span> <span class="s1">&#39;stiffness&#39;</span><span class="p">,</span> <span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span>
+            <span class="s1">&#39;dissipation&#39;</span><span class="p">,</span> <span class="s1">&#39;stiffness&#39;</span><span class="p">,</span> <span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Changing value of &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span> <span class="o">+</span>
                  <span class="s2">&quot;This might cause some attributes to be reset.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_mass</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass_matrix&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Mass matrix deleted. &quot;</span> <span class="o">+</span>
-                     <span class="s2">&quot;Assign new values to &#39;self.mass_matrix&#39;&quot;</span><span class="p">)</span>
+                     <span class="s2">&quot;Assign new values to &#39;self.mass&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_stiffness</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Hydrostatic stiffness deleted. &quot;</span> <span class="o">+</span>
                      <span class="s2">&quot;Assign new values to &#39;self.hydrostatic_stiffness&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_bem</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">())</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;BEM data deleted. To run BEM use self.run_bem(...) &quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;BEM data deleted. To run BEM use self.run_bem(...) &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;followed by &#39;self.bem_calc_impedance()&#39; to calculate &quot;</span> <span class="o">+</span>
+                     <span class="s2">&quot;impedance.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_impedance_not_bem</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
-            <span class="k">if</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Gi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
+                <span class="k">if</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;Zi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_transfer_mat&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Impedance matrix deleted. To calculate &quot;</span> <span class="o">+</span>
                         <span class="s2">&quot;impedance call &#39;self.bem_calc_impedance()&#39;&quot;</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+        <span class="c1"># set attribute</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">_attrs_delete_impedance_not_bem</span><span class="p">:</span>
+            <span class="c1"># keep BEM coefficients but update all other values of &#39;hydro&#39;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_hydrostatics</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_linear_forces</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">str_info</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1"> &#39;</span> <span class="o">+</span>
@@ -458,35 +476,35 @@
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading BEM data from </span><span class="si">{</span><span class="n">fpath</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">complex_xarray_from_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-        <span class="c1"># add mass and stiffness</span>
+
+
+        <span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Current and saved values of &#39;</span><span class="si">{</span><span class="n">var</span><span class="si">}</span><span class="s2">&#39; are different.&quot;</span>
+                <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;Using current value.&quot;</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+
+        <span class="c1"># check: mass and stiffness</span>
         <span class="n">bmass</span> <span class="o">=</span> <span class="s1">&#39;mass&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
         <span class="n">bstiffness</span> <span class="o">=</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
         <span class="k">if</span> <span class="n">bmass</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_matrix</span><span class="p">)</span>
+            <span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="s1">&#39;mass&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bstiffness</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">bmass</span> <span class="ow">and</span> <span class="n">bstiffness</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_hydrostatics</span><span class="p">()</span>
-        <span class="c1"># additional linear stiffness and dissipation</span>
+            <span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">,</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">)</span>
+
+        <span class="c1"># check: additional linear stiffness and dissipation</span>
         <span class="n">bstiffness</span> <span class="o">=</span> <span class="s1">&#39;stiffness&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
         <span class="n">bdissipation</span> <span class="o">=</span> <span class="s1">&#39;dissipation&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span>
         <span class="k">if</span> <span class="n">bstiffness</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">)</span>
+            <span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;stiffness&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">,</span> <span class="s1">&#39;stiffness&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">bdissipation</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;dissipation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">bstiffness</span> <span class="ow">and</span> <span class="n">bdissipation</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_add_linear_forces</span><span class="p">()</span>
+            <span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;dissipation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">,</span>
+                 <span class="s1">&#39;dissipation&#39;</span><span class="p">)</span>
+
         <span class="c1"># add impedance</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;Gi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Gi</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_transfer_func</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="s1">&#39;Zi&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Zi</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bem_calc_impedance</span><span class="p">()</span>
-        <span class="c1"># post-process impedance: no negative or too small damping diagonal</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_impedance</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">tol</span><span class="p">)</span>
-        <span class="c1"># create MIMO transfer matrix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_make_mimo_transfer_mat</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bem_calc_impedance</span><span class="p">(</span><span class="n">tol</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WEC.write_bem"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.write_bem">[docs]</a>    <span class="k">def</span> <span class="nf">write_bem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Write the BEM solution to a NetCDF file.</span>
@@ -525,14 +543,14 @@
     <span class="k">def</span> <span class="nf">_bem_add_hydrostatics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Add hydrostatic data to self.hydro. &quot;&quot;&quot;</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;radiating_dof&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">[</span><span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydrostatic_stiffness</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_del_impedance</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_bem_add_linear_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">hydro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">({</span><span class="s1">&#39;dissipation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dissipation</span><span class="p">})</span>
-        <span class="n">hydro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">({</span><span class="s1">&#39;stiffness&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">})</span>
+        <span class="n">hydro</span> <span class="o">=</span> <span class="n">hydro</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">({</span><span class="s1">&#39;stiffness&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stiffness</span><span class="p">})</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="n">hydro</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_del_impedance</span><span class="p">()</span>
 
