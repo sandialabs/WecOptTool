@@ -341,7 +341,7 @@
 <div class="viewcode-block" id="PseudoSpectralPTO"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.PseudoSpectralPTO">[docs]</a><span class="k">class</span> <span class="nc">PseudoSpectralPTO</span><span class="p">(</span><span class="n">_PTO</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Pseudo-spectral PTO control.</span>
 
-<span class="sd">    Optimal time-dependent PTO-force.</span>
+<span class="sd">    Unstructured numerical optimal time-dependent PTO-force.</span>
 <span class="sd">    Equivalent to conjugate gradient (CC) if no additional constraints.</span>
 <span class="sd">    See ``_PTO``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -385,7 +385,7 @@
 
 
 <div class="viewcode-block" id="ProportionalPTO"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalPTO">[docs]</a><span class="k">class</span> <span class="nc">ProportionalPTO</span><span class="p">(</span><span class="n">_PTO</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Proportional PTO control.</span>
+    <span class="sd">&quot;&quot;&quot;Proportional (P) PTO controller (a.k.a., &quot;proportional damping&quot;).</span>
 
 <span class="sd">    PTO force is a constant times the velocity.</span>
 <span class="sd">    See ``_PTO``.</span>
@@ -402,7 +402,33 @@
 <div class="viewcode-block" id="ProportionalPTO.force"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalPTO.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
               <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">vel_td</span></div></div>
+        <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">vel_td</span>
+        <span class="k">return</span> <span class="n">force_td</span></div></div>
+
+
+<div class="viewcode-block" id="ProportionalIntegralPTO"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalIntegralPTO">[docs]</a><span class="k">class</span> <span class="nc">ProportionalIntegralPTO</span><span class="p">(</span><span class="n">_PTO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Proportional integral (PI) PTO controller.</span>
+
+<span class="sd">    PTO force is a constant times the velocity plus a constant times</span>
+<span class="sd">    position. See ``_PTO``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">kinematics</span><span class="p">,</span> <span class="n">names</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nstate_per_dof</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="ProportionalIntegralPTO.force"><a class="viewcode-back" href="../../source_code_pto.html#wecopttool.pto.ProportionalIntegralPTO.force">[docs]</a>    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">WEC</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+              <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">vel_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="n">pos_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">vel_td</span><span class="p">,</span> <span class="n">pos_td</span><span class="p">])</span>
+        <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">,</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">force_td</span></div></div>
 </pre></div>
 
            </div>

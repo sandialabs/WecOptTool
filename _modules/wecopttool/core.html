@@ -96,6 +96,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span>
 <span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 
 
 <span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -597,6 +598,13 @@
             <span class="n">show</span><span class="o">=</span><span class="n">show</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span></div>
 
+<div class="viewcode-block" id="WEC.natural_frequency"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.natural_frequency">[docs]</a>    <span class="k">def</span> <span class="nf">natural_frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return natural frequency or frequencies.</span>
+
+<span class="sd">        See `wot.natural_frequency()`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">natural_frequency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="o">.</span><span class="n">Zi</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">freq</span><span class="p">)</span></div>
+
     <span class="c1"># methods: solve</span>
     <span class="k">def</span> <span class="nf">_get_state_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
               <span class="n">scale_x_wec</span><span class="p">:</span> <span class="nb">list</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -920,7 +928,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">td</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="scale_dofs"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.scale_dofs">[docs]</a><span class="k">def</span> <span class="nf">scale_dofs</span><span class="p">(</span><span class="n">scale_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ncomponents</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<div class="viewcode-block" id="scale_dofs"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.scale_dofs">[docs]</a><span class="k">def</span> <span class="nf">scale_dofs</span><span class="p">(</span><span class="n">scale_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ncomponents</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a scaling vector based on a different scale for each DOF.</span>
 
 <span class="sd">    Parameters</span>
@@ -1094,10 +1102,58 @@
     <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">fill_dataset</span><span class="p">(</span><span class="n">test_matrix</span><span class="p">,</span> <span class="p">[</span><span class="n">wec_im</span><span class="p">],</span> <span class="o">**</span><span class="n">write_info</span><span class="p">)</span></div>
 
 
+<span class="k">def</span> <span class="nf">power_limit</span><span class="p">(</span><span class="n">excitation</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+                <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Find upper limit for power.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    exctiation: np.ndarray</span>
+<span class="sd">        Complex exctitation spectrum. Shape: ``nfreq`` x ``ndof``</span>
+<span class="sd">    impedance: np.ndarray</span>
+<span class="sd">        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    power_limit</span>
+<span class="sd">        Upper limit for power absorption.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">power_limit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">excitation</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">impedance</span><span class="p">)))</span>
+
+    <span class="k">return</span> <span class="n">power_limit</span>
+
+
+<span class="k">def</span> <span class="nf">natural_frequency</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+                      <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Find the natural frequency based on the lowest magnitude impedance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    impedance: np.ndarray</span>
+<span class="sd">        Complex impedance matrix. Shape: nfreq x ndof x ndof</span>
+<span class="sd">    freq: list[float]</span>
+<span class="sd">        Frequencies.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    f_n: float</span>
+<span class="sd">        Natural frequency.</span>
+<span class="sd">    ind: int</span>
+<span class="sd">        Index of natural frequency.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">impedance</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">f_n</span> <span class="o">=</span> <span class="n">freq</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">f_n</span><span class="p">,</span> <span class="n">ind</span>
+
+
 <div class="viewcode-block" id="plot_impedance"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.plot_impedance">[docs]</a><span class="k">def</span> <span class="nf">plot_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
                    <span class="n">style</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;Bode&#39;</span><span class="p">,</span>
                    <span class="n">option</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;diagonal&#39;</span><span class="p">,</span> <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                   <span class="n">dof_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                   <span class="n">dof_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+                   <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">mpl</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Plot the impedance matrix.</span>
 
 <span class="sd">    Parameters</span>
