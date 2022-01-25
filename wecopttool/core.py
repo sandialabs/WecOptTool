@@ -23,6 +23,7 @@ import capytaine as cpy
 from scipy.optimize import minimize
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 log = logging.getLogger(__name__)
@@ -524,6 +525,13 @@ class WEC:
             show=show)
         return fig, axs
 
+    def natural_frequency(self):
+        """Return natural frequency or frequencies.
+
+        See `wot.natural_frequency()`.
+        """
+        return natural_frequency(self.hydro.Zi.values, freq=self.freq)
+
     # methods: solve
     def _get_state_scale(self,
               scale_x_wec: list | None = None,
@@ -847,7 +855,7 @@ def td_to_fd(td: np.ndarray, n: int | None = None) -> np.ndarray:
     return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
 
-def scale_dofs(scale_list: list[float], ncomponents: int):
+def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
     """Create a scaling vector based on a different scale for each DOF.
 
     Parameters
@@ -1021,10 +1029,58 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
+def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
+                ) -> np.ndarray:
+    """Find upper limit for power.
+
+    Parameters
+    ----------
+    exctiation: np.ndarray
+        Complex exctitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    power_limit
+        Upper limit for power absorption.
+    """
+
+    power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
+
+    return power_limit
+
+
+def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
+                      ) -> tuple[npt.ArrayLike, int]:
+    """Find the natural frequency based on the lowest magnitude impedance.
+
+    Parameters
+    ----------
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: nfreq x ndof x ndof
+    freq: list[float]
+        Frequencies.
+
+    Returns
+    -------
+    f_n: float
+        Natural frequency.
+    ind: int
+        Index of natural frequency.
+    """
+
+    ind = np.argmin(np.abs(impedance), axis=0)
+    f_n = freq[ind]
+
+    return f_n, ind
+
+
 def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
                    style: str = 'Bode',
                    option: str = 'diagonal', show: bool = False,
-                   dof_names: list[str] | None = None):
+                   dof_names: list[str] | None = None
+                   ) -> tuple[mpl.figure.Figure, np.ndarray]:
     """Plot the impedance matrix.
 
     Parameters
