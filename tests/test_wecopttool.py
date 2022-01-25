@@ -129,8 +129,8 @@ def test_core(wec):
     # set_attr
     hydrostatic_stiffness = wec.hydrostatic_stiffness * 1
     mass_matrix = wec.mass * 1
-    # fb = wec.fb.copy()  # TODO
-    # wec.fb = fb  # TODO
+    fb = wec.fb.copy()
+    wec.fb = fb
     wec.mass = mass_matrix
     wec.hydrostatic_stiffness = hydrostatic_stiffness
     wec.run_bem()

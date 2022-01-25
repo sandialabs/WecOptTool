@@ -125,6 +125,9 @@ class WEC:
         # log
         log.info(f"New WEC: {self.fb.name} with {self.fb.nb_dofs} DOF.")
 
+        # BEM
+        super().__setattr__('hydro', None)
+
     def __setattr__(self, name, value):
         """Delete dependent attributes  when user manually modifies
         an attribute.
@@ -136,28 +139,30 @@ class WEC:
             'dissipation', 'stiffness', 'mass', 'hydrostatic_stiffness']
         log.info(f"Changing value of '{name}'. " +
                  "This might cause some attributes to be reset.")
-        if name == 'fb':
-            # TODO
-            raise NotImplementedError("Currently cannot modify fb.")
         if name in _attrs_delete_mass:
             super().__setattr__('mass', None)
-            self.hydro['mass'] = 'None'
+            if self.hydro is not None:
+                self.hydro['mass'] = 'None'
             log.info("Mass matrix deleted. " +
                      "Assign new values to 'self.mass'")
         if name in _attrs_delete_stiffness:
             super().__setattr__('hydrostatic_stiffness', None)
-            self.hydro['hydrostatic_stiffness'] = 'None'
+            if self.hydro is not None:
+                self.hydro['hydrostatic_stiffness'] = 'None'
             log.info("Hydrostatic stiffness deleted. " +
                      "Assign new values to 'self.hydrostatic_stiffness'")
         if name in _attrs_delete_bem:
-            super().__setattr__('hydro', xr.DataArray())
+            super().__setattr__('hydro', None)
             super().__setattr__('_transfer_mat', None)
-            log.info("BEM data deleted. To run BEM use self.run_bem(...) ")
+            log.info("BEM data deleted. To run BEM use self.run_bem(...) " +
+                     "followed by 'self.bem_calc_impedance()' to calculate " +
+                     "impedance.")
         if name in _attrs_delete_impedance_not_bem:
-            if 'Gi' in self.hydro:
-                self.hydro['Gi'] = 'None'
-            if 'Zi' in self.hydro:
-                self.hydro['Zi'] = 'None'
+            if self.hydro is not None:
+                if 'Gi' in self.hydro:
+                    self.hydro['Gi'] = 'None'
+                if 'Zi' in self.hydro:
+                    self.hydro['Zi'] = 'None'
             super().__setattr__('_transfer_mat', None)
             log.info("Impedance matrix deleted. To calculate " +
                         "impedance call 'self.bem_calc_impedance()'")
@@ -167,8 +172,9 @@ class WEC:
 
         if name in _attrs_delete_impedance_not_bem:
             # keep BEM coefficients but update all other values of 'hydro'
-            self._bem_add_hydrostatics()
-            self._bem_add_linear_forces()
+            if self.hydro is not None:
+                self._bem_add_hydrostatics()
+                self._bem_add_linear_forces()
 
     def __repr__(self):
         str_info = (f'{self.__class__.__name__} ' +
