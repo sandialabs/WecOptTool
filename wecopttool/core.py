@@ -5,9 +5,11 @@
 from __future__ import annotations  # TODO: delete after python 3.10
 
 
-__all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'scale_dofs',
-           'complex_xarray_from_netcdf', 'complex_xarray_to_netcdf',
-           'wave_excitation', 'run_bem', 'plot_impedance']
+__all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'fd_to_td',
+           'td_to_fd', 'scale_dofs', 'complex_xarray_from_netcdf',
+           'complex_xarray_to_netcdf', 'wave_excitation', 'run_bem',
+           'power_limit', 'natural_frequency', 'plot_impedance',
+           'post_process_continuous_time']
 
 
 import logging
@@ -633,7 +635,7 @@ class WEC:
         scale_logging: bool
             If true, print the value of the decision variable (decomposed into
             x_wec and x_opt) and objective function at each solver iteration.
-            Useful for setting ``scale_x_wec``, scale_x_opt``, and 
+            Useful for setting ``scale_x_wec``, scale_x_opt``, and
             ``scale_obj``. The default is `False``.
 
         Returns
@@ -716,15 +718,15 @@ class WEC:
                    'x0': x0,
                    'method': 'SLSQP',
                    'constraints': constraints,
-                   'options': optim_options, 
+                   'options': optim_options,
                    }
-        
+
         def callback(x):
             x_wec, x_opt = self.decompose_decision_var(x)
             log.info(f"x_wec: {x_wec}")
             log.info(f"x_opt: {x_opt}")
             log.info(f"obj_fun(x): {obj_fun_scaled(x)}")
-        
+
         if scale_logging:
             problem['callback'] = callback
 
@@ -1238,3 +1240,31 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
         plt.show()
 
     return fig, axs
+
+
+def post_process_continuous_time(results: xr.DataArray
+                                 ) -> Callable[float, float]:
+    """Create a continuous function from the results in an xarray
+    DataArray.
+
+    The DataArray must be indexed by "omega": frequency in rad/s.
+    There should be no other indices.
+
+    Parameters
+    ----------
+    results: xr.DataArray
+        DataArray containing the pseudo-spectral results.
+
+    Returns
+    -------
+    func: Callable
+        Continuous-time function.
+    """
+    def func(t):
+        t = np.array(t)
+        f = np.zeros(t.shape)
+        for freq, mag in zip(results.omega.values, results.values):
+            f += np.real(mag)*np.cos(freq*t) - np.imag(mag)*np.sin(freq*t)
+        return f
+
+    return func

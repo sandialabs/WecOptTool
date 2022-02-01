@@ -1,6 +1,19 @@
 
 # Changelog
 
+## Version 1.0.2
+
+**Major Changes**
+
+*
+
+**Bug fixes**
+
+*
+
+**New features**
+
+* Create continuous time functions from the WEC dynamics and PTO pseudo-spectral results.
 
 ## Version 1.0.1
 
