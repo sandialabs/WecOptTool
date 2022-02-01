@@ -1,6 +1,12 @@
 
 # Changelog
 
+## Version XX.XX.XX
+
+**Bug fixes**
+
+* Correct dependency name for jupyter-notebook
+* Move jupyter-notebook to base install dependecy
 
 ## Version 1.0.1
 
