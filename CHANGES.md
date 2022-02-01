@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Version XX.XX.XX
+## Version 1.0.2
 
 **Bug fixes**
 
