@@ -7,6 +7,7 @@
     * new r2 vector
     * improve scaling
     * update discussion of results
+* logging of decision vector and objective function: now uses absolute value of mean
 
 **Bug fixes**
 
