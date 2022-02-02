@@ -721,9 +721,10 @@ class WEC:
         
         def callback(x):
             x_wec, x_opt = self.decompose_decision_var(x)
-            log.info(f"x_wec: {x_wec}")
-            log.info(f"x_opt: {x_opt}")
-            log.info(f"obj_fun(x): {obj_fun_scaled(x)}")
+            log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
+                + f"[{np.abs(np.mean(x_wec)):.2e}" \
+                + f"{np.abs(np.mean(x_opt)):.2e}" \
+                + f"{np.abs(obj_fun_scaled(x)):.2e}]")
         
         if scale_logging:
             problem['callback'] = callback
