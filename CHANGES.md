@@ -8,6 +8,13 @@
 * Correct dependency name for jupyter-notebook
 * Move jupyter-notebook to base install dependecy
 
+**New features**
+
+* update Tutorial 2
+	* new r2 vector
+	* improve scaling
+	* update discussion of results
+
 ## Version 1.0.1
 
 **Major Changes**
