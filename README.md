@@ -29,16 +29,12 @@ pip install wecopttool
 
 ## Tutorials
 The tutorials can be found in the `examples` directory and are written as [Jupyter Notebooks](https://jupyter.org/).
-There are many ways to interact with Jupyter Notebooks.
-To run the notebooks on your local machine, first install the classical Jupyter Notebook locally:
+To run the tutorials, first download the notebook files and then, from the directory containing the notebooks, run `jupyter notebook`. 
+Using `git` to obtain the notebooks this can be done by running
 
 ```bash
-pip install notebook
-```
-
-To run the tutorials, from the directory containing the notebooks run
-
-```bash
+git clone https://github.com/SNL-WaterPower/WecOptTool.git
+cd WecOptTool/examples
 jupyter notebook
 ```
 
