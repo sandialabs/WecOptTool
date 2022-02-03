@@ -78,9 +78,11 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># TODO: delete after python 3.10</span>
 
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;WEC&#39;</span><span class="p">,</span> <span class="s1">&#39;freq_array&#39;</span><span class="p">,</span> <span class="s1">&#39;real_to_complex_amplitudes&#39;</span><span class="p">,</span> <span class="s1">&#39;scale_dofs&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;complex_xarray_from_netcdf&#39;</span><span class="p">,</span> <span class="s1">&#39;complex_xarray_to_netcdf&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;wave_excitation&#39;</span><span class="p">,</span> <span class="s1">&#39;run_bem&#39;</span><span class="p">,</span> <span class="s1">&#39;plot_impedance&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;WEC&#39;</span><span class="p">,</span> <span class="s1">&#39;freq_array&#39;</span><span class="p">,</span> <span class="s1">&#39;real_to_complex_amplitudes&#39;</span><span class="p">,</span> <span class="s1">&#39;fd_to_td&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;td_to_fd&#39;</span><span class="p">,</span> <span class="s1">&#39;scale_dofs&#39;</span><span class="p">,</span> <span class="s1">&#39;complex_xarray_from_netcdf&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;complex_xarray_to_netcdf&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_excitation&#39;</span><span class="p">,</span> <span class="s1">&#39;run_bem&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;power_limit&#39;</span><span class="p">,</span> <span class="s1">&#39;natural_frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;plot_impedance&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;post_process_continuous_time&#39;</span><span class="p">]</span>
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -706,7 +708,7 @@
 <span class="sd">        scale_logging: bool</span>
 <span class="sd">            If true, print the value of the decision variable (decomposed into</span>
 <span class="sd">            x_wec and x_opt) and objective function at each solver iteration.</span>
-<span class="sd">            Useful for setting ``scale_x_wec``, scale_x_opt``, and </span>
+<span class="sd">            Useful for setting ``scale_x_wec``, scale_x_opt``, and</span>
 <span class="sd">            ``scale_obj``. The default is `False``.</span>
 
 <span class="sd">        Returns</span>
@@ -789,15 +791,15 @@
                    <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
                    <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">,</span>
-                   <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">optim_options</span><span class="p">,</span> 
+                   <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">optim_options</span><span class="p">,</span>
                    <span class="p">}</span>
-        
+
         <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_wec: </span><span class="si">{</span><span class="n">x_wec</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x_opt: </span><span class="si">{</span><span class="n">x_opt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;obj_fun(x): </span><span class="si">{</span><span class="n">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">scale_logging</span><span class="p">:</span>
             <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
 
@@ -1120,7 +1122,7 @@
     <span class="k">return</span> <span class="n">solver</span><span class="o">.</span><span class="n">fill_dataset</span><span class="p">(</span><span class="n">test_matrix</span><span class="p">,</span> <span class="p">[</span><span class="n">wec_im</span><span class="p">],</span> <span class="o">**</span><span class="n">write_info</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">power_limit</span><span class="p">(</span><span class="n">excitation</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+<div class="viewcode-block" id="power_limit"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.power_limit">[docs]</a><span class="k">def</span> <span class="nf">power_limit</span><span class="p">(</span><span class="n">excitation</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Find upper limit for power.</span>
 
@@ -1139,10 +1141,10 @@
 
     <span class="n">power_limit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">excitation</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">impedance</span><span class="p">)))</span>
 
-    <span class="k">return</span> <span class="n">power_limit</span>
+    <span class="k">return</span> <span class="n">power_limit</span></div>
 
 
-<span class="k">def</span> <span class="nf">natural_frequency</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+<div class="viewcode-block" id="natural_frequency"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.natural_frequency">[docs]</a><span class="k">def</span> <span class="nf">natural_frequency</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
     <span class="sd">&quot;&quot;&quot;Find the natural frequency based on the lowest magnitude impedance.</span>
 
@@ -1164,7 +1166,7 @@
     <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">impedance</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">f_n</span> <span class="o">=</span> <span class="n">freq</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">f_n</span><span class="p">,</span> <span class="n">ind</span>
+    <span class="k">return</span> <span class="n">f_n</span><span class="p">,</span> <span class="n">ind</span></div>
 
 
 <div class="viewcode-block" id="plot_impedance"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.plot_impedance">[docs]</a><span class="k">def</span> <span class="nf">plot_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">freq</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
@@ -1311,6 +1313,34 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">axs</span></div>
+
+
+<div class="viewcode-block" id="post_process_continuous_time"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.post_process_continuous_time">[docs]</a><span class="k">def</span> <span class="nf">post_process_continuous_time</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span>
+                                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Create a continuous function from the results in an xarray</span>
+<span class="sd">    DataArray.</span>
+
+<span class="sd">    The DataArray must be indexed by &quot;omega&quot;: frequency in rad/s.</span>
+<span class="sd">    There should be no other indices.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    results: xr.DataArray</span>
+<span class="sd">        DataArray containing the pseudo-spectral results.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    func: Callable</span>
+<span class="sd">        Continuous-time function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">freq</span><span class="p">,</span> <span class="n">mag</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">freq</span><span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">freq</span><span class="o">*</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">func</span></div>
 </pre></div>
 
            </div>
