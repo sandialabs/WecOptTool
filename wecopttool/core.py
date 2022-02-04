@@ -33,6 +33,7 @@ log = logging.getLogger(__name__)
 # Default values
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
 
+
 class WEC:
     """Class representing a specific wave energy converter (WEC).
     An instance contains the  following information about the WEC,
@@ -168,7 +169,7 @@ class WEC:
                     self.hydro['Zi'] = 'None'
             super().__setattr__('_transfer_mat', None)
             log.info("Impedance matrix deleted. To calculate " +
-                        "impedance call 'self.bem_calc_impedance()'")
+                     "impedance call 'self.bem_calc_impedance()'")
 
         # set attribute
         super().__setattr__(name, value)
@@ -322,7 +323,7 @@ class WEC:
         return np.linspace(0, 1/self.f0, nsteps, endpoint=False)
 
     def make_time_mat(self, nsubsteps: int = 1, include_mean: bool = True
-                     ) -> np.ndarray:
+                      ) -> np.ndarray:
         """Assemble the time matrix that converts the state to
         time-series.
 
@@ -348,8 +349,8 @@ class WEC:
             time_mat = time_mat[:, 1:]
         return time_mat
 
-    def _make_derivative_mat(self, include_mean: bool =True) -> np.ndarray:
-        block = lambda n: np.array([[0, 1], [-1, 0]]) * n * self.w0
+    def _make_derivative_mat(self, include_mean: bool = True) -> np.ndarray:
+        def block(n): return np.array([[0, 1], [-1, 0]]) * n * self.w0
         blocks = [block(n+1) for n in range(self.nfreq)]
         if include_mean:
             blocks = [0.0] + blocks
@@ -368,7 +369,7 @@ class WEC:
 
     # methods: bem & impedance
     def run_bem(self, wave_dirs: npt.ArrayLike = [0], tol: float = 1e-6
-               ) -> None:
+                ) -> None:
         """Run the BEM for the specified wave directions.
 
         See ``wot.run_bem``.
@@ -406,13 +407,11 @@ class WEC:
         data = complex_xarray_from_netcdf(fpath)
         super().__setattr__('hydro', data)
 
-
         def diff(v1, v2, var):
             if not np.allclose(v1, v2):
                 msg = f"Current and saved values of '{var}' are different."
                 msg += "Using current value."
                 log.warning(msg)
-
 
         # check: mass and stiffness
         bmass = 'mass' in self.hydro
@@ -498,7 +497,7 @@ class WEC:
                 radiating_dof=idof, influenced_dof=idof))
             damping = Gi_imag / self.omega
             dmin = damping.min().values
-            if  dmin <= 0.0 + tol:
+            if dmin <= 0.0 + tol:
                 dof = self.hydro['Gi'].influenced_dof.values[idof]
                 log.warning(f'Linear damping for DOF "{dof}" has negative' +
                             ' or close to zero terms. Shifting up.')
@@ -509,7 +508,7 @@ class WEC:
         position.
         """
         elem = [[None]*self.ndof for _ in range(self.ndof)]
-        block = lambda re, im: np.array([[re, im], [-im, re]])
+        def block(re, im): return np.array([[re, im], [-im, re]])
         for idof in range(self.ndof):
             for jdof in range(self.ndof):
                 K = np.array([self.hydrostatic_stiffness[idof, jdof]])
@@ -554,9 +553,9 @@ class WEC:
 
     # methods: solve
     def _get_state_scale(self,
-              scale_x_wec: list | None = None,
-              scale_x_opt: npt.ArrayLike | float = 1.0,
-              nstate_opt: int | None = None):
+                         scale_x_wec: list | None = None,
+                         scale_x_opt: npt.ArrayLike | float = 1.0,
+                         nstate_opt: int | None = None):
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:
@@ -669,15 +668,12 @@ class WEC:
         # scale
         scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
 
-
         # objective function
         sign = -1.0 if maximize else 1.0
-
 
         def obj_fun_scaled(x):
             x_wec, x_opt = self.decompose_decision_var(x/scale)
             return obj_fun(self, x_wec, x_opt)*scale_obj*sign
-
 
         # constraints
         constraints = self.constraints.copy()
@@ -686,23 +682,20 @@ class WEC:
         for i, icons in enumerate(constraints):
             icons_new = icons.copy()
 
-
             def tmp_func(x):
                 x_wec, x_opt = self.decompose_decision_var(x/scale)
                 return icons['fun'](self, x_wec, x_opt)
-
 
             icons_new['fun'] = tmp_func
             if use_grad:
                 icons_new['jac'] = jacobian(icons_new['fun'])
             constraints[i] = icons_new
 
-
         # system dynamics through equality constraint
+
         def resid_fun(x):
             ri = self._dynamic_residual(x/scale, f_exc.values)
             return self.dofmat_to_vec(ri)
-
 
         eq_cons = {'type': 'eq',
                    'fun': resid_fun,
@@ -792,7 +785,7 @@ class WEC:
         return f_i - f_exc - f_add
 
     def _post_process_wec_dynamics(self, x_wec: np.ndarray
-                            ) -> tuple[xr.DataArray, xr.DataArray]:
+                                   ) -> tuple[xr.DataArray, xr.DataArray]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
         """
@@ -1138,11 +1131,9 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
 
     colors = (plt.rcParams['axes.prop_cycle'].by_key()['color']*10)[:ndof]
 
-
     def get_ylim(xmin, xmax, pad_factor=0.05):
         pad = pad_factor * (xmax - xmin)
         return (xmin-pad, xmax+pad)
-
 
     phase_ylim = get_ylim(-180, 180)
     mag_ylim = get_ylim(0.0, np.max(20*np.log10(np.abs(impedance))))
@@ -1150,7 +1141,6 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
                          np.max(np.real(impedance)))
     imag_ylim = get_ylim(-np.max(np.abs(np.imag(impedance))),
                          +np.max(np.abs(np.imag(impedance))))
-
 
     def delaxes(axs, idof, jdof, ndof):
         for i, ax in enumerate([axs[idof*2, jdof], axs[idof*2+1, jdof]]):
@@ -1162,7 +1152,6 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
             if jdof != 0:
                 ax.tick_params(axis='y', which='both', left=False)
                 ax.spines['left'].set_visible(False)
-
 
     for idof in range(ndof):
         color = colors[idof]
