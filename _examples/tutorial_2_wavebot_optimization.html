@@ -398,7 +398,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 <span class="n">h2_0</span> <span class="o">=</span> <span class="mf">0.37</span>
 <span class="n">V0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">h2_0</span><span class="o">*</span><span class="p">(</span><span class="n">r1</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">r2_0</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">r1</span><span class="o">*</span><span class="n">r2_0</span><span class="p">))</span>
 
-<span class="n">r2_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">[</span><span class="n">r1</span><span class="p">]])</span>
+<span class="n">r2_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.88</span><span class="o">*</span><span class="mf">0.999</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="n">V0</span><span class="p">,</span> <span class="n">r1</span><span class="o">=</span><span class="n">r1</span><span class="p">):</span>
@@ -432,12 +432,12 @@ setup. Note however that automatic differentiation is not an option due to the p
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">r2 = </span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">r2 = </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
     <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
 
     <span class="c1">## WEC ##</span>
     <span class="c1"># geometry</span>
-    <span class="n">r2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">h2</span> <span class="o">=</span> <span class="n">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span>
 
     <span class="c1"># mesh</span>
@@ -486,7 +486,7 @@ setup. Note however that automatic differentiation is not an option due to the p
                      <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dissipation</span><span class="o">=</span><span class="n">dissipation</span><span class="p">)</span>
 
     <span class="c1"># create save directory</span>
-    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_super_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_super_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">results_dir</span><span class="p">):</span>
       <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
 
@@ -497,7 +497,7 @@ setup. Note however that automatic differentiation is not an option due to the p
     <span class="k">else</span><span class="p">:</span>
         <span class="n">my_wec</span><span class="o">.</span><span class="n">run_bem</span><span class="p">()</span>
         <span class="n">my_wec</span><span class="o">.</span><span class="n">write_bem</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
-        <span class="n">mesh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.stl&quot;</span><span class="p">))</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">results_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.stl&quot;</span><span class="p">))</span>
 
     <span class="c1">## WAVE ##</span>
     <span class="n">wfreq</span> <span class="o">=</span> <span class="mf">0.6</span>
@@ -510,13 +510,15 @@ setup. Note however that automatic differentiation is not an option due to the p
     <span class="n">nstate_opt</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">nstate</span>
 
     <span class="c1">## SOLVE ##</span>
-    <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1e4</span>
+    <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1e-1</span>
     <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s1">&#39;ftol&#39;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">}</span>
 
 
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">avg_power</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">my_wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
         <span class="n">waves</span><span class="p">,</span> <span class="n">obj_fun</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">,</span> <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
-        <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">)</span>
+        <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span> <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;time (hh:mm:ss): </span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">-</span><span class="n">start_time</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
@@ -534,7 +536,7 @@ values that we specify.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># range over which to search</span>
-<span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r2_vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),)</span>
+<span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r2_vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),)</span>
 
 <span class="c1"># solve</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">brute</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">design_obj_fun</span><span class="p">,</span> <span class="n">ranges</span><span class="o">=</span><span class="n">ranges</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">finish</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -547,83 +549,75 @@ values that we specify.</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 
-r2 = 0.0:
+r2 = 0.05:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.947139004592776
-            Iterations: 196
-            Function evaluations: 203
-            Gradient evaluations: 196
-time (hh:mm:ss): 0:00:41.899413
+            Current function value: -1.6007007809837355
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:20.847277
 
-r2 = 0.1:
+r2 = 0.17:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -16.007627619553567
-            Iterations: 195
-            Function evaluations: 203
-            Gradient evaluations: 195
-time (hh:mm:ss): 0:00:44.167683
+            Current function value: -1.5955255601997296
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:13.999765
 
-r2 = 0.2:
+r2 = 0.29:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.958391183375545
-            Iterations: 189
-            Function evaluations: 198
-            Gradient evaluations: 189
-time (hh:mm:ss): 0:00:40.797857
+            Current function value: -1.594257936317103
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:15.216497
 
-r2 = 0.30000000000000004:
+r2 = 0.41:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.923976935857098
-            Iterations: 176
-            Function evaluations: 185
-            Gradient evaluations: 176
-time (hh:mm:ss): 0:00:36.521953
+            Current function value: -1.5922470054307176
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:13.930062
 
-r2 = 0.4:
+r2 = 0.52:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.911066538126883
-            Iterations: 191
-            Function evaluations: 200
-            Gradient evaluations: 191
-time (hh:mm:ss): 0:00:44.119349
+            Current function value: -1.5885417856613497
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:12.043652
 
-r2 = 0.5:
+r2 = 0.64:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.886466653678983
-            Iterations: 194
-            Function evaluations: 202
-            Gradient evaluations: 194
-time (hh:mm:ss): 0:00:42.492741
+            Current function value: -1.5860851871297252
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:13.983240
 
-r2 = 0.6000000000000001:
+r2 = 0.76:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.842136045715728
-            Iterations: 180
-            Function evaluations: 190
-            Gradient evaluations: 180
-time (hh:mm:ss): 0:00:39.182924
+            Current function value: -1.5799500068973733
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:12.454264
 
-r2 = 0.7000000000000001:
+r2 = 0.88:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.842882394934978
-            Iterations: 192
-            Function evaluations: 202
-            Gradient evaluations: 192
-time (hh:mm:ss): 0:00:38.171648
-
-r2 = 0.8:
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -15.761206875440205
-            Iterations: 178
-            Function evaluations: 186
-            Gradient evaluations: 178
-time (hh:mm:ss): 0:00:40.439211
+            Current function value: -1.5577816690240174
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+time (hh:mm:ss): 0:00:13.746492
 </pre></div></div>
 </div>
 </section>
 <section id="Results">
 <h2>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h2>
-<p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> with the optimal somewhere between <span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(0.2\)</span>.</p>
+<p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code>. It is also clear that when the WEC is cylindrical (where <code class="docutils literal notranslate"><span class="pre">r2=0.88</span></code>), power absorption is reduced.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
