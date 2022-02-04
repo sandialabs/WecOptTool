@@ -14,6 +14,11 @@
 * Correct dependency name for jupyter-notebook
 * Move jupyter-notebook to base install dependecy
 
+**New features**
+
+* Create continuous time functions from the WEC dynamics and PTO pseudo-spectral results.
+
+
 ## Version 1.0.1
 
 **Bug fixes**
