@@ -13,18 +13,18 @@ Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/
 ## Getting started
 WecOptTool requires Python 3.9 (waiting on vtk -> 3.10).
 
-**Option 1** - using `pip` for [Capytaine](https://github.com/mancellin/capytaine) (requires Fortran compilers):
-
-```bash
-pip install git+https://github.com/LHEEA/meshmagick.git@3.3
-pip install wecopttool
-```
-
-**Option 2** - using `Conda` for [Capytaine](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
+**Option 1** - using `Conda` for [Capytaine](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
 
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 conda install -c conda-forge capytaine
+pip install wecopttool
+```
+
+**Option 2** - using `pip` for [Capytaine](https://github.com/mancellin/capytaine) (requires Fortran compilers):
+
+```bash
+pip install git+https://github.com/LHEEA/meshmagick.git@3.3
 pip install wecopttool
 ```
 
