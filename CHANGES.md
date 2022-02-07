@@ -1,6 +1,10 @@
 
 # Changelog
 
+## Version 1.0.3
+
+* minor updates to README
+
 ## Version 1.0.2
 
 * update Tutorial 2
