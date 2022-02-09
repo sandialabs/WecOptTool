@@ -467,7 +467,7 @@ class PseudoSpectralLinearPTO(_PTO):
         """Calculate electric power time-series for each PTO DOF. """
         current = self.electric_current(wec, x_wec, x_opt, nsubsteps)
         voltage = self.electric_voltage(wec, x_wec, x_opt, nsubsteps)
-        return np.dot(current, voltage)
+        return current*voltage
 
     def electric_average_power(self, wec: WEC, x_wec: npt.ArrayLike,
                                x_opt: npt.ArrayLike, nsubsteps: int = 1
