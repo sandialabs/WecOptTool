@@ -379,12 +379,12 @@ class PseudoSpectralLinearPTO(_PTO):
     Models the PTO dynamics and provides output electrical current,
     voltage, and power.
     In addition to the kinematics matrix (WEC motions to PTO motions),
-    requires specifying a linear PTO dynamics matrix that converts from
+    requires specifying a linear PTO impedance matrix that converts from
     [PTO velocity, output current]^T to [PTO force, output voltage]^T.
     """
 
     def __init__(self, nfreq: int, kinematics: np.ndarray,
-                 dynamics: np.ndarray, names: list[str] | None = None,
+                 impedance: np.ndarray, names: list[str] | None = None,
                  ) -> None:
         """
         Parameters
@@ -392,11 +392,11 @@ class PseudoSpectralLinearPTO(_PTO):
         nfreq: int
             Number of frequencies in pseudo-spectral problem. Should
             match the BEM and wave frequencies.
-        dynamics: np.ndarray
-            Matrix representing the PTO dynamics.
+        impedance: np.ndarray
+            Matrix representing the PTO impedance.
         """
         super().__init__(kinematics, names)
-        self.dynamics= dynamics
+        self.impedance= impedance
         self.nfreq = nfreq
 
     @property
@@ -404,11 +404,18 @@ class PseudoSpectralLinearPTO(_PTO):
         return 2 * self.nfreq
 
     @property
-    def _dynamics_t(self):
-        return np.transpose(self.dynamics)
+    def _impedance_t(self):
+        return np.transpose(self.impedance)
 
-    def _q_mat(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
-               ) -> np.ndarray:
+    def _impedance_to_abc(self, impedance):
+        """ [i,V]^T = ABC [v, F]^T """
+        Z_11, Z_12 = impedance[0, :]
+        Z_21, Z_22 = impedance[1, :]
+        return np.array([[-Z_11, 1],[(Z_21*Z_12-Z_11*Z_22), Z_22]])/Z_12
+
+
+    def _calc_flow_vars(self, wec: WEC, x_wec: npt.ArrayLike,
+                        x_opt: npt.ArrayLike) -> np.ndarray:
         """Create vector of PTO velocity and current. """
         wec_pos = wec.vec_to_dofmat(x_wec)
         wec_vel = np.dot(wec.derivative_mat, wec_pos)
@@ -417,16 +424,16 @@ class PseudoSpectralLinearPTO(_PTO):
         current = self._vec_to_dofmat(x_opt)
         return np.hstack([velocity, current])
 
-    def _calc_dynamics(self, q: np.array) -> np.array:
-        return np.dot(q, self._dynamics_t)
+    def _calc_effort_vars(self, flow_vars: np.array) -> np.array:
+        return np.dot(flow_vars, self._impedance_t)
 
-    def _split_dynamics(self, fv):
-        return fv[:, :self.ndof], fv[:, self.ndof:]
+    def _split_effort_vars(self, e):
+        return e[:, :self.ndof], e[:, self.ndof:]
 
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
-        q = self._q_mat(wec, x_wec, x_opt)
-        force, _ = self._split_dynamics(self._calc_dynamics(q))
+        flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
+        force, _ = self._split_effort_vars(self._calc_effort_vars(flow_vars))
         return self._pseudo_spectral(wec, force, nsubsteps)
 
     def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
@@ -437,9 +444,10 @@ class PseudoSpectralLinearPTO(_PTO):
             wec_vel = np.dot(wec.derivative_mat, wec_pos)
             vel = self._wec_to_pto_dofs(wec_vel)
             vel_vec = self._dofmat_to_vec(vel[1:, :])
-            q = self._q_mat(wec, x_wec, x_opt)
+            flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
             # force PS
-            force, _ = self._split_dynamics(self._calc_dynamics(q))
+            force, _ = self._split_effort_vars(
+                self._calc_effort_vars(flow_vars))
             force_vec = self._dofmat_to_vec(force)
             # energy
             energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, force_vec)
@@ -457,8 +465,8 @@ class PseudoSpectralLinearPTO(_PTO):
                          x_opt: npt.ArrayLike, nsubsteps: int = 1
                          ) -> np.ndarray:
         """Calculate electric voltage time-series for each PTO DOF. """
-        q = self._q_mat(wec, x_wec, x_opt)
-        _, volt = self._split_dynamics(self._calc_dynamics(q))
+        flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
+        _, volt = self._split_effort_vars(self._calc_effort_vars(flow_vars))
         return self._pseudo_spectral(wec, volt, nsubsteps)
 
     def electric_power(self, wec: WEC, x_wec: npt.ArrayLike,
@@ -483,8 +491,9 @@ class PseudoSpectralLinearPTO(_PTO):
         """Calculate the electric energy (in Joules) by the PTO during
         the period t = 0-T = 1/f0."""
         if nsubsteps == 1:
-            q = self._q_mat(wec, x_wec, x_opt)
-            _, volt = self._split_dynamics(self._calc_dynamics(q))
+            flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
+            _, volt = self._split_effort_vars(
+                self._calc_effort_vars(flow_vars))
             volt_vec = self._dofmat_to_vec(volt)
             energy_produced = 1/(2*wec.f0) * np.dot(x_opt, volt_vec)
         else:
