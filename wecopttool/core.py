@@ -273,6 +273,23 @@ class WEC:
         """Derivative matrix for the state vector."""
         return self._derivative_mat
 
+    # properties mesh
+    @property
+    def mesh(self):
+        return self.fb.mesh
+
+    @property
+    def volume(self):
+        return self.mesh.volume
+
+    @property
+    def submerged_mesh(self):
+        return self.mesh.keep_immersed_part()
+
+    @property
+    def submerged_volume(self):
+        return self.submerged_mesh.volume
+
     ## METHODS
     # methods: class I/O
     def to_file(self, fpath: str | Path) -> None:
@@ -720,7 +737,7 @@ class WEC:
                 + f"[{np.abs(np.mean(x_wec)):.2e}" \
                 + f"{np.abs(np.mean(x_opt)):.2e}" \
                 + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-        
+
         if scale_logging:
             problem['callback'] = callback
 
