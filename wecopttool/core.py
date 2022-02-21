@@ -86,7 +86,7 @@ class WEC:
         f_add: dict[str, Callable]
             Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring, 
             etc.) for the WEC dynamics in the time-domain. Dictionary entries 
-            should be ``entry = {'name': function_handle}. Takes three inputs:
+            should be ``entry = {'name': function_handle}``. Takes three inputs:
             (1) the WEC object,
             (2) the WEC dynamics state (1D np.ndarray), and
             (3) the optimization state (1D np.ndarray)
