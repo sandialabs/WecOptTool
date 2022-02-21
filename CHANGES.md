@@ -4,6 +4,7 @@
 ## Version 1.0.3
 
 * minor updates to README
+* logging of decision vector and objective function controlled entirely via logging package config
 
 ## Version 1.0.2
 
