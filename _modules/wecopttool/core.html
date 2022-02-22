@@ -751,21 +751,21 @@
         <span class="c1"># constraints</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="c1"># constraints &amp; Jacobians</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">icons</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">constraints</span><span class="p">):</span>
-            <span class="n">icons_new</span> <span class="o">=</span> <span class="n">icons</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">icons</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">):</span>
+            <span class="n">icons_new</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">icons</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]}</span>
 
-            <span class="k">def</span> <span class="nf">tmp_func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-                <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">icons</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">):</span>
+                <span class="k">def</span> <span class="nf">new_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                    <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">icons</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">new_fun</span>
 
-            <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_func</span>
+            <span class="n">icons_new</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
                 <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">])</span>
             <span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">icons_new</span>
 
         <span class="c1"># system dynamics through equality constraint</span>
-
         <span class="k">def</span> <span class="nf">resid_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
             <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dynamic_residual</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">,</span> <span class="n">f_exc</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">ri</span><span class="p">)</span>
@@ -793,7 +793,7 @@
                 <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_wec</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">&quot;</span> \
                 <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_opt</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">&quot;</span> \
                 <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
-        
+
         <span class="k">if</span> <span class="n">scale_logging</span><span class="p">:</span>
             <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
 
