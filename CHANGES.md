@@ -5,6 +5,11 @@
 
 * minor updates to README
 
+**Bug fixes**
+
+* All constraints are now being enforced when multiple constraints are passed
+
+
 ## Version 1.0.2
 
 * update Tutorial 2
