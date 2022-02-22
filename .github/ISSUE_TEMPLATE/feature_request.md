@@ -19,7 +19,7 @@ A clear and concise description of what you want to happen.  Consider: why does 
 **Describe alternatives you've considered**
 A clear and concise description of any alternative solutions or features you've considered. Also explain any current workarounds.
 
-**Interest in leading this feature developement?**
+**Interest in leading this feature development?**
 Whether you are interested in leading or helping with the development of this feature. 
 
 **Additional information**

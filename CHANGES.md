@@ -8,6 +8,7 @@
 **Bug fixes**
 
 * geom.WaveBot.plot_cross_section now plots correct location of waterline
+* All constraints are now being enforced when multiple constraints are passed
 
 
 ## Version 1.0.2
