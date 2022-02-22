@@ -5,6 +5,11 @@
 
 * minor updates to README
 
+**Bug fixes**
+
+* geom.WaveBot.plot_cross_section now plots correct location of waterline
+
+
 ## Version 1.0.2
 
 * update Tutorial 2

@@ -101,12 +101,14 @@ class WaveBot:
         else:
             fig = None
 
-        y = [-1*(self.h1+self.h2),
-             -1*(self.h1+self.h2),
-             -1*(self.h1),
-             0]
+        y = [-1*(self.h1 - self.freeboard +self.h2),
+             -1*(self.h1 - self.freeboard + self.h2),
+             -1*(self.h1 - self.freeboard),
+             0,
+             self.freeboard]
         x = [0,
              self.r2,
+             self.r1,
              self.r1,
              self.r1]
         ax.plot(x, y,
