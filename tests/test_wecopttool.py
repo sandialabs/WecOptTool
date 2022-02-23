@@ -278,3 +278,32 @@ def test_examples_device_wavebot_mesh():
 def test_examples_device_wavebot_plot_cross_section():
     wb = WaveBot()
     wb.plot_cross_section()
+
+
+def test_excess_buoyancy(wec, regular_wave, pto):
+    
+    # remove contraints
+    wec.constraints = []
+    
+    m = wec.mass.item()
+    g = 9.81
+    def f_b(wec, x_wec, x_opt):
+        return np.atleast_2d(1 * m * g) #TODO
+    
+    def f_g(wec, x_wec, x_opt):
+        return np.atleast_2d(-1 * m * g)
+    
+    wec.f_add = {**wec.f_add,
+                 'Fb':f_b,
+                 'Fg':f_g,
+                 }
+    
+    tdom, fdom, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, 
+                                                obj_fun = pto.average_power,
+                                                nstate_opt = pto.nstate,
+                                                scale_x_wec = 1.0,
+                                                scale_x_opt = 0.01,
+                                                scale_obj = 1e-1,
+                                                optim_options={})
+
+    
