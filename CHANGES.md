@@ -4,7 +4,9 @@
 ## Version 1.0.3
 
 * minor updates to README
-* logging of decision vector and objective function controlled entirely via logging package config
+* logging of decision vector and objective function 
+  * controlled entirely via logging package config
+  * move to `info` logging level (`debug` gives too much from other packages, e.g., matplotlib)
 
 **Bug fixes**
 
