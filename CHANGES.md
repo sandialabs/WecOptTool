@@ -6,6 +6,11 @@
 * minor updates to README
 * logging of decision vector and objective function controlled entirely via logging package config
 
+**Bug fixes**
+
+* All constraints are now being enforced when multiple constraints are passed
+
+
 ## Version 1.0.2
 
 * update Tutorial 2
