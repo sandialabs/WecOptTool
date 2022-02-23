@@ -105,12 +105,14 @@ class WaveBot:
              -1*(self.h1 - self.freeboard + self.h2),
              -1*(self.h1 - self.freeboard),
              0,
+             self.freeboard,
              self.freeboard]
         x = [0,
              self.r2,
              self.r1,
              self.r1,
-             self.r1]
+             self.r1,
+             0]
         ax.plot(x, y,
                 marker='.',
                 **kwargs)
