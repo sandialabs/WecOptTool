@@ -58,7 +58,7 @@ def wec():
     constraints = [ineq_cons]
 
     # WEC
-    f_add = pto.force_on_wec
+    f_add = {'PTO': pto.force_on_wec}
 
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
                     f_add=f_add, constraints=constraints)
@@ -235,7 +235,7 @@ def test_wavebot_p_cc(wec,resonant_wave):
     pto = wot.pto.ProportionalPTO(kinematics)
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec.f_add = pto.force_on_wec
+    wec.f_add = {'PTO': pto.force_on_wec}
 
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
@@ -258,7 +258,7 @@ def test_wavebot_pi_cc(wec,regular_wave):
     pto = wot.pto.ProportionalIntegralPTO(kinematics)
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec.f_add = pto.force_on_wec
+    wec.f_add = {'PTO': pto.force_on_wec}
 
     tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave,
         obj_fun, nstate_opt,
