@@ -22,7 +22,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
 import xarray as xr
 import capytaine as cpy
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -587,7 +587,7 @@ class WEC:
               maximize: bool = False,
               scale_logging: bool = False,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
-                         optimize.optimize.OptimizeResult]:
+                         OptimizeResult]:
         """Solve the WEC co-design problem.
 
         Parameters
