@@ -280,18 +280,25 @@ def test_examples_device_wavebot_plot_cross_section():
     wb.plot_cross_section()
 
 
-def test_excess_buoyancy(wec, regular_wave, pto):
+def test_buoyancy_excess(wec, regular_wave, pto):
+    """Give too much buoyancy and check that equilibrium point found matches
+    that given by the hydrostatic stiffenss"""
+    
+    delta = np.random.randn() # excess buoyancy factor
     
     # remove contraints
     wec.constraints = []
     
-    m = wec.mass.item()
-    g = 9.81
     def f_b(wec, x_wec, x_opt):
-        return np.atleast_2d(1 * m * g) #TODO
+        V = wec.fb.keep_immersed_part(inplace=False).mesh.volume
+        rho = wec.rho
+        g = 9.81
+        return (1+delta) * rho * V * g * np.ones([wec.ncomponents, wec.ndof])
     
     def f_g(wec, x_wec, x_opt):
-        return np.atleast_2d(-1 * m * g)
+        g = 9.81
+        m = wec.mass.item()
+        return -1 * m * g * np.ones([wec.ncomponents, wec.ndof])
     
     wec.f_add = {**wec.f_add,
                  'Fb':f_b,
@@ -306,4 +313,8 @@ def test_excess_buoyancy(wec, regular_wave, pto):
                                                 scale_obj = 1e-1,
                                                 optim_options={})
 
+    mean_pos = tdom.pos.squeeze().mean().item()
+    expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
+        / wec.hydrostatic_stiffness.item()
+    assert pytest.approx (expected, 1e-1) == mean_pos
     
