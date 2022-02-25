@@ -136,6 +136,48 @@ def test_solve(wec, regular_wave, pto):
     _, _ = pto.post_process(wec, x_wec, x_opt)
 
 
+def test_solve_constraints(wec, regular_wave, pto):
+    """Checks that two constraints on PTO force can be enforced
+    """
+    
+    f_max = 1.85e3
+    f_min = 1.8e3
+    nsubsteps = 4
+
+    def const_f_pto_max(wec, x_wec, x_opt):
+        f = pto.force_on_wec(wec, x_wec, x_opt, nsubsteps)
+        return f_max - f.flatten()
+
+    def const_f_pto_min(wec, x_wec, x_opt):
+        f = pto.force_on_wec(wec, x_wec, x_opt, nsubsteps)
+        return f.flatten() + f_min
+        
+    ineq_cons_max = {'type': 'ineq',
+                'fun': const_f_pto_max,
+                }
+
+    ineq_cons_min = {'type': 'ineq',
+                'fun': const_f_pto_min,
+                }
+    
+    wec.constraints = [ineq_cons_max, ineq_cons_min]
+    
+    options = {}
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
+        nstate_opt,
+        scale_x_wec = 1.0,
+        scale_x_opt = 0.01,
+        scale_obj = 1e-1,
+        optim_options=options)
+    
+    pto_tdom, _ = pto.post_process(wec, x_wec, x_opt)
+    
+    assert pytest.approx(-1*f_min, 1e-5) == pto_tdom['force'].min().values.item()
+    assert pytest.approx(f_max, 1e-5) == pto_tdom['force'].max().values.item()
+
+
 def test_plot(wec):
     _, _ = wec.plot_impedance(show=False)
     _, _ = wec.plot_impedance(style='complex', show=False)

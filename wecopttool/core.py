@@ -713,21 +713,21 @@ class WEC:
         # constraints
         constraints = self.constraints.copy()
 
-        # constraints & Jacobians
-        for i, icons in enumerate(constraints):
-            icons_new = icons.copy()
+        for i, icons in enumerate(self.constraints):
+            icons_new = {"type": icons["type"]}
 
-            def tmp_func(x):
-                x_wec, x_opt = self.decompose_decision_var(x/scale)
-                return icons['fun'](self, x_wec, x_opt)
+            def make_new_fun(icons):
+                def new_fun(x):
+                    x_wec, x_opt = self.decompose_decision_var(x/scale)
+                    return icons["fun"](self, x_wec, x_opt)
+                return new_fun
 
-            icons_new['fun'] = tmp_func
+            icons_new["fun"] = make_new_fun(icons)
             if use_grad:
                 icons_new['jac'] = jacobian(icons_new['fun'])
             constraints[i] = icons_new
 
         # system dynamics through equality constraint
-
         def resid_fun(x):
             ri = self._dynamic_residual(x/scale, f_exc.values)
             return self.dofmat_to_vec(ri)

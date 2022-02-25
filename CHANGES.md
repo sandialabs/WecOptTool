@@ -8,6 +8,11 @@
   * optionally treat buoyancy/gravity explicitly via user-defined functions passed to `f_add`
   * time and freq domain results calculated for entries of `f_add` after `solve` completes
 
+**Bug fixes**
+
+* All constraints are now being enforced when multiple constraints are passed
+
+
 ## Version 1.0.2
 
 * update Tutorial 2
