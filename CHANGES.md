@@ -4,6 +4,9 @@
 ## Version 1.0.3
 
 * minor updates to README
+* `f_add` should be passed as a `dict`, e.g., `{'my_name': my_func}`
+  * optionally treat buoyancy/gravity explicitly via user-defined functions passed to `f_add`
+  * time and freq domain results calculated for entries of `f_add` after `solve` completes
 
 ## Version 1.0.2
 
