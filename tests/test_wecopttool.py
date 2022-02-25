@@ -269,7 +269,7 @@ def test_wavebot_p_cc(wec,resonant_wave):
     theorectical limit at the natural resonance.
     """
 
-    # remove contraints
+    # remove constraints
     wec.constraints = []
 
     # update PTO
@@ -292,7 +292,7 @@ def test_wavebot_pi_cc(wec,regular_wave):
     theorectical limit at any single wave frequency (i.e., regular wave).
     """
 
-    # remove contraints
+    # remove constraints
     wec.constraints = []
 
     # update PTO
@@ -324,11 +324,11 @@ def test_examples_device_wavebot_plot_cross_section():
 
 def test_buoyancy_excess(wec, regular_wave, pto):
     """Give too much buoyancy and check that equilibrium point found matches
-    that given by the hydrostatic stiffenss"""
+    that given by the hydrostatic stiffness"""
     
     delta = np.random.randn() # excess buoyancy factor
     
-    # remove contraints
+    # remove constraints
     wec.constraints = []
     
     def f_b(wec, x_wec, x_opt):
