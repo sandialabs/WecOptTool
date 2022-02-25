@@ -191,7 +191,8 @@ Consider, for example, a general case without a controller structure, in which <
 For a wave tank scale device, one might expect velocities of <span class="math notranslate nohighlight">\(\mathcal{O}(1e-1)\)</span>, but the forces could be <span class="math notranslate nohighlight">\(\mathcal{O}(1e3)\)</span>.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">core.WEC.solve()</span></code>).</p>
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">core.WEC.solve()</span></code>).
+Additionally, you may set <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">logging,</span> <span class="pre">logging.basicConfig(level=logging.INFO)</span></code> to output the mean values of <cite>x</cite> and the objective function during the solution process.</p>
 </section>
 <section id="constraints">
 <h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline"></a></h3>
