@@ -620,7 +620,6 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
-              scale_logging: bool = False,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          optimize.optimize.OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -666,11 +665,6 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
-        scale_logging: bool
-            If true, print the value of the decision variable (decomposed into
-            x_wec and x_opt) and objective function at each solver iteration.
-            Useful for setting ``scale_x_wec``, scale_x_opt``, and
-            ``scale_obj``. The default is `False``.
 
         Returns
         -------
@@ -751,13 +745,12 @@ class WEC:
 
         def callback(x):
             x_wec, x_opt = self.decompose_decision_var(x)
-            log.debug("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
-                + f"[{np.abs(np.mean(x_wec)):.2e}" \
-                + f"{np.abs(np.mean(x_opt)):.2e}" \
+            log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
+                + f"[{np.abs(np.mean(x_wec)):.2e}, " \
+                + f"{np.abs(np.mean(x_opt)):.2e}, " \
                 + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-
-        if scale_logging:
-            problem['callback'] = callback
+        
+        problem['callback'] = callback
 
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
