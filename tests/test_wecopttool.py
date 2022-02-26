@@ -14,7 +14,7 @@ from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def wec():
     # water properties
     rho = 1000.0
@@ -266,7 +266,7 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
 
 def test_wavebot_p_cc(wec,resonant_wave):
     """Check that power from proportional damping controller can match
-    theorectical limit at the natural resonance.
+    theoretical limit at the natural resonance.
     """
 
     # remove constraints
@@ -289,7 +289,7 @@ def test_wavebot_p_cc(wec,resonant_wave):
 
 def test_wavebot_pi_cc(wec,regular_wave):
     """Check that power from proportional integral (PI) controller can match
-    theorectical limit at any single wave frequency (i.e., regular wave).
+    theoretical limit at any single wave frequency (i.e., regular wave).
     """
 
     # remove constraints
