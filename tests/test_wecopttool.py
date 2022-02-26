@@ -69,7 +69,7 @@ def wec():
     return wec
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def regular_wave(wec):
     freq = 0.5
     amplitude = 0.25
@@ -78,7 +78,7 @@ def regular_wave(wec):
     return wave
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def resonant_wave(wec):
     freq = wec.natural_frequency()[0].squeeze().item()
     amplitude = 0.25
@@ -87,7 +87,7 @@ def resonant_wave(wec):
     return wave
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def pto(wec):
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
@@ -322,7 +322,7 @@ def test_examples_device_wavebot_plot_cross_section():
     wb.plot_cross_section()
 
 
-def test_buoyancy_excess(wec, regular_wave, pto):
+def test_buoyancy_excess(wec, pto, regular_wave):
     """Give too much buoyancy and check that equilibrium point found matches
     that given by the hydrostatic stiffness"""
     
