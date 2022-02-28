@@ -4,6 +4,15 @@
 ## Version 1.0.3
 
 * minor updates to README
+* logging of decision vector and objective function 
+  * controlled entirely via logging package config
+  * move to `info` logging level (`debug` gives too much from other packages, e.g., matplotlib)
+
+**Bug fixes**
+
+* geom.WaveBot.plot_cross_section now plots correct location of waterline
+* All constraints are now being enforced when multiple constraints are passed
+
 
 ## Version 1.0.2
 

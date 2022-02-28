@@ -92,6 +92,7 @@ For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable :math:`x` and with the objective function :math:`J(x)` can lead to problems with convergence.
 To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`core.WEC.solve`).
+Additionally, you may set :code:`import logging, logging.basicConfig(level=logging.INFO)` to output the mean values of `x` and the objective function during the solution process.
 
 Constraints
 ^^^^^^^^^^^
