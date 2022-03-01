@@ -107,7 +107,7 @@ Buoyancy/gravity
 As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
-In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the :code:`f_add` argument to :py:class:`wecopttool.WEC`.
+In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the :code:`f_add` argument to :py:class:`wecopttool.core.WEC`.
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
