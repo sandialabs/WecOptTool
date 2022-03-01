@@ -102,6 +102,33 @@ An important practical factor when using this functionality is to make sure that
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :meth:`pto.PseudoSpectralPTO.force`).
 
+PTO Kinematics
+^^^^^^^^^^^^^^
+The PTO module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
+Creating one of these pre-defined PTOs requires specifying the *kinematics matrix*.
+The kinematics matrix :math:`K` transforms the WEC position :math:`x` (e.g. heave) in the global frame to the PTO position :math:`p` in the PTO frame (e.g. tether length/generator rotation).
+It has size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
+It is used to obtain the PTO motion as:
+
+.. math::
+    p = K x
+    :label: kinematics
+
+The kinematics matrix is the transpose of the Jacobian matrix used to transform the PTO force :math:`f_p` in PTO frame to the PTO forces on the WEC :math:`f_w` in the global frame, as
+
+.. math::
+    f_w = K^T f_p
+    :label: k
+
+This relation can be derived from conservation of energy in both frames, and using :eq:`kinematics`:
+
+.. math::
+    f_w^T x = f_p^T p \\
+    f_w^T x = f_p^T K x \\
+    f_w^T = f_p^T K \\
+    f_w = K^T f_p \\
+    :label: conservation_energy
+
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
 .. _Autograd documentation: https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy
