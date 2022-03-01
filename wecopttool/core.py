@@ -808,7 +808,7 @@ class WEC:
 
         # additional forces
         f_add = 0.0
-        for _, f_add_fun in self.f_add.items():
+        for f_add_fun in self.f_add.values():
             f_add = f_add + f_add_fun(self, x_wec, x_opt)
             
         return f_i - f_exc - f_add
