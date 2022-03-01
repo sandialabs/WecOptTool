@@ -27,7 +27,7 @@
 **Bug fixes**
 
 * Correct dependency name for jupyter-notebook
-* Move jupyter-notebook to base install dependecy
+* Move jupyter-notebook to base install dependency
 
 **New features**
 

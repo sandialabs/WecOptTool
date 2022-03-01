@@ -68,7 +68,7 @@ class WEC:
         mass: np.ndarray
             Mass matrix shape of (``ndof`` x ``ndof``).
         hydrostatic_stiffness: np.ndarray
-            Hydrstatic stiffness matrix matrix of shape
+            Hydrostatic stiffness matrix matrix of shape
             (``ndof`` x ``ndof``).
         f0: float
             Initial frequency (in Hz) for frequency array.
@@ -76,7 +76,7 @@ class WEC:
         nfreq: int
             Number of frequencies in frequency array. See ``f0``.
         dissipation: np.ndarray
-            Additional dissipiation for the impedance calculation in
+            Additional dissipation for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
             (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         stiffness: np.ndarray
@@ -884,7 +884,7 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 
 
 def complex_xarray_from_netcdf(fpath: str | Path) -> xr.Dataset:
-    """Read a NetCDF file with commplex entries as an xarray dataSet.
+    """Read a NetCDF file with complex entries as an xarray dataSet.
     """
     with xr.open_dataset(fpath) as ds:
         ds.load()
