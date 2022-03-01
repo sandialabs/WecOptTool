@@ -323,6 +323,9 @@ def test_examples_device_wavebot_plot_cross_section():
 
 
 def test_multiple_dof(regular_wave):
+    """When defined as uncoupled, surge and heave computed seperately should 
+    give same solution as computed together"""
+    
     # frequencies
     f0 = 0.05
     nfreq = 18
@@ -338,12 +341,12 @@ def test_multiple_dof(regular_wave):
     # hydrostatic
     hs_data = wot.hydrostatics.hydrostatics(fb)
     mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
-    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2]
-    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0]
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
     mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
     stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
-    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2]
-    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0]
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
     stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
     mass = np.array([[mass_11, mass_13],
                      [mass_31, mass_33]])
@@ -361,6 +364,8 @@ def test_multiple_dof(regular_wave):
 
     # BEM
     wec.run_bem()
+    
+    # set diagonal (coupling) components to zero
     wec.hydro.added_mass[:, 0, 1] = 0.0
     wec.hydro.added_mass[:, 1, 0] = 0.0
     wec.hydro.radiation_damping[:, 0, 1] = 0.0
