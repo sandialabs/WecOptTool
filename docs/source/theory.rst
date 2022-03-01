@@ -106,21 +106,21 @@ PTO Kinematics
 ^^^^^^^^^^^^^^
 The PTO module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
 Creating one of these pre-defined PTOs requires specifying the *kinematics matrix*.
-The kinematics matrix :math:`K` transforms the WEC position :math:`x` (e.g. heave) in the global frame to the PTO position :math:`p` in the PTO frame (e.g. tether length/generator rotation).
-It has size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
+The kinematics matrix, :math:`K`, transforms the WEC position, :math:`x`, (e.g., heave) in the global frame to the PTO position, :math:`p`, in the PTO frame (e.g., tether length/generator rotation).
+It has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 It is used to obtain the PTO motion as:
 
 .. math::
     p = K x
     :label: kinematics
 
-The kinematics matrix is the transpose of the Jacobian matrix used to transform the PTO force :math:`f_p` in PTO frame to the PTO forces on the WEC :math:`f_w` in the global frame, as
+The kinematics matrix is the transpose of the Jacobian matrix used to transform the PTO force in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
 
 .. math::
     f_w = K^T f_p
     :label: k
 
-This relation can be derived from conservation of energy in both frames, and using :eq:`kinematics`:
+This relationship can be derived from conservation of energy in both frames, and using :eq:`kinematics`:
 
 .. math::
     f_w^T x = f_p^T p \\
