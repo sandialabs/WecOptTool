@@ -104,7 +104,7 @@ In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` 
 
 PTO Kinematics
 ^^^^^^^^^^^^^^
-The PTO module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
+The :py:mod:`wecopttool.pto` module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
 Creating one of these pre-defined PTOs requires specifying the *kinematics matrix*.
 The kinematics matrix, :math:`K`, transforms the WEC position, :math:`x`, (e.g., heave) in the global frame to the PTO position, :math:`p`, in the PTO frame (e.g., tether length/generator rotation).
 It has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
