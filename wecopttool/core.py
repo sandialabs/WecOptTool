@@ -1233,7 +1233,7 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
 
 
 def post_process_continuous_time(results: xr.DataArray
-                                 ) -> Callable[float, float]:
+                                 ) -> Callable[[float, float]]:
     """Create a continuous function from the results in an xarray
     DataArray.
 
