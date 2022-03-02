@@ -53,8 +53,8 @@ class WEC:
 
     def __init__(self, fb: cpy.FloatingBody, mass: np.ndarray,
                  hydrostatic_stiffness: np.ndarray, f0: float, nfreq: int,
-                 dissipation: np.ndarray | None = None,
-                 stiffness: np.ndarray | None = None,
+                 dissipation: Optional[np.ndarray] = None,
+                 stiffness: Optional[np.ndarray] = None,
                  f_add: Optional[Mapping[str, Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                  constraints: list[dict] = [],
                  rho: float = _default_parameters['rho'],
@@ -588,9 +588,9 @@ class WEC:
 
     # methods: solve
     def _get_state_scale(self,
-                         scale_x_wec: list | None = None,
+                         scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
-                         nstate_opt: int | None = None):
+                         nstate_opt: Optional[int] = None):
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:
@@ -612,9 +612,9 @@ class WEC:
               waves: xr.Dataset,
               obj_fun: Callable[[WEC, np.ndarray, np.ndarray], float],
               nstate_opt: int,
-              x_wec_0: np.ndarray | None = None,
-              x_opt_0: np.ndarray | None = None,
-              scale_x_wec: list | None = None,
+              x_wec_0: Optional[np.ndarray] = None,
+              x_opt_0: Optional[np.ndarray] = None,
+              scale_x_wec: Optional[list] = None,
               scale_x_opt: npt.ArrayLike | float = 1.0,
               scale_obj: float = 1.0,
               optim_options: dict[str, Any] = {},
@@ -898,11 +898,11 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
 
 
-def fd_to_td(fd: np.ndarray, n: int | None = None) -> np.ndarray:
+def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
 
 
-def td_to_fd(td: np.ndarray, n: int | None = None) -> np.ndarray:
+def td_to_fd(td: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
 
@@ -1130,7 +1130,7 @@ def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
 def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
                    style: str = 'Bode',
                    option: str = 'diagonal', show: bool = False,
-                   dof_names: list[str] | None = None
+                   dof_names: Optional[list[str]] = None
                    ) -> tuple[mpl.figure.Figure, np.ndarray]:
     """Plot the impedance matrix.
 
