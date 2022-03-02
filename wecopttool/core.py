@@ -22,7 +22,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
 import xarray as xr
 import capytaine as cpy
-from scipy.optimize import minimize
+from scipy.optimize import minimize, OptimizeResult
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -53,8 +53,8 @@ class WEC:
 
     def __init__(self, fb: cpy.FloatingBody, mass: np.ndarray,
                  hydrostatic_stiffness: np.ndarray, f0: float, nfreq: int,
-                 dissipation: np.ndarray | None = None,
-                 stiffness: np.ndarray | None = None,
+                 dissipation: Optional[np.ndarray] = None,
+                 stiffness: Optional[np.ndarray] = None,
                  f_add: Optional[Mapping[str, Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                  constraints: list[dict] = [],
                  rho: float = _default_parameters['rho'],
@@ -68,7 +68,7 @@ class WEC:
         mass: np.ndarray
             Mass matrix shape of (``ndof`` x ``ndof``).
         hydrostatic_stiffness: np.ndarray
-            Hydrstatic stiffness matrix matrix of shape
+            Hydrostatic stiffness matrix matrix of shape
             (``ndof`` x ``ndof``).
         f0: float
             Initial frequency (in Hz) for frequency array.
@@ -76,7 +76,7 @@ class WEC:
         nfreq: int
             Number of frequencies in frequency array. See ``f0``.
         dissipation: np.ndarray
-            Additional dissipiation for the impedance calculation in
+            Additional dissipation for the impedance calculation in
             ``capytaine.post_pro.impedance``. Shape:
             (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         stiffness: np.ndarray
@@ -588,9 +588,9 @@ class WEC:
 
     # methods: solve
     def _get_state_scale(self,
-                         scale_x_wec: list | None = None,
+                         scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
-                         nstate_opt: int | None = None):
+                         nstate_opt: Optional[int] = None):
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:
@@ -612,16 +612,16 @@ class WEC:
               waves: xr.Dataset,
               obj_fun: Callable[[WEC, np.ndarray, np.ndarray], float],
               nstate_opt: int,
-              x_wec_0: np.ndarray | None = None,
-              x_opt_0: np.ndarray | None = None,
-              scale_x_wec: list | None = None,
+              x_wec_0: Optional[np.ndarray] = None,
+              x_opt_0: Optional[np.ndarray] = None,
+              scale_x_wec: Optional[list] = None,
               scale_x_opt: npt.ArrayLike | float = 1.0,
               scale_obj: float = 1.0,
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
-                         optimize.optimize.OptimizeResult]:
+                         OptimizeResult]:
         """Solve the WEC co-design problem.
 
         Parameters
@@ -898,11 +898,11 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
 
 
-def fd_to_td(fd: np.ndarray, n: int | None = None) -> np.ndarray:
+def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
 
 
-def td_to_fd(td: np.ndarray, n: int | None = None) -> np.ndarray:
+def td_to_fd(td: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
 
@@ -928,7 +928,7 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 
 
 def complex_xarray_from_netcdf(fpath: str | Path) -> xr.Dataset:
-    """Read a NetCDF file with commplex entries as an xarray dataSet.
+    """Read a NetCDF file with complex entries as an xarray dataSet.
     """
     with xr.open_dataset(fpath) as ds:
         ds.load()
@@ -1130,7 +1130,7 @@ def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
 def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
                    style: str = 'Bode',
                    option: str = 'diagonal', show: bool = False,
-                   dof_names: list[str] | None = None
+                   dof_names: Optional[list[str]] = None
                    ) -> tuple[mpl.figure.Figure, np.ndarray]:
     """Plot the impedance matrix.
 
@@ -1270,7 +1270,7 @@ def plot_impedance(impedance: npt.ArrayLike, freq: npt.ArrayLike,
 
 
 def post_process_continuous_time(results: xr.DataArray
-                                 ) -> Callable[float, float]:
+                                 ) -> Callable[[float], float]:
     """Create a continuous function from the results in an xarray
     DataArray.
 
