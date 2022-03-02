@@ -112,6 +112,7 @@ Here the kinematics matrix, :math:`K`, is defined as the linear transformation f
     p = K x
     :label: kinematics
 
+This is typically referred to as the *forward kinematics*.
 The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
 Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
@@ -131,7 +132,8 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w = K^T f_p \\
     :label: conservation_energy
 
-Again, this represents a linearization of the function :math:`f_w(f_p)` about the mean :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
+This represents a linearization of the function :math:`f_w(f_p)` about the mean :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
+
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
