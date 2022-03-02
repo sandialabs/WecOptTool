@@ -14,7 +14,7 @@ from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def wec():
     # water properties
     rho = 1000.0
@@ -58,7 +58,7 @@ def wec():
     constraints = [ineq_cons]
 
     # WEC
-    f_add = pto.force_on_wec
+    f_add = {'PTO': pto.force_on_wec}
 
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
                     f_add=f_add, constraints=constraints)
@@ -69,7 +69,7 @@ def wec():
     return wec
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def regular_wave(wec):
     freq = 0.5
     amplitude = 0.25
@@ -78,7 +78,7 @@ def regular_wave(wec):
     return wave
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def resonant_wave(wec):
     freq = wec.natural_frequency()[0].squeeze().item()
     amplitude = 0.25
@@ -87,7 +87,7 @@ def resonant_wave(wec):
     return wave
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture()
 def pto(wec):
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
@@ -266,10 +266,10 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
 
 def test_wavebot_p_cc(wec,resonant_wave):
     """Check that power from proportional damping controller can match
-    theorectical limit at the natural resonance.
+    theoretical limit at the natural resonance.
     """
 
-    # remove contraints
+    # remove constraints
     wec.constraints = []
 
     # update PTO
@@ -277,7 +277,7 @@ def test_wavebot_p_cc(wec,resonant_wave):
     pto = wot.pto.ProportionalPTO(kinematics)
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec.f_add = pto.force_on_wec
+    wec.f_add = {'PTO': pto.force_on_wec}
 
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
@@ -289,10 +289,10 @@ def test_wavebot_p_cc(wec,resonant_wave):
 
 def test_wavebot_pi_cc(wec,regular_wave):
     """Check that power from proportional integral (PI) controller can match
-    theorectical limit at any single wave frequency (i.e., regular wave).
+    theoretical limit at any single wave frequency (i.e., regular wave).
     """
 
-    # remove contraints
+    # remove constraints
     wec.constraints = []
 
     # update PTO
@@ -300,7 +300,7 @@ def test_wavebot_pi_cc(wec,regular_wave):
     pto = wot.pto.ProportionalIntegralPTO(kinematics)
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    wec.f_add = pto.force_on_wec
+    wec.f_add = {'PTO': pto.force_on_wec}
 
     tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave,
         obj_fun, nstate_opt,
@@ -447,3 +447,42 @@ def test_multiple_dof(regular_wave):
     assert pytest.approx(avg_pow_sh_sh, tol) == avg_pow_sh_s + avg_pow_sh_h
     assert pytest.approx(avg_pow_sh_s, tol) == avg_pow_s_s
     assert pytest.approx(avg_pow_sh_h, tol) == avg_pow_h_h
+
+
+def test_buoyancy_excess(wec, pto, regular_wave):
+    """Give too much buoyancy and check that equilibrium point found matches
+    that given by the hydrostatic stiffness"""
+
+    delta = np.random.randn() # excess buoyancy factor
+
+    # remove constraints
+    wec.constraints = []
+
+    def f_b(wec, x_wec, x_opt):
+        V = wec.fb.keep_immersed_part(inplace=False).mesh.volume
+        rho = wec.rho
+        g = 9.81
+        return (1+delta) * rho * V * g * np.ones([wec.ncomponents, wec.ndof])
+
+    def f_g(wec, x_wec, x_opt):
+        g = 9.81
+        m = wec.mass.item()
+        return -1 * m * g * np.ones([wec.ncomponents, wec.ndof])
+
+    wec.f_add = {**wec.f_add,
+                 'Fb':f_b,
+                 'Fg':f_g,
+                 }
+
+    tdom, fdom, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave,
+                                                obj_fun = pto.average_power,
+                                                nstate_opt = pto.nstate,
+                                                scale_x_wec = 1.0,
+                                                scale_x_opt = 0.01,
+                                                scale_obj = 1e-1,
+                                                optim_options={})
+
+    mean_pos = tdom.pos.squeeze().mean().item()
+    expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
+        / wec.hydrostatic_stiffness.item()
+    assert pytest.approx (expected, 1e-1) == mean_pos
