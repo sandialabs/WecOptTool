@@ -527,7 +527,7 @@ identity matrix.</p>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
 
 <span class="c1"># additional dynamics forces function</span>
-<span class="n">f_add</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span>
+<span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PTO force&#39;</span><span class="p">:</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -546,6 +546,7 @@ identity matrix.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
+INFO:wecopttool.core:Changing value of &#39;f_add&#39;. This might cause some attributes to be reset.
 INFO:wecopttool.core:New WEC: WaveBot with 1 DOF.
 </pre></div></div>
 </div>
@@ -570,160 +571,12 @@ INFO:wecopttool.core:New WEC: WaveBot with 1 DOF.
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-INFO:wecopttool.core:Running Capytaine (BEM): 50 frequencies x 1 wave directions.
-INFO:capytaine.bodies.bodies:Clipping WaveBot_immersed with respect to Plane(normal=[0. 0. 1.], point=[0. 0. 0.])
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=0.314, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=0.314, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=0.628, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=0.628, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=0.942, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=0.942, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=1.257, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=1.257, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=1.571, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=1.571, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=1.885, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=1.885, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=2.199, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=2.199, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=2.513, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=2.513, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=2.827, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=2.827, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=3.142, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=3.142, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=3.456, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=3.456, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=3.770, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=3.770, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=4.084, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=4.084, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=4.398, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=4.398, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=4.712, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=4.712, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=5.027, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=5.027, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=5.341, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=5.341, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=5.655, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=5.655, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=5.969, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=5.969, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=6.283, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=6.283, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=6.597, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=6.597, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=6.912, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=6.912, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=7.226, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=7.226, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=7.540, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=7.540, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=7.854, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=7.854, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=8.168, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=8.168, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=8.482, depth=inf, wave_direction=0.000, rho=1025.0).
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=8.482, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=8.796, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=7.97e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=8.796, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=7.97e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=9.111, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=7.43e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=9.111, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=7.43e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=9.425, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.94e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=9.425, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.94e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=9.739, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.50e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=9.739, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.50e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=10.053, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.10e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=10.053, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=6.10e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=10.367, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.73e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=10.367, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.73e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=10.681, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.40e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=10.681, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.40e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=10.996, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.10e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=10.996, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=5.10e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=11.310, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.82e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=11.310, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.82e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=11.624, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.56e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=11.624, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.56e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=11.938, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.32e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=11.938, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.32e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=12.252, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.11e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=12.252, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=4.11e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=12.566, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.90e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=12.566, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.90e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=12.881, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.72e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=12.881, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.72e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=13.195, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.54e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=13.195, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.54e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=13.509, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.38e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=13.509, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.38e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=13.823, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.23e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=13.823, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.23e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=14.137, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.08e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=14.137, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=3.08e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=14.451, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.95e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=14.451, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.95e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=14.765, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.83e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=14.765, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.83e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=15.080, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.71e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=15.080, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.71e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=15.394, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.60e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=15.394, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.60e-01)!
-INFO:capytaine.bem.solver:Solve DiffractionProblem(body=WaveBot_immersed, omega=15.708, depth=inf, wave_direction=0.000, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.50e-01)!
-INFO:capytaine.bem.solver:Solve RadiationProblem(body=WaveBot_immersed, omega=15.708, depth=inf, radiating_dof=HEAVE, rho=1025.0).
-WARNING:capytaine.bem.solver:Resolution of the mesh (8×max_radius=8.06e-01) might be insufficient for this wavelength (wavelength=2.50e-01)!
+INFO:wecopttool.core:Reading BEM data from results_tutorial_1/bem.nc.
 INFO:wecopttool.core:Impedance matrix deleted. To calculate impedance call &#39;self.bem_calc_impedance()&#39;
 INFO:wecopttool.core:Impedance matrix deleted. To calculate impedance call &#39;self.bem_calc_impedance()&#39;
 INFO:wecopttool.core:Calculating impedance matrix.
 INFO:capytaine.post_pro.impedance:Compute impedance.
 WARNING:wecopttool.core:Linear damping for DOF &#34;HEAVE&#34; has negative or close to zero terms. Shifting up.
-INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -810,12 +663,12 @@ INFO:wecopttool.core:Optimization terminated successfully    (Exit mode 0)
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -103.18562474569269
-            Iterations: 28
-            Function evaluations: 33
-            Gradient evaluations: 28
-CPU times: user 15 s, sys: 2.31 s, total: 17.3 s
-Wall time: 4.53 s
+            Current function value: -103.18562474213084
+            Iterations: 29
+            Function evaluations: 35
+            Gradient evaluations: 29
+CPU times: user 36.8 s, sys: 1.37 s, total: 38.1 s
+Wall time: 5.53 s
 </pre></div></div>
 </div>
 <p>As a final step, we post-process the optimized PTO results. The included PTO class has a function to postprocess the raw optimized state (PTO force Fourier coefficients) to quantities of interest (e.g. force, power) in both the time- and frequency-domain as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>. For different optimization states, you will have to do your own post-processing.</p>
@@ -858,7 +711,7 @@ Wall time: 4.53 s
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Average power: -103.18562474569269 W
+Average power: -103.18562474213084 W
 
 </pre></div></div>
 </div>
@@ -891,7 +744,7 @@ Average power: -103.18562474569269 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fa7c84e0b80&gt;]
+[&lt;matplotlib.lines.Line2D at 0x179a0c430&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1196,7 +1049,7 @@ multiples of the excitation frequency.</p>
         <span class="n">fig</span><span class="o">.</span><span class="n">align_ylabels</span><span class="p">(</span><span class="n">iaxs</span><span class="p">)</span>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<br/></pre></div>
+</pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">

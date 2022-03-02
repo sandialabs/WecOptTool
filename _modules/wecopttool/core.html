@@ -86,7 +86,7 @@
 
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
@@ -128,8 +128,8 @@
                  <span class="n">hydrostatic_stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">f0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                  <span class="n">dissipation</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">stiffness</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">f_add</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">WEC</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span>
-                 <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">constraints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+                 <span class="n">f_add</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">WEC</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">constraints</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
                  <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
                  <span class="n">depth</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">],</span>
                  <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -156,9 +156,10 @@
 <span class="sd">            Additional stiffness for the impedance calculation in</span>
 <span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
 <span class="sd">            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).</span>
-<span class="sd">        f_add: function</span>
-<span class="sd">            Additional forcing terms (e.g. PTO, mooring, etc.) for the</span>
-<span class="sd">            WEC dynamics in the time-domain. Takes three inputs:</span>
+<span class="sd">        f_add: dict[str, Callable]</span>
+<span class="sd">            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring, </span>
+<span class="sd">            etc.) for the WEC dynamics in the time-domain. Dictionary entries </span>
+<span class="sd">            should be ``entry = {&#39;name&#39;: function_handle}``. Takes three inputs:</span>
 <span class="sd">            (1) the WEC object,</span>
 <span class="sd">            (2) the WEC dynamics state (1D np.ndarray), and</span>
 <span class="sd">            (3) the optimization state (1D np.ndarray)</span>
@@ -188,7 +189,11 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">))</span>
 
         <span class="c1"># additional WEC dynamics forces</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;f_add&#39;</span><span class="p">,</span> <span class="n">f_add</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">f_add</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span> 
+                      <span class="s2">&quot;for Callable argument </span><span class="si">{f_add}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f_add&#39;</span><span class="p">:</span> <span class="n">f_add</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span> <span class="o">=</span> <span class="n">f_add</span>
         <span class="k">if</span> <span class="n">stiffness</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">stiffness</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;stiffness&#39;</span><span class="p">,</span> <span class="n">stiffness</span><span class="p">)</span>
@@ -206,8 +211,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;hydro&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WEC.__setattr__"><a class="viewcode-back" href="../../source_code.html#wecopttool.core.WEC.__setattr__">[docs]</a>    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Delete dependent attributes  when user manually modifies</span>
-<span class="sd">        an attribute.</span>
+        <span class="sd">&quot;&quot;&quot;Delete dependent attributes when user manually modifies an attribute.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_attrs_delete_mass</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">]</span>
         <span class="n">_attrs_delete_stiffness</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fb&#39;</span><span class="p">,</span> <span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">]</span>
@@ -259,6 +263,20 @@
         <span class="k">return</span> <span class="n">str_info</span>
 
     <span class="c1"># PROPERTIES</span>
+    <span class="c1"># properties: f_add</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Additonal forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_add</span>
+    
+    <span class="nd">@f_add</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_add</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">f_add</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span> 
+                      <span class="s2">&quot;for Callable argument </span><span class="si">{f_add}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f_add&#39;</span><span class="p">:</span> <span class="n">f_add</span><span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_f_add&#39;</span><span class="p">,</span> <span class="n">f_add</span><span class="p">)</span>
+    
     <span class="c1"># properties: frequency</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -345,6 +363,23 @@
     <span class="k">def</span> <span class="nf">derivative_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Derivative matrix for the state vector.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derivative_mat</span>
+
+    <span class="c1"># properties mesh</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fb</span><span class="o">.</span><span class="n">mesh</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">volume</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">submerged_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">submerged_volume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">submerged_mesh</span><span class="o">.</span><span class="n">volume</span>
 
     <span class="c1">## METHODS</span>
     <span class="c1"># methods: class I/O</span>
@@ -809,7 +844,7 @@
 
         <span class="c1"># post-process</span>
         <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">fd_x</span><span class="p">,</span> <span class="n">td_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_wec_dynamics</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+        <span class="n">fd_x</span><span class="p">,</span> <span class="n">td_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_post_process_wec_dynamics</span><span class="p">(</span><span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
         <span class="n">fd_we</span> <span class="o">=</span> <span class="n">fd_we</span><span class="o">.</span><span class="n">reset_coords</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">time_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">td_x</span><span class="p">,</span> <span class="n">td_we</span><span class="p">])</span>
         <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">fd_x</span><span class="p">,</span> <span class="n">fd_we</span><span class="p">])</span>
@@ -845,13 +880,15 @@
         <span class="n">f_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">f_i</span><span class="p">)</span>
 
         <span class="c1"># additional forces</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">f_add</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">f_add</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">f_add</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">f_add_fun</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">f_add</span> <span class="o">=</span> <span class="n">f_add</span> <span class="o">+</span> <span class="n">f_add_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+            
         <span class="k">return</span> <span class="n">f_i</span> <span class="o">-</span> <span class="n">f_exc</span> <span class="o">-</span> <span class="n">f_add</span>
 
-    <span class="k">def</span> <span class="nf">_post_process_wec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="k">def</span> <span class="nf">_post_process_wec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+                                   <span class="n">x_wec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+                                   <span class="n">x_opt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
                                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
 <span class="sd">        that the user can work with directly.</span>
@@ -904,6 +941,13 @@
         <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
             <span class="n">acc_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_fd</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_fd</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
         <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_fd</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_fd</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_fd</span><span class="p">},)</span>
+        
+        <span class="c1"># user-defined additional forces (in WEC DoFs)</span>
+        <span class="k">for</span> <span class="n">f_add_key</span><span class="p">,</span> <span class="n">f_add_fun</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">time_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">),</span> 
+                                   <span class="n">f_add_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">))</span>
+            <span class="n">freq_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">),</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">time_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]))</span>
 
         <span class="k">return</span> <span class="n">freq_dom</span><span class="p">,</span> <span class="n">time_dom</span></div>
 

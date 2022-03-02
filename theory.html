@@ -52,6 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#automatic-differentiation">Automatic differentiation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#scaling">Scaling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#buoyancy-gravity">Buoyancy/gravity</a></li>
 </ul>
 </li>
 </ul>
@@ -191,7 +192,7 @@ Consider, for example, a general case without a controller structure, in which <
 For a wave tank scale device, one might expect velocities of <span class="math notranslate nohighlight">\(\mathcal{O}(1e-1)\)</span>, but the forces could be <span class="math notranslate nohighlight">\(\mathcal{O}(1e3)\)</span>.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">core.WEC.solve()</span></code>).
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code>).
 Additionally, you may set <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">logging,</span> <span class="pre">logging.basicConfig(level=logging.INFO)</span></code> to output the mean values of <cite>x</cite> and the objective function during the solution process.</p>
 </section>
 <section id="constraints">
@@ -201,6 +202,13 @@ This functionality is well-illustrated in <a class="reference internal" href="_e
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <code class="xref py py-meth docutils literal notranslate"><span class="pre">pto.PseudoSpectralPTO.force()</span></code>).</p>
+</section>
+<section id="buoyancy-gravity">
+<h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Permalink to this headline"></a></h3>
+<p>As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
+The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
+However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
+In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="source_code.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
 </section>
 </section>
 </section>
