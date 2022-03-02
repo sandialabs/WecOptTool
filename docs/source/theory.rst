@@ -124,7 +124,7 @@ The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times th
 Note, however that the real kinematics might not be linear.
 Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
 
-The matrix :math:`K` is the transpose of the matrix used to transform the PTO force in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
+The transpose of :math:`K` is used to transform the PTO forces in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
 
 .. math::
     f_w = K^T f_p
@@ -139,7 +139,9 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w = K^T f_p \\
     :label: conservation_energy
 
-This represents a linearization of the function :math:`f_w(f_p)` about the mean :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
+..
+    (commented out): This represents a linearization of the function :math:`f_w(f_p)` about :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
+                     The assumption here is that :math:`f_p(p(x=0))=f_p(0)=0`.
 
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
