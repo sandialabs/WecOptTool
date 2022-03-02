@@ -357,12 +357,12 @@ div.rendered_html tbody tr:hover {
 </style>
 <section id="Tutorial-2---WaveBot-Optimization">
 <h1>Tutorial 2 - WaveBot Optimization<a class="headerlink" href="#Tutorial-2---WaveBot-Optimization" title="Permalink to this headline"></a></h1>
-<p>The goal of this tutorial is to show a simple example of using both outer and inner optimization loops in WecOptTool. Like the first tutorial, it uses the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius</strong> (<code class="docutils literal notranslate"><span class="pre">r2</span></code>) that maximizes the average aborbed power, while maintaining a constant volume. A constant volume is acheived by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius (<code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p>
-<p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geomtery (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in <em>Tutorial 1</em> and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to
+<p>The goal of this tutorial is to show a simple example of using both outer and inner optimization loops in WecOptTool. Like the first tutorial, it uses the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius</strong> (<code class="docutils literal notranslate"><span class="pre">r2</span></code>) that maximizes the average absorbed power, while maintaining a constant volume. A constant volume is achieved by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius (<code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p>
+<p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geometry (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in <em>Tutorial 1</em> and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to
 setup. Note however that automatic differentiation is not an option due to the presence of the inner optimization loop. In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>.</p>
 <img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" />
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -390,7 +390,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 <h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this headline"></a></h2>
 <p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r1</span> <span class="o">=</span> <span class="mf">0.88</span>
@@ -428,7 +428,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 </div>
 <p>Next we will define an objective function for our design optimization problem. We use the same workflow illustrated in Tutorial 1 to set up a WaveBot device and solve for the optimal solution, but wrap this in a function definition which can set <code class="docutils literal notranslate"><span class="pre">r2</span></code> and (indirectly) <code class="docutils literal notranslate"><span class="pre">h2</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -532,7 +532,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 <p>Finally, we may call this objective function with an optimization algorithm. Here, a simple <em>brute force</em> optimization approach is used for illustrative purposes, but any variety of options could be applied. The optimization algorithm will call our objective function, which in turn will create a new WaveBot hull, run the necessary BEM calculations for the hull, and find the PTO force that provides the most absorbed power for that hull. This process will be conducted for the range of <code class="docutils literal notranslate"><span class="pre">r2</span></code>
 values that we specify.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># range over which to search</span>
@@ -551,67 +551,67 @@ values that we specify.</p>
 
 r2 = 0.05:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6006794546579421
+            Current function value: -1.6006918862816262
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.060156
+time (hh:mm:ss): 0:00:36.269350
 
 r2 = 0.17:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.59552364526259
+            Current function value: -1.595531010510444
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.291601
+time (hh:mm:ss): 0:00:15.846922
 
 r2 = 0.29:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5942559883503795
+            Current function value: -1.5942658384074289
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.655772
+time (hh:mm:ss): 0:00:14.189973
 
 r2 = 0.41:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5922480417468277
+            Current function value: -1.5922468733752042
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.276140
+time (hh:mm:ss): 0:00:15.107565
 
 r2 = 0.52:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5885451947830098
+            Current function value: -1.588535272085348
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.013618
+time (hh:mm:ss): 0:00:14.836947
 
 r2 = 0.64:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5860710182429916
+            Current function value: -1.5860844420399023
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.022606
+time (hh:mm:ss): 0:00:15.249210
 
 r2 = 0.76:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5799509822834528
+            Current function value: -1.5799592104790383
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.032651
+time (hh:mm:ss): 0:00:15.391864
 
 r2 = 0.88:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.557779252447993
+            Current function value: -1.5577822736887872
             Iterations: 10
             Function evaluations: 10
             Gradient evaluations: 10
-time (hh:mm:ss): 0:00:02.652620
+time (hh:mm:ss): 0:00:22.565520
 </pre></div></div>
 </div>
 </section>
@@ -619,7 +619,7 @@ time (hh:mm:ss): 0:00:02.652620
 <h2>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h2>
 <p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code>. It is also clear that when the WEC is cylindrical (where <code class="docutils literal notranslate"><span class="pre">r2=0.88</span></code>), power absorption is reduced.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig2</span><span class="p">,</span> <span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>

@@ -192,7 +192,7 @@ Consider, for example, a general case without a controller structure, in which <
 For a wave tank scale device, one might expect velocities of <span class="math notranslate nohighlight">\(\mathcal{O}(1e-1)\)</span>, but the forces could be <span class="math notranslate nohighlight">\(\mathcal{O}(1e3)\)</span>.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code>).
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <a class="reference internal" href="source_code.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.solve()</span></code></a>).
 Additionally, you may set <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">logging,</span> <span class="pre">logging.basicConfig(level=logging.INFO)</span></code> to output the mean values of <cite>x</cite> and the objective function during the solution process.</p>
 </section>
 <section id="constraints">
@@ -201,7 +201,7 @@ Additionally, you may set <code class="code docutils literal notranslate"><span 
 This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
-In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <code class="xref py py-meth docutils literal notranslate"><span class="pre">pto.PseudoSpectralPTO.force()</span></code>).</p>
+In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="source_code_pto.html#wecopttool.pto.PseudoSpectralPTO.force" title="wecopttool.pto.PseudoSpectralPTO.force"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PseudoSpectralPTO.force()</span></code></a>).</p>
 </section>
 <section id="buoyancy-gravity">
 <h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Permalink to this headline"></a></h3>
