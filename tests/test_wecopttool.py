@@ -139,7 +139,7 @@ def test_solve(wec, regular_wave, pto):
 def test_solve_constraints(wec, regular_wave, pto):
     """Checks that two constraints on PTO force can be enforced
     """
-    
+
     f_max = 1.85e3
     f_min = 1.8e3
     nsubsteps = 4
@@ -151,7 +151,7 @@ def test_solve_constraints(wec, regular_wave, pto):
     def const_f_pto_min(wec, x_wec, x_opt):
         f = pto.force_on_wec(wec, x_wec, x_opt, nsubsteps)
         return f.flatten() + f_min
-        
+
     ineq_cons_max = {'type': 'ineq',
                 'fun': const_f_pto_max,
                 }
@@ -159,9 +159,9 @@ def test_solve_constraints(wec, regular_wave, pto):
     ineq_cons_min = {'type': 'ineq',
                 'fun': const_f_pto_min,
                 }
-    
+
     wec.constraints = [ineq_cons_max, ineq_cons_min]
-    
+
     options = {}
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
@@ -171,9 +171,9 @@ def test_solve_constraints(wec, regular_wave, pto):
         scale_x_opt = 0.01,
         scale_obj = 1e-1,
         optim_options=options)
-    
+
     pto_tdom, _ = pto.post_process(wec, x_wec, x_opt)
-    
+
     assert pytest.approx(-1*f_min, 1e-5) == pto_tdom['force'].min().values.item()
     assert pytest.approx(f_max, 1e-5) == pto_tdom['force'].max().values.item()
 
@@ -322,32 +322,159 @@ def test_examples_device_wavebot_plot_cross_section():
     wb.plot_cross_section()
 
 
+def test_multiple_dof(regular_wave):
+    """When defined as uncoupled, surge and heave computed seperately should
+    give same solution as computed together"""
+
+    # frequencies
+    f0 = 0.05
+    nfreq = 18
+
+    #  mesh
+    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
+
+    # capytaine floating body
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
+    fb.add_translation_dof(name="SURGE")
+    fb.add_translation_dof(name="HEAVE")
+
+    # hydrostatic
+    hs_data = wot.hydrostatics.hydrostatics(fb)
+    mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
+    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
+    stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
+    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
+    mass = np.array([[mass_11, mass_13],
+                     [mass_31, mass_33]])
+    stiffness = np.array([[stiffness_11, stiffness_13],
+                          [stiffness_31, stiffness_33]])
+
+    # PTO
+    kinematics = np.eye(fb.nb_dofs)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics, names=names)
+
+    # WEC
+    f_add = pto.force_on_wec
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, f_add=f_add)
+
+    # BEM
+    wec.run_bem()
+
+    # set diagonal (coupling) components to zero
+    wec.hydro.added_mass[:, 0, 1] = 0.0
+    wec.hydro.added_mass[:, 1, 0] = 0.0
+    wec.hydro.radiation_damping[:, 0, 1] = 0.0
+    wec.hydro.radiation_damping[:, 1, 0] = 0.0
+    wec._del_impedance()
+    wec.bem_calc_impedance()
+
+    # solve
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    options = {'maxiter': 250, 'ftol': 1e-8}
+    scale_x_wec = 100.0
+    scale_x_opt = 0.1
+    scale_obj = 1.0
+    _, _, _, _, avg_pow_sh_sh, _ = wec.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # only surge PTO
+    kinematics = np.array([[1.0, 0.0]])
+    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics, names=["SURGE"])
+    f_add = pto.force_on_wec
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, f_add=f_add)
+    wec.run_bem()
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    _, _, _, _, avg_pow_sh_s, _ = wec.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # only heave PTO
+    kinematics = np.array([[0.0, 1.0]])
+    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics, names=["HEAVE"])
+    f_add = pto.force_on_wec
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, f_add=f_add)
+    wec.run_bem()
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    _, _, _, _, avg_pow_sh_h, _ = wec.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # WEC only surge
+    mass = np.array([[mass_11]])
+    stiffness = np.array([[stiffness_11]])
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
+    fb.add_translation_dof(name="SURGE")
+    kinematics = np.array([[1.0]])
+    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics, names=["SURGE"])
+    f_add = pto.force_on_wec
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, f_add=f_add)
+    wec.run_bem()
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    _, _, _, _, avg_pow_s_s, _ = wec.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # WEC only heave
+    mass = np.array([[mass_33]])
+    stiffness = np.array([[stiffness_33]])
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
+    fb.add_translation_dof(name="HEAVE")
+    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics, names=["HEAVE"])
+    f_add = pto.force_on_wec
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, f_add=f_add)
+    wec.run_bem()
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    scale_x_wec = 10000.0
+    scale_x_opt = 1.0
+    scale_obj = 1.0
+    _, _, _, _, avg_pow_h_h, _ = wec.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # checks
+    tol = 1e0
+    assert pytest.approx(avg_pow_sh_sh, tol) == avg_pow_sh_s + avg_pow_sh_h
+    assert pytest.approx(avg_pow_sh_s, tol) == avg_pow_s_s
+    assert pytest.approx(avg_pow_sh_h, tol) == avg_pow_h_h
+
+
 def test_buoyancy_excess(wec, pto, regular_wave):
     """Give too much buoyancy and check that equilibrium point found matches
     that given by the hydrostatic stiffness"""
-    
+
     delta = np.random.randn() # excess buoyancy factor
-    
+
     # remove constraints
     wec.constraints = []
-    
+
     def f_b(wec, x_wec, x_opt):
         V = wec.fb.keep_immersed_part(inplace=False).mesh.volume
         rho = wec.rho
         g = 9.81
         return (1+delta) * rho * V * g * np.ones([wec.ncomponents, wec.ndof])
-    
+
     def f_g(wec, x_wec, x_opt):
         g = 9.81
         m = wec.mass.item()
         return -1 * m * g * np.ones([wec.ncomponents, wec.ndof])
-    
+
     wec.f_add = {**wec.f_add,
                  'Fb':f_b,
                  'Fg':f_g,
                  }
-    
-    tdom, fdom, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, 
+
+    tdom, fdom, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave,
                                                 obj_fun = pto.average_power,
                                                 nstate_opt = pto.nstate,
                                                 scale_x_wec = 1.0,
@@ -359,4 +486,3 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
         / wec.hydrostatic_stiffness.item()
     assert pytest.approx (expected, 1e-1) == mean_pos
-    
