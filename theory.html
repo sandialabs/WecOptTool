@@ -53,6 +53,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#scaling">Scaling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#buoyancy-gravity">Buoyancy/gravity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pto-kinematics">PTO Kinematics</a></li>
 </ul>
 </li>
 </ul>
@@ -209,6 +210,27 @@ In WecOptTool’s example PTO module, this is controlled by the <code class="cod
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
 In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="source_code.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
+</section>
+<section id="pto-kinematics">
+<h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Permalink to this headline"></a></h3>
+<p>The <a class="reference internal" href="source_code_pto.html#module-wecopttool.pto" title="wecopttool.pto"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.pto</span></code></a> module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
+Creating one of these pre-defined PTOs requires specifying the <em>kinematics matrix</em>.
+Here, the kinematics matrix, <span class="math notranslate nohighlight">\(K\)</span>, is defined as the linear transformation from the WEC position (e.g., heave) in the global frame, <span class="math notranslate nohighlight">\(x\)</span>, to the PTO position in the PTO frame (e.g., tether length/generator rotation), <span class="math notranslate nohighlight">\(p\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-kinematics">
+<span class="eqno">(2)<a class="headerlink" href="#equation-kinematics" title="Permalink to this equation"></a></span>\[p = K x\]</div>
+<p>The relationship <span class="math notranslate nohighlight">\(p(x)\)</span> is typically referred to as the <em>forward kinematics</em>.
+The matrix <span class="math notranslate nohighlight">\(K\)</span> has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
+Note, however that the real kinematics might not be linear.
+Equation <a class="reference internal" href="#equation-kinematics">(2)</a> represents a linearization of <span class="math notranslate nohighlight">\(p(x)\)</span> about the mean <span class="math notranslate nohighlight">\(x=0\)</span> position, with the matrix <span class="math notranslate nohighlight">\(K\)</span> being the Jacobian of <span class="math notranslate nohighlight">\(p(x)\)</span> at <span class="math notranslate nohighlight">\(x=0\)</span>.</p>
+<p>The transpose of <span class="math notranslate nohighlight">\(K\)</span> is used to transform the PTO forces in PTO frame, <span class="math notranslate nohighlight">\(f_p\)</span>, to the PTO forces on the WEC, <span class="math notranslate nohighlight">\(f_w\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-k">
+<span class="eqno">(3)<a class="headerlink" href="#equation-k" title="Permalink to this equation"></a></span>\[f_w = K^T f_p\]</div>
+<p>This relationship can be derived from conservation of energy in both frames, and using the definition in Equation <a class="reference internal" href="#equation-kinematics">(2)</a>:</p>
+<div class="math notranslate nohighlight" id="equation-conservation-energy">
+<span class="eqno">(4)<a class="headerlink" href="#equation-conservation-energy" title="Permalink to this equation"></a></span>\[\begin{split}f_w^T x = f_p^T p \\
+f_w^T x = f_p^T K x \\
+f_w^T = f_p^T K \\
+f_w = K^T f_p \\\end{split}\]</div>
 </section>
 </section>
 </section>
