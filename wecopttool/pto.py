@@ -405,27 +405,28 @@ class PseudoSpectralLinearPTO(_PTO):
 
     @property
     def _impedance_t(self):
-        return np.transpose(self.impedance)
+        return np.transpose(self.impedance)  # TODO
 
     def _impedance_to_abc(self, impedance):
         """ [i,V]^T = ABC [v, F]^T """
-        Z_11, Z_12 = impedance[0, :]
-        Z_21, Z_22 = impedance[1, :]
-        return np.array([[-Z_11, 1],[(Z_21*Z_12-Z_11*Z_22), Z_22]])/Z_12
+        raise NotImplementedError()
+        # TODO: something like below (for 1 DOF) but general might be useful
+        # Z_11, Z_12 = impedance[0, :]
+        # Z_21, Z_22 = impedance[1, :]
+        # return np.array([[-Z_11, 1],[(Z_21*Z_12-Z_11*Z_22), Z_22]])/Z_12
 
 
     def _calc_flow_vars(self, wec: WEC, x_wec: npt.ArrayLike,
                         x_opt: npt.ArrayLike) -> np.ndarray:
         """Create vector of PTO velocity and current. """
         wec_pos = wec.vec_to_dofmat(x_wec)
-        wec_vel = np.dot(wec.derivative_mat, wec_pos)
-        velocity = self._wec_to_pto_dofs(wec_vel)
-        velocity = velocity[1:, :]
+        position = self._wec_to_pto_dofs(wec_pos)
+        velocity = np.dot(wec.derivative_mat, position)
         current = self._vec_to_dofmat(x_opt)
         return np.hstack([velocity, current])
 
     def _calc_effort_vars(self, flow_vars: np.array) -> np.array:
-        return np.dot(flow_vars, self._impedance_t)
+        return np.dot(flow_vars, self._impedance_t)  # TODO
 
     def _split_effort_vars(self, e):
         return e[:, :self.ndof], e[:, self.ndof:]
