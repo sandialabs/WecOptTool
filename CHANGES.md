@@ -4,6 +4,9 @@
 ## Version 1.0.3
 
 * minor updates to README
+* `f_add` should be passed as a `dict`, e.g., `{'my_name': my_func}`
+  * optionally treat buoyancy/gravity explicitly via user-defined functions passed to `f_add`
+  * time and freq domain results calculated for entries of `f_add` after `solve` completes
 * logging of decision vector and objective function 
   * controlled entirely via logging package config
   * move to `info` logging level (`debug` gives too much from other packages, e.g., matplotlib)
@@ -27,7 +30,7 @@
 **Bug fixes**
 
 * Correct dependency name for jupyter-notebook
-* Move jupyter-notebook to base install dependecy
+* Move jupyter-notebook to base install dependency
 
 **New features**
 

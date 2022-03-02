@@ -91,7 +91,7 @@ Consider, for example, a general case without a controller structure, in which :
 For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e-1)`, but the forces could be :math:`\mathcal{O}(1e3)`.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable :math:`x` and with the objective function :math:`J(x)` can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`core.WEC.solve`).
+To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`wecopttool.core.WEC.solve`).
 Additionally, you may set :code:`import logging, logging.basicConfig(level=logging.INFO)` to output the mean values of `x` and the objective function during the solution process.
 
 Constraints
@@ -100,7 +100,14 @@ Constraints, such as maximum PTO force, maximum piston force, or maintaining ten
 This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
-In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :meth:`pto.PseudoSpectralPTO.force`).
+In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.PseudoSpectralPTO.force`).
+
+Buoyancy/gravity
+^^^^^^^^^^^^^^^^
+As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
+The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
+However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
+In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the :code:`f_add` argument to :py:class:`wecopttool.core.WEC`.
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
