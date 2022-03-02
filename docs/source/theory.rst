@@ -106,21 +106,23 @@ PTO Kinematics
 ^^^^^^^^^^^^^^
 The :py:mod:`wecopttool.pto` module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
 Creating one of these pre-defined PTOs requires specifying the *kinematics matrix*.
-The kinematics matrix, :math:`K`, transforms the WEC position, :math:`x`, (e.g., heave) in the global frame to the PTO position, :math:`p`, in the PTO frame (e.g., tether length/generator rotation).
-It has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
-It is used to obtain the PTO motion as:
+Here the kinematics matrix, :math:`K`, is defined as the linear transformation from the WEC position, :math:`x`, (e.g., heave) in the global frame to the PTO position, :math:`p`, in the PTO frame (e.g., tether length/generator rotation), i.e.,
 
 .. math::
     p = K x
     :label: kinematics
 
-The kinematics matrix is the transpose of the Jacobian matrix used to transform the PTO force in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
+The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
+Note, however that the real kinematics might not be linear.
+Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
+
+The matrix :math:`K` is the transpose of the matrix used to transform the PTO force in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
 
 .. math::
     f_w = K^T f_p
     :label: k
 
-This relationship can be derived from conservation of energy in both frames, and using :eq:`kinematics`:
+This relationship can be derived from conservation of energy in both frames, and using the definition in Equation :eq:`kinematics`:
 
 .. math::
     f_w^T x = f_p^T p \\
@@ -128,6 +130,8 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w^T = f_p^T K \\
     f_w = K^T f_p \\
     :label: conservation_energy
+
+Again, this represents a linearization of the function :math:`f_w(f_p)` about the mean :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
