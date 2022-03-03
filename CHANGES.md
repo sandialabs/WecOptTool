@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Version 1.0.3
+## Version 1.1.0
 
 * minor updates to README
 * logging of decision vector and objective function
@@ -17,6 +17,7 @@
 
 * geom.WaveBot.plot_cross_section now plots correct location of waterline
 * All constraints are now being enforced when multiple constraints are passed
+* Fix shape/linear algebra bugs in fixed structure PTOs with multiple PTO DOFs
 
 
 ## Version 1.0.2
