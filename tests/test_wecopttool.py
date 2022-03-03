@@ -449,6 +449,108 @@ def test_multiple_dof(regular_wave):
     assert pytest.approx(avg_pow_sh_h, tol) == avg_pow_h_h
 
 
+@pytest.fixture
+def surge_heave_wavebot():
+    # frequencies
+    f0 = 0.05
+    nfreq = 18
+
+    #  mesh
+    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
+
+    # capytaine floating body
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
+    fb.add_translation_dof(name="SURGE")
+    fb.add_translation_dof(name="HEAVE")
+
+    # hydrostatic
+    hs_data = wot.hydrostatics.hydrostatics(fb)
+    mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
+    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
+    stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
+    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
+    mass = np.array([[mass_11, mass_13],
+                     [mass_31, mass_33]])
+    stiffness = np.array([[stiffness_11, stiffness_13],
+                          [stiffness_31, stiffness_33]])
+
+    # WEC
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq)
+
+    # BEM
+    wec.run_bem()
+
+    # set diagonal (coupling) components to zero
+    wec.hydro.added_mass[:, 0, 1] = 0.0
+    wec.hydro.added_mass[:, 1, 0] = 0.0
+    wec.hydro.radiation_damping[:, 0, 1] = 0.0
+    wec.hydro.radiation_damping[:, 1, 0] = 0.0
+    wec._del_impedance()
+    wec.bem_calc_impedance()
+    
+    return wec
+
+
+def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
+    
+    # PTO
+    kinematics = np.eye(surge_heave_wavebot.ndof)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.ProportionalPTO(kinematics, names=names)
+    
+    # WEC
+    surge_heave_wavebot.f_add = {'PTO': pto.force_on_wec}
+
+    # solve
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    options = {'maxiter': 250, 'ftol': 1e-8}
+    scale_x_wec = 100.0
+    scale_x_opt = 0.1
+    scale_obj = 1.0
+    _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+    
+    pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
+    
+    assert np.all(x_opt[0] * pto_tdom.vel[:,0] == pto_tdom.force[:,0])
+    assert np.all(x_opt[1] * pto_tdom.vel[:,1] == pto_tdom.force[:,1])
+
+
+def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
+
+    # PTO
+    kinematics = np.eye(surge_heave_wavebot.ndof)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.ProportionalIntegralPTO(kinematics, names=names)
+
+    # WEC
+    surge_heave_wavebot.f_add = {'PTO': pto.force_on_wec}
+    
+    # solve
+    obj_fun = pto.average_power
+    nstate_opt = pto.nstate
+    options = {'maxiter': 250, 'ftol': 1e-8}
+    scale_x_wec = 100.0
+    scale_x_opt = 0.1
+    scale_obj = 1.0
+    _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+    
+    pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
+    
+    assert np.all(x_opt[0] * pto_tdom.vel[:,0] + x_opt[2] * pto_tdom.pos[:,0] 
+                  == pto_tdom.force[:,0])
+    assert np.all(x_opt[1] * pto_tdom.vel[:,1] + x_opt[3] * pto_tdom.pos[:,1] 
+                  == pto_tdom.force[:,1])
+
+
 def test_buoyancy_excess(wec, pto, regular_wave):
     """Give too much buoyancy and check that equilibrium point found matches
     that given by the hydrostatic stiffness"""
