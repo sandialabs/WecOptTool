@@ -330,7 +330,7 @@ class ProportionalPTO(_PTO):
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        force_td = np.reshape(x_opt, [-1, 1]) * vel_td
+        force_td = np.reshape(x_opt, [1,-1]) * vel_td
         return force_td
 
 
@@ -353,7 +353,8 @@ class ProportionalIntegralPTO(_PTO):
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
         pos_td = self.position(wec, x_wec, x_opt, nsubsteps)
-        u = np.reshape(x_opt, [-1, 1])
+        u = np.reshape(x_opt, [1,-1])
         B = np.hstack([vel_td, pos_td])
-        force_td = np.dot(B,u)
+        tmp1 = u * B
+        force_td = tmp1[:,0:self.ndof] + tmp1[:,self.ndof:]
         return force_td
