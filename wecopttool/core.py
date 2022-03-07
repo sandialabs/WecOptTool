@@ -620,6 +620,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
+              **kwargs,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -665,6 +666,8 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
+        kwargs: dict
+            Passed along to scipy.minimize.solve.
 
         Returns
         -------
@@ -755,7 +758,7 @@ class WEC:
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
 
-        res = minimize(**problem)
+        res = minimize(**problem, **kwargs)
 
         msg = f'{res.message}    (Exit mode {res.status})'
         if res.status == 0:
