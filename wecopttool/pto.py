@@ -198,9 +198,9 @@ class _PTO:
         attrs_f = {'long_name': 'PTO force', 'units': 'N or N*m'}
         attrs_p = {'long_name': 'PTO power', 'units': 'W'}
         attrs_pos = {'long_name': 'PTO position', 'units': 'm or rad'}
-        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or (rad)/s'}
+        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or rad/s'}
         attrs_acc = {'long_name': 'PTO acceleration',
-                    'units': 'm/s^2 or (rad)/s^2'}
+                    'units': 'm/s^2 or rad/s^2'}
         force_td = xr.DataArray(
             force_td, dims=dims, coords=coords, attrs=attrs_f)
         power_td = xr.DataArray(
@@ -221,9 +221,9 @@ class _PTO:
                                       'long_name': 'Frequency'})
         attrs_f['units'] = 'N^2*s'
         attrs_p['units'] = 'W^2*s'
-        attrs_pos['units'] = 'm^2*s or (rad)^2*s'
-        attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-        attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+        attrs_pos['units'] = 'm^2*s or rad^2*s'
+        attrs_vel['units'] = 'm^2/s or rad^2/s'
+        attrs_acc['units'] = 'm^2/s^3 or rad^2/s^3'
         force_fd = xr.DataArray(force_fd, dims=dims, coords=coords, attrs=attrs_f)
         power_fd = xr.DataArray(power_fd, dims=dims, coords=coords, attrs=attrs_p)
         pos_fd = xr.DataArray(pos_fd, dims=dims, coords=coords, attrs=attrs_pos)
