@@ -8,6 +8,7 @@ import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
 import meshio
+from scipy.optimize import Bounds
 
 import wecopttool as wot
 from wecopttool.geom import WaveBot
@@ -279,8 +280,16 @@ def test_wavebot_p_cc(wec,resonant_wave):
     nstate_opt = pto.nstate
     wec.f_add = {'PTO': pto.force_on_wec}
 
+    # set bounds such that damping must be negative
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+                         -1 * np.inf * np.ones(nstate_opt)])
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+                         0 * np.ones(nstate_opt)])
+    bounds = Bounds(lb, ub)
+    
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
-        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
+        bounds=bounds)
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
@@ -504,17 +513,28 @@ def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
     
     # WEC
     surge_heave_wavebot.f_add = {'PTO': pto.force_on_wec}
-
-    # solve
+    
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
     options = {'maxiter': 250, 'ftol': 1e-8}
-    scale_x_wec = 100.0
-    scale_x_opt = 0.1
-    scale_obj = 1.0
+        
+    # set bounds such that damping must be negative
+    lb = np.concatenate([-1 * np.inf * np.ones(surge_heave_wavebot.nstate_wec), 
+                         -1 * np.inf * np.ones(nstate_opt)])
+    ub = np.concatenate([1 * np.inf * np.ones(surge_heave_wavebot.nstate_wec), 
+                         0 * np.ones(nstate_opt)])
+    bounds = Bounds(lb, ub)
+
+    # solve
     _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
-        regular_wave, obj_fun, nstate_opt, optim_options=options,
-        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+        regular_wave, obj_fun, nstate_opt, 
+        optim_options=options,
+        scale_x_wec=1e2, 
+        scale_x_opt=1e-3, 
+        scale_obj=1e-2,
+        bounds=bounds)
+    
+    print(x_opt)
     
     pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
     
@@ -536,12 +556,15 @@ def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
     options = {'maxiter': 250, 'ftol': 1e-8}
-    scale_x_wec = 100.0
-    scale_x_opt = 0.1
-    scale_obj = 1.0
+
     _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
-        regular_wave, obj_fun, nstate_opt, optim_options=options,
-        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+        regular_wave, obj_fun, nstate_opt, 
+        optim_options=options,
+        scale_x_wec=1, 
+        scale_x_opt=1e-2, 
+        scale_obj=1e-2)
+    
+    print(x_opt)
     
     pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
     
