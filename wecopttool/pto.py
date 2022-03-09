@@ -60,17 +60,17 @@ class _PTO:
     def _kinematics_t(self):
         return np.transpose(self.kinematics)
 
-    def _pto_to_wec_dofs(self, pto):
-        return np.dot(pto, self.kinematics)
+    def _pto_force_to_wec_force(self, f_pto):
+        return np.dot(f_pto, self.kinematics)
 
-    def _wec_to_pto_dofs(self, pto):
-        return np.dot(pto, self._kinematics_t)
+    def _wec_pos_to_pto_pos(self, pos_wec):
+        return np.dot(pos_wec, self._kinematics_t)
 
     def position(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                  nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO position time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        pos = self._wec_to_pto_dofs(wec_pos)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, pos)
 
@@ -78,8 +78,8 @@ class _PTO:
                  nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO velocity time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        wec_vel = np.dot(wec.derivative_mat, wec_pos)
-        vel = self._wec_to_pto_dofs(wec_vel)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
+        vel = np.dot(wec.derivative_mat, pos)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, vel)
 
@@ -88,9 +88,9 @@ class _PTO:
                      ) -> np.ndarray:
         """Calculate the PTO acceleration time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        wec_vel = np.dot(wec.derivative_mat, wec_pos)
-        wec_acc = np.dot(wec.derivative_mat, wec_vel)
-        acc = self._wec_to_pto_dofs(wec_acc)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
+        vel = np.dot(wec.derivative_mat, pos)
+        acc = np.dot(wec.derivative_mat, vel)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, acc)
 
@@ -111,7 +111,7 @@ class _PTO:
         See ``force``.
         """
         fpto_td = self.force(wec, x_wec, x_opt, nsubsteps)
-        return self._pto_to_wec_dofs(fpto_td)
+        return self._pto_force_to_wec_force(fpto_td)
 
     def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                nsubsteps: int = 1) -> float:
@@ -304,13 +304,14 @@ class PseudoSpectralPTO(_PTO):
                nsubsteps: int = 1) -> float:
         if nsubsteps == 1:
             wec_pos = wec.vec_to_dofmat(x_wec)
-            wec_vel = np.dot(wec.derivative_mat, wec_pos)
-            vel = self._wec_to_pto_dofs(wec_vel)
+            pos = self._wec_pos_to_pto_pos(wec_pos)
+            vel = np.dot(wec.derivative_mat, pos)
             vel_vec = wec.dofmat_to_vec(vel[1:, :])
             energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
         else:
             energy_produced = super().energy(wec, x_wec, x_opt, nsubsteps)
         return energy_produced
+
 
 
 class ProportionalPTO(_PTO):
