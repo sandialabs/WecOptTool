@@ -8,6 +8,7 @@ import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
 import meshio
+from scipy.optimize import Bounds
 
 import wecopttool as wot
 from wecopttool.geom import WaveBot
@@ -279,8 +280,16 @@ def test_wavebot_p_cc(wec,resonant_wave):
     nstate_opt = pto.nstate
     wec.f_add = {'PTO': pto.force_on_wec}
 
+    # set bounds such that damping must be negative
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+                         -1 * np.inf * np.ones(nstate_opt)])
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+                         0 * np.ones(nstate_opt)])
+    bounds = Bounds(lb, ub)
+    
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
-        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
+        bounds=bounds)
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
@@ -447,6 +456,87 @@ def test_multiple_dof(regular_wave):
     assert pytest.approx(avg_pow_sh_sh, tol) == avg_pow_sh_s + avg_pow_sh_h
     assert pytest.approx(avg_pow_sh_s, tol) == avg_pow_s_s
     assert pytest.approx(avg_pow_sh_h, tol) == avg_pow_h_h
+
+
+@pytest.fixture
+def surge_heave_wavebot():
+    # frequencies
+    f0 = 0.05
+    nfreq = 18
+
+    #  mesh
+    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
+
+    # capytaine floating body
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
+    fb.add_translation_dof(name="SURGE")
+    fb.add_translation_dof(name="HEAVE")
+
+    # hydrostatic
+    hs_data = wot.hydrostatics.hydrostatics(fb)
+    mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
+    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
+    stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
+    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
+    mass = np.array([[mass_11, mass_13],
+                     [mass_31, mass_33]])
+    stiffness = np.array([[stiffness_11, stiffness_13],
+                          [stiffness_31, stiffness_33]])
+
+    # WEC
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq)
+
+    # BEM
+    wec.run_bem()
+
+    # set diagonal (coupling) components to zero
+    wec.hydro.added_mass[:, 0, 1] = 0.0
+    wec.hydro.added_mass[:, 1, 0] = 0.0
+    wec.hydro.radiation_damping[:, 0, 1] = 0.0
+    wec.hydro.radiation_damping[:, 1, 0] = 0.0
+    wec._del_impedance()
+    wec.bem_calc_impedance()
+    
+    return wec
+
+
+def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
+    
+    kinematics = np.eye(surge_heave_wavebot.ndof)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.ProportionalPTO(kinematics, names=names)
+    
+    x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
+    x_opt = np.random.randn(pto.nstate)
+    
+    pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
+    pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
+    
+    assert np.all(x_opt[0] * pto_vel[:,0] == pto_force[:,0])
+    assert np.all(x_opt[1] * pto_vel[:,1] == pto_force[:,1])
+
+
+def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
+
+    kinematics = np.eye(surge_heave_wavebot.ndof)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.ProportionalIntegralPTO(kinematics, names=names)
+
+    x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
+    x_opt = np.random.randn(pto.nstate)
+    
+    pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
+    pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
+    pto_pos = pto.position(surge_heave_wavebot, x_wec, x_opt)
+    
+    assert np.all(x_opt[0] * pto_vel[:,0] + x_opt[2] * pto_pos[:,0] 
+                  == pto_force[:,0])
+    assert np.all(x_opt[1] * pto_vel[:,1] + x_opt[3] * pto_pos[:,1] 
+                  == pto_force[:,1])
 
 
 def test_buoyancy_excess(wec, pto, regular_wave):

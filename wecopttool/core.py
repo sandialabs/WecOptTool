@@ -22,7 +22,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
 import xarray as xr
 import capytaine as cpy
-from scipy.optimize import minimize, OptimizeResult
+from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -620,6 +620,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
+              bounds: Optional[Bounds | list] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -665,6 +666,8 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
+        bounds: sequence | Bounds
+            See scipy.optimize.minimize
 
         Returns
         -------
@@ -741,6 +744,7 @@ class WEC:
                    'method': 'SLSQP',
                    'constraints': constraints,
                    'options': optim_options,
+                   'bounds': bounds,
                    }
 
         def callback(x):

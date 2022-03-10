@@ -1,7 +1,7 @@
 
 # Changelog
 
-## Version 1.0.3
+## Version 1.1.0
 
 * minor updates to README
 * logging of decision vector and objective function
@@ -12,11 +12,13 @@
   * controlled entirely via logging package config
   * move to `info` logging level (`debug` gives too much from other packages, e.g., matplotlib)
 * added tests for multiple WEC/PTO degrees of freedom.
+* allow user to pass `bounds` via `solve` to `scipy.optimize.minimize`
 
 **Bug fixes**
 
 * geom.WaveBot.plot_cross_section now plots correct location of waterline
 * All constraints are now being enforced when multiple constraints are passed
+* Fix shape/linear algebra bugs in fixed structure PTOs with multiple PTO DOFs
 
 
 ## Version 1.0.2
