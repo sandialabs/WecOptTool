@@ -12,7 +12,7 @@
   * controlled entirely via logging package config
   * move to `info` logging level (`debug` gives too much from other packages, e.g., matplotlib)
 * added tests for multiple WEC/PTO degrees of freedom.
-* allow user to pass `**kwargs` via `solve` to `scipy.optimize.minimize`
+* allow user to pass `bounds` via `solve` to `scipy.optimize.minimize`
 
 **Bug fixes**
 
