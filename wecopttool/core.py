@@ -838,12 +838,13 @@ class WEC:
         # xarray - time domain
         dims_td = ('time', 'influenced_dof')
         coords_td = [
-            (dims_td[0], self.time, {'units': 's'}),
+            (dims_td[0], self.time, {'units': 's',
+                                     'long_name':'Time'}),
             (dims_td[1], self.hydro.influenced_dof.values)]
-        attrs_pos = {'long_name': 'WEC position', 'units': 'm or (rad)'}
-        attrs_vel = {'long_name': 'WEC velocity', 'units': 'm/s or (rad)/s'}
+        attrs_pos = {'long_name': 'WEC position', 'units': 'm or rad'}
+        attrs_vel = {'long_name': 'WEC velocity', 'units': 'm/s or rad/s'}
         attrs_acc = {'long_name': 'WEC acceleration',
-                     'units': 'm/s^2 or (rad)/s^2'}
+                     'units': 'm/s^2 or rad/s^2'}
         pos_td = xr.DataArray(
             pos_td, dims=dims_td, coords=coords_td, attrs=attrs_pos)
         vel_td = xr.DataArray(
@@ -856,11 +857,12 @@ class WEC:
         omega = np.concatenate([np.array([0.0]), self.omega])
         dims_fd = ('omega', 'influenced_dof')
         coords_fd = [
-            (dims_fd[0], omega, {'units': '(rad)'}),
+            (dims_fd[0], omega, {'units': 'rad/s',
+                                 'long_name': 'Frequency'}),
             (dims_fd[1], self.hydro.influenced_dof.values)]
-        attrs_pos['units'] = 'm^2*s or (rad)^2*s'
-        attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-        attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+        attrs_pos['units'] = 'm^2*s or rad^2*s'
+        attrs_vel['units'] = 'm^2/s or rad^2/s'
+        attrs_acc['units'] = 'm^2/s^3 or rad^2/s^3'
         pos_fd = xr.DataArray(
             pos_fd, dims=dims_fd, coords=coords_fd, attrs=attrs_pos)
         vel_fd = xr.DataArray(

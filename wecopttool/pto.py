@@ -193,13 +193,14 @@ class _PTO:
 
         # assemble time-domain xarray
         dims = ['time', 'dof_pto']
-        coords = [(dims[0], wec.time, {'units': 's'}), (dims[1], self.names)]
+        coords = [(dims[0], wec.time, {'units': 's',
+                                       'long_name':'Time'}), (dims[1], self.names)]
         attrs_f = {'long_name': 'PTO force', 'units': 'N or N*m'}
         attrs_p = {'long_name': 'PTO power', 'units': 'W'}
-        attrs_pos = {'long_name': 'PTO position', 'units': 'm or (rad)'}
-        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or (rad)/s'}
+        attrs_pos = {'long_name': 'PTO position', 'units': 'm or rad'}
+        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or rad/s'}
         attrs_acc = {'long_name': 'PTO acceleration',
-                    'units': 'm/s^2 or (rad)/s^2'}
+                    'units': 'm/s^2 or rad/s^2'}
         force_td = xr.DataArray(
             force_td, dims=dims, coords=coords, attrs=attrs_f)
         power_td = xr.DataArray(
@@ -216,12 +217,13 @@ class _PTO:
         # assemble frequency-domain xarray
         omega = np.concatenate([np.array([0.0]), wec.omega])
         dims[0] = 'omega'
-        coords[0] = (dims[0], omega, {'units': '(rad)'})
+        coords[0] = (dims[0], omega, {'units': 'rad/s',
+                                      'long_name': 'Frequency'})
         attrs_f['units'] = 'N^2*s'
         attrs_p['units'] = 'W^2*s'
-        attrs_pos['units'] = 'm^2*s or (rad)^2*s'
-        attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-        attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+        attrs_pos['units'] = 'm^2*s or rad^2*s'
+        attrs_vel['units'] = 'm^2/s or rad^2/s'
+        attrs_acc['units'] = 'm^2/s^3 or rad^2/s^3'
         force_fd = xr.DataArray(force_fd, dims=dims, coords=coords, attrs=attrs_f)
         power_fd = xr.DataArray(power_fd, dims=dims, coords=coords, attrs=attrs_p)
         pos_fd = xr.DataArray(pos_fd, dims=dims, coords=coords, attrs=attrs_pos)
