@@ -621,6 +621,7 @@ class WEC:
               use_grad: bool = True,
               maximize: bool = False,
               bounds: Optional[Bounds | list] = None,
+              callback: Callable[[np.ndarray]] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -667,7 +668,10 @@ class WEC:
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
         bounds: sequence | Bounds
-            See scipy.optimize.minimize
+            Bounds on the decsision variable; see scipy.optimize.minimize
+        callback: function
+            Called after each iteration; see scipy.optimize.minimize. The 
+            default is reported via logging at the INFO level.
 
         Returns
         -------
@@ -747,12 +751,13 @@ class WEC:
                    'bounds': bounds,
                    }
 
-        def callback(x):
-            x_wec, x_opt = self.decompose_decision_var(x)
-            log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
-                + f"[{np.abs(np.mean(x_wec)):.2e}, " \
-                + f"{np.abs(np.mean(x_opt)):.2e}, " \
-                + f"{np.abs(obj_fun_scaled(x)):.2e}]")
+        if callback is None:
+            def callback(x):
+                x_wec, x_opt = self.decompose_decision_var(x)
+                log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
+                    + f"[{np.abs(np.mean(x_wec)):.2e}, " \
+                    + f"{np.abs(np.mean(x_opt)):.2e}, " \
+                    + f"{np.abs(obj_fun_scaled(x)):.2e}]")
         
         problem['callback'] = callback
 
