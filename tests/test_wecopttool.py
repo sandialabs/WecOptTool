@@ -506,72 +506,37 @@ def surge_heave_wavebot():
 
 def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
     
-    # PTO
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
     pto = wot.pto.ProportionalPTO(kinematics, names=names)
     
-    # WEC
-    surge_heave_wavebot.f_add = {'PTO': pto.force_on_wec}
+    x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
+    x_opt = np.random.randn(pto.nstate)
     
-    obj_fun = pto.average_power
-    nstate_opt = pto.nstate
-    options = {'maxiter': 250, 'ftol': 1e-8}
-        
-    # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(surge_heave_wavebot.nstate_wec), 
-                         -1 * np.inf * np.ones(nstate_opt)])
-    ub = np.concatenate([1 * np.inf * np.ones(surge_heave_wavebot.nstate_wec), 
-                         0 * np.ones(nstate_opt)])
-    bounds = Bounds(lb, ub)
-
-    # solve
-    _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
-        regular_wave, obj_fun, nstate_opt, 
-        optim_options=options,
-        scale_x_wec=1e2, 
-        scale_x_opt=1e-3, 
-        scale_obj=1e-2,
-        bounds=bounds)
+    pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
+    pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
     
-    print(x_opt)
-    
-    pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
-    
-    assert np.all(x_opt[0] * pto_tdom.vel[:,0] == pto_tdom.force[:,0])
-    assert np.all(x_opt[1] * pto_tdom.vel[:,1] == pto_tdom.force[:,1])
+    assert np.all(x_opt[0] * pto_vel[:,0] == pto_force[:,0])
+    assert np.all(x_opt[1] * pto_vel[:,1] == pto_force[:,1])
 
 
 def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
 
-    # PTO
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
     pto = wot.pto.ProportionalIntegralPTO(kinematics, names=names)
 
-    # WEC
-    surge_heave_wavebot.f_add = {'PTO': pto.force_on_wec}
+    x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
+    x_opt = np.random.randn(pto.nstate)
     
-    # solve
-    obj_fun = pto.average_power
-    nstate_opt = pto.nstate
-    options = {'maxiter': 250, 'ftol': 1e-8}
-
-    _, _, x_wec, x_opt, _, _ = surge_heave_wavebot.solve(
-        regular_wave, obj_fun, nstate_opt, 
-        optim_options=options,
-        scale_x_wec=1, 
-        scale_x_opt=1e-2, 
-        scale_obj=1e-2)
+    pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
+    pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
+    pto_pos = pto.position(surge_heave_wavebot, x_wec, x_opt)
     
-    print(x_opt)
-    
-    pto_tdom, _ = pto.post_process(surge_heave_wavebot, x_wec, x_opt)
-    
-    assert np.all(x_opt[0] * pto_tdom.vel[:,0] + x_opt[2] * pto_tdom.pos[:,0] 
-                  == pto_tdom.force[:,0])
-    assert np.all(x_opt[1] * pto_tdom.vel[:,1] + x_opt[3] * pto_tdom.pos[:,1] 
-                  == pto_tdom.force[:,1])
+    assert np.all(x_opt[0] * pto_vel[:,0] + x_opt[2] * pto_pos[:,0] 
+                  == pto_force[:,0])
+    assert np.all(x_opt[1] * pto_vel[:,1] + x_opt[3] * pto_pos[:,1] 
+                  == pto_force[:,1])
 
 
 def test_buoyancy_excess(wec, pto, regular_wave):
