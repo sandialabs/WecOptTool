@@ -405,28 +405,36 @@ class PseudoSpectralLinearPTO(_PTO):
 
     @property
     def _impedance_t(self):
-        return np.transpose(self.impedance)  # TODO
+        return np.swapaxes(self.impedance, 0, 1)
 
     def _impedance_to_abc(self, impedance):
         """ [i,V]^T = ABC [v, F]^T """
-        raise NotImplementedError()
-        # TODO: something like below (for 1 DOF) but general might be useful
+        # TODO
+        # # for 1 DOF:
         # Z_11, Z_12 = impedance[0, :]
         # Z_21, Z_22 = impedance[1, :]
         # return np.array([[-Z_11, 1],[(Z_21*Z_12-Z_11*Z_22), Z_22]])/Z_12
-
+        raise NotImplementedError()
 
     def _calc_flow_vars(self, wec: WEC, x_wec: npt.ArrayLike,
                         x_opt: npt.ArrayLike) -> np.ndarray:
         """Create vector of PTO velocity and current. """
         wec_pos = wec.vec_to_dofmat(x_wec)
         position = self._wec_to_pto_dofs(wec_pos)
-        velocity = np.dot(wec.derivative_mat, position)
+        velocity = np.dot(wec.derivative_mat, position)[1:, :]
         current = self._vec_to_dofmat(x_opt)
         return np.hstack([velocity, current])
 
     def _calc_effort_vars(self, flow_vars: np.array) -> np.array:
-        return np.dot(flow_vars, self._impedance_t)  # TODO
+        if len(self.impedance.shape)==2:
+            effort_vars = np.dot(flow_vars, self._impedance_t)
+        else:
+            e_i = []
+            for i in range(self.nfreq):
+                e_i.append(np.dot(flow_vars[i*2:i*2+2, :],
+                                  self._impedance_t[:, :, i]))
+            effort_vars = np.vstack(e_i)
+        return effort_vars
 
     def _split_effort_vars(self, e):
         return e[:, :self.ndof], e[:, self.ndof:]
@@ -442,11 +450,11 @@ class PseudoSpectralLinearPTO(_PTO):
         if nsubsteps == 1:
             # velocity PS
             wec_pos = wec.vec_to_dofmat(x_wec)
-            wec_vel = np.dot(wec.derivative_mat, wec_pos)
-            vel = self._wec_to_pto_dofs(wec_vel)
-            vel_vec = self._dofmat_to_vec(vel[1:, :])
-            flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
+            position = self._wec_to_pto_dofs(wec_pos[1:, :])
+            velocity = np.dot(wec.derivative_mat, position)
+            vel_vec = self._dofmat_to_vec(velocity)
             # force PS
+            flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
             force, _ = self._split_effort_vars(
                 self._calc_effort_vars(flow_vars))
             force_vec = self._dofmat_to_vec(force)
