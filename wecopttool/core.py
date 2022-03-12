@@ -412,13 +412,14 @@ class WEC:
         Parameters
         ----------
         wave_dirs: list[float]
-            List of wave directions to evaluate BEM at.
+            List of wave directions to evaluate BEM at in degrees.
         tol: float
             Minimum value for the diagonal terms of
             (radiation damping + dissipation).
         """
         log.info(f"Running Capytaine (BEM): {self.nfreq} frequencies x " +
                  f"{len(wave_dirs)} wave directions.")
+        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
         data = run_bem(self.fb, self.freq, wave_dirs,
                        rho=self.rho, g=self.g, depth=self.depth,
@@ -1053,7 +1054,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     freq: list[float]
         List of frequencies to evaluate BEM at.
     wave_dirs: list[float]
-        List of wave directions to evaluate BEM at.
+        List of wave directions to evaluate BEM at (degrees).
     rho: float, optional
         Water density in :math:`kg/m^3`.
     g: float, optional
@@ -1301,3 +1302,12 @@ def post_process_continuous_time(results: xr.DataArray
         return f
 
     return func
+
+def _degrees_to_radians(degrees: float | npt.ArrayLike
+                       ) -> float | np.ndarray:
+    """Convert degrees to radians in range -π to π and sort.
+    """
+    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
+    radians[radians > np.pi] -= 2*np.pi
+    radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    return radians
