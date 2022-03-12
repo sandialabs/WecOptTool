@@ -84,8 +84,8 @@ class WEC:
             ``capytaine.post_pro.impedance``. Shape:
             (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         f_add: dict[str, Callable]
-            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring, 
-            etc.) for the WEC dynamics in the time-domain. Dictionary entries 
+            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring,
+            etc.) for the WEC dynamics in the time-domain. Dictionary entries
             should be ``entry = {'name': function_handle}``. Takes three inputs:
             (1) the WEC object,
             (2) the WEC dynamics state (1D np.ndarray), and
@@ -117,7 +117,7 @@ class WEC:
 
         # additional WEC dynamics forces
         if callable(f_add):
-            log.debug(f"Assigning dictionary entry 'f_add'" + 
+            log.debug(f"Assigning dictionary entry 'f_add'" +
                       "for Callable argument {f_add}")
             f_add = {'f_add': f_add}
         self.f_add = f_add
@@ -193,17 +193,18 @@ class WEC:
     # properties: f_add
     @property
     def f_add(self):
-        """Additonal forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)"""
+        """Additional forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)
+        """
         return self._f_add
-    
+
     @f_add.setter
     def f_add(self, f_add):
         if callable(f_add):
-            log.debug(f"Assigning dictionary entry 'f_add'" + 
+            log.debug(f"Assigning dictionary entry 'f_add'" +
                       "for Callable argument {f_add}")
             f_add = {'f_add': f_add}
         super().__setattr__('_f_add', f_add)
-    
+
     # properties: frequency
     @property
     def freq(self):
@@ -749,7 +750,7 @@ class WEC:
                 + f"[{np.abs(np.mean(x_wec)):.2e}, " \
                 + f"{np.abs(np.mean(x_opt)):.2e}, " \
                 + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-        
+
         problem['callback'] = callback
 
         if use_grad:
@@ -810,10 +811,10 @@ class WEC:
         f_add = 0.0
         for f_add_fun in self.f_add.values():
             f_add = f_add + f_add_fun(self, x_wec, x_opt)
-            
+
         return f_i - f_exc - f_add
 
-    def _post_process_wec_dynamics(self, 
+    def _post_process_wec_dynamics(self,
                                    x_wec: np.ndarray,
                                    x_opt: np.ndarray
                                    ) -> tuple[xr.DataArray, xr.DataArray]:
@@ -868,10 +869,10 @@ class WEC:
         acc_fd = xr.DataArray(
             acc_fd, dims=dims_fd, coords=coords_fd, attrs=attrs_acc)
         freq_dom = xr.Dataset({'pos': pos_fd, 'vel': vel_fd, 'acc': acc_fd},)
-        
+
         # user-defined additional forces (in WEC DoFs)
         for f_add_key, f_add_fun in self.f_add.items():
-            time_dom[f_add_key] = (('time', 'influenced_dof'), 
+            time_dom[f_add_key] = (('time', 'influenced_dof'),
                                    f_add_fun(self, x_wec, x_opt))
             freq_dom[f_add_key] = (('omega', 'influenced_dof'),
                                    self.td_to_fd(time_dom[f_add_key]))

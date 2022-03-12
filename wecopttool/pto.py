@@ -16,6 +16,7 @@ import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import xarray as xr
+from scipy.linalg import block_diag
 
 from wecopttool.core import WEC, real_to_complex_amplitudes
 
@@ -75,7 +76,7 @@ class _PTO:
         """Convert a vector back to a matrix with one column per DOF.
         Opposite of ``dofmat_to_vec``.
         """
-        return np.reshape(vec, (self.nstate_per_dof, self.ndof), order='F')
+        return np.reshape(vec, (self.nstate_per_dof, -1), order='F')
 
     def _pseudo_spectral(self, wec: WEC, x_opt: npt.ArrayLike,
                          nsubsteps: int = 1) -> np.ndarray:
@@ -398,14 +399,33 @@ class PseudoSpectralLinearPTO(_PTO):
         super().__init__(kinematics, names)
         self.impedance= impedance
         self.nfreq = nfreq
+        self._make_mimo_transfer_mat()
 
     @property
     def nstate_per_dof(self):
         return 2 * self.nfreq
 
     @property
+    def ndof2(self):
+        return 2*self.ndof
+
+    @property
     def _impedance_t(self):
         return np.swapaxes(self.impedance, 0, 1)
+
+    def _make_mimo_transfer_mat(self) -> np.ndarray:
+        """Create a block matrix of the MIMO transfer function.
+        """
+        elem = [[None]*self.ndof2 for _ in range(self.ndof2)]
+        def block(re, im): return np.array([[re, im], [-im, re]])
+        for idof in range(self.ndof2):
+            for jdof in range(self.ndof2):
+                Zp = self.impedance[idof, jdof, :]
+                re = np.real(Zp)
+                im = np.imag(Zp)
+                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+                elem[idof][jdof] = block_diag(*blocks)
+        self._transfer_mat = np.block(elem)
 
     def _impedance_to_abc(self, impedance):
         """ [i,V]^T = ABC [v, F]^T """
@@ -429,12 +449,9 @@ class PseudoSpectralLinearPTO(_PTO):
         if len(self.impedance.shape)==2:
             effort_vars = np.dot(flow_vars, self._impedance_t)
         else:
-            e_i = []
-            for i in range(self.nfreq):
-                e_i.append(np.dot(flow_vars[i*2:i*2+2, :],
-                                  self._impedance_t[:, :, i]))
-            effort_vars = np.vstack(e_i)
-        return effort_vars
+            q_flat = self._dofmat_to_vec(flow_vars)
+            e_flat = np.dot(self._transfer_mat, q_flat)
+        return self._vec_to_dofmat(e_flat)
 
     def _split_effort_vars(self, e):
         return e[:, :self.ndof], e[:, self.ndof:]
