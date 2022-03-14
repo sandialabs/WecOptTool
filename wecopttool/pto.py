@@ -399,7 +399,8 @@ class PseudoSpectralLinearPTO(_PTO):
         super().__init__(kinematics, names)
         self.impedance= impedance
         self.nfreq = nfreq
-        self._make_mimo_transfer_mat()
+        if len(self.impedance.shape) == 3:
+            self._make_mimo_transfer_mat()
 
     @property
     def nstate_per_dof(self):
@@ -427,15 +428,6 @@ class PseudoSpectralLinearPTO(_PTO):
                 elem[idof][jdof] = block_diag(*blocks)
         self._transfer_mat = np.block(elem)
 
-    def _impedance_to_abc(self, impedance):
-        """ [i,V]^T = ABC [v, F]^T """
-        # TODO
-        # # for 1 DOF:
-        # Z_11, Z_12 = impedance[0, :]
-        # Z_21, Z_22 = impedance[1, :]
-        # return np.array([[-Z_11, 1],[(Z_21*Z_12-Z_11*Z_22), Z_22]])/Z_12
-        raise NotImplementedError()
-
     def _calc_flow_vars(self, wec: WEC, x_wec: npt.ArrayLike,
                         x_opt: npt.ArrayLike) -> np.ndarray:
         """Create vector of PTO velocity and current. """
@@ -451,7 +443,8 @@ class PseudoSpectralLinearPTO(_PTO):
         else:
             q_flat = self._dofmat_to_vec(flow_vars)
             e_flat = np.dot(self._transfer_mat, q_flat)
-        return self._vec_to_dofmat(e_flat)
+            effort_vars = self._vec_to_dofmat(e_flat)
+        return effort_vars
 
     def _split_effort_vars(self, e):
         return e[:, :self.ndof], e[:, self.ndof:]
@@ -467,9 +460,9 @@ class PseudoSpectralLinearPTO(_PTO):
         if nsubsteps == 1:
             # velocity PS
             wec_pos = wec.vec_to_dofmat(x_wec)
-            position = self._wec_to_pto_dofs(wec_pos[1:, :])
+            position = self._wec_to_pto_dofs(wec_pos)
             velocity = np.dot(wec.derivative_mat, position)
-            vel_vec = self._dofmat_to_vec(velocity)
+            vel_vec = self._dofmat_to_vec(velocity[1:, :])
             # force PS
             flow_vars = self._calc_flow_vars(wec, x_wec, x_opt)
             force, _ = self._split_effort_vars(
