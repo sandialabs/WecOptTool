@@ -22,7 +22,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
 import xarray as xr
 import capytaine as cpy
-from scipy.optimize import minimize, OptimizeResult
+from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -413,7 +413,7 @@ class WEC:
         Parameters
         ----------
         wave_dirs: list[float]
-            List of wave directions to evaluate BEM at.
+            List of wave directions to evaluate BEM at (degrees).
         tol: float
             Minimum value for the diagonal terms of
             (radiation damping + dissipation).
@@ -621,6 +621,7 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
+              bounds: Optional[Bounds | list] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -666,6 +667,8 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
+        bounds: sequence | Bounds
+            See scipy.optimize.minimize
 
         Returns
         -------
@@ -742,6 +745,7 @@ class WEC:
                    'method': 'SLSQP',
                    'constraints': constraints,
                    'options': optim_options,
+                   'bounds': bounds,
                    }
 
         def callback(x):
@@ -839,12 +843,13 @@ class WEC:
         # xarray - time domain
         dims_td = ('time', 'influenced_dof')
         coords_td = [
-            (dims_td[0], self.time, {'units': 's'}),
+            (dims_td[0], self.time, {'units': 's',
+                                     'long_name':'Time'}),
             (dims_td[1], self.hydro.influenced_dof.values)]
-        attrs_pos = {'long_name': 'WEC position', 'units': 'm or (rad)'}
-        attrs_vel = {'long_name': 'WEC velocity', 'units': 'm/s or (rad)/s'}
+        attrs_pos = {'long_name': 'WEC position', 'units': 'm or rad'}
+        attrs_vel = {'long_name': 'WEC velocity', 'units': 'm/s or rad/s'}
         attrs_acc = {'long_name': 'WEC acceleration',
-                     'units': 'm/s^2 or (rad)/s^2'}
+                     'units': 'm/s^2 or rad/s^2'}
         pos_td = xr.DataArray(
             pos_td, dims=dims_td, coords=coords_td, attrs=attrs_pos)
         vel_td = xr.DataArray(
@@ -857,11 +862,12 @@ class WEC:
         omega = np.concatenate([np.array([0.0]), self.omega])
         dims_fd = ('omega', 'influenced_dof')
         coords_fd = [
-            (dims_fd[0], omega, {'units': '(rad)'}),
+            (dims_fd[0], omega, {'units': 'rad/s',
+                                 'long_name': 'Frequency'}),
             (dims_fd[1], self.hydro.influenced_dof.values)]
-        attrs_pos['units'] = 'm^2*s or (rad)^2*s'
-        attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-        attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+        attrs_pos['units'] = 'm^2*s or rad^2*s'
+        attrs_vel['units'] = 'm^2/s or rad^2/s'
+        attrs_acc['units'] = 'm^2/s^3 or rad^2/s^3'
         pos_fd = xr.DataArray(
             pos_fd, dims=dims_fd, coords=coords_fd, attrs=attrs_pos)
         vel_fd = xr.DataArray(
@@ -1048,7 +1054,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     freq: list[float]
         List of frequencies to evaluate BEM at.
     wave_dirs: list[float]
-        List of wave directions to evaluate BEM at.
+        List of wave directions to evaluate BEM at (degrees).
     rho: float, optional
         Water density in :math:`kg/m^3`.
     g: float, optional
@@ -1064,6 +1070,8 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     xarray.Dataset
         BEM results from capytaine.
     """
+    if wave_dirs is not None:
+        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))  
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
         'rho': [rho],
@@ -1296,3 +1304,12 @@ def post_process_continuous_time(results: xr.DataArray
         return f
 
     return func
+
+def _degrees_to_radians(degrees: float | npt.ArrayLike
+                       ) -> float | np.ndarray:
+    """Convert degrees to radians in range -π to π and sort.
+    """
+    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
+    radians[radians > np.pi] -= 2*np.pi
+    radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    return radians

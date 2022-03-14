@@ -109,6 +109,41 @@ The implicit assumption of this approach is that the body is neutrally buoyant (
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
 In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the :code:`f_add` argument to :py:class:`wecopttool.core.WEC`.
 
+PTO Kinematics
+^^^^^^^^^^^^^^
+The :py:mod:`wecopttool.pto` module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
+Creating one of these pre-defined PTOs requires specifying the *kinematics matrix*.
+Here, the kinematics matrix, :math:`K`, is defined as the linear transformation from the WEC position (e.g., heave) in the global frame, :math:`x`, to the PTO position in the PTO frame (e.g., tether length/generator rotation), :math:`p`:
+
+.. math::
+    p = K x
+    :label: kinematics
+
+The relationship :math:`p(x)` is typically referred to as the *forward kinematics*.
+The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
+Note, however that the real kinematics might not be linear.
+Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
+
+The transpose of :math:`K` is used to transform the PTO forces in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
+
+.. math::
+    f_w = K^T f_p
+    :label: k
+
+This relationship can be derived from conservation of energy in both frames, and using the definition in Equation :eq:`kinematics`:
+
+.. math::
+    f_w^T x = f_p^T p \\
+    f_w^T x = f_p^T K x \\
+    f_w^T = f_p^T K \\
+    f_w = K^T f_p \\
+    :label: conservation_energy
+
+..
+    (commented out): This represents a linearization of the function :math:`f_w(f_p)` about :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
+                     The assumption here is that :math:`f_p(p(x=0))=f_p(0)=0`.
+
+
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
 .. _Autograd documentation: https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy

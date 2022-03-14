@@ -61,11 +61,11 @@ class _PTO:
     def _kinematics_t(self):
         return np.transpose(self.kinematics)
 
-    def _pto_to_wec_dofs(self, pto):
-        return np.dot(pto, self.kinematics)
+    def _pto_force_to_wec_force(self, f_pto):
+        return np.dot(f_pto, self.kinematics)
 
-    def _wec_to_pto_dofs(self, pto):
-        return np.dot(pto, self._kinematics_t)
+    def _wec_pos_to_pto_pos(self, pos_wec):
+        return np.dot(pos_wec, self._kinematics_t)
 
     def _dofmat_to_vec(self, mat: np.ndarray) -> np.ndarray:
         """Flatten a matrix that has one column per DOF.
@@ -88,7 +88,7 @@ class _PTO:
                  nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO position time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        pos = self._wec_to_pto_dofs(wec_pos)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, pos)
 
@@ -96,8 +96,8 @@ class _PTO:
                  nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO velocity time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        wec_vel = np.dot(wec.derivative_mat, wec_pos)
-        vel = self._wec_to_pto_dofs(wec_vel)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
+        vel = np.dot(wec.derivative_mat, pos)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, vel)
 
@@ -106,9 +106,9 @@ class _PTO:
                      ) -> np.ndarray:
         """Calculate the PTO acceleration time-series."""
         wec_pos = wec.vec_to_dofmat(x_wec)
-        wec_vel = np.dot(wec.derivative_mat, wec_pos)
-        wec_acc = np.dot(wec.derivative_mat, wec_vel)
-        acc = self._wec_to_pto_dofs(wec_acc)
+        pos = self._wec_pos_to_pto_pos(wec_pos)
+        vel = np.dot(wec.derivative_mat, pos)
+        acc = np.dot(wec.derivative_mat, vel)
         time_mat = wec.make_time_mat(nsubsteps)
         return np.dot(time_mat, acc)
 
@@ -129,7 +129,7 @@ class _PTO:
         See ``force``.
         """
         fpto_td = self.force(wec, x_wec, x_opt, nsubsteps)
-        return self._pto_to_wec_dofs(fpto_td)
+        return self._pto_force_to_wec_force(fpto_td)
 
     def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                nsubsteps: int = 1) -> float:
@@ -211,13 +211,14 @@ class _PTO:
 
         # assemble time-domain xarray
         dims = ['time', 'dof_pto']
-        coords = [(dims[0], wec.time, {'units': 's'}), (dims[1], self.names)]
+        coords = [(dims[0], wec.time, {'units': 's',
+                                       'long_name':'Time'}), (dims[1], self.names)]
         attrs_f = {'long_name': 'PTO force', 'units': 'N or N*m'}
         attrs_p = {'long_name': 'PTO power', 'units': 'W'}
-        attrs_pos = {'long_name': 'PTO position', 'units': 'm or (rad)'}
-        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or (rad)/s'}
+        attrs_pos = {'long_name': 'PTO position', 'units': 'm or rad'}
+        attrs_vel = {'long_name': 'PTO velocity', 'units': 'm/s or rad/s'}
         attrs_acc = {'long_name': 'PTO acceleration',
-                    'units': 'm/s^2 or (rad)/s^2'}
+                    'units': 'm/s^2 or rad/s^2'}
         force_td = xr.DataArray(
             force_td, dims=dims, coords=coords, attrs=attrs_f)
         power_td = xr.DataArray(
@@ -234,12 +235,13 @@ class _PTO:
         # assemble frequency-domain xarray
         omega = np.concatenate([np.array([0.0]), wec.omega])
         dims[0] = 'omega'
-        coords[0] = (dims[0], omega, {'units': '(rad)'})
+        coords[0] = (dims[0], omega, {'units': 'rad/s',
+                                      'long_name': 'Frequency'})
         attrs_f['units'] = 'N^2*s'
         attrs_p['units'] = 'W^2*s'
-        attrs_pos['units'] = 'm^2*s or (rad)^2*s'
-        attrs_vel['units'] = 'm^2/s or (rad)^2/s'
-        attrs_acc['units'] = 'm^2/s^3 or (rad)^2/s^3'
+        attrs_pos['units'] = 'm^2*s or rad^2*s'
+        attrs_vel['units'] = 'm^2/s or rad^2/s'
+        attrs_acc['units'] = 'm^2/s^3 or rad^2/s^3'
         force_fd = xr.DataArray(force_fd, dims=dims, coords=coords, attrs=attrs_f)
         power_fd = xr.DataArray(power_fd, dims=dims, coords=coords, attrs=attrs_p)
         pos_fd = xr.DataArray(pos_fd, dims=dims, coords=coords, attrs=attrs_pos)
@@ -318,13 +320,14 @@ class PseudoSpectralPTO(_PTO):
                nsubsteps: int = 1) -> float:
         if nsubsteps == 1:
             wec_pos = wec.vec_to_dofmat(x_wec)
-            wec_vel = np.dot(wec.derivative_mat, wec_pos)
-            vel = self._wec_to_pto_dofs(wec_vel)
+            pos = self._wec_pos_to_pto_pos(wec_pos)
+            vel = np.dot(wec.derivative_mat, pos)
             vel_vec = self._dofmat_to_vec(vel[1:, :])
             energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
         else:
             energy_produced = super().energy(wec, x_wec, x_opt, nsubsteps)
         return energy_produced
+
 
 
 class ProportionalPTO(_PTO):
@@ -345,7 +348,7 @@ class ProportionalPTO(_PTO):
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        force_td = np.reshape(x_opt, [-1, 1]) * vel_td
+        force_td = np.reshape(x_opt, [1,-1]) * vel_td
         return force_td
 
 
@@ -368,9 +371,10 @@ class ProportionalIntegralPTO(_PTO):
               nsubsteps: int = 1) -> np.ndarray:
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
         pos_td = self.position(wec, x_wec, x_opt, nsubsteps)
-        u = np.reshape(x_opt, [-1, 1])
+        u = np.reshape(x_opt, [1,-1])
         B = np.hstack([vel_td, pos_td])
-        force_td = np.dot(B,u)
+        tmp1 = u * B
+        force_td = tmp1[:,0:self.ndof] + tmp1[:,self.ndof:]
         return force_td
 
 
@@ -432,7 +436,7 @@ class PseudoSpectralLinearPTO(_PTO):
                         x_opt: npt.ArrayLike) -> np.ndarray:
         """Create vector of PTO velocity and current. """
         wec_pos = wec.vec_to_dofmat(x_wec)
-        position = self._wec_to_pto_dofs(wec_pos)
+        position = self._wec_pos_to_pto_pos(wec_pos)
         velocity = np.dot(wec.derivative_mat, position)[1:, :]
         current = self._vec_to_dofmat(x_opt)
         return np.hstack([velocity, current])
@@ -460,7 +464,7 @@ class PseudoSpectralLinearPTO(_PTO):
         if nsubsteps == 1:
             # velocity PS
             wec_pos = wec.vec_to_dofmat(x_wec)
-            position = self._wec_to_pto_dofs(wec_pos)
+            position = self._wec_pos_to_pto_pos(wec_pos)
             velocity = np.dot(wec.derivative_mat, position)
             vel_vec = self._dofmat_to_vec(velocity[1:, :])
             # force PS
