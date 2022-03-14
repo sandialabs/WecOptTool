@@ -419,7 +419,6 @@ class WEC:
         """
         log.info(f"Running Capytaine (BEM): {self.nfreq} frequencies x " +
                  f"{len(wave_dirs)} wave directions.")
-        # wave_dirs = np.atleast_1d(np.deg2rad(wave_dirs))
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
         data = run_bem(self.fb, self.freq, wave_dirs,
                        rho=self.rho, g=self.g, depth=self.depth,
