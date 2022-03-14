@@ -485,7 +485,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wave_dirs: list[float]</span>
-<span class="sd">            List of wave directions to evaluate BEM at.</span>
+<span class="sd">            List of wave directions to evaluate BEM at (degrees).</span>
 <span class="sd">        tol: float</span>
 <span class="sd">            Minimum value for the diagonal terms of</span>
 <span class="sd">            (radiation damping + dissipation).</span>
@@ -1126,7 +1126,7 @@
 <span class="sd">    freq: list[float]</span>
 <span class="sd">        List of frequencies to evaluate BEM at.</span>
 <span class="sd">    wave_dirs: list[float]</span>
-<span class="sd">        List of wave directions to evaluate BEM at.</span>
+<span class="sd">        List of wave directions to evaluate BEM at (degrees).</span>
 <span class="sd">    rho: float, optional</span>
 <span class="sd">        Water density in :math:`kg/m^3`.</span>
 <span class="sd">    g: float, optional</span>
@@ -1142,6 +1142,8 @@
 <span class="sd">    xarray.Dataset</span>
 <span class="sd">        BEM results from capytaine.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">wave_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wave_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">_degrees_to_radians</span><span class="p">(</span><span class="n">wave_dirs</span><span class="p">))</span>  
     <span class="n">solver</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">BEMSolver</span><span class="p">()</span>
     <span class="n">test_matrix</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">rho</span><span class="p">],</span>
@@ -1374,6 +1376,15 @@
         <span class="k">return</span> <span class="n">f</span>
 
     <span class="k">return</span> <span class="n">func</span></div>
+
+<span class="k">def</span> <span class="nf">_degrees_to_radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert degrees to radians in range -π to π and sort.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">degrees</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+    <span class="n">radians</span><span class="p">[</span><span class="n">radians</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="n">radians</span> <span class="o">=</span> <span class="n">radians</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">radians</span>
 </pre></div>
 
            </div>

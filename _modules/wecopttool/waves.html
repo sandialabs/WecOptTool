@@ -94,7 +94,7 @@
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
 <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">gamma</span>
 
-<span class="kn">from</span> <span class="nn">wecopttool.core</span> <span class="kn">import</span> <span class="n">freq_array</span>
+<span class="kn">from</span> <span class="nn">wecopttool.core</span> <span class="kn">import</span> <span class="n">freq_array</span><span class="p">,</span> <span class="n">_degrees_to_radians</span>
 
 
 <div class="viewcode-block" id="wave_dataset"><a class="viewcode-back" href="../../source_code_waves.html#wecopttool.waves.wave_dataset">[docs]</a><span class="k">def</span> <span class="nf">wave_dataset</span><span class="p">(</span><span class="n">f0</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -350,16 +350,6 @@
     <span class="n">waves</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;Spreading function&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spread_name</span>
 
     <span class="k">return</span> <span class="n">waves</span></div>
-
-
-<span class="k">def</span> <span class="nf">_degrees_to_radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
-                       <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert degrees to radians in range -π to π and sort.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">degrees</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
-    <span class="n">radians</span><span class="p">[</span><span class="n">radians</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">radians</span> <span class="o">=</span> <span class="n">radians</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">radians</span>
 
 
 <span class="k">def</span> <span class="nf">_random_phase</span><span class="p">(</span><span class="n">shape</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
