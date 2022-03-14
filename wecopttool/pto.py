@@ -329,7 +329,6 @@ class PseudoSpectralPTO(_PTO):
         return energy_produced
 
 
-
 class ProportionalPTO(_PTO):
     """Proportional (P) PTO controller (a.k.a., "proportional damping").
 

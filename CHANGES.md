@@ -3,6 +3,12 @@
 
 ## Version 1.1.1
 
+**New features**
+
+* Linear PTOs now available in `pto.py`, specified through a frequency-dependent complex PTO impedance. This allows modeling more realistic PTOs.
+
+**Bug fixes**
+
 * user wave direction input now consistently in degrees
 
 
