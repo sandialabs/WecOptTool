@@ -644,13 +644,3 @@ def test_linear_ps_pto(wec, regular_wave):
                        cc_voltage_td(t))
     assert np.allclose(pto.electric_power(wec, x_wec, x_opt, nsubsteps),
                        cc_current_td(t)*cc_voltage_td(t))
-
-
-def test_linear_p_pto(wec, regular_wave):
-    # TODO
-    pass
-
-
-def test_linear_pi_pto(wec, regular_wave):
-    # TODO
-    pass
