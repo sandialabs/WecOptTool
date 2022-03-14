@@ -528,3 +528,13 @@ class PseudoSpectralLinearPTO(_PTO):
         time_dom, freq_dom = super().post_process(wec, x_wec, x_opt)
         # TODO: add electrical quantities
         return time_dom, freq_dom
+
+
+class ProportionalLinearPTO():
+    # TODO
+    raise NotImplementedError()
+
+
+class ProportionalIntegralLinearPTO():
+    # TODO
+    raise NotImplementedError()

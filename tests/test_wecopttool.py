@@ -281,12 +281,12 @@ def test_wavebot_p_cc(wec,resonant_wave):
     wec.f_add = {'PTO': pto.force_on_wec}
 
     # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec),
                          -1 * np.inf * np.ones(nstate_opt)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec),
                          0 * np.ones(nstate_opt)])
     bounds = Bounds(lb, ub)
-    
+
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
         bounds=bounds)
@@ -500,22 +500,22 @@ def surge_heave_wavebot():
     wec.hydro.radiation_damping[:, 1, 0] = 0.0
     wec._del_impedance()
     wec.bem_calc_impedance()
-    
+
     return wec
 
 
 def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
-    
+
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
     pto = wot.pto.ProportionalPTO(kinematics, names=names)
-    
+
     x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
     x_opt = np.random.randn(pto.nstate)
-    
+
     pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
     pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
-    
+
     assert np.all(x_opt[0] * pto_vel[:,0] == pto_force[:,0])
     assert np.all(x_opt[1] * pto_vel[:,1] == pto_force[:,1])
 
@@ -528,14 +528,14 @@ def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
 
     x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
     x_opt = np.random.randn(pto.nstate)
-    
+
     pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
     pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
     pto_pos = pto.position(surge_heave_wavebot, x_wec, x_opt)
-    
-    assert np.all(x_opt[0] * pto_vel[:,0] + x_opt[2] * pto_pos[:,0] 
+
+    assert np.all(x_opt[0] * pto_vel[:,0] + x_opt[2] * pto_pos[:,0]
                   == pto_force[:,0])
-    assert np.all(x_opt[1] * pto_vel[:,1] + x_opt[3] * pto_pos[:,1] 
+    assert np.all(x_opt[1] * pto_vel[:,1] + x_opt[3] * pto_pos[:,1]
                   == pto_force[:,1])
 
 
@@ -576,3 +576,81 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
         / wec.hydrostatic_stiffness.item()
     assert pytest.approx (expected, 1e-1) == mean_pos
+
+
+def test_linear_ps_pto(wec, regular_wave):
+    # PTO kinematics
+    kinematics = np.eye(wec.ndof)
+    # PTO impedance - frequency dependent
+    # TODO: verify this is the correct PTO impedance for the WaveBot
+    gear_ratio = 12.0
+    torque_constant = 6.7
+    winding_resistance = 0.5
+    winding_inductance = 0.0
+    drivetrain_inertia = 2.0
+    drivetrain_friction = 1.0
+    drivetrain_stiffness = 0.0
+    drivetrain_impedance = (1j*wec.omega*drivetrain_inertia +
+                            drivetrain_friction +
+                            1/(1j*wec.omega)*drivetrain_stiffness)
+    winding_impedance = winding_resistance + 1j*wec.omega*winding_inductance
+    pto_impedance_11 = gear_ratio**2 * drivetrain_impedance
+    off_diag = np.sqrt(3.0/2.0) * torque_constant * gear_ratio
+    pto_impedance_12 = (off_diag+0j) * np.ones(wec.omega.shape)
+    pto_impedance_21 = (off_diag+0j) * np.ones(wec.omega.shape)
+    pto_impedance_22 = winding_impedance
+    pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],
+                            [pto_impedance_21, pto_impedance_22]])
+    # create PTO
+    pto = wot.pto.PseudoSpectralLinearPTO(wec.nfreq, kinematics, pto_impedance)
+
+    # add PTO force to WEC
+    wec.f_add = pto.force_on_wec
+
+    # objective function
+    obj_fun = pto.electric_average_power
+    nstate_opt = pto.nstate
+
+    # solve
+    scale_x_wec = 1.0
+    scale_x_opt = 1.0
+    scale_obj = 1.0
+    options = {'maxiter': 100, 'ftol': 1e-8}
+    _, wec_fdom, x_wec, x_opt, _, _ = wec.solve(
+        waves, obj_fun, nstate_opt, optim_options=options,
+        scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
+
+    # calculate theoretical results
+    z_11 = pto_impedance[0, 0, :]
+    z_12 = pto_impedance[0, 1, :]
+    z_21 = pto_impedance[1, 0, :]
+    z_22 = pto_impedance[1, 1, :]
+    idof = 0
+    excitation_force = wec_fdom['excitation_force'][1:, idof]
+    zi = wec.hydro.Zi[:, idof, idof]
+    voltage_th = z_21 / (z_11 - zi) * excitation_force
+    impedance_th = z_22 - (z_12*z_21) / (z_11 - zi)
+    cc_current_fd = voltage_th / (2*impedance_th.real)
+    cc_voltage_fd = -1.0 * impedance_th.conj() * cc_current_fd
+    cc_current_td = wot.post_process_continuous_time(cc_current_fd)
+    cc_voltage_td = wot.post_process_continuous_time(cc_voltage_fd)
+
+    # check results close to theoretical
+    nsubsteps = 10
+    t = wec.make_time_vec(nsubsteps)
+    assert np.allclose(pto.electric_current(wec, x_wec, x_opt, nsubsteps),
+                       cc_current_td(t))
+    assert np.allclose(pto.electric_voltage(wec, x_wec, x_opt, nsubsteps),
+                       cc_voltage_td(t))
+    assert np.allclose(pto.electric_power(wec, x_wec, x_opt, nsubsteps),
+                       cc_current_td(t)*cc_voltage_td(t))
+
+
+def test_linear_p_pto(wec, regular_wave):
+    # TODO
+    pass
+
+
+def test_linear_pi_pto(wec, regular_wave):
+    # TODO
+    pass
