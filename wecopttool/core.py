@@ -412,14 +412,14 @@ class WEC:
         Parameters
         ----------
         wave_dirs: list[float]
-            List of wave directions to evaluate BEM at in degrees.
+            List of wave directions to evaluate BEM at (degrees).
         tol: float
             Minimum value for the diagonal terms of
             (radiation damping + dissipation).
         """
         log.info(f"Running Capytaine (BEM): {self.nfreq} frequencies x " +
                  f"{len(wave_dirs)} wave directions.")
-        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))
+        # wave_dirs = np.atleast_1d(np.deg2rad(wave_dirs))
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
         data = run_bem(self.fb, self.freq, wave_dirs,
                        rho=self.rho, g=self.g, depth=self.depth,
@@ -1070,6 +1070,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     xarray.Dataset
         BEM results from capytaine.
     """
+    wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))  
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
         'rho': [rho],

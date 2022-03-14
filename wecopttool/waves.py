@@ -21,7 +21,7 @@ import numpy.typing as npt
 import xarray as xr
 from scipy.special import gamma
 
-from wecopttool.core import freq_array
+from wecopttool.core import freq_array, _degrees_to_radians
 
 
 def wave_dataset(f0: float, nfreq: int,
@@ -277,16 +277,6 @@ def irregular_wave(f0: float, nfreq: int,
     waves.attrs['Spreading function'] = spread_name
 
     return waves
-
-
-def _degrees_to_radians(degrees: float | npt.ArrayLike
-                       ) -> float | np.ndarray:
-    """Convert degrees to radians in range -π to π and sort.
-    """
-    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
-    radians = radians.item() if (radians.size == 1) else np.sort(radians)
-    return radians
 
 
 def _random_phase(shape: list[int] | int | None = None,
