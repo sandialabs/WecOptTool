@@ -617,7 +617,7 @@ def test_linear_ps_pto(wec, regular_wave):
     scale_obj = 1.0
     options = {'maxiter': 100, 'ftol': 1e-8}
     _, wec_fdom, x_wec, x_opt, _, _ = wec.solve(
-        waves, obj_fun, nstate_opt, optim_options=options,
+        regular_wave, obj_fun, nstate_opt, optim_options=options,
         scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
 
     # calculate theoretical results
@@ -634,13 +634,15 @@ def test_linear_ps_pto(wec, regular_wave):
     cc_voltage_fd = -1.0 * impedance_th.conj() * cc_current_fd
     cc_current_td = wot.post_process_continuous_time(cc_current_fd)
     cc_voltage_td = wot.post_process_continuous_time(cc_voltage_fd)
+    cc_power_td = lambda t: cc_current_td(t) * cc_voltage_td(t)
 
     # check results close to theoretical
     nsubsteps = 10
     t = wec.make_time_vec(nsubsteps)
-    assert np.allclose(pto.electric_current(wec, x_wec, x_opt, nsubsteps),
-                       cc_current_td(t))
-    assert np.allclose(pto.electric_voltage(wec, x_wec, x_opt, nsubsteps),
-                       cc_voltage_td(t))
-    assert np.allclose(pto.electric_power(wec, x_wec, x_opt, nsubsteps),
-                       cc_current_td(t)*cc_voltage_td(t))
+    current = pto.electric_current(wec, x_wec, x_opt, nsubsteps).flatten()
+    voltage = pto.electric_voltage(wec, x_wec, x_opt, nsubsteps).flatten()
+    power = pto.electric_power(wec, x_wec, x_opt, nsubsteps).flatten()
+    rtol = 1e-3
+    assert np.allclose(current, cc_current_td(t), rtol=rtol)
+    assert np.allclose(voltage, cc_voltage_td(t), rtol=rtol)
+    assert np.allclose(power, cc_power_td(t), rtol=rtol)
