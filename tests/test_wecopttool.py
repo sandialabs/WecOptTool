@@ -612,9 +612,9 @@ def test_linear_ps_pto(wec, regular_wave):
     nstate_opt = pto.nstate
 
     # solve
-    scale_x_wec = 1.0
-    scale_x_opt = 1.0
-    scale_obj = 1.0
+    scale_x_wec = 1.0,
+    scale_x_opt = 0.01,
+    scale_obj = 1e-1,
     options = {'maxiter': 100, 'ftol': 1e-8}
     _, wec_fdom, x_wec, x_opt, _, _ = wec.solve(
         regular_wave, obj_fun, nstate_opt, optim_options=options,
