@@ -526,5 +526,49 @@ class PseudoSpectralLinearPTO(_PTO):
     def post_process(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
                      ) -> tuple[xr.Dataset, xr.Dataset]:
         time_dom, freq_dom = super().post_process(wec, x_wec, x_opt)
-        # TODO: add electrical quantities
+
+        # current
+        current_td = self.electric_current(wec, x_wec, x_opt)
+        current_fd = wec.td_to_fd(current_td)
+
+        # voltage
+        voltage_td = self.electric_voltage(wec, x_wec, x_opt)
+        voltage_fd = wec.td_to_fd(voltage_td)
+
+        # power
+        epower_td = self.electric_power(wec, x_wec, x_opt)
+        epower_fd = wec.td_to_fd(epower_td)
+
+        # time-domain
+        dims = time_dom.dims
+        coords = time_dom.coords
+        attrs_current = {'long_name': 'PTO current', 'units': 'A'}
+        attrs_voltage = {'long_name': 'PTO voltage', 'units': 'V'}
+        attrs_epower = {'long_name': 'PTO electric power', 'units': 'W'}
+        current_td = xr.DataArray(
+            current_td, dims=dims, coords=coords, attrs=attrs_current)
+        voltage_td = xr.DataArray(
+            voltage_td, dims=dims, coords=coords, attrs=attrs_voltage)
+        epower_td = xr.DataArray(
+            epower_td, dims=dims, coords=coords, attrs=attrs_epower)
+        time_dom["current"] = current_td
+        time_dom["voltage"] = voltage_td
+        time_dom["epower"] = epower_td
+
+        # frequency-domain
+        dims = freq_dom.dims
+        coords = freq_dom.coords
+        attrs_current['units'] = 'A^2*s'
+        attrs_voltage['units'] = 'V^2*s'
+        attrs_epower['units'] = 'W^2*s'
+        current_fd = xr.DataArray(
+            current_fd, dims=dims, coords=coords, attrs=attrs_current)
+        voltage_fd = xr.DataArray(
+            voltage_fd, dims=dims, coords=coords, attrs=attrs_voltage)
+        epower_fd = xr.DataArray(
+            epower_fd, dims=dims, coords=coords, attrs=attrs_epower)
+        freq_dom["current"] = current_fd
+        freq_dom["voltage"] = voltage_fd
+        freq_dom["epower"] = epower_fd
+
         return time_dom, freq_dom
