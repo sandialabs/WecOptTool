@@ -1,6 +1,11 @@
 
 # Changelog
 
+## Version 1.1.1
+
+* user wave direction input now consistently in degrees
+
+
 ## Version 1.1.0
 
 * minor updates to README
