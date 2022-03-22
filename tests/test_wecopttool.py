@@ -124,11 +124,11 @@ def test_solve(wec, regular_wave, pto):
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
     _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
-        nstate_opt,
-        scale_x_wec = 1.0,
-        scale_x_opt = 0.01,
-        scale_obj = 1e-1,
-        optim_options=options)
+                                               nstate_opt,
+                                               scale_x_wec=1.0,
+                                               scale_x_opt=0.01,
+                                               scale_obj=1e-1,
+                                               optim_options=options)
 
     avg_pow_exp = -474.133896724959
     assert pytest.approx(avg_pow, 1e-5) == avg_pow_exp
@@ -166,12 +166,12 @@ def test_solve_constraints(wec, regular_wave, pto):
     options = {}
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
-        nstate_opt,
-        scale_x_wec = 1.0,
-        scale_x_opt = 0.01,
-        scale_obj = 1e-1,
-        optim_options=options)
+    _, _, x_wec, x_opt, _, _ = wec.solve(regular_wave, obj_fun,
+                                         nstate_opt,
+                                         scale_x_wec=1.0,
+                                         scale_x_opt=0.01,
+                                         scale_obj=1e-1,
+                                         optim_options=options)
 
     pto_tdom, _ = pto.post_process(wec, x_wec, x_opt)
 
@@ -262,7 +262,7 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
     plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
 
-    assert pytest.approx(average_power, 1e-5) == plim
+    assert pytest.approx(average_power, 1e-4) == plim
 
 
 def test_wavebot_p_cc(wec,resonant_wave):
@@ -576,3 +576,33 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
         / wec.hydrostatic_stiffness.item()
     assert pytest.approx (expected, 1e-1) == mean_pos
+
+
+def test_solve_initial_guess(wec,resonant_wave):
+
+    # remove constraints
+    wec.constraints = []
+
+    # update PTO
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalPTO(kinematics)
+    wec.f_add = {'PTO': pto.force_on_wec}
+
+    # set bounds such that damping must be negative
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+                         -1 * np.inf * np.ones(pto.nstate)])
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+                         0 * np.ones(pto.nstate)])
+
+    kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()]
+
+    *_, res = wec.solve(resonant_wave, 
+                        obj_fun=pto.average_power, 
+                        nstate_opt=pto.nstate,
+                        optim_options={'maxiter': 1000, 
+                                       'ftol': 1e-8}, 
+                        scale_x_opt=1e3,
+                        x_opt_0=kp_guess, 
+                        bounds=Bounds(lb, ub))
+    
+    assert res['nit'] < 10 # takes ~23 w/o initial guess
