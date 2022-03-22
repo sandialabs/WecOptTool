@@ -342,7 +342,7 @@ def test_wavebot_pi_cc(wec,regular_wave):
     tmp1 = wec.hydro.Zi[omega_wave_ind].conj().data.item()
     optimal_gains_expected = -1*tmp1.real + 1j * omega_wave * tmp1.imag
     
-    assert pytest.approx(optimal_gains_expected, 1e-9) == xopt[0] + 1j*xopt[1]
+    assert pytest.approx(optimal_gains_expected, 1e-6) == xopt[0] + 1j*xopt[1]
 
 
 def test_examples_device_wavebot_mesh():
