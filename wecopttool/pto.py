@@ -612,7 +612,7 @@ class PLinearPTO(_LinearPTO):
 
     @property
     def nstate_per_dof(self):
-        return 2
+        return 1
 
     def _force_fd_mat(self, wec: WEC, x_wec: npt.ArrayLike,
                       x_opt: npt.ArrayLike) -> np.ndarray:
@@ -620,17 +620,15 @@ class PLinearPTO(_LinearPTO):
         position = self._wec_pos_to_pto_pos(wec_pos)
         velocity = np.dot(wec.derivative_mat, position)
         u = np.reshape(x_opt, [1, -1])
-        B = np.hstack([position[1:, :], velocity[1:, :]])
-        tmp1 = u * B
-        force_td = tmp1[:, 0:self.ndof] + tmp1[:, self.ndof:]
-        return force_td
+        B = velocity[1:, :]
+        force_fd = u * B
+        return force_fd
 
 
 class PILinearPTO(_LinearPTO):
-    """Proportional integral (PI) PTO controller with linear PTO.
+    """Proportional (P) PTO controller with linear PTO.
 
-    PTO force is a constant times the velocity plus a constant times
-    position.
+    PTO force is a constant times the velocity.
     """
 
     @property
@@ -645,5 +643,5 @@ class PILinearPTO(_LinearPTO):
         u = np.reshape(x_opt, [1, -1])
         B = np.hstack([position[1:, :], velocity[1:, :]])
         tmp1 = u * B
-        force_td = tmp1[:, 0:self.ndof] + tmp1[:, self.ndof:]
-        return force_td
+        force_fd = tmp1[:, 0:self.ndof] + tmp1[:, self.ndof:]
+        return force_fd
