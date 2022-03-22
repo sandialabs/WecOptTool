@@ -740,17 +740,8 @@ class WEC:
             eq_cons['jac'] = jacobian(resid_fun)
         constraints.append(eq_cons)
 
-        # minimize
-        optim_options['disp'] = optim_options.get('disp', True)
-
-        problem = {'fun': obj_fun_scaled,
-                   'x0': x0,
-                   'method': 'SLSQP',
-                   'constraints': constraints,
-                   'options': optim_options,
-                   'bounds': bounds,
-                   }
-
+        optim_options['disp'] = optim_options.get('disp', True)         
+        
         if callback is None:
             def callback(x):
                 x_wec, x_opt = self.decompose_decision_var(x)
@@ -758,12 +749,20 @@ class WEC:
                     + f"[{np.abs(np.mean(x_wec)):.2e}, " \
                     + f"{np.abs(np.mean(x_opt)):.2e}, " \
                     + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-        
-        problem['callback'] = callback
+
+        problem = {'fun': obj_fun_scaled,
+                   'x0': x0,
+                   'method': 'SLSQP',
+                   'constraints': constraints,
+                   'options': optim_options,
+                   'bounds': bounds,
+                   'callback':callback,
+                   }
 
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
 
+        # minimize
         res = minimize(**problem)
 
         msg = f'{res.message}    (Exit mode {res.status})'
