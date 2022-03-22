@@ -338,8 +338,8 @@ def test_wavebot_pi_cc(wec,regular_wave):
     
     # optimal gain matches complex conjugate of impedance
     omega_wave_ind = np.where((regular_wave.S > 0).squeeze())[0].item()
-    omega_wave = regular_wave.omega[omega_wave_ind]
-    tmp1 = wec.hydro.Zi[omega_wave_ind].conj()
+    omega_wave = regular_wave.omega[omega_wave_ind].data.item()
+    tmp1 = wec.hydro.Zi[omega_wave_ind].conj().data.item()
     optimal_gains_expected = -1*tmp1.real + 1j * omega_wave * tmp1.imag
     
     assert pytest.approx(optimal_gains_expected, 1e-9) == xopt[0] + 1j*xopt[1]
