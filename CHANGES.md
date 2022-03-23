@@ -5,7 +5,9 @@
 
 * user wave direction input now consistently in degrees
 * bug fix for multidirectional waves
-
+* scale initial guess (`x_wec_0` and `x_opt_0`) arguments within `wec.solve`
+* scale `bounds` argument within `wec.solve`
+* expose `callback` argument for `scipy.optimize.minimize` via `wec.solve`, allowing user to overwrite default
 
 ## Version 1.1.0
 
