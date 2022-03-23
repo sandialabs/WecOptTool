@@ -699,6 +699,10 @@ class WEC:
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+        
+        if bounds is not None:
+            bounds.lb = bounds.lb*scale
+            bounds.ub = bounds.ub*scale
 
         # wave excitation force
         fd_we, td_we = wave_excitation(self.hydro, waves)
