@@ -266,9 +266,6 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
 
 
 def test_wavebot_p_cc(wec,resonant_wave):
-    """Check that power from proportional damping controller can match
-    theoretical limit at the natural resonance.
-    """
 
     # remove constraints
     wec.constraints = []
@@ -290,16 +287,21 @@ def test_wavebot_p_cc(wec,resonant_wave):
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
         bounds=bounds)
+    
+    # P controller power matches theoretical limit at resonance
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(average_power, 0.03) == plim
+    
+    # optimal gain matches real part of impedance
+    omega_wave_ind = np.where((resonant_wave.S > 0).squeeze())[0].item()
+    optimal_kp_expected = wec.hydro.Zi[omega_wave_ind].real
+    
+    assert pytest.approx(optimal_kp_expected, 1e-1) == -1*xopt.item()
 
 
 def test_wavebot_pi_cc(wec,regular_wave):
-    """Check that power from proportional integral (PI) controller can match
-    theoretical limit at any single wave frequency (i.e., regular wave).
-    """
 
     # remove constraints
     wec.constraints = []
@@ -307,17 +309,40 @@ def test_wavebot_pi_cc(wec,regular_wave):
     # update PTO
     kinematics = np.eye(wec.ndof)
     pto = wot.pto.ProportionalIntegralPTO(kinematics)
-    obj_fun = pto.average_power
-    nstate_opt = pto.nstate
-    wec.f_add = {'PTO': pto.force_on_wec}
 
-    tdom, fdom, xwec, xopt, average_power, res = wec.solve(regular_wave,
-        obj_fun, nstate_opt,
-        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+    wec.f_add = {'PTO': pto.force_on_wec}
+    
+    # set bounds such that damping must be negative
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+                         -1 * np.inf * np.ones(1),
+                         -1 * np.inf * np.ones(1)])
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+                         0 * np.ones(1),
+                         1 * np.inf * np.ones(1)])
+    bounds = Bounds(lb, ub)
+
+    _, fdom, _, xopt, avg_power, _ = wec.solve(regular_wave,
+                                               obj_fun=pto.average_power, 
+                                               nstate_opt=pto.nstate,
+                                               optim_options={
+                                                   'maxiter': 1000, 
+                                                   'ftol': 1e-8},
+                                               scale_x_opt=1e3,
+                                               bounds=bounds)
+
+    # PI controller power matches theoretical limit for an single freq
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
-    assert pytest.approx(average_power, 0.03) == plim
+    assert pytest.approx(avg_power, 0.03) == plim
+    
+    # optimal gain matches complex conjugate of impedance
+    omega_wave_ind = np.where((regular_wave.S > 0).squeeze())[0].item()
+    omega_wave = regular_wave.omega[omega_wave_ind].data.item()
+    tmp1 = wec.hydro.Zi[omega_wave_ind].conj().data.item()
+    optimal_gains_expected = -1*tmp1.real + 1j * omega_wave * tmp1.imag
+    
+    assert pytest.approx(optimal_gains_expected, 1e-6) == xopt[0] + 1j*xopt[1]
 
 
 def test_examples_device_wavebot_mesh():
