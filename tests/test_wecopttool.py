@@ -631,3 +631,36 @@ def test_solve_initial_guess(wec,resonant_wave):
                         bounds=Bounds(lb, ub))
     
     assert res['nit'] < 10 # takes ~23 w/o initial guess
+
+
+def test_solve_bounds(wec,resonant_wave):
+    """Confirm that bounds are not violated and scale correctly"""
+
+    # remove constraints
+    wec.constraints = []
+
+    # update PTO
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.ProportionalPTO(kinematics)
+    wec.f_add = {'PTO': pto.force_on_wec}
+
+    # set bounds such that optimal will equal bound
+    kplim = -1e3
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+                         kplim * np.ones(pto.nstate)])
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+                         0 * np.ones(pto.nstate)])
+
+    # poor guess (optimal / 10)
+    kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()/10]
+
+    *_, x_opt, _, _ = wec.solve(resonant_wave, 
+                                obj_fun=pto.average_power, 
+                                nstate_opt=pto.nstate,
+                                optim_options={'maxiter': 5e1, 
+                                               'ftol': 1e-8}, 
+                                scale_x_opt=1e3,
+                                x_opt_0=kp_guess, 
+                                bounds=Bounds(lb, ub))
+    
+    assert pytest.approx(kplim,1e-10) == x_opt.item()
