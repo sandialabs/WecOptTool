@@ -590,7 +590,7 @@ class WEC:
     def _get_state_scale(self,
                          scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
-                         nstate_opt: Optional[int] = None):
+                         nstate_opt: Optional[int] = None) -> np.ndarray:
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:

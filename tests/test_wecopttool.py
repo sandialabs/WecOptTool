@@ -604,6 +604,7 @@ def test_buoyancy_excess(wec, pto, regular_wave):
 
 
 def test_solve_initial_guess(wec,resonant_wave):
+    """Confirm initial guess is effective and scaled correctly"""
 
     # remove constraints
     wec.constraints = []
