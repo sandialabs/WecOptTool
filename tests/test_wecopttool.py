@@ -278,15 +278,16 @@ def test_wavebot_p_cc(wec,resonant_wave):
     wec.f_add = {'PTO': pto.force_on_wec}
 
     # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
-                         -1 * np.inf * np.ones(nstate_opt)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
-                         0 * np.ones(nstate_opt)])
-    bounds = Bounds(lb, ub)
-    
-    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
-        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
-        bounds=bounds)
+    bounds_opt = Bounds(lb=-1 * np.inf, 
+                        ub=0)
+
+    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, 
+                                                   obj_fun, 
+                                                   nstate_opt,
+                                                   optim_options={'maxiter': 1000, 
+                                                                  'ftol': 1e-8}, 
+                                                   scale_x_opt=1e3,
+                                                   bounds_opt=bounds_opt)
     
     # P controller power matches theoretical limit at resonance
     plim = power_limit(fdom['excitation_force'][1:, 0],
@@ -313,13 +314,8 @@ def test_wavebot_pi_cc(wec,regular_wave):
     wec.f_add = {'PTO': pto.force_on_wec}
     
     # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
-                         -1 * np.inf * np.ones(1),
-                         -1 * np.inf * np.ones(1)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
-                         0 * np.ones(1),
-                         1 * np.inf * np.ones(1)])
-    bounds = Bounds(lb, ub)
+    bounds_opt = Bounds(lb= -1 * np.inf * np.ones(2),
+                    ub=np.hstack([0 * np.ones(1), 1 * np.inf * np.ones(1)]))
 
     _, fdom, _, xopt, avg_power, _ = wec.solve(regular_wave,
                                                obj_fun=pto.average_power, 
@@ -328,7 +324,7 @@ def test_wavebot_pi_cc(wec,regular_wave):
                                                    'maxiter': 1000, 
                                                    'ftol': 1e-8},
                                                scale_x_opt=1e3,
-                                               bounds=bounds)
+                                               bounds_opt=bounds_opt)
 
     # PI controller power matches theoretical limit for an single freq
     plim = power_limit(fdom['excitation_force'][1:, 0],
@@ -615,10 +611,8 @@ def test_solve_initial_guess(wec,resonant_wave):
     wec.f_add = {'PTO': pto.force_on_wec}
 
     # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
-                         -1 * np.inf * np.ones(pto.nstate)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
-                         0 * np.ones(pto.nstate)])
+    bounds_opt = Bounds(lb=-1 * np.inf,
+                        ub=0)
 
     kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()]
 
@@ -629,7 +623,7 @@ def test_solve_initial_guess(wec,resonant_wave):
                                        'ftol': 1e-8}, 
                         scale_x_opt=1e3,
                         x_opt_0=kp_guess, 
-                        bounds=Bounds(lb, ub))
+                        bounds_opt=bounds_opt)
     
     assert res['nit'] < 10 # takes ~23 w/o initial guess
 
@@ -647,10 +641,8 @@ def test_solve_bounds(wec,resonant_wave):
 
     # set bounds such that optimal will equal bound
     kplim = -1e3
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
-                         kplim * np.ones(pto.nstate)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
-                         0 * np.ones(pto.nstate)])
+    bounds_opt = Bounds(lb=kplim,
+                        ub=0)
 
     # poor guess (optimal / 10)
     kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()/10]
@@ -662,6 +654,6 @@ def test_solve_bounds(wec,resonant_wave):
                                                'ftol': 1e-8}, 
                                 scale_x_opt=1e3,
                                 x_opt_0=kp_guess, 
-                                bounds=Bounds(lb, ub))
+                                bounds_opt=bounds_opt)
     
     assert pytest.approx(kplim,1e-10) == x_opt.item()
