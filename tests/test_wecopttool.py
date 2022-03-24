@@ -258,11 +258,15 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt,
-        optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
+    _, fdom, _, _, avg_pow, _ = wec.solve(regular_wave,
+                                          obj_fun,
+                                          nstate_opt,
+                                          optim_options={'maxiter': 1000,
+                                                         'ftol': 1e-8},
+                                          scale_x_opt=1e3)
     plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
 
-    assert pytest.approx(average_power, 1e-4) == plim
+    assert pytest.approx(avg_pow, 1e-4) == plim
 
 
 def test_wavebot_p_cc(wec,resonant_wave):
@@ -281,19 +285,19 @@ def test_wavebot_p_cc(wec,resonant_wave):
     bounds_opt = Bounds(lb=-1 * np.inf, 
                         ub=0)
 
-    _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, 
-                                                   obj_fun, 
-                                                   nstate_opt,
-                                                   optim_options={'maxiter': 1000, 
-                                                                  'ftol': 1e-8}, 
-                                                   scale_x_opt=1e3,
-                                                   bounds_opt=bounds_opt)
+    _, fdom, _, xopt, avg_pow, _ = wec.solve(resonant_wave,
+                                             obj_fun,
+                                             nstate_opt,
+                                             optim_options={'maxiter': 1000,
+                                                            'ftol': 1e-8},
+                                             scale_x_opt=1e3,
+                                             bounds_opt=bounds_opt)
     
     # P controller power matches theoretical limit at resonance
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
-    assert pytest.approx(average_power, 0.03) == plim
+    assert pytest.approx(avg_pow, 0.03) == plim
     
     # optimal gain matches real part of impedance
     omega_wave_ind = np.where((resonant_wave.S > 0).squeeze())[0].item()
@@ -585,13 +589,13 @@ def test_buoyancy_excess(wec, pto, regular_wave):
                  'Fg':f_g,
                  }
 
-    tdom, fdom, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave,
-                                                obj_fun = pto.average_power,
-                                                nstate_opt = pto.nstate,
-                                                scale_x_wec = 1.0,
-                                                scale_x_opt = 0.01,
-                                                scale_obj = 1e-1,
-                                                optim_options={})
+    tdom, *_ = wec.solve(regular_wave,
+                         obj_fun=pto.average_power,
+                         nstate_opt=pto.nstate,
+                         scale_x_wec=1.0,
+                         scale_x_opt=0.01,
+                         scale_obj=1e-1,
+                         optim_options={})
 
     mean_pos = tdom.pos.squeeze().mean().item()
     expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
