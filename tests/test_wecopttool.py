@@ -46,15 +46,13 @@ def wec():
     nsubsteps = 4
     f_max = 2000.0
 
-
     def const_f_pto(wec, x_wec, x_opt):
         f = pto.force_on_wec(wec, x_wec, x_opt, nsubsteps)
         return f_max - np.abs(f.flatten())
 
-
     ineq_cons = {'type': 'ineq',
-                'fun': const_f_pto,
-                }
+                 'fun': const_f_pto,
+                 }
 
     constraints = [ineq_cons]
 
@@ -62,7 +60,7 @@ def wec():
     f_add = {'PTO': pto.force_on_wec}
 
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
-                    f_add=f_add, constraints=constraints)
+                  f_add=f_add, constraints=constraints)
 
     # BEM
     wec.run_bem()
@@ -97,7 +95,7 @@ def pto(wec):
 
 def test_natural_frequency(wec):
     freq = wec.natural_frequency()[0].squeeze().item()
-    expected = 0.65 # Based on v1.0.0 (also agrees with experimental results)
+    expected = 0.65  # Based on v1.0.0 (also agrees with experimental results)
     assert freq == expected
 
 
@@ -154,12 +152,12 @@ def test_solve_constraints(wec, regular_wave, pto):
         return f.flatten() + f_min
 
     ineq_cons_max = {'type': 'ineq',
-                'fun': const_f_pto_max,
-                }
+                     'fun': const_f_pto_max,
+                     }
 
     ineq_cons_min = {'type': 'ineq',
-                'fun': const_f_pto_min,
-                }
+                     'fun': const_f_pto_min,
+                     }
 
     wec.constraints = [ineq_cons_max, ineq_cons_min]
 
@@ -175,7 +173,8 @@ def test_solve_constraints(wec, regular_wave, pto):
 
     pto_tdom, _ = pto.post_process(wec, x_wec, x_opt)
 
-    assert pytest.approx(-1*f_min, 1e-5) == pto_tdom['force'].min().values.item()
+    assert pytest.approx(-1*f_min,
+                         1e-5) == pto_tdom['force'].min().values.item()
     assert pytest.approx(f_max, 1e-5) == pto_tdom['force'].max().values.item()
 
 
@@ -222,7 +221,7 @@ def test_waves_module(wec):
     directions = np.linspace(0, 360, 36, endpoint=False)
     _ = wot.waves.irregular_wave(
         wec.f0, wec.nfreq, directions, spectrum_func, spread_func,
-                   spectrum_name, spread_name)
+        spectrum_name, spread_name)
 
     # long-crested
     direction = 0.0
@@ -251,7 +250,7 @@ def test_pto(wec):
     _ = pto.energy(wec, x_wec, x_pto)
 
 
-def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
+def test_wavebot_ps_theoretical_limit(wec, regular_wave, pto):
     """Check that power obtained using pseudo-spectral with no constraints
     equals theoretical limit.
     """
@@ -269,7 +268,7 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
     assert pytest.approx(avg_pow, 1e-4) == plim
 
 
-def test_wavebot_p_cc(wec,resonant_wave):
+def test_wavebot_p_cc(wec, resonant_wave):
 
     # remove constraints
     wec.constraints = []
@@ -282,7 +281,7 @@ def test_wavebot_p_cc(wec,resonant_wave):
     wec.f_add = {'PTO': pto.force_on_wec}
 
     # set bounds such that damping must be negative
-    bounds_opt = Bounds(lb=-1 * np.inf, 
+    bounds_opt = Bounds(lb=-1 * np.inf,
                         ub=0)
 
     _, fdom, _, xopt, avg_pow, _ = wec.solve(resonant_wave,
@@ -292,21 +291,21 @@ def test_wavebot_p_cc(wec,resonant_wave):
                                                             'ftol': 1e-8},
                                              scale_x_opt=1e3,
                                              bounds_opt=bounds_opt)
-    
+
     # P controller power matches theoretical limit at resonance
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(avg_pow, 0.03) == plim
-    
+
     # optimal gain matches real part of impedance
     omega_wave_ind = np.where((resonant_wave.S > 0).squeeze())[0].item()
     optimal_kp_expected = wec.hydro.Zi[omega_wave_ind].real
-    
+
     assert pytest.approx(optimal_kp_expected, 1e-1) == -1*xopt.item()
 
 
-def test_wavebot_pi_cc(wec,regular_wave):
+def test_wavebot_pi_cc(wec, regular_wave):
 
     # remove constraints
     wec.constraints = []
@@ -316,16 +315,16 @@ def test_wavebot_pi_cc(wec,regular_wave):
     pto = wot.pto.ProportionalIntegralPTO(kinematics)
 
     wec.f_add = {'PTO': pto.force_on_wec}
-    
+
     # set bounds such that damping must be negative
-    bounds_opt = Bounds(lb= -1 * np.inf * np.ones(2),
-                    ub=np.hstack([0 * np.ones(1), 1 * np.inf * np.ones(1)]))
+    bounds_opt = Bounds(lb=-1 * np.inf * np.ones(2),
+                        ub=np.hstack([0 * np.ones(1), 1 * np.inf * np.ones(1)]))
 
     _, fdom, _, xopt, avg_power, _ = wec.solve(regular_wave,
-                                               obj_fun=pto.average_power, 
+                                               obj_fun=pto.average_power,
                                                nstate_opt=pto.nstate,
                                                optim_options={
-                                                   'maxiter': 1000, 
+                                                   'maxiter': 1000,
                                                    'ftol': 1e-8},
                                                scale_x_opt=1e3,
                                                bounds_opt=bounds_opt)
@@ -335,13 +334,13 @@ def test_wavebot_pi_cc(wec,regular_wave):
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(avg_power, 0.03) == plim
-    
+
     # optimal gain matches complex conjugate of impedance
     omega_wave_ind = np.where((regular_wave.S > 0).squeeze())[0].item()
     omega_wave = regular_wave.omega[omega_wave_ind].data.item()
     tmp1 = wec.hydro.Zi[omega_wave_ind].conj().data.item()
     optimal_gains_expected = -1*tmp1.real + 1j * omega_wave * tmp1.imag
-    
+
     assert pytest.approx(optimal_gains_expected, 1e-6) == xopt[0] + 1j*xopt[1]
 
 
@@ -375,12 +374,12 @@ def test_multiple_dof(regular_wave):
     # hydrostatic
     hs_data = wot.hydrostatics.hydrostatics(fb)
     mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
-    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
-    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2]  # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0]  # will be 0
     mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
     stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
-    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
-    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2]  # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0]  # will be 0
     stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
     mass = np.array([[mass_11, mass_13],
                      [mass_31, mass_33]])
@@ -500,12 +499,16 @@ def surge_heave_wavebot():
     # hydrostatic
     hs_data = wot.hydrostatics.hydrostatics(fb)
     mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 0]
-    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0, 2] # will be 0
-    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 0] # will be 0
+    mass_13 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[
+        0, 2]  # will be 0
+    mass_31 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[
+        2, 0]  # will be 0
     mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
     stiffness_11 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 0]
-    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[0, 2] # will be 0
-    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 0] # will be 0
+    stiffness_13 = wot.hydrostatics.stiffness_matrix(hs_data)[
+        0, 2]  # will be 0
+    stiffness_31 = wot.hydrostatics.stiffness_matrix(hs_data)[
+        2, 0]  # will be 0
     stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
     mass = np.array([[mass_11, mass_13],
                      [mass_31, mass_33]])
@@ -525,24 +528,24 @@ def surge_heave_wavebot():
     wec.hydro.radiation_damping[:, 1, 0] = 0.0
     wec._del_impedance()
     wec.bem_calc_impedance()
-    
+
     return wec
 
 
 def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
-    
+
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
     pto = wot.pto.ProportionalPTO(kinematics, names=names)
-    
+
     x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
     x_opt = np.random.randn(pto.nstate)
-    
+
     pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
     pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
-    
-    assert np.all(x_opt[0] * pto_vel[:,0] == pto_force[:,0])
-    assert np.all(x_opt[1] * pto_vel[:,1] == pto_force[:,1])
+
+    assert np.all(x_opt[0] * pto_vel[:, 0] == pto_force[:, 0])
+    assert np.all(x_opt[1] * pto_vel[:, 1] == pto_force[:, 1])
 
 
 def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
@@ -553,22 +556,22 @@ def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
 
     x_wec = np.random.randn(surge_heave_wavebot.nstate_wec)
     x_opt = np.random.randn(pto.nstate)
-    
+
     pto_force = pto.force_on_wec(surge_heave_wavebot, x_wec, x_opt)
     pto_vel = pto.velocity(surge_heave_wavebot, x_wec, x_opt)
     pto_pos = pto.position(surge_heave_wavebot, x_wec, x_opt)
-    
-    assert np.all(x_opt[0] * pto_vel[:,0] + x_opt[2] * pto_pos[:,0] 
-                  == pto_force[:,0])
-    assert np.all(x_opt[1] * pto_vel[:,1] + x_opt[3] * pto_pos[:,1] 
-                  == pto_force[:,1])
+
+    assert np.all(x_opt[0] * pto_vel[:, 0] + x_opt[2] * pto_pos[:, 0]
+                  == pto_force[:, 0])
+    assert np.all(x_opt[1] * pto_vel[:, 1] + x_opt[3] * pto_pos[:, 1]
+                  == pto_force[:, 1])
 
 
 def test_buoyancy_excess(wec, pto, regular_wave):
     """Give too much buoyancy and check that equilibrium point found matches
     that given by the hydrostatic stiffness"""
 
-    delta = np.random.randn() # excess buoyancy factor
+    delta = np.random.randn()  # excess buoyancy factor
 
     # remove constraints
     wec.constraints = []
@@ -585,8 +588,8 @@ def test_buoyancy_excess(wec, pto, regular_wave):
         return -1 * m * g * np.ones([wec.ncomponents, wec.ndof])
 
     wec.f_add = {**wec.f_add,
-                 'Fb':f_b,
-                 'Fg':f_g,
+                 'Fb': f_b,
+                 'Fg': f_g,
                  }
 
     tdom, *_ = wec.solve(regular_wave,
@@ -600,10 +603,10 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     mean_pos = tdom.pos.squeeze().mean().item()
     expected = (wec.rho * wec.fb.mesh.volume * wec.g * delta) \
         / wec.hydrostatic_stiffness.item()
-    assert pytest.approx (expected, 1e-1) == mean_pos
+    assert pytest.approx(expected, 1e-1) == mean_pos
 
 
-def test_solve_initial_guess(wec,resonant_wave):
+def test_solve_initial_guess(wec, resonant_wave):
     """Confirm initial guess is effective and scaled correctly"""
 
     # remove constraints
@@ -620,19 +623,19 @@ def test_solve_initial_guess(wec,resonant_wave):
 
     kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()]
 
-    *_, res = wec.solve(resonant_wave, 
-                        obj_fun=pto.average_power, 
+    *_, res = wec.solve(resonant_wave,
+                        obj_fun=pto.average_power,
                         nstate_opt=pto.nstate,
-                        optim_options={'maxiter': 1000, 
-                                       'ftol': 1e-8}, 
+                        optim_options={'maxiter': 1000,
+                                       'ftol': 1e-8},
                         scale_x_opt=1e3,
-                        x_opt_0=kp_guess, 
+                        x_opt_0=kp_guess,
                         bounds_opt=bounds_opt)
-    
-    assert res['nit'] < 10 # takes ~23 w/o initial guess
+
+    assert res['nit'] < 10  # takes ~23 w/o initial guess
 
 
-def test_solve_bounds(wec,resonant_wave):
+def test_solve_bounds(wec, resonant_wave):
     """Confirm that bounds are not violated and scale correctly"""
 
     # remove constraints
@@ -649,33 +652,34 @@ def test_solve_bounds(wec,resonant_wave):
                         ub=0)
 
     # poor guess (optimal / 10)
-    kp_guess = [-1*wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()/10]
+    kp_guess = [-1 *
+                wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()/10]
 
-    *_, x_opt, _, _ = wec.solve(resonant_wave, 
-                                obj_fun=pto.average_power, 
+    *_, x_opt, _, _ = wec.solve(resonant_wave,
+                                obj_fun=pto.average_power,
                                 nstate_opt=pto.nstate,
-                                optim_options={'maxiter': 5e1, 
-                                               'ftol': 1e-8}, 
+                                optim_options={'maxiter': 5e1,
+                                               'ftol': 1e-8},
                                 scale_x_opt=1e3,
-                                x_opt_0=kp_guess, 
+                                x_opt_0=kp_guess,
                                 bounds_opt=bounds_opt)
-    
-    assert pytest.approx(kplim,1e-10) == x_opt.item()
-    
-    
+
+    assert pytest.approx(kplim, 1e-10) == x_opt.item()
+
+
 def test_solve_callback(wec, regular_wave, pto, capfd):
-    
+
     cbstring = 'hello world!'
-    
+
     _ = wec.solve(regular_wave,
                   obj_fun=pto.average_power,
                   nstate_opt=pto.nstate,
                   scale_x_wec=1.0,
                   scale_x_opt=0.01,
                   scale_obj=1e-1,
-                  callback=lambda x : print(cbstring),
+                  callback=lambda x: print(cbstring),
                   optim_options={'maxiter': 1})
-    
+
     out, err = capfd.readouterr()
 
     assert out.split('\n')[0] == cbstring
