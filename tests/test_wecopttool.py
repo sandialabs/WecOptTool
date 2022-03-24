@@ -661,3 +661,21 @@ def test_solve_bounds(wec,resonant_wave):
                                 bounds_opt=bounds_opt)
     
     assert pytest.approx(kplim,1e-10) == x_opt.item()
+    
+    
+def test_solve_callback(wec, regular_wave, pto, capfd):
+    
+    cbstring = 'hello world!'
+    
+    _ = wec.solve(regular_wave,
+                  obj_fun=pto.average_power,
+                  nstate_opt=pto.nstate,
+                  scale_x_wec=1.0,
+                  scale_x_opt=0.01,
+                  scale_obj=1e-1,
+                  callback=lambda x : print(cbstring),
+                  optim_options={'maxiter': 1})
+    
+    out, err = capfd.readouterr()
+
+    assert out.split('\n')[0] == cbstring
