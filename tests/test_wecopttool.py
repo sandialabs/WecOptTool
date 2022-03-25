@@ -157,6 +157,14 @@ def test_solve_initial_guess(wec, regular_wave, pto):
 
     assert nits[0] > nits[1]
     assert pytest.approx(x_wecs[1],1e0) == x_wec_0
+    
+    
+def test_complex_to_real_amplitudes(wec, regular_wave):
+    x_wec = wec.initial_x_wec_guess(regular_wave)
+    fd_wec = wot.real_to_complex_amplitudes(np.atleast_2d(x_wec))
+    x_wec_1 = wot.complex_to_real_amplitudes(fd_wec)
+    
+    assert np.all(x_wec == x_wec_1)
 
 
 def test_solve_constraints(wec, regular_wave, pto):
