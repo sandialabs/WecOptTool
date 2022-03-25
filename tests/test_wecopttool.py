@@ -139,8 +139,7 @@ def test_solve(wec, regular_wave, pto):
 
 def test_solve_initial_guess(wec, regular_wave, pto):
 
-    fd_we, _ = wot.wave_excitation(wec.hydro, regular_wave)
-    x_wec_0 = wec.initial_x_wec_guess(fd_we)
+    x_wec_0 = wec.initial_x_wec_guess(regular_wave)
 
     nits = []
     x_wecs = []

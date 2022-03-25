@@ -8,7 +8,7 @@ from __future__ import annotations  # TODO: delete after python 3.10
 __all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'fd_to_td',
            'td_to_fd', 'scale_dofs', 'complex_xarray_from_netcdf',
            'complex_xarray_to_netcdf', 'wave_excitation', 'run_bem',
-           'optimal_velocity', 'optimal_position',
+           'optimal_velocity', 'optimal_position', 'complex_to_real_amplitudes',
            'power_limit', 'natural_frequency', 'plot_impedance',
            'post_process_continuous_time']
 
@@ -620,24 +620,21 @@ class WEC:
 
         return np.concatenate([scale_x_wec, scale_x_opt])
 
-    def initial_x_wec_guess(self, fd_wave_excitation: xr.Dataset) -> np.ndaray:
+    def initial_x_wec_guess(self, waves: xr.Dataset) -> np.ndaray:
         """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
         be passed to `wec.solve`.
 
         Parameters
         ----------
-        fd_wave_excitation : xr.Dataset
-            Frequency-domain wave excitation DataSet
+        waves : xr.Dataset
+            Wave DataSet
 
         Returns
         -------
         x_wec_0
             Initial guess for `x_wec`
         """
-        pos_opt = optimal_position(excitation=fd_wave_excitation['excitation_force'],
-                                   impedance=self.hydro['Zi'],
-                                   omega=self.hydro['omega'])
-
+        pos_opt = self.optimal_position(waves)
         pos_opt_zero_mean = np.concatenate([np.zeros((1, self.ndof)), pos_opt])
         x_wec_0 = complex_to_real_amplitudes(pos_opt_zero_mean)
         return x_wec_0.squeeze()
