@@ -1071,7 +1071,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
         BEM results from capytaine.
     """
     if wave_dirs is not None:
-        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))  
+        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
         'rho': [rho],
@@ -1304,6 +1304,7 @@ def post_process_continuous_time(results: xr.DataArray
         return f
 
     return func
+
 
 def _degrees_to_radians(degrees: float | npt.ArrayLike
                        ) -> float | np.ndarray:
