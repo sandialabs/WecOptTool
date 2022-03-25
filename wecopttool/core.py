@@ -8,6 +8,7 @@ from __future__ import annotations  # TODO: delete after python 3.10
 __all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'fd_to_td',
            'td_to_fd', 'scale_dofs', 'complex_xarray_from_netcdf',
            'complex_xarray_to_netcdf', 'wave_excitation', 'run_bem',
+           'optimal_velocity', 'optimal_position',
            'power_limit', 'natural_frequency', 'plot_impedance',
            'post_process_continuous_time']
 
@@ -579,6 +580,17 @@ class WEC:
             show=show)
         return fig, axs
 
+    def optimal_velocity(self, waves: xr.DataSet):
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return optimal_velocity(excitation=fd_wec['excitation_force'],
+                                impedance=self.hydro['Zi'])
+
+    def optimal_position(self, waves: xr.DataSet):
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return optimal_position(excitation=fd_wec['excitation_force'],
+                                impedance=self.hydro['Zi'],
+                                omega=self.hydro['omega'])
+
     def natural_frequency(self):
         """Return natural frequency or frequencies.
 
@@ -607,6 +619,28 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         return np.concatenate([scale_x_wec, scale_x_opt])
+
+    def initial_x_wec_guess(self, fd_wave_excitation: xr.Dataset) -> np.ndaray:
+        """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
+        be passed to `wec.solve`.
+
+        Parameters
+        ----------
+        fd_wave_excitation : xr.Dataset
+            Frequency-domain wave excitation DataSet
+
+        Returns
+        -------
+        x_wec_0
+            Initial guess for `x_wec`
+        """
+        pos_opt = optimal_position(excitation=fd_wave_excitation['excitation_force'],
+                                   impedance=self.hydro['Zi'],
+                                   omega=self.hydro['omega'])
+
+        pos_opt_zero_mean = np.concatenate([np.zeros((1, self.ndof)), pos_opt])
+        x_wec_0 = complex_to_real_amplitudes(pos_opt_zero_mean)
+        return x_wec_0.squeeze()
 
     def solve(self,
               waves: xr.Dataset,
@@ -904,6 +938,29 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
 
 
+def complex_to_real_amplitudes(fd: np.ndarray) -> np.ndarray:
+    """Convert from one complex amplitude to two real amplitudes per 
+    frequency."""
+    
+    # assume input has mean
+    # in: (1+nfreq) x (ndof)
+    # out: (1+2*nfreq) x (ndof)
+    #
+    # 1st row: mean
+    # 2nd row: real part of 1st freq
+    # 3rd row: -1*imag part of 1st freq
+    
+    m = fd.shape[0]
+    n = fd.shape[1]
+    out = np.zeros((1+2*(m-1),n))
+    
+    out[0,:] = fd[0,:]
+    out[1::2,:] = fd[1:].real
+    out[2::2,:] = -1*fd[1:].imag
+    
+    return out
+
+
 def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
 
@@ -934,7 +991,7 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 
 
 def complex_xarray_from_netcdf(fpath: str | Path) -> xr.Dataset:
-    """Read a NetCDF file with complex entries as an xarray dataSet.
+    """Read a NetCDF file with complex entries as an xarray DataSet.
     """
     with xr.open_dataset(fpath) as ds:
         ds.load()
@@ -1088,14 +1145,57 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
+def optimal_velocity(excitation: npt.ArrayLike, impedance: npt.ArrayLike
+                     ) -> np.ndarray:
+    """Find optimal velocity.
+
+    Parameters
+    ----------
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    opt_vel
+        Optimal velocity for power absorption.
+    """
+    opt_vel = np.concatenate([np.linalg.lstsq(2*impedance[w_ind, :, :].real,
+                                              excitation[w_ind+1, :])[0] 
+                              for w_ind in range(impedance.shape[0])])
+    return np.atleast_2d(opt_vel).transpose()
+
+
+def optimal_position(excitation: npt.ArrayLike, impedance: npt.ArrayLike,
+                     omega: npt.ArrayLike) -> np.ndarray:
+    """Find optimal position.
+
+    Parameters
+    ----------
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    optimal_position
+        Optimal position for power absorption.
+    """
+    opt_vel = optimal_velocity(excitation, impedance)
+    opt_pos = opt_vel / (1j * np.atleast_2d(omega.data).transpose())
+    return opt_pos
+
+
 def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
                 ) -> np.ndarray:
     """Find upper limit for power.
 
     Parameters
     ----------
-    exctiation: np.ndarray
-        Complex exctitation spectrum. Shape: ``nfreq`` x ``ndof``
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
     impedance: np.ndarray
         Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
 
@@ -1106,6 +1206,12 @@ def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
     """
 
     power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
+    
+    pls = np.concatenate([np.linalg.lstsq(8*impedance[w_ind, :, :].real,
+                                          np.abs(excitation[w_ind+1, :])**2)[0] 
+                         for w_ind in range(impedance.shape[0])])
+    
+    power_limit = -1 * np.sum(pls)
 
     return power_limit
 

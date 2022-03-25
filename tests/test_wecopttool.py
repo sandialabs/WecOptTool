@@ -137,6 +137,29 @@ def test_solve(wec, regular_wave, pto):
     _, _ = pto.post_process(wec, x_wec, x_opt)
 
 
+def test_solve_initial_guess(wec, regular_wave, pto):
+
+    fd_we, _ = wot.wave_excitation(wec.hydro, regular_wave)
+    x_wec_0 = wec.initial_x_wec_guess(fd_we)
+
+    nits = []
+    x_wecs = []
+    for x_wec_0i in [None, x_wec_0]:
+        *_, x_wec, _, _, res = wec.solve(regular_wave,
+                            obj_fun=pto.average_power,
+                            nstate_opt=pto.nstate,
+                            scale_x_wec=1.0,
+                            scale_x_opt=0.01,
+                            scale_obj=1e-1,
+                            x_wec_0=x_wec_0i,
+                            )
+        nits.append(res['nit'])
+        x_wecs.append(x_wec)
+
+    assert nits[0] > nits[1]
+    assert pytest.approx(x_wecs[1],1e0) == x_wec_0
+
+
 def test_solve_constraints(wec, regular_wave, pto):
     """Checks that two constraints on PTO force can be enforced
     """
@@ -260,9 +283,15 @@ def test_wavebot_ps_theoretical_limit(wec,regular_wave,pto):
     nstate_opt = pto.nstate
     _, fdom, _, _, average_power, _ = wec.solve(regular_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3)
-    plim = power_limit(fdom['excitation_force'][1:, 0], wec.hydro.Zi[:, 0, 0])
-
+    
+    plim = power_limit(fdom['excitation_force'], wec.hydro.Zi)
     assert pytest.approx(average_power, 1e-5) == plim
+    
+    opt_vel = wec.optimal_velocity(regular_wave)
+    assert pytest.approx(fdom.vel.data[1:],1e0) == opt_vel
+    
+    opt_pos = wec.optimal_position(regular_wave)
+    assert pytest.approx(fdom.pos.data[1:],1e0) == opt_pos
 
 
 def test_wavebot_p_cc(wec,resonant_wave):
@@ -289,8 +318,8 @@ def test_wavebot_p_cc(wec,resonant_wave):
         bounds=bounds)
     
     # P controller power matches theoretical limit at resonance
-    plim = power_limit(fdom['excitation_force'][1:, 0],
-                       wec.hydro.Zi[:, 0, 0]).item()
+    plim = power_limit(fdom['excitation_force'],
+                       wec.hydro.Zi).item()
 
     assert pytest.approx(average_power, 0.03) == plim
     
@@ -331,8 +360,8 @@ def test_wavebot_pi_cc(wec,regular_wave):
                                                bounds=bounds)
 
     # PI controller power matches theoretical limit for an single freq
-    plim = power_limit(fdom['excitation_force'][1:, 0],
-                       wec.hydro.Zi[:, 0, 0]).item()
+    plim = power_limit(fdom['excitation_force'],
+                       wec.hydro.Zi).item()
 
     assert pytest.approx(avg_power, 0.03) == plim
     
