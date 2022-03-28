@@ -14,6 +14,7 @@ __all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'fd_to_td',
 
 
 import logging
+import copy
 from typing import Iterable, Callable, Any, Optional, Mapping
 from pathlib import Path
 
@@ -652,6 +653,7 @@ class WEC:
               use_grad: bool = True,
               maximize: bool = False,
               bounds: Optional[Bounds | list] = None,
+              unconstrained_first: Optional[bool] = False,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -699,6 +701,9 @@ class WEC:
             ``False`` to minimize the objective function.
         bounds: sequence | Bounds
             See scipy.optimize.minimize
+        unconstrained_first: bool
+            If True, run ``solve`` without constraints to get scaling and 
+            initial guess. The default is False.
 
         Returns
         -------
@@ -716,12 +721,37 @@ class WEC:
             Raw optimization results.
         """
         log.info("Solving pseudo-spectral control problem.")
-
-        # initial state
+        
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
+
+        if unconstrained_first:
+            log.info(
+                "Solving without constraints for better scaling and initial guess")
+            wec1 = copy.deepcopy(self)
+            wec1.constraints = []
+            unconstrained_first = False
+            _, _, x_wec_0, x_opt_0, obj, res = wec1.solve(waves,
+                                                          obj_fun,
+                                                          nstate_opt,
+                                                          x_wec_0,
+                                                          x_opt_0,
+                                                          scale_x_wec,
+                                                          scale_x_opt,
+                                                          scale_obj,
+                                                          optim_options,
+                                                          use_grad,
+                                                          maximize,
+                                                          bounds,
+                                                          unconstrained_first,
+                                                          )
+            scale_x_wec = 1/np.max(np.abs(x_wec_0))
+            scale_x_opt = 1/np.max(np.abs(x_opt_0))
+            scale_obj = 1/np.abs(obj)
+
+        # initial guess
         x0 = np.concatenate([x_wec_0, x_opt_0])
 
         # wave excitation force

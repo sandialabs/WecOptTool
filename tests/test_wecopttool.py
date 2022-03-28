@@ -196,17 +196,30 @@ def test_solve_constraints(wec, regular_wave, pto):
     options = {}
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    _, _, x_wec, x_opt, avg_pow, _ = wec.solve(regular_wave, obj_fun,
-        nstate_opt,
-        scale_x_wec = 1.0,
-        scale_x_opt = 0.01,
-        scale_obj = 1e-1,
-        optim_options=options)
+
+    *_, x_wec, x_opt, _, res1 = wec.solve(regular_wave, 
+                                          obj_fun,
+                                          nstate_opt,
+                                          scale_x_wec=1.0,
+                                          scale_x_opt=0.01,
+                                          scale_obj=1e-1,
+                                          unconstrained_first=False,
+                                          optim_options=options)
 
     pto_tdom, _ = pto.post_process(wec, x_wec, x_opt)
 
-    assert pytest.approx(-1*f_min, 1e-5) == pto_tdom['force'].min().values.item()
+    assert pytest.approx(-1*f_min,
+                         1e-5) == pto_tdom['force'].min().values.item()
     assert pytest.approx(f_max, 1e-5) == pto_tdom['force'].max().values.item()
+
+    *_, res2 = wec.solve(regular_wave,
+                         obj_fun,
+                         nstate_opt,
+                         unconstrained_first=True,
+                         optim_options=options)
+
+    assert pytest.approx(res1['fun'], 1e-5) == res2['fun']
+    assert res2['nit'] < res1['nit']
 
 
 def test_plot(wec):
