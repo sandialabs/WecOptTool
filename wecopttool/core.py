@@ -1228,8 +1228,6 @@ def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
     power_limit
         Upper limit for power absorption.
     """
-
-    power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
     
     pls = np.concatenate([np.linalg.lstsq(8*impedance[w_ind, :, :].real,
                                           np.abs(excitation[w_ind+1, :])**2)[0] 
