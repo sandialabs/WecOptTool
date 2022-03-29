@@ -621,7 +621,7 @@ def test_multiple_dof_fixed_structure_P(surge_heave_wavebot):
     assert np.all(x_opt[1] * pto_vel[:,1] == pto_force[:,1])
 
 
-def test_multiple_dof_fixed_structure_PI(regular_wave, surge_heave_wavebot):
+def test_multiple_dof_fixed_structure_PI(surge_heave_wavebot):
 
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
