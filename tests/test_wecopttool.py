@@ -578,7 +578,34 @@ def surge_heave_wavebot():
     return wec
 
 
-def test_multiple_dof_fixed_structure_P(regular_wave, surge_heave_wavebot):
+def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
+
+    # PTO
+    kinematics = np.eye(2)
+    names = ["SURGE", "HEAVE"]
+    pto = wot.pto.PseudoSpectralPTO(surge_heave_wavebot.nfreq,
+                                    kinematics,
+                                    names=names)
+
+    # WEC
+    surge_heave_wavebot.f_add = {'pto': pto.force_on_wec}
+
+    _, fdom, _, _, obj, _ = surge_heave_wavebot.solve(regular_wave,
+                                                      obj_fun=pto.average_power,
+                                                      nstate_opt=pto.nstate,
+                                                      optim_options={
+                                                          'maxiter': 250, 
+                                                          'ftol': 1e-8},
+                                                      scale_x_wec=1e2,
+                                                      scale_x_opt=1e-2,
+                                                      scale_obj=1,
+                                                      )
+
+    plim = power_limit(fdom['excitation_force'], surge_heave_wavebot.hydro.Zi)
+    assert pytest.approx(obj, 1e-1) == plim
+
+
+def test_multiple_dof_fixed_structure_P(surge_heave_wavebot):
     
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
