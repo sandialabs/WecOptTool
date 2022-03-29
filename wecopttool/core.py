@@ -750,6 +750,11 @@ class WEC:
             scale_x_wec = 1/np.max(np.abs(x_wec_0))
             scale_x_opt = 1/np.max(np.abs(x_opt_0))
             scale_obj = 1/np.abs(obj)
+            log.info(f"Setting x_wec_0: {x_wec_0}")
+            log.info(f"Setting x_opt_0: {x_opt_0}")
+            log.info(f"Setting scale_x_wec: {scale_x_wec}")
+            log.info(f"Setting scale_x_opt: {scale_x_opt}")
+            log.info(f"Setting scale_obj: {scale_obj}")
 
         # initial guess
         x0 = np.concatenate([x_wec_0, x_opt_0])
