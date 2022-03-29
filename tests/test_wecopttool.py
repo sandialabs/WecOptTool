@@ -143,7 +143,7 @@ def test_solve_initial_guess(wec, regular_wave, pto):
 
     nits = []
     x_wecs = []
-    for x_wec_0i in [None, x_wec_0]:
+    for x_wec_0i in [x_wec_0*0.1, x_wec_0]:
         *_, x_wec, _, _, res = wec.solve(regular_wave,
                             obj_fun=pto.average_power,
                             nstate_opt=pto.nstate,
