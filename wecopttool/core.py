@@ -591,6 +591,7 @@ class WEC:
         return power_limit(excitation=fd_wec['excitation_force'],
                            impedance=self.hydro['Zi'])
 
+    def optimal_velocity(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal velocity spectrum for hydrodynamic problem.
         
         See `wot.optimal_velocity()`
@@ -599,7 +600,7 @@ class WEC:
         return optimal_velocity(excitation=fd_wec['excitation_force'],
                                 impedance=self.hydro['Zi'])
 
-    def optimal_position(self, waves: xr.DataSet):
+    def optimal_position(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal position spectrum for hydrodynamic problem.
         
         See `wot.optimal_position()`
@@ -609,7 +610,7 @@ class WEC:
                                 impedance=self.hydro['Zi'],
                                 omega=self.hydro['omega'])
 
-    def natural_frequency(self):
+    def natural_frequency(self) -> tuple[npt.ArrayLike, int]:
         """Return natural frequency or frequencies.
 
         See `wot.natural_frequency()`.
