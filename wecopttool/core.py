@@ -582,11 +582,19 @@ class WEC:
         return fig, axs
 
     def optimal_velocity(self, waves: xr.DataSet):
+        """Return optimal velocity spectrum for hydrodynamic problem.
+        
+        See `wot.optimal_velocity()`
+        """
         fd_wec, _ = wave_excitation(self.hydro, waves)
         return optimal_velocity(excitation=fd_wec['excitation_force'],
                                 impedance=self.hydro['Zi'])
 
     def optimal_position(self, waves: xr.DataSet):
+        """Return optimal position spectrum for hydrodynamic problem.
+        
+        See `wot.optimal_position()`
+        """
         fd_wec, _ = wave_excitation(self.hydro, waves)
         return optimal_position(excitation=fd_wec['excitation_force'],
                                 impedance=self.hydro['Zi'],
@@ -634,6 +642,18 @@ class WEC:
         -------
         x_wec_0
             Initial guess for `x_wec`
+            
+        Examples
+        --------
+        >>> x_wec_0 = wec.initial_x_wec_guess(regular_wave)
+        >>> wec.solve(regular_wave,
+                      obj_fun=pto.average_power,
+                      nstate_opt=pto.nstate,
+                      scale_x_wec=1.0,
+                      scale_x_opt=0.01,
+                      scale_obj=1e-1,
+                      x_wec_0=x_wec_0,
+                      )
         """
         pos_opt = self.optimal_position(waves)
         pos_opt_zero_mean = np.concatenate([np.zeros((1, self.ndof)), pos_opt])
@@ -1245,7 +1265,7 @@ def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
     Parameters
     ----------
     impedance: np.ndarray
-        Complex impedance matrix. Shape: nfreq x ndof x ndof
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
     freq: list[float]
         Frequencies.
 
