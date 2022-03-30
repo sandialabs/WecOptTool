@@ -580,8 +580,17 @@ class WEC:
             option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
             show=show)
         return fig, axs
+    
+    def power_limit(self, waves: xr.DataSet) -> np.ndarray:
+        """Return theoretical power limit for hydrodynamic problem.
+        
+        See `wot.power_limit()`
+        """
 
-    def optimal_velocity(self, waves: xr.DataSet):
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return power_limit(excitation=fd_wec['excitation_force'],
+                           impedance=self.hydro['Zi'])
+
         """Return optimal velocity spectrum for hydrodynamic problem.
         
         See `wot.optimal_velocity()`
