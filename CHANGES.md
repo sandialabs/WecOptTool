@@ -5,7 +5,11 @@
 
 * user wave direction input now consistently in degrees
 * bug fix for multidirectional waves
-
+* fix `power_limit` for multiple DOFs
+* initial guess and scaling
+  * initial guess based on hydrodynamic optimal solution (`initial_x_wec_guess`)
+  * scaling and initial guess for constrained problem via solution to unconstrained problem (see `unconstrained_first` arg for `wec.solve`)
+* logging of decision vector and objective function: use `max` instead of `mean`
 
 ## Version 1.1.0
 
