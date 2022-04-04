@@ -404,7 +404,7 @@ class _LinearPTO(_PTO):
         if len(impedance.shape) == 2:
             impedance = np.tile(np.expand_dims(impedance, 2), self.nfreq)
         self.impedance = impedance
-        self._make_abc()
+        self._make_abcd()
         self._make_mimo_transfer_mat()
 
     @property
@@ -414,25 +414,25 @@ class _LinearPTO(_PTO):
     def _vec_to_dofmat(self, vec: np.ndarray) -> np.ndarray:
         return np.reshape(vec, (2 * self.nfreq, -1), order='F')
 
-    def _make_abc(self):
-        z_11 = self.impedance[0:self.ndof, 0:self.ndof, :]  # Fv
-        z_12 = self.impedance[0:self.ndof, self.ndof:, :]  # Fi
-        z_21 = self.impedance[self.ndof:, 0:self.ndof, :]  # Vv
+    def _make_abcd(self):
+        z_11 = self.impedance[:self.ndof, :self.ndof, :]  # Fv
+        z_12 = self.impedance[:self.ndof, self.ndof:, :]  # Fi
+        z_21 = self.impedance[self.ndof:, :self.ndof, :]  # Vv
         z_22 = self.impedance[self.ndof:, self.ndof:, :]  # Vi
         z_12_inv = np.linalg.inv(z_12.T).T
 
         mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
-        abc_11 = -1 * mmult(z_12_inv, z_11)
-        abc_12 = z_12_inv
-        abc_21 = z_21 - mmult(z_12_inv, z_11)
-        abc_22 = mmult(z_22, z_12_inv)
+        abcd_11 = -1 * mmult(z_12_inv, z_11)
+        abcd_12 = z_12_inv
+        abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
+        abcd_22 = mmult(z_22, z_12_inv)
 
-        abc = np.zeros(self.impedance.shape)*1j
-        abc[0:self.ndof, 0:self.ndof, :] = abc_11
-        abc[0:self.ndof, self.ndof:, :] = abc_12
-        abc[self.ndof:, 0:self.ndof, :] = abc_21
-        abc[self.ndof:, self.ndof:, :] = abc_22
-        self._impedance_abc = abc
+        abcd = np.zeros(self.impedance.shape)*1j
+        abcd[:self.ndof, :self.ndof, :] = abcd_11
+        abcd[:self.ndof, self.ndof:, :] = abcd_12
+        abcd[self.ndof:, :self.ndof, :] = abcd_21
+        abcd[self.ndof:, self.ndof:, :] = abcd_22
+        self._impedance_abcd = abcd
 
     def _make_mimo_transfer_mat(self) -> np.ndarray:
         """Create a block matrix of the MIMO transfer function.
@@ -441,7 +441,7 @@ class _LinearPTO(_PTO):
         def block(re, im): return np.array([[re, im], [-im, re]])
         for idof in range(self.ndof2):
             for jdof in range(self.ndof2):
-                Zp = self._impedance_abc[idof, jdof, :]
+                Zp = self._impedance_abcd[idof, jdof, :]
                 re = np.real(Zp)
                 im = np.imag(Zp)
                 blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
