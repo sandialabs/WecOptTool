@@ -16,7 +16,7 @@ from wecopttool.core import power_limit
 
 
 @pytest.fixture()
-def wec():
+def _wec():
     # water properties
     rho = 1000.0
 
@@ -38,9 +38,20 @@ def wec():
     stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
     stiffness = np.atleast_2d(stiffness_33)
 
+    # WEC
+    wec = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho)
+
+    # BEM
+    wec.run_bem()
+
+    return wec
+
+@pytest.fixture()
+def wec(_wec):
+    wec = _wec
     # PTO
-    kinematics = np.eye(fb.nb_dofs)
-    pto = wot.pto.PseudoSpectralPTO(nfreq, kinematics)
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
 
     # constraints
     nsubsteps = 4
@@ -56,22 +67,16 @@ def wec():
                 'fun': const_f_pto,
                 }
 
-    constraints = [ineq_cons]
-
     # WEC
-    f_add = {'PTO': pto.force_on_wec}
-
-    wec = wot.WEC(fb, mass, stiffness, f0, nfreq,  rho=rho,
-                    f_add=f_add, constraints=constraints)
-
-    # BEM
-    wec.run_bem()
+    wec.f_add = {'PTO': pto.force_on_wec}
+    wec.constraints = [ineq_cons]
 
     return wec
 
 
 @pytest.fixture()
-def regular_wave(wec):
+def regular_wave(_wec):
+    wec = _wec
     freq = 0.5
     amplitude = 0.25
     phase = 0.0
@@ -603,11 +608,11 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     assert pytest.approx (expected, 1e-1) == mean_pos
 
 
-def test_linear_pi_pto(wec, regular_wave):
+def test_linear_pi_pto(_wec, regular_wave):
+    wec = _wec
     # PTO kinematics
     kinematics = np.eye(wec.ndof)
     # PTO impedance - frequency dependent
-    # TODO: verify this is the correct PTO impedance for the WaveBot
     gear_ratio = 12.0
     torque_constant = 6.7
     winding_resistance = 0.5
@@ -630,7 +635,10 @@ def test_linear_pi_pto(wec, regular_wave):
     pto = wot.pto.PILinearPTO(wec.nfreq, kinematics, pto_impedance)
 
     # add PTO force to WEC
-    wec.f_add = pto.force_on_wec
+    wec.f_add = {'PTO': pto.force_on_wec}
+    # TODO: This does not work if using the 'wec' fixture. The original
+    # f_add is used and not overwritten. Not sure why or if it is a
+    # problem in some of the other tests.
 
     # objective function
     obj_fun = pto.electric_average_power
