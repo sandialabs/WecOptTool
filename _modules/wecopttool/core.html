@@ -663,7 +663,7 @@
     <span class="k">def</span> <span class="nf">_get_state_scale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                          <span class="n">scale_x_wec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                          <span class="n">scale_x_opt</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
-                         <span class="n">nstate_opt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+                         <span class="n">nstate_opt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a combined scaling array for the state vector. &quot;&quot;&quot;</span>
         <span class="c1"># scale for x_wec</span>
         <span class="k">if</span> <span class="n">scale_x_wec</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
@@ -693,7 +693,9 @@
               <span class="n">optim_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{},</span>
               <span class="n">use_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
               <span class="n">maximize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-              <span class="n">bounds</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Bounds</span> <span class="o">|</span> <span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">bounds_wec</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Bounds</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">bounds_opt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Bounds</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
               <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span>
                          <span class="n">OptimizeResult</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Solve the WEC co-design problem.</span>
@@ -739,8 +741,15 @@
 <span class="sd">        maximize: bool</span>
 <span class="sd">            Whether to maximize the objective function. The default is</span>
 <span class="sd">            ``False`` to minimize the objective function.</span>
-<span class="sd">        bounds: sequence | Bounds</span>
-<span class="sd">            See scipy.optimize.minimize</span>
+<span class="sd">        bounds_wec: Bounds</span>
+<span class="sd">            Bounds on the WEC components of the decsision variable; see </span>
+<span class="sd">            scipy.optimize.minimize</span>
+<span class="sd">        bounds_opt: Bounds</span>
+<span class="sd">            Bounds on the optimization (control) components of the decsision </span>
+<span class="sd">            variable; see scipy.optimize.minimize</span>
+<span class="sd">        callback: function</span>
+<span class="sd">            Called after each iteration; see scipy.optimize.minimize. The </span>
+<span class="sd">            default is reported via logging at the INFO level.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -759,19 +768,33 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Solving pseudo-spectral control problem.&quot;</span><span class="p">)</span>
 
-        <span class="c1"># initial state</span>
+        <span class="c1"># scale</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_scale</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_x_opt</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">)</span>
+
+        <span class="c1"># initial guess</span>
         <span class="k">if</span> <span class="n">x_wec_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_wec_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">x_opt_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span>
-        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_wec_0</span><span class="p">,</span> <span class="n">x_opt_0</span><span class="p">])</span>
-
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_wec_0</span><span class="p">,</span> <span class="n">x_opt_0</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span>
+        
+        <span class="c1"># bounds</span>
+        <span class="n">bounds_in</span> <span class="o">=</span> <span class="p">[</span><span class="n">bounds_wec</span><span class="p">,</span> <span class="n">bounds_opt</span><span class="p">]</span>
+        <span class="n">bounds_dflt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                             <span class="n">ub</span><span class="o">=</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">),</span>
+                      <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+                             <span class="n">ub</span><span class="o">=</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)]</span>
+        <span class="n">bounds_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">bi</span><span class="p">,</span> <span class="n">bd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bounds_in</span><span class="p">,</span> <span class="n">bounds_dflt</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">bi</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="n">bo</span> <span class="o">=</span> <span class="n">bi</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">bo</span> <span class="o">=</span> <span class="n">bd</span>
+            <span class="n">bounds_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bo</span><span class="p">)</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">lb</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">,</span>
+                        <span class="n">ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">ub</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span>
+        
         <span class="c1"># wave excitation force</span>
         <span class="n">fd_we</span><span class="p">,</span> <span class="n">td_we</span> <span class="o">=</span> <span class="n">wave_excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
         <span class="n">f_exc</span> <span class="o">=</span> <span class="n">td_we</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">]</span>
-
-        <span class="c1"># scale</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_state_scale</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_x_opt</span><span class="p">,</span> <span class="n">nstate_opt</span><span class="p">)</span>
 
         <span class="c1"># objective function</span>
         <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
@@ -809,8 +832,15 @@
             <span class="n">eq_cons</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">resid_fun</span><span class="p">)</span>
         <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eq_cons</span><span class="p">)</span>
 
-        <span class="c1"># minimize</span>
-        <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>         
+        
+        <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;[mean(x_wec), mean(x_opt), obj_fun(x)]: &quot;</span> \
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_wec</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">, &quot;</span> \
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_opt</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">, &quot;</span> \
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
 
         <span class="n">problem</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">obj_fun_scaled</span><span class="p">,</span>
                    <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
@@ -818,20 +848,13 @@
                    <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">,</span>
                    <span class="s1">&#39;options&#39;</span><span class="p">:</span> <span class="n">optim_options</span><span class="p">,</span>
                    <span class="s1">&#39;bounds&#39;</span><span class="p">:</span> <span class="n">bounds</span><span class="p">,</span>
+                   <span class="s1">&#39;callback&#39;</span><span class="p">:</span><span class="n">callback</span><span class="p">,</span>
                    <span class="p">}</span>
-
-        <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
-            <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;[mean(x_wec), mean(x_opt), obj_fun(x)]: &quot;</span> \
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_wec</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">, &quot;</span> \
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_opt</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">, &quot;</span> \
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
-        
-        <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;callback&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">callback</span>
 
         <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
             <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">)</span>
 
+        <span class="c1"># minimize</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="o">**</span><span class="n">problem</span><span class="p">)</span>
 
         <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s1">    (Exit mode </span><span class="si">{</span><span class="n">res</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s1">)&#39;</span>
