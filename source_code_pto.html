@@ -113,6 +113,19 @@ control optimization.
 The PTO force can be included as an additional force in the WEC
 dynamics.</p>
 <dl class="py class">
+<dt class="sig sig-object py" id="wecopttool.pto.ProportionalIntegralLinearPTO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.pto.</span></span><span class="sig-name descname"><span class="pre">ProportionalIntegralLinearPTO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinematics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impedance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/pto.html#ProportionalIntegralLinearPTO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.ProportionalIntegralLinearPTO" title="Permalink to this definition"></a></dt>
+<dd><p>Proportional (P) PTO controller with linear PTO.</p>
+<p>PTO force is a constant times the velocity.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.pto.ProportionalIntegralLinearPTO.nstate_per_dof">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nstate_per_dof</span></span><a class="headerlink" href="#wecopttool.pto.ProportionalIntegralLinearPTO.nstate_per_dof" title="Permalink to this definition"></a></dt>
+<dd><p>Number of PTO states per PTO DOF.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="wecopttool.pto.ProportionalIntegralPTO">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.pto.</span></span><span class="sig-name descname"><span class="pre">ProportionalIntegralPTO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kinematics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/pto.html#ProportionalIntegralPTO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.ProportionalIntegralPTO" title="Permalink to this definition"></a></dt>
 <dd><p>Proportional integral (PI) PTO controller.</p>
@@ -145,6 +158,19 @@ steps.</p></li>
 <dl class="py property">
 <dt class="sig sig-object py" id="wecopttool.pto.ProportionalIntegralPTO.nstate_per_dof">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nstate_per_dof</span></span><a class="headerlink" href="#wecopttool.pto.ProportionalIntegralPTO.nstate_per_dof" title="Permalink to this definition"></a></dt>
+<dd><p>Number of PTO states per PTO DOF.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="wecopttool.pto.ProportionalLinearPTO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.pto.</span></span><span class="sig-name descname"><span class="pre">ProportionalLinearPTO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinematics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impedance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/pto.html#ProportionalLinearPTO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.ProportionalLinearPTO" title="Permalink to this definition"></a></dt>
+<dd><p>Proportional (P) PTO controller with linear PTO.</p>
+<p>PTO force is a constant times the velocity.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.pto.ProportionalLinearPTO.nstate_per_dof">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nstate_per_dof</span></span><a class="headerlink" href="#wecopttool.pto.ProportionalLinearPTO.nstate_per_dof" title="Permalink to this definition"></a></dt>
 <dd><p>Number of PTO states per PTO DOF.</p>
 </dd></dl>
 
@@ -189,6 +215,17 @@ steps.</p></li>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="wecopttool.pto.PseudoSpectralLinearPTO">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.pto.</span></span><span class="sig-name descname"><span class="pre">PseudoSpectralLinearPTO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinematics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impedance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/pto.html#PseudoSpectralLinearPTO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.PseudoSpectralLinearPTO" title="Permalink to this definition"></a></dt>
+<dd><dl class="py property">
+<dt class="sig sig-object py" id="wecopttool.pto.PseudoSpectralLinearPTO.nstate_per_dof">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nstate_per_dof</span></span><a class="headerlink" href="#wecopttool.pto.PseudoSpectralLinearPTO.nstate_per_dof" title="Permalink to this definition"></a></dt>
+<dd><p>Number of PTO states per PTO DOF.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="wecopttool.pto.PseudoSpectralPTO">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">wecopttool.pto.</span></span><span class="sig-name descname"><span class="pre">PseudoSpectralPTO</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nfreq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kinematics</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">np.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/wecopttool/pto.html#PseudoSpectralPTO"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.PseudoSpectralPTO" title="Permalink to this definition"></a></dt>
 <dd><p>Pseudo-spectral PTO control.</p>
@@ -201,8 +238,8 @@ See <code class="docutils literal notranslate"><span class="pre">_PTO</span></co
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in pseudo-spectral problem. Should match
-the BEM and wave frequencies.</p></li>
+<li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in pseudo-spectral problem. Should
+match the BEM and wave frequencies.</p></li>
 <li><p><strong>kinematics</strong> (<em>np.ndarray</em>) – Matrix that converts from the WEC DOFs to the PTO DOFs.
 Shape: (PTO DOFs, WEC DOFs).</p></li>
 </ul>

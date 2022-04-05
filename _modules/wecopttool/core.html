@@ -157,8 +157,8 @@
 <span class="sd">            ``capytaine.post_pro.impedance``. Shape:</span>
 <span class="sd">            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).</span>
 <span class="sd">        f_add: dict[str, Callable]</span>
-<span class="sd">            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring, </span>
-<span class="sd">            etc.) for the WEC dynamics in the time-domain. Dictionary entries </span>
+<span class="sd">            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring,</span>
+<span class="sd">            etc.) for the WEC dynamics in the time-domain. Dictionary entries</span>
 <span class="sd">            should be ``entry = {&#39;name&#39;: function_handle}``. Takes three inputs:</span>
 <span class="sd">            (1) the WEC object,</span>
 <span class="sd">            (2) the WEC dynamics state (1D np.ndarray), and</span>
@@ -190,7 +190,7 @@
 
         <span class="c1"># additional WEC dynamics forces</span>
         <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">f_add</span><span class="p">):</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span> 
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span>
                       <span class="s2">&quot;for Callable argument </span><span class="si">{f_add}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f_add&#39;</span><span class="p">:</span> <span class="n">f_add</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span> <span class="o">=</span> <span class="n">f_add</span>
@@ -266,17 +266,18 @@
     <span class="c1"># properties: f_add</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Additonal forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Additional forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f_add</span>
-    
+
     <span class="nd">@f_add</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">f_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f_add</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">f_add</span><span class="p">):</span>
-            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span> 
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Assigning dictionary entry &#39;f_add&#39;&quot;</span> <span class="o">+</span>
                       <span class="s2">&quot;for Callable argument </span><span class="si">{f_add}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;f_add&#39;</span><span class="p">:</span> <span class="n">f_add</span><span class="p">}</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_f_add&#39;</span><span class="p">,</span> <span class="n">f_add</span><span class="p">)</span>
-    
+
     <span class="c1"># properties: frequency</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">freq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -742,13 +743,13 @@
 <span class="sd">            Whether to maximize the objective function. The default is</span>
 <span class="sd">            ``False`` to minimize the objective function.</span>
 <span class="sd">        bounds_wec: Bounds</span>
-<span class="sd">            Bounds on the WEC components of the decsision variable; see </span>
+<span class="sd">            Bounds on the WEC components of the decsision variable; see</span>
 <span class="sd">            scipy.optimize.minimize</span>
 <span class="sd">        bounds_opt: Bounds</span>
-<span class="sd">            Bounds on the optimization (control) components of the decsision </span>
+<span class="sd">            Bounds on the optimization (control) components of the decsision</span>
 <span class="sd">            variable; see scipy.optimize.minimize</span>
 <span class="sd">        callback: function</span>
-<span class="sd">            Called after each iteration; see scipy.optimize.minimize. The </span>
+<span class="sd">            Called after each iteration; see scipy.optimize.minimize. The</span>
 <span class="sd">            default is reported via logging at the INFO level.</span>
 
 <span class="sd">        Returns</span>
@@ -777,7 +778,7 @@
         <span class="k">if</span> <span class="n">x_opt_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span>
         <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_wec_0</span><span class="p">,</span> <span class="n">x_opt_0</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span>
-        
+
         <span class="c1"># bounds</span>
         <span class="n">bounds_in</span> <span class="o">=</span> <span class="p">[</span><span class="n">bounds_wec</span><span class="p">,</span> <span class="n">bounds_opt</span><span class="p">]</span>
         <span class="n">bounds_dflt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=-</span><span class="mi">1</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
@@ -791,7 +792,7 @@
             <span class="n">bounds_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bo</span><span class="p">)</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">lb</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">,</span>
                         <span class="n">ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">ub</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span>
-        
+
         <span class="c1"># wave excitation force</span>
         <span class="n">fd_we</span><span class="p">,</span> <span class="n">td_we</span> <span class="o">=</span> <span class="n">wave_excitation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hydro</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
         <span class="n">f_exc</span> <span class="o">=</span> <span class="n">td_we</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">]</span>
@@ -832,8 +833,8 @@
             <span class="n">eq_cons</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">resid_fun</span><span class="p">)</span>
         <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eq_cons</span><span class="p">)</span>
 
-        <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>         
-        
+        <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">def</span> <span class="nf">callback</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_decision_var</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -910,10 +911,10 @@
         <span class="n">f_add</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">f_add_fun</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">f_add</span> <span class="o">=</span> <span class="n">f_add</span> <span class="o">+</span> <span class="n">f_add_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
-            
+
         <span class="k">return</span> <span class="n">f_i</span> <span class="o">-</span> <span class="n">f_exc</span> <span class="o">-</span> <span class="n">f_add</span>
 
-    <span class="k">def</span> <span class="nf">_post_process_wec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
+    <span class="k">def</span> <span class="nf">_post_process_wec_dynamics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                    <span class="n">x_wec</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
                                    <span class="n">x_opt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
                                    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">]:</span>
@@ -970,10 +971,10 @@
         <span class="n">acc_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
             <span class="n">acc_fd</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims_fd</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords_fd</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">attrs_acc</span><span class="p">)</span>
         <span class="n">freq_dom</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;pos&#39;</span><span class="p">:</span> <span class="n">pos_fd</span><span class="p">,</span> <span class="s1">&#39;vel&#39;</span><span class="p">:</span> <span class="n">vel_fd</span><span class="p">,</span> <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="n">acc_fd</span><span class="p">},)</span>
-        
+
         <span class="c1"># user-defined additional forces (in WEC DoFs)</span>
         <span class="k">for</span> <span class="n">f_add_key</span><span class="p">,</span> <span class="n">f_add_fun</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_add</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">time_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">),</span> 
+            <span class="n">time_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">),</span>
                                    <span class="n">f_add_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">))</span>
             <span class="n">freq_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">),</span>
                                    <span class="bp">self</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">time_dom</span><span class="p">[</span><span class="n">f_add_key</span><span class="p">]))</span>
@@ -1166,7 +1167,7 @@
 <span class="sd">        BEM results from capytaine.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">wave_dirs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">wave_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">_degrees_to_radians</span><span class="p">(</span><span class="n">wave_dirs</span><span class="p">))</span>  
+        <span class="n">wave_dirs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">_degrees_to_radians</span><span class="p">(</span><span class="n">wave_dirs</span><span class="p">))</span>
     <span class="n">solver</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">BEMSolver</span><span class="p">()</span>
     <span class="n">test_matrix</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">coords</span><span class="o">=</span><span class="p">{</span>
         <span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">rho</span><span class="p">],</span>
@@ -1399,6 +1400,7 @@
         <span class="k">return</span> <span class="n">f</span>
 
     <span class="k">return</span> <span class="n">func</span></div>
+
 
 <span class="k">def</span> <span class="nf">_degrees_to_radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
                        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
