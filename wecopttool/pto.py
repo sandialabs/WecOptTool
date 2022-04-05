@@ -10,7 +10,6 @@ dynamics.
 
 
 from __future__ import annotations  # TODO: delete after python 3.10
-from typing import Callable
 
 import numpy.typing as npt
 import autograd.numpy as np
