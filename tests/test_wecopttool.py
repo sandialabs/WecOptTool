@@ -649,7 +649,7 @@ def test_linear_pi_pto(_wec, regular_wave):
 
     # solve
     scale_x_wec = 1.0
-    scale_x_opt = 0.01
+    scale_x_opt = 0.001
     scale_obj = 1.0
     options = {'maxiter': 100, 'ftol': 1e-8}
     _, wec_fdom, x_wec, x_opt, _, _ = wec.solve(
