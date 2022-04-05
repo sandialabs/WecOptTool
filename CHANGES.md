@@ -6,11 +6,16 @@
 **New features**
 
 * Linear PTOs now available in `pto.py`, specified through a frequency-dependent complex PTO impedance. This allows modeling more realistic PTOs.
+* `bounds` for `scipy.optimize.minimize` via `wec.solve`
+  * scale within `wec.solve`
+  * separate `bounds_wec` and `bounds_opt` args for `wec.solve`
+* expose `callback` argument for `scipy.optimize.minimize` via `wec.solve`, allowing user to overwrite default
 
 **Bug fixes**
 
 * user wave direction input now consistently in degrees
 * bug fix for multidirectional waves
+* scale initial guess (`x_wec_0` and `x_opt_0`) arguments within `wec.solve`
 
 
 ## Version 1.1.0
