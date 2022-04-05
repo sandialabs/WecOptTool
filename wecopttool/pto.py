@@ -603,7 +603,7 @@ class PseudoSpectralLinearPTO(_LinearPTO):
         return self._vec_to_dofmat(x_opt)
 
 
-class PLinearPTO(_LinearPTO):
+class ProportionalLinearPTO(_LinearPTO):
     """Proportional (P) PTO controller with linear PTO.
 
     PTO force is a constant times the velocity.
@@ -624,7 +624,7 @@ class PLinearPTO(_LinearPTO):
         return force_fd
 
 
-class PILinearPTO(_LinearPTO):
+class ProportionalIntegralLinearPTO(_LinearPTO):
     """Proportional (P) PTO controller with linear PTO.
 
     PTO force is a constant times the velocity.

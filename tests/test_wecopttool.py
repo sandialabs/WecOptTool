@@ -635,7 +635,7 @@ def test_linear_pi_pto(_wec, regular_wave):
     pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],
                             [pto_impedance_21, pto_impedance_22]])
     # create PTO
-    pto = wot.pto.PILinearPTO(wec.nfreq, kinematics, pto_impedance)
+    pto = wot.pto.ProportionalIntegralLinearPTO(wec.nfreq, kinematics, pto_impedance)
 
     # add PTO force to WEC
     wec.f_add = {'PTO': pto.force_on_wec}
