@@ -590,7 +590,7 @@ class WEC:
     def _get_state_scale(self,
                          scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
-                         nstate_opt: Optional[int] = None):
+                         nstate_opt: Optional[int] = None) -> np.ndarray:
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:
@@ -620,7 +620,9 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
-              bounds: Optional[Bounds | list] = None,
+              bounds_wec: Optional[Bounds] = None,
+              bounds_opt: Optional[Bounds] = None,
+              callback: Callable[[np.ndarray]] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -666,8 +668,15 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
-        bounds: sequence | Bounds
-            See scipy.optimize.minimize
+        bounds_wec: Bounds
+            Bounds on the WEC components of the decsision variable; see 
+            scipy.optimize.minimize
+        bounds_opt: Bounds
+            Bounds on the optimization (control) components of the decsision 
+            variable; see scipy.optimize.minimize
+        callback: function
+            Called after each iteration; see scipy.optimize.minimize. The 
+            default is reported via logging at the INFO level.
 
         Returns
         -------
@@ -686,19 +695,33 @@ class WEC:
         """
         log.info("Solving pseudo-spectral control problem.")
 
-        # initial state
+        # scale
+        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
+
+        # initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])
-
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+        
+        # bounds
+        bounds_in = [bounds_wec, bounds_opt]
+        bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
+                             ub=1*np.ones(self.nstate_wec)*np.inf),
+                      Bounds(lb=-1*np.ones(nstate_opt)*np.inf,
+                             ub=1*np.ones(nstate_opt)*np.inf)]
+        bounds_list = []
+        for bi, bd in zip(bounds_in, bounds_dflt):
+            if bi is not None: bo = bi
+            else: bo = bd
+            bounds_list.append(bo)
+        bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
+                        ub=np.hstack([le.ub for le in bounds_list])*scale)
+        
         # wave excitation force
         fd_we, td_we = wave_excitation(self.hydro, waves)
         f_exc = td_we['excitation_force']
-
-        # scale
-        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
 
         # objective function
         sign = -1.0 if maximize else 1.0
@@ -736,8 +759,15 @@ class WEC:
             eq_cons['jac'] = jacobian(resid_fun)
         constraints.append(eq_cons)
 
-        # minimize
-        optim_options['disp'] = optim_options.get('disp', True)
+        optim_options['disp'] = optim_options.get('disp', True)         
+        
+        if callback is None:
+            def callback(x):
+                x_wec, x_opt = self.decompose_decision_var(x)
+                log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
+                    + f"[{np.abs(np.mean(x_wec)):.2e}, " \
+                    + f"{np.abs(np.mean(x_opt)):.2e}, " \
+                    + f"{np.abs(obj_fun_scaled(x)):.2e}]")
 
         problem = {'fun': obj_fun_scaled,
                    'x0': x0,
@@ -745,20 +775,13 @@ class WEC:
                    'constraints': constraints,
                    'options': optim_options,
                    'bounds': bounds,
+                   'callback':callback,
                    }
-
-        def callback(x):
-            x_wec, x_opt = self.decompose_decision_var(x)
-            log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
-                + f"[{np.abs(np.mean(x_wec)):.2e}, " \
-                + f"{np.abs(np.mean(x_opt)):.2e}, " \
-                + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-        
-        problem['callback'] = callback
 
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
 
+        # minimize
         res = minimize(**problem)
 
         msg = f'{res.message}    (Exit mode {res.status})'
