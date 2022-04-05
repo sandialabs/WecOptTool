@@ -287,17 +287,17 @@ def test_wavebot_p_cc(wec,resonant_wave):
     _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
         optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
         bounds=bounds)
-    
+
     # P controller power matches theoretical limit at resonance
     plim = power_limit(fdom['excitation_force'][1:, 0],
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(average_power, 0.03) == plim
-    
+
     # optimal gain matches real part of impedance
     omega_wave_ind = np.where((resonant_wave.S > 0).squeeze())[0].item()
     optimal_kp_expected = wec.hydro.Zi[omega_wave_ind].real
-    
+
     assert pytest.approx(optimal_kp_expected, 1e-1) == -1*xopt.item()
 
 
@@ -311,21 +311,21 @@ def test_wavebot_pi_cc(wec,regular_wave):
     pto = wot.pto.ProportionalIntegralPTO(kinematics)
 
     wec.f_add = {'PTO': pto.force_on_wec}
-    
+
     # set bounds such that damping must be negative
-    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+    lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec),
                          -1 * np.inf * np.ones(1),
                          -1 * np.inf * np.ones(1)])
-    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+    ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec),
                          0 * np.ones(1),
                          1 * np.inf * np.ones(1)])
     bounds = Bounds(lb, ub)
 
     _, fdom, _, xopt, avg_power, _ = wec.solve(regular_wave,
-                                               obj_fun=pto.average_power, 
+                                               obj_fun=pto.average_power,
                                                nstate_opt=pto.nstate,
                                                optim_options={
-                                                   'maxiter': 1000, 
+                                                   'maxiter': 1000,
                                                    'ftol': 1e-8},
                                                scale_x_opt=1e3,
                                                bounds=bounds)
@@ -335,13 +335,13 @@ def test_wavebot_pi_cc(wec,regular_wave):
                        wec.hydro.Zi[:, 0, 0]).item()
 
     assert pytest.approx(avg_power, 0.03) == plim
-    
+
     # optimal gain matches complex conjugate of impedance
     omega_wave_ind = np.where((regular_wave.S > 0).squeeze())[0].item()
     omega_wave = regular_wave.omega[omega_wave_ind].data.item()
     tmp1 = wec.hydro.Zi[omega_wave_ind].conj().data.item()
     optimal_gains_expected = -1*tmp1.real + 1j * omega_wave * tmp1.imag
-    
+
     assert pytest.approx(optimal_gains_expected, 1e-6) == xopt[0] + 1j*xopt[1]
 
 
@@ -603,7 +603,7 @@ def test_buoyancy_excess(wec, pto, regular_wave):
     assert pytest.approx (expected, 1e-1) == mean_pos
 
 
-def test_linear_ps_pto(wec, regular_wave):
+def test_linear_pi_pto(wec, regular_wave):
     # PTO kinematics
     kinematics = np.eye(wec.ndof)
     # PTO impedance - frequency dependent
@@ -627,7 +627,7 @@ def test_linear_ps_pto(wec, regular_wave):
     pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],
                             [pto_impedance_21, pto_impedance_22]])
     # create PTO
-    pto = wot.pto.PseudoSpectralLinearPTO(wec.nfreq, kinematics, pto_impedance)
+    pto = wot.pto.PILinearPTO(wec.nfreq, kinematics, pto_impedance)
 
     # add PTO force to WEC
     wec.f_add = pto.force_on_wec
@@ -662,14 +662,23 @@ def test_linear_ps_pto(wec, regular_wave):
     cc_current_td = wot.post_process_continuous_time(cc_current_fd)
     cc_voltage_td = wot.post_process_continuous_time(cc_voltage_fd)
     cc_power_td = lambda t: cc_current_td(t) * cc_voltage_td(t)
-
-    # check results close to theoretical
     nsubsteps = 10
     t = wec.make_time_vec(nsubsteps)
-    current = pto.electric_current(wec, x_wec, x_opt, nsubsteps).flatten()
-    voltage = pto.electric_voltage(wec, x_wec, x_opt, nsubsteps).flatten()
+    cc_avg_power = np.sum(cc_power_td(t))
+
+    # theoretical PI gains
+    w_ind = np.argmax(regular_wave.S.values)
+    wave_frequency = regular_wave.omega.values[w_ind]/(2*np.pi)
+    ind = int(np.where(np.isclose(wec.freq, wave_frequency))[0])
+    abcd_inv = np.linalg.inv(pto._impedance_abcd[:, :, ind])
+    vec_elec = np.array([[cc_current_fd[ind]], [cc_voltage_fd[ind]]])
+    vec_mech = abcd_inv @ vec_elec
+    cc_velocity_fd = vec_mech[0, 0]
+    cc_force_fd = vec_mech[1, 0]
+    tmp = cc_force_fd / cc_velocity_fd
+    x_opt_th = [-np.imag(tmp)*wec.omega[ind], np.real(tmp)]
+
+    # check results close to theoretical
     power = pto.electric_power(wec, x_wec, x_opt, nsubsteps).flatten()
-    rtol = 1e-2
-    assert np.allclose(current, cc_current_td(t), rtol=rtol)
-    assert np.allclose(voltage, cc_voltage_td(t), rtol=rtol)
-    assert np.allclose(power, cc_power_td(t), rtol=rtol)
+    assert np.isclose(cc_avg_power, np.sum(power))
+    assert np.allclose(x_opt_th, x_opt)
