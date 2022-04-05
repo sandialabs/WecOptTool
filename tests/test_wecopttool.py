@@ -651,7 +651,7 @@ def test_linear_pi_pto(_wec, regular_wave):
     scale_x_wec = 1.0
     scale_x_opt = 0.0001
     scale_obj = 1.0
-    options = {'maxiter': 100, 'ftol': 1e-8}
+    options = {'maxiter': 250, 'ftol': 1e-8}
     _, wec_fdom, x_wec, x_opt, _, _ = wec.solve(
         regular_wave, obj_fun, nstate_opt, optim_options=options,
         scale_x_wec=scale_x_wec, scale_x_opt=scale_x_opt, scale_obj=scale_obj)
@@ -691,8 +691,8 @@ def test_linear_pi_pto(_wec, regular_wave):
 
     # check results close to theoretical
     power = pto.electric_power(wec, x_wec, x_opt, nsubsteps).flatten()
-    assert np.isclose(cc_avg_power, np.sum(power))
-    assert np.allclose(x_opt_th, x_opt)
+    assert np.isclose(cc_avg_power, np.sum(power), rtol=1e-2)
+    assert np.allclose(x_opt_th, x_opt, rtol=1e-2)
 
 
 def test_solve_initial_guess(wec, resonant_wave):
