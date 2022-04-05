@@ -10,6 +10,7 @@
 **Bug fixes**
 
 * user wave direction input now consistently in degrees
+* bug fix for multidirectional waves
 
 
 ## Version 1.1.0
