@@ -84,8 +84,8 @@ class WEC:
             ``capytaine.post_pro.impedance``. Shape:
             (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
         f_add: dict[str, Callable]
-            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring, 
-            etc.) for the WEC dynamics in the time-domain. Dictionary entries 
+            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring,
+            etc.) for the WEC dynamics in the time-domain. Dictionary entries
             should be ``entry = {'name': function_handle}``. Takes three inputs:
             (1) the WEC object,
             (2) the WEC dynamics state (1D np.ndarray), and
@@ -117,7 +117,7 @@ class WEC:
 
         # additional WEC dynamics forces
         if callable(f_add):
-            log.debug(f"Assigning dictionary entry 'f_add'" + 
+            log.debug(f"Assigning dictionary entry 'f_add'" +
                       "for Callable argument {f_add}")
             f_add = {'f_add': f_add}
         self.f_add = f_add
@@ -193,17 +193,18 @@ class WEC:
     # properties: f_add
     @property
     def f_add(self):
-        """Additonal forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)"""
+        """Additional forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)
+        """
         return self._f_add
-    
+
     @f_add.setter
     def f_add(self, f_add):
         if callable(f_add):
-            log.debug(f"Assigning dictionary entry 'f_add'" + 
+            log.debug(f"Assigning dictionary entry 'f_add'" +
                       "for Callable argument {f_add}")
             f_add = {'f_add': f_add}
         super().__setattr__('_f_add', f_add)
-    
+
     # properties: frequency
     @property
     def freq(self):
@@ -590,7 +591,7 @@ class WEC:
     def _get_state_scale(self,
                          scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
-                         nstate_opt: Optional[int] = None):
+                         nstate_opt: Optional[int] = None) -> np.ndarray:
         """Create a combined scaling array for the state vector. """
         # scale for x_wec
         if scale_x_wec == None:
@@ -620,7 +621,9 @@ class WEC:
               optim_options: dict[str, Any] = {},
               use_grad: bool = True,
               maximize: bool = False,
-              bounds: Optional[Bounds | list] = None,
+              bounds_wec: Optional[Bounds] = None,
+              bounds_opt: Optional[Bounds] = None,
+              callback: Callable[[np.ndarray]] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
         """Solve the WEC co-design problem.
@@ -666,8 +669,15 @@ class WEC:
         maximize: bool
             Whether to maximize the objective function. The default is
             ``False`` to minimize the objective function.
-        bounds: sequence | Bounds
-            See scipy.optimize.minimize
+        bounds_wec: Bounds
+            Bounds on the WEC components of the decsision variable; see
+            scipy.optimize.minimize
+        bounds_opt: Bounds
+            Bounds on the optimization (control) components of the decsision
+            variable; see scipy.optimize.minimize
+        callback: function
+            Called after each iteration; see scipy.optimize.minimize. The
+            default is reported via logging at the INFO level.
 
         Returns
         -------
@@ -686,19 +696,33 @@ class WEC:
         """
         log.info("Solving pseudo-spectral control problem.")
 
-        # initial state
+        # scale
+        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
+
+        # initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+
+        # bounds
+        bounds_in = [bounds_wec, bounds_opt]
+        bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
+                             ub=1*np.ones(self.nstate_wec)*np.inf),
+                      Bounds(lb=-1*np.ones(nstate_opt)*np.inf,
+                             ub=1*np.ones(nstate_opt)*np.inf)]
+        bounds_list = []
+        for bi, bd in zip(bounds_in, bounds_dflt):
+            if bi is not None: bo = bi
+            else: bo = bd
+            bounds_list.append(bo)
+        bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
+                        ub=np.hstack([le.ub for le in bounds_list])*scale)
 
         # wave excitation force
         fd_we, td_we = wave_excitation(self.hydro, waves)
         f_exc = td_we['excitation_force']
-
-        # scale
-        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
 
         # objective function
         sign = -1.0 if maximize else 1.0
@@ -736,8 +760,15 @@ class WEC:
             eq_cons['jac'] = jacobian(resid_fun)
         constraints.append(eq_cons)
 
-        # minimize
         optim_options['disp'] = optim_options.get('disp', True)
+
+        if callback is None:
+            def callback(x):
+                x_wec, x_opt = self.decompose_decision_var(x)
+                log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
+                    + f"[{np.abs(np.mean(x_wec)):.2e}, " \
+                    + f"{np.abs(np.mean(x_opt)):.2e}, " \
+                    + f"{np.abs(obj_fun_scaled(x)):.2e}]")
 
         problem = {'fun': obj_fun_scaled,
                    'x0': x0,
@@ -745,20 +776,13 @@ class WEC:
                    'constraints': constraints,
                    'options': optim_options,
                    'bounds': bounds,
+                   'callback':callback,
                    }
-
-        def callback(x):
-            x_wec, x_opt = self.decompose_decision_var(x)
-            log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
-                + f"[{np.abs(np.mean(x_wec)):.2e}, " \
-                + f"{np.abs(np.mean(x_opt)):.2e}, " \
-                + f"{np.abs(obj_fun_scaled(x)):.2e}]")
-        
-        problem['callback'] = callback
 
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
 
+        # minimize
         res = minimize(**problem)
 
         msg = f'{res.message}    (Exit mode {res.status})'
@@ -814,10 +838,10 @@ class WEC:
         f_add = 0.0
         for f_add_fun in self.f_add.values():
             f_add = f_add + f_add_fun(self, x_wec, x_opt)
-            
+
         return f_i - f_exc - f_add
 
-    def _post_process_wec_dynamics(self, 
+    def _post_process_wec_dynamics(self,
                                    x_wec: np.ndarray,
                                    x_opt: np.ndarray
                                    ) -> tuple[xr.DataArray, xr.DataArray]:
@@ -874,10 +898,10 @@ class WEC:
         acc_fd = xr.DataArray(
             acc_fd, dims=dims_fd, coords=coords_fd, attrs=attrs_acc)
         freq_dom = xr.Dataset({'pos': pos_fd, 'vel': vel_fd, 'acc': acc_fd},)
-        
+
         # user-defined additional forces (in WEC DoFs)
         for f_add_key, f_add_fun in self.f_add.items():
-            time_dom[f_add_key] = (('time', 'influenced_dof'), 
+            time_dom[f_add_key] = (('time', 'influenced_dof'),
                                    f_add_fun(self, x_wec, x_opt))
             freq_dom[f_add_key] = (('omega', 'influenced_dof'),
                                    self.td_to_fd(time_dom[f_add_key]))
@@ -1070,7 +1094,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
         BEM results from capytaine.
     """
     if wave_dirs is not None:
-        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))  
+        wave_dirs = np.atleast_1d(_degrees_to_radians(wave_dirs))
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
         'rho': [rho],
@@ -1303,6 +1327,7 @@ def post_process_continuous_time(results: xr.DataArray
         return f
 
     return func
+
 
 def _degrees_to_radians(degrees: float | npt.ArrayLike
                        ) -> float | np.ndarray:
