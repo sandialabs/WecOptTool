@@ -1000,10 +1000,11 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     
     if not w_dir_subset:
         raise ValueError(
-            f"Wave direction(s): "\
-            f" {(np.rad2deg(waves['wave_direction'].values))} (degree)"\
-            f" not in BEM solution: "\
-            f" {np.rad2deg(bem_data['wave_direction'].values)} (degree).")
+            "Some wave directions are not in BEM solution " +
+            "\n Wave direction(s):" +
+            f"{(np.rad2deg(waves['wave_direction'].values))} (deg)" +
+            " \n BEM directions: " +
+            f"{np.rad2deg(bem_data['wave_direction'].values)} (deg).")
 
     # excitation BEM
     exc_coeff = bem_data['Froude_Krylov_force'] + \
