@@ -640,7 +640,7 @@ class WEC:
 
         return np.concatenate([scale_x_wec, scale_x_opt])
 
-    def initial_x_wec_guess(self, waves: xr.Dataset) -> np.ndaray:
+    def initial_x_wec_guess_analytic(self, waves: xr.Dataset) -> np.ndaray:
         """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
         be passed to `wec.solve`.
 
@@ -656,7 +656,7 @@ class WEC:
             
         Examples
         --------
-        >>> x_wec_0 = wec.initial_x_wec_guess(regular_wave)
+        >>> x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
         >>> wec.solve(regular_wave,
                       obj_fun=pto.average_power,
                       nstate_opt=pto.nstate,

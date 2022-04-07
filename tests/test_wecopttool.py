@@ -141,9 +141,9 @@ def test_solve(wec, regular_wave, pto):
     _, _ = pto.post_process(wec, x_wec, x_opt)
 
 
-def test_solve_initial_guess(wec, regular_wave, pto):
+def test_solve_initial_guess_analytic(wec, regular_wave, pto):
 
-    x_wec_0 = wec.initial_x_wec_guess(regular_wave)
+    x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
 
     nits = []
     x_wecs = []
@@ -164,7 +164,7 @@ def test_solve_initial_guess(wec, regular_wave, pto):
     
     
 def test_complex_to_real_amplitudes(wec, regular_wave):
-    x_wec = wec.initial_x_wec_guess(regular_wave)
+    x_wec = wec.initial_x_wec_guess_analytic(regular_wave)
     fd_wec = wot.real_to_complex_amplitudes(x_wec)
     x_wec_1 = wot.complex_to_real_amplitudes(fd_wec)
     
@@ -305,7 +305,7 @@ def test_wavebot_ps_theoretical_limit(wec, regular_wave, pto):
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
-    x_wec_0 = wec.initial_x_wec_guess(regular_wave)
+    x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
     _, fdom, _, _, average_power, _ = wec.solve(regular_wave, 
                                                 obj_fun, 
                                                 nstate_opt,
