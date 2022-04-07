@@ -305,11 +305,13 @@ def test_wavebot_ps_theoretical_limit(wec, regular_wave, pto):
     wec.constraints = []
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
+    x_wec_0 = wec.initial_x_wec_guess(regular_wave)
     _, fdom, _, _, average_power, _ = wec.solve(regular_wave, 
                                                 obj_fun, 
                                                 nstate_opt,
                                                 optim_options={'maxiter': 1000, 
                                                                'ftol': 1e-8}, 
+                                                x_wec_0=x_wec_0,
                                                 scale_x_wec=1e1,
                                                 scale_x_opt=1e-3,
                                                 scale_obj=1e-2)
