@@ -24,6 +24,9 @@ def _wec():
     f0 = 0.05
     nfreq = 18
 
+    #wave directions
+    wave_dirs = [0, 10, 20]
+
     #  mesh
     meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
 
@@ -42,7 +45,7 @@ def _wec():
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho)
 
     # BEM
-    wec.run_bem()
+    wec.run_bem(wave_dirs)
 
     return wec
 
