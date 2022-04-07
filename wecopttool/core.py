@@ -668,8 +668,8 @@ class WEC:
         """
         pos_opt = self.optimal_position(waves)
         pos_opt_zero_mean = np.concatenate([np.zeros((1, self.ndof)), pos_opt])
-        x_wec_0 = complex_to_real_amplitudes(pos_opt_zero_mean)
-        return x_wec_0.squeeze()
+        x_wec_0 = complex_to_real_amplitudes(pos_opt_zero_mean).squeeze()
+        return x_wec_0
 
     def solve(self,
               waves: xr.Dataset,
