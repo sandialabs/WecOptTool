@@ -995,8 +995,8 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
 
-    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values
-        ,bem_data['wave_direction'].values)
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+                bem_data['wave_direction'].values)
     
     if not w_dir_subset:
         raise ValueError(
