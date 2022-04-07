@@ -993,8 +993,9 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     time_dom: xarray.Dataset
         Time domain wave excitation and elevation.
     """
-    assert np.allclose(waves['omega'].values, bem_data['omega'].values)
-
+    if not np.allclose(waves['omega'].values, bem_data['omega'].values):
+        raise ValueError("Wave and BEM frequencies do not match")
+        
     w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
                 bem_data['wave_direction'].values)
     
