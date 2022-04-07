@@ -994,8 +994,16 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
         Time domain wave excitation and elevation.
     """
     assert np.allclose(waves['omega'].values, bem_data['omega'].values)
-    assert np.allclose(waves['wave_direction'].values,
-                       bem_data['wave_direction'].values)
+
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values
+        ,bem_data['wave_direction'].values)
+    
+    if not w_dir_subset:
+        raise ValueError(
+            f"Wave direction(s): "\
+            f" {(np.rad2deg(waves['wave_direction'].values))} (degree)"\
+            f" not in BEM solution: "\
+            f" {np.rad2deg(bem_data['wave_direction'].values)} (degree).")
 
     # excitation BEM
     exc_coeff = bem_data['Froude_Krylov_force'] + \
@@ -1337,3 +1345,16 @@ def _degrees_to_radians(degrees: float | npt.ArrayLike
     radians[radians > np.pi] -= 2*np.pi
     radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
+
+def subsetclose(A, B, rtol=1.e-5, atol=1.e-8, equal_nan=False):
+    """
+    Returns True if the first array is element-wise equal within a tolerance
+    to a subset of the second array.
+    Returns the indices the elements of the first array at the locations
+    of the second array
+    """
+    ind = [(list(B).index(b)) for b in B for a in A \
+        if np.isclose(a, b, rtol, atol, equal_nan)]
+    result = all(any(np.isclose(a, b, rtol, atol, equal_nan) \
+        for b in B) for a in A)
+    return(result, ind)
