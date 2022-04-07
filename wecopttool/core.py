@@ -1016,6 +1016,7 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
                                ) -> np.ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency. """
+    fd = np.atleast_2d(fd)
     if first_row_is_mean:
         mean = fd[0:1, :]
         fd = fd[1:, :]

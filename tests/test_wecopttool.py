@@ -165,7 +165,7 @@ def test_solve_initial_guess(wec, regular_wave, pto):
     
 def test_complex_to_real_amplitudes(wec, regular_wave):
     x_wec = wec.initial_x_wec_guess(regular_wave)
-    fd_wec = wot.real_to_complex_amplitudes(np.atleast_2d(x_wec))
+    fd_wec = wot.real_to_complex_amplitudes(x_wec)
     x_wec_1 = wot.complex_to_real_amplitudes(fd_wec)
     
     assert np.all(x_wec == x_wec_1)
