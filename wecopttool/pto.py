@@ -10,12 +10,12 @@ dynamics.
 
 
 from __future__ import annotations  # TODO: delete after python 3.10
-from typing import Callable
 
 import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 import xarray as xr
+from scipy.linalg import block_diag
 
 from wecopttool.core import WEC, real_to_complex_amplitudes
 
@@ -65,6 +65,23 @@ class _PTO:
 
     def _wec_pos_to_pto_pos(self, pos_wec):
         return np.dot(pos_wec, self._kinematics_t)
+
+    def _dofmat_to_vec(self, mat: np.ndarray) -> np.ndarray:
+        """Flatten a matrix that has one column per DOF.
+        Opposite of ``vec_to_dofmat``. """
+        return np.reshape(mat, -1, order='F')
+
+    def _vec_to_dofmat(self, vec: np.ndarray) -> np.ndarray:
+        """Convert a vector back to a matrix with one column per DOF.
+        Opposite of ``dofmat_to_vec``.
+        """
+        return np.reshape(vec, (self.nstate_per_dof, -1), order='F')
+
+    def _pseudo_spectral(self, wec: WEC, x_opt: npt.ArrayLike,
+                         nsubsteps: int = 1) -> np.ndarray:
+        x = self._vec_to_dofmat(x_opt)
+        time_mat = wec.make_time_mat(nsubsteps, include_mean=False)
+        return np.dot(time_mat, x)
 
     def position(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                  nsubsteps: int = 1) -> np.ndarray:
@@ -281,8 +298,8 @@ class PseudoSpectralPTO(_PTO):
         Parameters
         ----------
         nfreq: int
-            Number of frequencies in pseudo-spectral problem. Should match
-            the BEM and wave frequencies.
+            Number of frequencies in pseudo-spectral problem. Should
+            match the BEM and wave frequencies.
         kinematics: np.ndarray
             Matrix that converts from the WEC DOFs to the PTO DOFs.
             Shape: (PTO DOFs, WEC DOFs).
@@ -296,9 +313,7 @@ class PseudoSpectralPTO(_PTO):
 
     def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
               nsubsteps: int = 1) -> np.ndarray:
-        x_pto = np.reshape(x_opt, (self.nstate_per_dof, self.ndof), order='F')
-        time_mat = wec.make_time_mat(nsubsteps, include_mean=False)
-        return np.dot(time_mat, x_pto)
+        return self._pseudo_spectral(wec, x_opt, nsubsteps)
 
     def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                nsubsteps: int = 1) -> float:
@@ -306,12 +321,11 @@ class PseudoSpectralPTO(_PTO):
             wec_pos = wec.vec_to_dofmat(x_wec)
             pos = self._wec_pos_to_pto_pos(wec_pos)
             vel = np.dot(wec.derivative_mat, pos)
-            vel_vec = wec.dofmat_to_vec(vel[1:, :])
+            vel_vec = self._dofmat_to_vec(vel[1:, :])
             energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
         else:
             energy_produced = super().energy(wec, x_wec, x_opt, nsubsteps)
         return energy_produced
-
 
 
 class ProportionalPTO(_PTO):
@@ -360,3 +374,273 @@ class ProportionalIntegralPTO(_PTO):
         tmp1 = u * B
         force_td = tmp1[:,0:self.ndof] + tmp1[:,self.ndof:]
         return force_td
+
+
+class _LinearPTO(_PTO):
+    """Linear structured PTO.
+
+    Models the PTO dynamics and provides output electrical current,
+    voltage, and power.
+    In addition to the kinematics matrix (WEC motions to PTO motions),
+    requires specifying a linear PTO impedance matrix that converts from
+    [PTO velocity, output current]^T to [PTO force, output voltage]^T.
+    """
+
+    def __init__(self, nfreq: int, kinematics: np.ndarray,
+                 impedance: np.ndarray, names: list[str] | None = None,
+                 ) -> None:
+        """
+        Parameters
+        ----------
+        nfreq: int
+            Number of frequencies in pseudo-spectral problem. Should
+            match the BEM and wave frequencies.
+        impedance: np.ndarray
+            Matrix representing the PTO impedance.
+        """
+        _PTO.__init__(self, kinematics, names)
+        self.nfreq = nfreq
+        if len(impedance.shape) == 2:
+            impedance = np.tile(np.expand_dims(impedance, 2), self.nfreq)
+        self.impedance = impedance
+        self._make_abcd()
+        self._make_mimo_transfer_mat()
+
+    @property
+    def ndof2(self):
+        return 2 * self.ndof
+
+    def _vec_to_dofmat(self, vec: np.ndarray) -> np.ndarray:
+        return np.reshape(vec, (2 * self.nfreq, -1), order='F')
+
+    def _make_abcd(self):
+        z_11 = self.impedance[:self.ndof, :self.ndof, :]  # Fv
+        z_12 = self.impedance[:self.ndof, self.ndof:, :]  # Fi
+        z_21 = self.impedance[self.ndof:, :self.ndof, :]  # Vv
+        z_22 = self.impedance[self.ndof:, self.ndof:, :]  # Vi
+        z_12_inv = np.linalg.inv(z_12.T).T
+
+        mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
+        abcd_11 = -1 * mmult(z_12_inv, z_11)
+        abcd_12 = z_12_inv
+        abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
+        abcd_22 = mmult(z_22, z_12_inv)
+
+        abcd = np.zeros(self.impedance.shape)*1j
+        abcd[:self.ndof, :self.ndof, :] = abcd_11
+        abcd[:self.ndof, self.ndof:, :] = abcd_12
+        abcd[self.ndof:, :self.ndof, :] = abcd_21
+        abcd[self.ndof:, self.ndof:, :] = abcd_22
+        self._impedance_abcd = abcd
+
+    def _make_mimo_transfer_mat(self) -> np.ndarray:
+        """Create a block matrix of the MIMO transfer function.
+        """
+        elem = [[None]*self.ndof2 for _ in range(self.ndof2)]
+        def block(re, im): return np.array([[re, im], [-im, re]])
+        for idof in range(self.ndof2):
+            for jdof in range(self.ndof2):
+                Zp = self._impedance_abcd[idof, jdof, :]
+                re = np.real(Zp)
+                im = np.imag(Zp)
+                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+                elem[idof][jdof] = block_diag(*blocks)
+        self._transfer_mat = np.block(elem)
+
+    def _calc_mech_vars(self, wec: WEC, x_wec: npt.ArrayLike,
+                        x_opt: npt.ArrayLike) -> np.ndarray:
+        """Create vector of PTO velocity and force. """
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        position = self._wec_pos_to_pto_pos(wec_pos)
+        velocity = np.dot(wec.derivative_mat, position)[1:, :]
+        force = self._force_fd_mat(wec, x_wec, x_opt)
+        return np.hstack([velocity, force])
+
+    def _calc_elec_vars(self, mech_vars: np.array) -> np.array:
+        mech_flat = self._dofmat_to_vec(mech_vars)
+        elec_flat = np.dot(self._transfer_mat, mech_flat)
+        elec_vars = self._vec_to_dofmat(elec_flat)
+        return elec_vars
+
+    def _split_vars(self, vars):
+        return vars[:, :self.ndof], vars[:, self.ndof:]
+
+    def force(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+              nsubsteps: int = 1) -> np.ndarray:
+        force_fd = self._force_fd_mat(wec, x_wec, x_opt)
+        return self._pseudo_spectral(wec, force_fd, nsubsteps)
+
+    def energy(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
+               nsubsteps: int = 1) -> float:
+        if nsubsteps == 1:
+            # velocity PS
+            wec_pos = wec.vec_to_dofmat(x_wec)
+            position = self._wec_pos_to_pto_pos(wec_pos)
+            velocity = np.dot(wec.derivative_mat, position)
+            vel_vec = self._dofmat_to_vec(velocity[1:, :])
+            # force PS
+            force = self._force_fd_mat(wec, x_wec, x_opt)
+            force_vec = self._dofmat_to_vec(force)
+            # energy
+            energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, force_vec)
+        else:
+            energy_produced = _PTO.energy(self, wec, x_wec, x_opt, nsubsteps)
+        return energy_produced
+
+    def electric_current(self, wec: WEC, x_wec: npt.ArrayLike,
+                        x_opt: npt.ArrayLike, nsubsteps: int = 1
+                        ) -> np.ndarray:
+        """Calculate electric current time-series for each PTO DOF. """
+        mech_vars = self._calc_mech_vars(wec, x_wec, x_opt)
+        current, _ = self._split_vars(self._calc_elec_vars(mech_vars))
+        return self._pseudo_spectral(wec, current, nsubsteps)
+
+    def electric_voltage(self, wec: WEC, x_wec: npt.ArrayLike,
+                         x_opt: npt.ArrayLike, nsubsteps: int = 1
+                         ) -> np.ndarray:
+        """Calculate electric voltage time-series for each PTO DOF. """
+        mech_vars = self._calc_mech_vars(wec, x_wec, x_opt)
+        _, volt = self._split_vars(self._calc_elec_vars(mech_vars))
+        return self._pseudo_spectral(wec, volt, nsubsteps)
+
+    def electric_power(self, wec: WEC, x_wec: npt.ArrayLike,
+                       x_opt: npt.ArrayLike, nsubsteps: int = 1
+                       ) -> np.ndarray:
+        """Calculate electric power time-series for each PTO DOF. """
+        current = self.electric_current(wec, x_wec, x_opt, nsubsteps)
+        voltage = self.electric_voltage(wec, x_wec, x_opt, nsubsteps)
+        return current*voltage
+
+    def electric_average_power(self, wec: WEC, x_wec: npt.ArrayLike,
+                               x_opt: npt.ArrayLike, nsubsteps: int = 1
+                               ) -> np.ndarray:
+        """Calculate the average power of the PTO for the given wave
+        spectrum.
+        """
+        return self.electric_energy(wec, x_wec, x_opt, nsubsteps) / wec.tf
+
+    def electric_energy(self, wec: WEC, x_wec: npt.ArrayLike,
+                        x_opt: npt.ArrayLike, nsubsteps: int = 1
+                        ) -> np.ndarray:
+        """Calculate the electric energy (in Joules) by the PTO during
+        the period t = 0-T = 1/f0."""
+        if nsubsteps == 1:
+            mech_vars = self._calc_mech_vars(wec, x_wec, x_opt)
+            current, volt = self._split_vars(
+                self._calc_elec_vars(mech_vars))
+            volt_vec = self._dofmat_to_vec(volt)
+            current_vec = self._dofmat_to_vec(current)
+            energy_produced = 1/(2*wec.f0) * np.dot(current_vec, volt_vec)
+        else:
+            power_td = self.electric_power(wec, x_wec, x_opt, nsubsteps)
+            energy_produced = np.sum(power_td) * wec.dt/nsubsteps
+        return energy_produced
+
+    def post_process(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike
+                     ) -> tuple[xr.Dataset, xr.Dataset]:
+        time_dom, freq_dom = _PTO.post_process(self, wec, x_wec, x_opt)
+
+        # current
+        current_td = self.electric_current(wec, x_wec, x_opt)
+        current_fd = wec.td_to_fd(current_td)
+
+        # voltage
+        voltage_td = self.electric_voltage(wec, x_wec, x_opt)
+        voltage_fd = wec.td_to_fd(voltage_td)
+
+        # power
+        epower_td = self.electric_power(wec, x_wec, x_opt)
+        epower_fd = wec.td_to_fd(epower_td)
+
+        # time-domain
+        dims = time_dom.dims
+        coords = time_dom.coords
+        attrs_current = {'long_name': 'PTO current', 'units': 'A'}
+        attrs_voltage = {'long_name': 'PTO voltage', 'units': 'V'}
+        attrs_epower = {'long_name': 'PTO electric power', 'units': 'W'}
+        current_td = xr.DataArray(
+            current_td, dims=dims, coords=coords, attrs=attrs_current)
+        voltage_td = xr.DataArray(
+            voltage_td, dims=dims, coords=coords, attrs=attrs_voltage)
+        epower_td = xr.DataArray(
+            epower_td, dims=dims, coords=coords, attrs=attrs_epower)
+        time_dom["current"] = current_td
+        time_dom["voltage"] = voltage_td
+        time_dom["epower"] = epower_td
+
+        # frequency-domain
+        dims = freq_dom.dims
+        coords = freq_dom.coords
+        attrs_current['units'] = 'A^2*s'
+        attrs_voltage['units'] = 'V^2*s'
+        attrs_epower['units'] = 'W^2*s'
+        current_fd = xr.DataArray(
+            current_fd, dims=dims, coords=coords, attrs=attrs_current)
+        voltage_fd = xr.DataArray(
+            voltage_fd, dims=dims, coords=coords, attrs=attrs_voltage)
+        epower_fd = xr.DataArray(
+            epower_fd, dims=dims, coords=coords, attrs=attrs_epower)
+        freq_dom["current"] = current_fd
+        freq_dom["voltage"] = voltage_fd
+        freq_dom["epower"] = epower_fd
+
+        return time_dom, freq_dom
+
+    # define in subclass:
+    def _force_fd_mat(self, wec: WEC, x_wec: npt.ArrayLike,
+                      x_opt: npt.ArrayLike) -> np.ndarray:
+        raise NotImplementedError(_PTO._errmsg)
+
+
+class PseudoSpectralLinearPTO(_LinearPTO):
+
+    @property
+    def nstate_per_dof(self):
+        return 2 * self.nfreq
+
+    def _force_fd_mat(self, wec: WEC, x_wec: npt.ArrayLike,
+                      x_opt: npt.ArrayLike) -> np.ndarray:
+        return self._vec_to_dofmat(x_opt)
+
+
+class ProportionalLinearPTO(_LinearPTO):
+    """Proportional (P) PTO controller with linear PTO.
+
+    PTO force is a constant times the velocity.
+    """
+
+    @property
+    def nstate_per_dof(self):
+        return 1
+
+    def _force_fd_mat(self, wec: WEC, x_wec: npt.ArrayLike,
+                      x_opt: npt.ArrayLike) -> np.ndarray:
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        position = self._wec_pos_to_pto_pos(wec_pos)
+        velocity = np.dot(wec.derivative_mat, position)
+        u = np.reshape(x_opt, [1, -1])
+        B = velocity[1:, :]
+        force_fd = u * B
+        return force_fd
+
+
+class ProportionalIntegralLinearPTO(_LinearPTO):
+    """Proportional (P) PTO controller with linear PTO.
+
+    PTO force is a constant times the velocity.
+    """
+
+    @property
+    def nstate_per_dof(self):
+        return 2
+
+    def _force_fd_mat(self, wec: WEC, x_wec: npt.ArrayLike,
+                      x_opt: npt.ArrayLike) -> np.ndarray:
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        position = self._wec_pos_to_pto_pos(wec_pos)
+        velocity = np.dot(wec.derivative_mat, position)
+        u = np.reshape(x_opt, [1, -1])
+        B = np.hstack([position[1:, :], velocity[1:, :]])
+        tmp1 = u * B
+        force_fd = tmp1[:, 0:self.ndof] + tmp1[:, self.ndof:]
+        return force_fd
