@@ -1346,15 +1346,47 @@ def _degrees_to_radians(degrees: float | npt.ArrayLike
     radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
 
-def subsetclose(A, B, rtol=1.e-5, atol=1.e-8, equal_nan=False):
+def subsetclose(subset_a: float | npt.ArrayLike, 
+                set_b: float | npt.ArrayLike,
+                rtol: float = 1.e-5, atol:float = 1.e-8, 
+                equal_nan: bool = False) -> tuple[bool, list]:
     """
-    Returns True if the first array is element-wise equal within a tolerance
-    to a subset of the second array.
-    Returns the indices the elements of the first array at the locations
-    of the second array
+    Compare if two arrays are subset equal within a tolerance.
+
+
+    Parameters
+    ----------
+    subset_a: float | npt.ArrayLike
+        First array which is tested for being subset.
+    set_b: float | npt.ArrayLike
+        Second array which is tested for containing subset_a.
+    rtol: float
+        The relative tolerance parameter.
+    atol: float
+        The absolute tolerance parameter.
+    equal_nan: bool
+        Whether to compare NaNs as equal.
+
+    Returns
+    -------
+    result: bool
+        boolean if the entire first array is a subset of second array 
+    ind: list
+        List with integer indices:
+        Where the first array's elements 
+        are located inside the second array.
     """
-    ind = [(list(B).index(b)) for b in B for a in A \
-        if np.isclose(a, b, rtol, atol, equal_nan)]
-    result = all(any(np.isclose(a, b, rtol, atol, equal_nan) \
-        for b in B) for a in A)
+    assert len(set(subset_a)) == len(subset_a), "Elements in subset_a not unique"
+    assert len(set(set_b)) == len(set_b), "Elements in set_b not unique"
+
+    ind = []
+    tmp_result = [False for i in range(len(subset_a))]
+    for subset_element in subset_a:
+        for set_element in set_b:
+            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
+                tmp_set_ind = np.where(np.isclose(set_element, set_b , rtol, atol, equal_nan))
+                tmp_subset_ind = np.where(np.isclose(subset_element, subset_a , rtol, atol, equal_nan))
+                ind.append( int(tmp_set_ind[0]) )
+                tmp_result[ int(tmp_subset_ind[0]) ] = True
+    result = all(tmp_result)
     return(result, ind)
