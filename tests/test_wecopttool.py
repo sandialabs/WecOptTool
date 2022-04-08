@@ -791,8 +791,6 @@ def test_regular_wave_power(wec, regular_wave, pto):
 
     sol_analytic = -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2 
                             / (8*np.real(wec.hydro.Zi[:, 0, 0])))
-    print('Analytic sol sum', np.sum(sol_analytic))
-    print('Solver sol', obj)
     #relative tolerance for assertion
     rtol = 0.005
-    assert np.isclose(sol_analytic,obj,rtol)
+    assert np.isclose(sol_analytic, obj, rtol)
