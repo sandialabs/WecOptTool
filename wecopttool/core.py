@@ -8,11 +8,13 @@ from __future__ import annotations  # TODO: delete after python 3.10
 __all__ = ['WEC', 'freq_array', 'real_to_complex_amplitudes', 'fd_to_td',
            'td_to_fd', 'scale_dofs', 'complex_xarray_from_netcdf',
            'complex_xarray_to_netcdf', 'wave_excitation', 'run_bem',
+           'optimal_velocity', 'optimal_position', 'complex_to_real_amplitudes',
            'power_limit', 'natural_frequency', 'plot_impedance',
            'post_process_continuous_time']
 
 
 import logging
+import copy
 from typing import Iterable, Callable, Any, Optional, Mapping
 from pathlib import Path
 
@@ -579,8 +581,37 @@ class WEC:
             option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
             show=show)
         return fig, axs
+    
+    def power_limit(self, waves: xr.DataSet) -> np.ndarray:
+        """Return theoretical power limit for hydrodynamic problem.
+        
+        See `wot.power_limit()`
+        """
 
-    def natural_frequency(self):
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return power_limit(excitation=fd_wec['excitation_force'],
+                           impedance=self.hydro['Zi'])
+
+    def optimal_velocity(self, waves: xr.DataSet) -> np.ndarray:
+        """Return optimal velocity spectrum for hydrodynamic problem.
+        
+        See `wot.optimal_velocity()`
+        """
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return optimal_velocity(excitation=fd_wec['excitation_force'],
+                                impedance=self.hydro['Zi'])
+
+    def optimal_position(self, waves: xr.DataSet) -> np.ndarray:
+        """Return optimal position spectrum for hydrodynamic problem.
+        
+        See `wot.optimal_position()`
+        """
+        fd_wec, _ = wave_excitation(self.hydro, waves)
+        return optimal_position(excitation=fd_wec['excitation_force'],
+                                impedance=self.hydro['Zi'],
+                                omega=self.hydro['omega'])
+
+    def natural_frequency(self) -> tuple[npt.ArrayLike, int]:
         """Return natural frequency or frequencies.
 
         See `wot.natural_frequency()`.
@@ -609,6 +640,37 @@ class WEC:
 
         return np.concatenate([scale_x_wec, scale_x_opt])
 
+    def initial_x_wec_guess_analytic(self, waves: xr.Dataset) -> np.ndaray:
+        """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
+        be passed to `wec.solve`.
+
+        Parameters
+        ----------
+        waves : xr.Dataset
+            Wave DataSet
+
+        Returns
+        -------
+        x_wec_0
+            Initial guess for `x_wec`
+            
+        Examples
+        --------
+        >>> x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
+        >>> wec.solve(regular_wave,
+                      obj_fun=pto.average_power,
+                      nstate_opt=pto.nstate,
+                      scale_x_wec=1.0,
+                      scale_x_opt=0.01,
+                      scale_obj=1e-1,
+                      x_wec_0=x_wec_0,
+                      )
+        """
+        pos_opt = self.optimal_position(waves)
+        pos_opt_zero_mean = np.concatenate([np.zeros((1, self.ndof)), pos_opt])
+        x_wec_0 = complex_to_real_amplitudes(pos_opt_zero_mean).squeeze()
+        return x_wec_0
+
     def solve(self,
               waves: xr.Dataset,
               obj_fun: Callable[[WEC, np.ndarray, np.ndarray], float],
@@ -623,6 +685,7 @@ class WEC:
               maximize: bool = False,
               bounds_wec: Optional[Bounds] = None,
               bounds_opt: Optional[Bounds] = None,
+              unconstrained_first: Optional[bool] = False,
               callback: Callable[[np.ndarray]] = None,
               ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
                          OptimizeResult]:
@@ -675,6 +738,9 @@ class WEC:
         bounds_opt: Bounds
             Bounds on the optimization (control) components of the decsision
             variable; see scipy.optimize.minimize
+        unconstrained_first: bool
+            If True, run ``solve`` without constraints to get scaling and 
+            initial guess. The default is False.
         callback: function
             Called after each iteration; see scipy.optimize.minimize. The
             default is reported via logging at the INFO level.
@@ -695,17 +761,45 @@ class WEC:
             Raw optimization results.
         """
         log.info("Solving pseudo-spectral control problem.")
-
-        # scale
-        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
-
-        # initial guess
+        
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
+        if unconstrained_first:
+            log.info(
+                "Solving without constraints for better scaling and initial guess")
+            wec1 = copy.deepcopy(self)
+            wec1.constraints = []
+            unconstrained_first = False
+            _, _, x_wec_0, x_opt_0, obj, res = wec1.solve(waves,
+                                                          obj_fun,
+                                                          nstate_opt,
+                                                          x_wec_0,
+                                                          x_opt_0,
+                                                          scale_x_wec,
+                                                          scale_x_opt,
+                                                          scale_obj,
+                                                          optim_options,
+                                                          use_grad,
+                                                          maximize,
+                                                          bounds_wec,
+                                                          bounds_opt,
+                                                          unconstrained_first,
+                                                          )
+            scale_x_wec = 1/np.max(np.abs(x_wec_0))
+            scale_x_opt = 1/np.max(np.abs(x_opt_0))
+            scale_obj = 1/np.abs(obj)
+            log.info(f"Setting x_wec_0: {x_wec_0}")
+            log.info(f"Setting x_opt_0: {x_opt_0}")
+            log.info(f"Setting scale_x_wec: {scale_x_wec}")
+            log.info(f"Setting scale_x_opt: {scale_x_opt}")
+            log.info(f"Setting scale_obj: {scale_obj}")
+            
+        # scale
+        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
+        
         # bounds
         bounds_in = [bounds_wec, bounds_opt]
         bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
@@ -719,6 +813,9 @@ class WEC:
             bounds_list.append(bo)
         bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                         ub=np.hstack([le.ub for le in bounds_list])*scale)
+
+        # initial guess
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # wave excitation force
         fd_we, td_we = wave_excitation(self.hydro, waves)
@@ -765,10 +862,10 @@ class WEC:
         if callback is None:
             def callback(x):
                 x_wec, x_opt = self.decompose_decision_var(x)
-                log.info("[mean(x_wec), mean(x_opt), obj_fun(x)]: " \
-                    + f"[{np.abs(np.mean(x_wec)):.2e}, " \
-                    + f"{np.abs(np.mean(x_opt)):.2e}, " \
-                    + f"{np.abs(obj_fun_scaled(x)):.2e}]")
+                log.info("[max(x_wec), max(x_opt), obj_fun(x)]: " \
+                    + f"[{np.max(np.abs(x_wec)):.2e}, " \
+                    + f"{np.max(np.abs(x_opt)):.2e}, " \
+                    + f"{np.max(obj_fun_scaled(x)):.2e}]")
 
         problem = {'fun': obj_fun_scaled,
                    'x0': x0,
@@ -919,6 +1016,7 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
                                ) -> np.ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency. """
+    fd = np.atleast_2d(fd)
     if first_row_is_mean:
         mean = fd[0:1, :]
         fd = fd[1:, :]
@@ -926,6 +1024,21 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
         ndof = fd.shape[1]
         mean = np.zeros([1, ndof])
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
+
+
+def complex_to_real_amplitudes(fd: np.ndarray) -> np.ndarray:
+    """Convert from one complex amplitude to two real amplitudes per 
+    frequency."""
+    
+    m = fd.shape[0]
+    n = fd.shape[1]
+    out = np.zeros((1+2*(m-1),n))
+    
+    out[0,:] = fd[0,:]
+    out[1::2,:] = fd[1:].real
+    out[2::2,:] = -1*fd[1:].imag
+    
+    return out
 
 
 def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
@@ -958,7 +1071,7 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 
 
 def complex_xarray_from_netcdf(fpath: str | Path) -> xr.Dataset:
-    """Read a NetCDF file with complex entries as an xarray dataSet.
+    """Read a NetCDF file with complex entries as an xarray DataSet.
     """
     with xr.open_dataset(fpath) as ds:
         ds.load()
@@ -1122,14 +1235,57 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
 
 
+def optimal_velocity(excitation: npt.ArrayLike, impedance: npt.ArrayLike
+                     ) -> np.ndarray:
+    """Find optimal velocity.
+
+    Parameters
+    ----------
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    opt_vel
+        Optimal velocity for power absorption.
+    """
+    opt_vel = np.concatenate([np.linalg.lstsq(2*impedance[w_ind, :, :].real,
+                                              excitation[w_ind+1, :])[0] 
+                              for w_ind in range(impedance.shape[0])])
+    return np.atleast_2d(opt_vel).transpose()
+
+
+def optimal_position(excitation: npt.ArrayLike, impedance: npt.ArrayLike,
+                     omega: npt.ArrayLike) -> np.ndarray:
+    """Find optimal position.
+
+    Parameters
+    ----------
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
+    impedance: np.ndarray
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
+
+    Returns
+    -------
+    optimal_position
+        Optimal position for power absorption.
+    """
+    opt_vel = optimal_velocity(excitation, impedance)
+    opt_pos = opt_vel / (1j * np.atleast_2d(omega.data).transpose())
+    return opt_pos
+
+
 def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
                 ) -> np.ndarray:
     """Find upper limit for power.
 
     Parameters
     ----------
-    exctiation: np.ndarray
-        Complex exctitation spectrum. Shape: ``nfreq`` x ``ndof``
+    excitation: np.ndarray
+        Complex excitation spectrum. Shape: ``nfreq`` x ``ndof``
     impedance: np.ndarray
         Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
 
@@ -1138,8 +1294,12 @@ def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
     power_limit
         Upper limit for power absorption.
     """
-
-    power_limit = -1*np.sum(np.abs(excitation)**2 / (8*np.real(impedance)))
+    
+    pls = np.concatenate([np.linalg.lstsq(8*impedance[w_ind, :, :].real,
+                                          np.abs(excitation[w_ind+1, :])**2)[0] 
+                         for w_ind in range(impedance.shape[0])])
+    
+    power_limit = -1 * np.sum(pls)
 
     return power_limit
 
@@ -1151,7 +1311,7 @@ def natural_frequency(impedance: npt.ArrayLike, freq: npt.ArrayLike
     Parameters
     ----------
     impedance: np.ndarray
-        Complex impedance matrix. Shape: nfreq x ndof x ndof
+        Complex impedance matrix. Shape: ``nfreq`` x ``ndof`` x ``ndof``
     freq: list[float]
         Frequencies.
 
