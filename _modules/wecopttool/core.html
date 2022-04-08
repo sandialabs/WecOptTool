@@ -1066,9 +1066,19 @@
 <span class="sd">    time_dom: xarray.Dataset</span>
 <span class="sd">        Time domain wave excitation and elevation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
-                       <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wave and BEM frequencies do not match&quot;</span><span class="p">)</span>
+        
+    <span class="n">w_dir_subset</span><span class="p">,</span> <span class="n">w_indx</span> <span class="o">=</span> <span class="n">subsetclose</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> 
+                <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">w_dir_subset</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Some wave directions are not in BEM solution &quot;</span> <span class="o">+</span>
+            <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Wave direction(s):&quot;</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">))</span><span class="si">}</span><span class="s2"> (deg)&quot;</span> <span class="o">+</span>
+            <span class="s2">&quot; </span><span class="se">\n</span><span class="s2"> BEM directions: &quot;</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2"> (deg).&quot;</span><span class="p">)</span>
 
     <span class="c1"># excitation BEM</span>
     <span class="n">exc_coeff</span> <span class="o">=</span> <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov_force&#39;</span><span class="p">]</span> <span class="o">+</span> \
@@ -1410,6 +1420,54 @@
     <span class="n">radians</span><span class="p">[</span><span class="n">radians</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="n">radians</span> <span class="o">=</span> <span class="n">radians</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">radians</span>
+
+<span class="k">def</span> <span class="nf">subsetclose</span><span class="p">(</span><span class="n">subset_a</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span> 
+                <span class="n">set_b</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-5</span><span class="p">,</span> <span class="n">atol</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-8</span><span class="p">,</span> 
+                <span class="n">equal_nan</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">list</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compare if two arrays are subset equal within a tolerance.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    subset_a: float | npt.ArrayLike</span>
+<span class="sd">        First array which is tested for being subset.</span>
+<span class="sd">    set_b: float | npt.ArrayLike</span>
+<span class="sd">        Second array which is tested for containing subset_a.</span>
+<span class="sd">    rtol: float</span>
+<span class="sd">        The relative tolerance parameter.</span>
+<span class="sd">    atol: float</span>
+<span class="sd">        The absolute tolerance parameter.</span>
+<span class="sd">    equal_nan: bool</span>
+<span class="sd">        Whether to compare NaNs as equal.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result: bool</span>
+<span class="sd">        Boolean if the entire first array is a subset of second array </span>
+<span class="sd">    ind: list</span>
+<span class="sd">        List with integer indices where the first array&#39;s elements </span>
+<span class="sd">        are located inside the second array.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">subset_a</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">subset_a</span>
+                                     <span class="p">),</span> <span class="s2">&quot;Elements in subset_a not unique&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">set_b</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">set_b</span><span class="p">),</span> <span class="s2">&quot;Elements in set_b not unique&quot;</span>
+
+    <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tmp_result</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subset_a</span><span class="p">))]</span>
+    <span class="k">for</span> <span class="n">subset_element</span> <span class="ow">in</span> <span class="n">subset_a</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">set_element</span> <span class="ow">in</span> <span class="n">set_b</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">subset_element</span><span class="p">,</span> <span class="n">set_element</span><span class="p">,</span> <span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="p">,</span> <span class="n">equal_nan</span><span class="p">):</span>
+                <span class="n">tmp_set_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">set_element</span><span class="p">,</span> <span class="n">set_b</span> <span class="p">,</span> <span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="p">,</span> <span class="n">equal_nan</span><span class="p">))</span>
+                <span class="n">tmp_subset_ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">subset_element</span><span class="p">,</span> <span class="n">subset_a</span> <span class="p">,</span> <span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="p">,</span> 
+                               <span class="n">equal_nan</span><span class="p">))</span>
+                <span class="n">ind</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp_set_ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">)</span>
+                <span class="n">tmp_result</span><span class="p">[</span> <span class="nb">int</span><span class="p">(</span><span class="n">tmp_subset_ind</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">tmp_result</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">ind</span><span class="p">)</span>
 </pre></div>
 
            </div>

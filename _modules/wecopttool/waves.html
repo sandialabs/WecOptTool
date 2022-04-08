@@ -167,6 +167,11 @@
 <span class="sd">     xr.Dataset</span>
 <span class="sd">        Wave dataset.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># check that only a single direction is given</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Regular waves need to originate from &quot;</span> <span class="o">+</span>
+                          <span class="s2">&quot; single incident wave direction&quot;</span><span class="p">)</span>
+
     <span class="c1"># empty dataset</span>
     <span class="n">waves</span> <span class="o">=</span> <span class="n">wave_dataset</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
 
