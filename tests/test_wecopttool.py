@@ -25,6 +25,9 @@ def _wec():
     f0 = 0.05
     nfreq = 18
 
+    #wave directions
+    wave_dirs = [0, 10, 20]
+
     #  mesh
     meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
 
@@ -43,7 +46,7 @@ def _wec():
     wec = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho)
 
     # BEM
-    wec.run_bem()
+    wec.run_bem(wave_dirs)
 
     return wec
 
@@ -852,3 +855,22 @@ def test_solve_callback(wec, regular_wave, pto, capfd):
     out, err = capfd.readouterr()
 
     assert out.split('\n')[0] == cbstring
+
+
+def test_regular_wave_power(wec, regular_wave, pto):
+    """Confirm that regular wave power solver results 
+    equals the theoretical power"""
+    wec.constraints = []
+    obj_fun = pto.average_power
+    _, wec_fdom, _, _, obj, _ = wec.solve(regular_wave, obj_fun, 
+                                            nstate_opt = pto.nstate,
+                                            scale_x_wec = 1.0,
+                                            scale_x_opt = 0.01,
+                                            scale_obj = 1e-1,
+                                            optim_options={})
+
+    sol_analytic = -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2 
+                            / (8*np.real(wec.hydro.Zi[:, 0, 0])))
+    #relative tolerance for assertion
+    rtol = 0.005
+    assert np.isclose(sol_analytic, obj, rtol)

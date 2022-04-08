@@ -94,6 +94,11 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
      xr.Dataset
         Wave dataset.
     """
+    # check that only a single direction is given
+    if len(np.atleast_1d(np.array(direction).squeeze())) != 1:
+         raise ValueError("Regular waves need to originate from " +
+                          " single incident wave direction")
+
     # empty dataset
     waves = wave_dataset(f0, nfreq, direction)
 

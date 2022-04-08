@@ -1106,9 +1106,19 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     time_dom: xarray.Dataset
         Time domain wave excitation and elevation.
     """
-    assert np.allclose(waves['omega'].values, bem_data['omega'].values)
-    assert np.allclose(waves['wave_direction'].values,
-                       bem_data['wave_direction'].values)
+    if not np.allclose(waves['omega'].values, bem_data['omega'].values):
+        raise ValueError("Wave and BEM frequencies do not match")
+        
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+                bem_data['wave_direction'].values)
+    
+    if not w_dir_subset:
+        raise ValueError(
+            "Some wave directions are not in BEM solution " +
+            "\n Wave direction(s):" +
+            f"{(np.rad2deg(waves['wave_direction'].values))} (deg)" +
+            " \n BEM directions: " +
+            f"{np.rad2deg(bem_data['wave_direction'].values)} (deg).")
 
     # excitation BEM
     exc_coeff = bem_data['Froude_Krylov_force'] + \
@@ -1497,3 +1507,51 @@ def _degrees_to_radians(degrees: float | npt.ArrayLike
     radians[radians > np.pi] -= 2*np.pi
     radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
+
+def subsetclose(subset_a: float | npt.ArrayLike, 
+                set_b: float | npt.ArrayLike,
+                rtol: float = 1.e-5, atol:float = 1.e-8, 
+                equal_nan: bool = False) -> tuple[bool, list]:
+    """
+    Compare if two arrays are subset equal within a tolerance.
+
+
+    Parameters
+    ----------
+    subset_a: float | npt.ArrayLike
+        First array which is tested for being subset.
+    set_b: float | npt.ArrayLike
+        Second array which is tested for containing subset_a.
+    rtol: float
+        The relative tolerance parameter.
+    atol: float
+        The absolute tolerance parameter.
+    equal_nan: bool
+        Whether to compare NaNs as equal.
+
+    Returns
+    -------
+    result: bool
+        Boolean if the entire first array is a subset of second array 
+    ind: list
+        List with integer indices where the first array's elements 
+        are located inside the second array.
+    """
+    assert len(set(subset_a)) == len(subset_a
+                                     ), "Elements in subset_a not unique"
+    assert len(set(set_b)) == len(set_b), "Elements in set_b not unique"
+
+    ind = []
+    tmp_result = [False for i in range(len(subset_a))]
+    for subset_element in subset_a:
+        for set_element in set_b:
+            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
+                tmp_set_ind = np.where(
+                    np.isclose(set_element, set_b , rtol, atol, equal_nan))
+                tmp_subset_ind = np.where(
+                    np.isclose(subset_element, subset_a , rtol, atol, 
+                               equal_nan))
+                ind.append( int(tmp_set_ind[0]) )
+                tmp_result[ int(tmp_subset_ind[0]) ] = True
+    result = all(tmp_result)
+    return(result, ind)
