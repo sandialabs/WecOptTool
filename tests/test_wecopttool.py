@@ -10,11 +10,66 @@ import capytaine as cpy
 import meshio
 from scipy.optimize import Bounds
 
+import xarray as xr
+
 import wecopttool as wot
 from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
+def test_new_init():
+    rho = 1000.0
+    g = 9.81
+    f0 = 0.05
+    nfreq = 18
+    freq = np.arange(1,18)*f0
+    wave_dirs = [0]
+    depth = np.infty
+    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
+    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot").keep_immersed_part()
+    fb.add_translation_dof(name="HEAVE")
+    
+    solver = cpy.BEMSolver()
+    test_matrix = xr.Dataset(coords={
+        'rho': [rho],
+        'water_depth': [depth],
+        'omega': [ifreq*2*np.pi for ifreq in freq],
+        'wave_direction': wave_dirs,
+        'radiating_dof': list(fb.dofs.keys()),
+        'g': [g],
+    })
+    cpy_options = ['wavenumber','wavelength','mesh','hydrostatics']
+    write_info = {key: True for key in cpy_options}
+    
+    hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
+    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
+    mass = np.atleast_2d(mass_33)
+    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
+    stiffness = np.atleast_2d(stiffness_33)
+    
+    fb.mass = fb.add_dofs_labels_to_matrix(mass)
+    fb.hydrostatic_stiffness = fb.add_dofs_labels_to_matrix(stiffness)
+    
+    hydro = solver.fill_dataset(test_matrix, 
+                                [fb], 
+                                **write_info
+                                )
+    
+    Gi = cpy.post_pro.impedance(hydro, 
+                                dissipation=0, 
+                                stiffness=stiffness)
+    Zi = Gi / (1j * hydro.omega)
+    Hex = hydro['Froude_Krylov_force'] + hydro['diffraction_force']
+    
+    wec = wot.WEC(f0=hydro.omega[0].data/2/np.pi, 
+                  nfreq=len(hydro.omega),
+                  Zi=Zi, 
+                  Hex=Hex)
+    print(wec)
+    # wec = wot.WEC.from_hydro(hydro, f_add, constraints)
+    # wec = wot.WEC.from_capytaine(f, fb, f_add, constraints, rho, g, depth)
+    # wec = wot.WEC.from_hydro_file(filename, f_add, constraints)
+    
 @pytest.fixture()
 def _wec():
     # water properties

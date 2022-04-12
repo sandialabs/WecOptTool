@@ -51,146 +51,121 @@ class WEC:
 
     """
 
-    def __init__(self, fb: cpy.FloatingBody, mass: np.ndarray,
-                 hydrostatic_stiffness: np.ndarray, f0: float, nfreq: int,
-                 dissipation: Optional[np.ndarray] = None,
-                 stiffness: Optional[np.ndarray] = None,
+    def __init__(self, 
+                 f0: float = None,
+                 nfreq: int = None,
+                 Zi: np.ndarray = None, 
+                 Hex: np.ndarray = None,
                  f_add: Optional[Mapping[str, Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
-                 constraints: list[dict] = [],
-                 rho: float = _default_parameters['rho'],
-                 depth: float = _default_parameters['depth'],
-                 g: float = _default_parameters['g']) -> None:
-        """
-        Parameters
-        ----------
-        fb: capytaine.FloatingBody
-            The WEC as a capytaine floating body (mesh + DOFs).
-        mass: np.ndarray
-            Mass matrix shape of (``ndof`` x ``ndof``).
-        hydrostatic_stiffness: np.ndarray
-            Hydrostatic stiffness matrix matrix of shape
-            (``ndof`` x ``ndof``).
-        f0: float
-            Initial frequency (in Hz) for frequency array.
-            Frequency array given as [``f0``, 2 ``f0``, ..., ``nfreq f0``].
-        nfreq: int
-            Number of frequencies in frequency array. See ``f0``.
-        dissipation: np.ndarray
-            Additional dissipation for the impedance calculation in
-            ``capytaine.post_pro.impedance``. Shape:
-            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
-        stiffness: np.ndarray
-            Additional stiffness for the impedance calculation in
-            ``capytaine.post_pro.impedance``. Shape:
-            (``ndof`` x ``ndof`` x ``1``) or (``ndof`` x ``ndof`` x ``nfreq``).
-        f_add: dict[str, Callable]
-            Additional forcing terms (e.g. buoyancy, gravity, PTO, mooring,
-            etc.) for the WEC dynamics in the time-domain. Dictionary entries
-            should be ``entry = {'name': function_handle}``. Takes three inputs:
-            (1) the WEC object,
-            (2) the WEC dynamics state (1D np.ndarray), and
-            (3) the optimization state (1D np.ndarray)
-            and outputs the force time-series (1D np.ndarray).
-        constraints: list[dict]
-            Constraints for the constrained optimization.
-            See ``scipy.optimize.minimize``.
-        rho: float, optional
-            Water density in :math:`kg/m^3`. Default is 1025.
-        depth: float, optional
-            Water depth in :math:`m`. Default is np.inf
-        g: float, optional
-            Gravitational acceleration in :math:`m/s^2`.
-            Default is 9.81.
-        """
-        # water properties
-        super().__setattr__('rho', rho)
-        super().__setattr__('depth', depth)
-        super().__setattr__('g', g)
+                 constraints: list[dict] = []) -> None:
 
-        # WEC
-        super().__setattr__('fb', fb)
-        super().__setattr__('mass', mass)
-        super().__setattr__('hydrostatic_stiffness', hydrostatic_stiffness)
-
-        # frequency
-        super().__setattr__('freq', (f0, nfreq))
-
-        # additional WEC dynamics forces
-        if callable(f_add):
-            log.debug(f"Assigning dictionary entry 'f_add'" +
-                      "for Callable argument {f_add}")
-            f_add = {'f_add': f_add}
+        super().__setattr__('_freq', freq_array(f0, nfreq))
+        super().__setattr__('_Zi', Zi)
+        super().__setattr__('_Hex', Hex)
         self.f_add = f_add
-        if stiffness is None:
-            stiffness = 0.0
-        super().__setattr__('stiffness', stiffness)
-        if dissipation is None:
-            dissipation = 0.0
-        super().__setattr__('dissipation', dissipation)
-
-        # constraints
         super().__setattr__('constraints', constraints)
-
-        # log
-        log.info(f"New WEC: {self.fb.name} with {self.fb.nb_dofs} DOF.")
-
-        # BEM
-        super().__setattr__('hydro', None)
-
-    def __setattr__(self, name, value):
-        """Delete dependent attributes when user manually modifies an attribute.
-        """
-        _attrs_delete_mass = ['fb']
-        _attrs_delete_stiffness = ['fb', 'rho', 'g']
-        _attrs_delete_bem = ['fb', 'rho', 'g', 'depth', 'freq']
-        _attrs_delete_impedance_not_bem = [
-            'dissipation', 'stiffness', 'mass', 'hydrostatic_stiffness']
-        log.info(f"Changing value of '{name}'. " +
-                 "This might cause some attributes to be reset.")
-        if name in _attrs_delete_mass:
-            super().__setattr__('mass', None)
-            if self.hydro is not None:
-                self.hydro['mass'] = 'None'
-            log.info("Mass matrix deleted. " +
-                     "Assign new values to 'self.mass'")
-        if name in _attrs_delete_stiffness:
-            super().__setattr__('hydrostatic_stiffness', None)
-            if self.hydro is not None:
-                self.hydro['hydrostatic_stiffness'] = 'None'
-            log.info("Hydrostatic stiffness deleted. " +
-                     "Assign new values to 'self.hydrostatic_stiffness'")
-        if name in _attrs_delete_bem:
-            super().__setattr__('hydro', None)
-            super().__setattr__('_transfer_mat', None)
-            log.info("BEM data deleted. To run BEM use self.run_bem(...) " +
-                     "followed by 'self.bem_calc_impedance()' to calculate " +
-                     "impedance.")
-        if name in _attrs_delete_impedance_not_bem:
-            if self.hydro is not None:
-                if 'Gi' in self.hydro:
-                    self.hydro['Gi'] = 'None'
-                if 'Zi' in self.hydro:
-                    self.hydro['Zi'] = 'None'
-            super().__setattr__('_transfer_mat', None)
-            log.info("Impedance matrix deleted. To calculate " +
-                     "impedance call 'self.bem_calc_impedance()'")
-
-        # set attribute
-        super().__setattr__(name, value)
-
-        if name in _attrs_delete_impedance_not_bem:
-            # keep BEM coefficients but update all other values of 'hydro'
-            if self.hydro is not None:
-                self._bem_add_hydrostatics()
-                self._bem_add_linear_forces()
-
+        
+        # post-process impedance: no negative or too small damping diagonal
+        self._post_process_impedance() #TODO - cannot pass 'tol' currently
+        
+        # create impedance MIMO matrix
+        self._make_mimo_transfer_mat()
+        
     def __repr__(self):
-        str_info = (f'{self.__class__.__name__} ' +
-                    f'"{self.fb.name}" with {self.fb.nb_dofs} DOF.')
+        str_info = (f'{self.__class__.__name__} ') #TODO
         return str_info
+        
+    # static methods -----------------------------------------------------------
+        
+    @staticmethod
+    def from_bem_data(bem_data: xr.Dataset = None,
+                      dissipation: np.ndarray = None,
+                      f_add: Optional[Mapping[str, Callable[[
+                          WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
+                      constraints: list[dict] = []) -> 'WEC':
 
-    # PROPERTIES
-    # properties: f_add
+        #TODO fix capytaine impedance function
+        Gi = cpy.post_pro.impedance(bem_data,
+                                    dissipation,
+                                    bem_data['hydrostatic_stiffness'])
+
+        return WEC(f0=bem_data.omega / (2 * np.pi),
+                   nfreq=len(bem_data.omega),
+                   Zi=Gi/(1j*bem_data.omega),
+                   Hex=bem_data['Froude_Krylov_force'] +
+                   bem_data['diffraction_force'],
+                   f_add=f_add,
+                   constraints=constraints
+                   )
+        
+    @staticmethod
+    def from_FloatingBody(f0: float = None,
+                          nfreq: int = None,
+                          FloatingBody: cpy.FloatingBody = None,
+                          wave_dirs: Iterable[float] = [0],
+                          rho: float = _default_parameters['rho'],
+                          g: float = _default_parameters['g'],
+                          depth: float = _default_parameters['depth'],
+                          write_info: Iterable[str] = [],
+                          dissipation: np.ndarray = None,
+                          f_add: Optional[Mapping[str, Callable[[
+                              WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
+                          constraints: list[dict] = []) -> 'WEC':
+
+        bem_data = run_bem(fb=FloatingBody,
+                           freq=freq_array(f0, nfreq),
+                           wave_dirs=wave_dirs,
+                           rho=rho,
+                           g=g,
+                           depth=depth,
+                           write_info=write_info
+                           )
+        return WEC.from_bem_data(bem_data=bem_data,
+                              dissipation=dissipation,
+                              f_add=f_add,
+                              constraints=constraints)
+        
+    @staticmethod
+    def from_file(file_path: str = None,
+                  dissipation: np.ndarray = None,
+                  f_add: Optional[Mapping[str, Callable[[
+                      WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
+                  constraints: list[dict] = []) -> 'WEC':
+
+        bem_data = complex_xarray_from_netcdf(file_path)
+
+        return WEC.from_bem_data(bem_data=bem_data,
+                                 dissipation=dissipation,
+                                 f_add=f_add,
+                                 constraints=constraints)
+        
+    # properties ---------------------------------------------------------------
+    # users cannot set freq, Zi, and Hex outside of init
+    
+    @property
+    def freq(self):
+        return self._freq
+
+    @property
+    def nfreq(self):
+        return len(self.freq)
+    
+    @property
+    def f0(self):
+        return self.freq[0]
+    
+    @property
+    def Zi(self):
+        return self._Zi
+    
+    @property
+    def Gi(self):
+        return self.Zi*1j*self.omega
+    
+    @property
+    def Hex(self):
+        return self._Hex
+    
     @property
     def f_add(self):
         """Additional forces on the WEC (e.g., PTO, mooring, buoyancy, gravity)
@@ -204,56 +179,27 @@ class WEC:
                       "for Callable argument {f_add}")
             f_add = {'f_add': f_add}
         super().__setattr__('_f_add', f_add)
-
-    # properties: frequency
-    @property
-    def freq(self):
-        """Frequency array f=[f0, 2*f0, ..., nfreq*f0] in Hz."""
-        return self._freq
-
-    @freq.setter
-    def freq(self, freq):
-        if len(freq) != 2:
-            msg = "To set the frequency provide a tuple (f0, nfreq)."
-            raise TypeError(msg)
-        f0, nfreq = freq
-        super().__setattr__('_freq', freq_array(f0, nfreq))
-        # update time vector
-        super().__setattr__('_time', self.make_time_vec(1))
-        # update transformation matrixes
-        super().__setattr__('_time_mat', self.make_time_mat(1, True))
-        super().__setattr__('_derivative_mat', self._make_derivative_mat(True))
-
-    @property
-    def f0(self):
-        """Initial frequency (and spacing) in Hz. See ``freq``."""
-        return self._freq[0]
-
-    @property
-    def nfreq(self):
-        """Number of frequencies in frequency array. See ``freq``."""
-        return len(self._freq)
-
+        
     @property
     def period(self):
         """Period :math:T=1/f in seconds."""
-        return 1/self._freq
+        return 1/self.freq
 
     @property
     def omega(self):
         """Frequency array in radians per second ω=2πf."""
-        return self._freq * 2 * np.pi
+        return self.freq * 2 * np.pi
 
     @property
     def w0(self):
         """Initial frequency (and spacing) in rad/s. See ``freq``."""
-        return self._freq[0] * 2 * np.pi
+        return self.freq[0] * 2 * np.pi
 
     # properties: problem size
     @property
     def ndof(self):
         """Number of degrees of freedom of the WEC."""
-        return self.fb.nb_dofs
+        return self.Zi.shape[1]
 
     @property
     def ncomponents(self):
@@ -308,6 +254,8 @@ class WEC:
     @property
     def submerged_volume(self):
         return self.submerged_mesh.volume
+        
+  
 
     ## METHODS
     # methods: class I/O
@@ -316,12 +264,12 @@ class WEC:
         # TODO
         raise NotImplementedError()
 
-    @staticmethod
-    def from_file(fpath: str | Path) -> WEC:
-        """Create a WEC instance from a file saved using `WEC.to_file`.
-        """
-        # TODO
-        raise NotImplementedError()
+    # @staticmethod
+    # def from_file(fpath: str | Path) -> WEC:
+    #     """Create a WEC instance from a file saved using `WEC.to_file`.
+    #     """
+    #     # TODO
+    #     raise NotImplementedError()
 
     # methods: state vector
     def decompose_decision_var(self, state: np.ndarray
@@ -529,13 +477,11 @@ class WEC:
         """Enforce damping diagonal >= 0 + tol. """
         # ensure non-negative linear damping diagonal
         for idof in range(self.ndof):
-            Gi_imag = np.imag(self.hydro['Gi'].isel(
-                radiating_dof=idof, influenced_dof=idof))
+            Gi_imag = np.imag(self.Gi[:, idof, idof])
             damping = Gi_imag / self.omega
             dmin = damping.min().values
             if dmin <= 0.0 + tol:
-                dof = self.hydro['Gi'].influenced_dof.values[idof]
-                log.warning(f'Linear damping for DOF "{dof}" has negative' +
+                log.warning(f'Linear damping for DOF "{idof}" has negative' +
                             ' or close to zero terms. Shifting up.')
                 damping[:] = damping[:] + self.omega*(tol-dmin)
 
