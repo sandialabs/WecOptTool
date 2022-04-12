@@ -65,7 +65,8 @@ def test_new_init():
     wec = wot.WEC(f0=hydro.omega[0].data/2/np.pi, 
                   nfreq=len(hydro.omega),
                   Zi=Zi, 
-                  Hex=Hex)
+                  Hex=Hex,
+                  stiffness=stiffness)
     print(wec)
     # wec = wot.WEC.from_hydro(hydro, f_add, constraints)
     # wec = wot.WEC.from_capytaine(f, fb, f_add, constraints, rho, g, depth)

@@ -58,12 +58,14 @@ class WEC:
                  nfreq: int = None,
                  Zi: np.ndarray = None, 
                  Hex: np.ndarray = None,
+                 stiffness: np.ndarray = None,
                  f_add: Optional[Mapping[str, Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                  constraints: list[dict] = []) -> None:
 
         super().__setattr__('_freq', freq_array(f0, nfreq))
         super().__setattr__('_Zi', Zi)
         super().__setattr__('_Hex', Hex)
+        super().__setattr__('_hydrostatic_stiffness', stiffness)
         self.f_add = f_add
         super().__setattr__('constraints', constraints)
         
@@ -167,6 +169,10 @@ class WEC:
     @property
     def Hex(self):
         return self._Hex
+    
+    @property
+    def hydrostatic_stiffness(self):
+        return self._hydrostatic_stiffness
     
     @property
     def f_add(self):
