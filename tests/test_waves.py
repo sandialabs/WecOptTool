@@ -105,9 +105,37 @@ def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
        Waves have the same phase and frequency, but different directions
        * the three individual waves all give the same results
        * those results match CC
-       * combined wave gives three times those results
+       * combined wave gives three times those results (position), 9?? times power
        """
-    assert 1 == 1
+    #PTO
+    kinematics = np.eye(wec_wavebot.ndof)
+    pto = wot.pto.PseudoSpectralPTO(wec_wavebot.nfreq, kinematics)
+    obj_fun = pto.average_power
+    wec_wavebot.f_add = {'PTO': pto.force_on_wec}
+
+    #combined wave
+    _, _, _, _, power_combined, _ = wec_wavebot.solve(three_regular_waves, obj_fun, 
+                                        nstate_opt = pto.nstate,
+                                        scale_x_wec = 1.0,
+                                        scale_x_opt = 0.01,
+                                        scale_obj = 1e-1,
+                                        optim_options={})
+
+
+    power_individual = np.zeros(three_regular_waves['wave_direction'].size)
+    for nr_wave_dir in range(three_regular_waves['wave_direction'].size) :
+        _, _, _, _, obj, _ = wec_wavebot.solve(
+                    three_regular_waves.isel(wave_direction = [nr_wave_dir]), 
+                    obj_fun, 
+                    nstate_opt = pto.nstate,
+                    scale_x_wec = 1.0,
+                    scale_x_opt = 0.01,
+                    scale_obj = 1e-1,
+                    optim_options={})
+        power_individual[nr_wave_dir] = obj
+
+    rtol = 0.005
+    assert np.all(np.isclose(power_individual, power_individual[0],rtol))
 
 
 # def test_regular_waves_asymmetric_wec(wec_box, three_regular_waves):
