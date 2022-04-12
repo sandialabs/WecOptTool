@@ -502,7 +502,7 @@ class WEC:
         for idof in range(self.ndof):
             for jdof in range(self.ndof):
                 K = np.array([self.hydrostatic_stiffness[idof, jdof]])
-                Zp = self.hydro['Gi'].values[:, idof, jdof]
+                Zp = self.Gi[:, idof, jdof]
                 re = np.real(Zp)
                 im = np.imag(Zp)
                 blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
