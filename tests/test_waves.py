@@ -101,8 +101,9 @@ def test_dummy():
     assert 1 == 1
 
 def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
-    """Confirm that power from multiple regular waves matches superposition
-       Waves have the same phase and frequency, but different directions
+    """Confirm that power from multiple regular waves that have the same
+       phase and frequency, but different directions matches 
+       the superposition of the waves 
        * the three individual waves all give the same results
        * those results match CC
        * combined wave gives three times those results (position), 9?? times power
@@ -114,17 +115,22 @@ def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
     wec_wavebot.f_add = {'PTO': pto.force_on_wec}
 
     #combined wave
-    _, _, _, _, power_combined, _ = wec_wavebot.solve(three_regular_waves, obj_fun, 
+    _, wec_fdom, _, _, power_combined, _ = wec_wavebot.solve(
+                                        three_regular_waves, obj_fun, 
                                         nstate_opt = pto.nstate,
                                         scale_x_wec = 1.0,
                                         scale_x_opt = 0.01,
                                         scale_obj = 1e-1,
                                         optim_options={})
-
-
+    sol_analytic_com = -1*np.sum(
+                            np.abs(wec_fdom['excitation_force'][1:, :])**2  /
+                            (8*np.real(wec_wavebot.hydro.Zi[:, 0, 0]))
+                                )
+    #individual waves
+    sol_analytic_ind = np.zeros(three_regular_waves['wave_direction'].size)
     power_individual = np.zeros(three_regular_waves['wave_direction'].size)
     for nr_wave_dir in range(three_regular_waves['wave_direction'].size) :
-        _, _, _, _, obj, _ = wec_wavebot.solve(
+        _, wec_fdom, _, _, obj, _ = wec_wavebot.solve(
                     three_regular_waves.isel(wave_direction = [nr_wave_dir]), 
                     obj_fun, 
                     nstate_opt = pto.nstate,
@@ -133,9 +139,22 @@ def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
                     scale_obj = 1e-1,
                     optim_options={})
         power_individual[nr_wave_dir] = obj
+        sol_analytic_ind[nr_wave_dir] = \
+            -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2  /
+            (8*np.real(wec_wavebot.hydro.Zi[:, 0, 0]))
+                     )
 
     rtol = 0.005
+    #check if individual waves yield same result
     assert np.all(np.isclose(power_individual, power_individual[0],rtol))
+    #check if combined wave yields expected power as function of 
+    # the individual waves 
+    assert np.isclose(power_combined,
+                  np.sum(power_individual)*power_individual.size,
+                  rtol)
+    #check if results match the theoretical solution for maximum power 
+    assert np.isclose(power_combined, sol_analytic_com,rtol)
+    assert np.all(np.isclose(power_individual, sol_analytic_ind,rtol))
 
 
 # def test_regular_waves_asymmetric_wec(wec_box, three_regular_waves):
