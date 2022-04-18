@@ -56,11 +56,24 @@ class WEC:
     def __init__(self, 
                  f0: float = None,
                  nfreq: int = None,
+                 wave_dirs: np.ndarray = None,
                  Zi: np.ndarray = None, 
                  Hex: np.ndarray = None,
                  stiffness: np.ndarray = None,
+                 dof_names: list[str] = None,
                  f_add: Optional[Mapping[str, Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                  constraints: list[dict] = []) -> None:
+        
+        if dof_names is None:
+            dof_names = [f"dof_{_}" for _ in np.arange(Zi.shape[1])]
+            
+        super().__setattr__('_hydro', make_hydro(freq=freq_array(f0, nfreq),
+                                                 wave_dirs=wave_dirs, 
+                                                 Zi=Zi, 
+                                                 Hex=Hex, 
+                                                 stiffness=stiffness, 
+                                                 dof_names=dof_names
+                                                 ))
 
         super().__setattr__('_freq', freq_array(f0, nfreq))
         super().__setattr__('_Zi', Zi)
@@ -78,12 +91,16 @@ class WEC:
     def __repr__(self):
         str_info = (f'{self.__class__.__name__} ') #TODO
         return str_info
+    
+
+        
         
     # static methods -----------------------------------------------------------
         
     @staticmethod
     def from_bem_data(bem_data: xr.Dataset = None,
                       dissipation: np.ndarray = None,
+                      dof_names: list[str] = [],
                       f_add: Optional[Mapping[str, Callable[[
                           WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                       constraints: list[dict] = []) -> 'WEC':
@@ -112,6 +129,7 @@ class WEC:
                           depth: float = _default_parameters['depth'],
                           write_info: Iterable[str] = [],
                           dissipation: np.ndarray = None,
+                          dof_names: list[str] = [],
                           f_add: Optional[Mapping[str, Callable[[
                               WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                           constraints: list[dict] = []) -> 'WEC':
@@ -132,6 +150,7 @@ class WEC:
     @staticmethod
     def from_file(file_path: str = None,
                   dissipation: np.ndarray = None,
+                  dof_names: list[str] = [],
                   f_add: Optional[Mapping[str, Callable[[
                       WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
                   constraints: list[dict] = []) -> 'WEC':
@@ -144,7 +163,7 @@ class WEC:
                                  constraints=constraints)
         
     # properties ---------------------------------------------------------------
-    # users cannot set freq, Zi, and Hex outside of init
+    # users cannot set freq, Zi, Hex, and stiffness outside of init
     
     @property
     def freq(self):
@@ -162,6 +181,7 @@ class WEC:
     def Zi(self):
         return self._Zi
     
+    #TODO: add stiffness at this phase (zero freq should have stiffness)
     @property
     def Gi(self):
         return self.Zi*1j*self.omega
@@ -360,126 +380,126 @@ class WEC:
         return td_to_fd(td, self.ncomponents)
 
     # methods: bem & impedance
-    def run_bem(self, wave_dirs: npt.ArrayLike = [0], tol: float = 1e-6
-                ) -> None:
-        """Run the BEM for the specified wave directions.
+    # def run_bem(self, wave_dirs: npt.ArrayLike = [0], tol: float = 1e-6
+    #             ) -> None:
+    #     """Run the BEM for the specified wave directions.
 
-        See ``wot.run_bem``.
+    #     See ``wot.run_bem``.
 
-        Parameters
-        ----------
-        wave_dirs: list[float]
-            List of wave directions to evaluate BEM at (degrees).
-        tol: float
-            Minimum value for the diagonal terms of
-            (radiation damping + dissipation).
-        """
-        log.info(f"Running Capytaine (BEM): {self.nfreq} frequencies x " +
-                 f"{len(wave_dirs)} wave directions.")
-        write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
-        data = run_bem(self.fb, self.freq, wave_dirs,
-                       rho=self.rho, g=self.g, depth=self.depth,
-                       write_info=write_info)
-        super().__setattr__('hydro', data)
-        # calculate impedance, ensure positive, create matrix
-        self.bem_calc_impedance(tol)
+    #     Parameters
+    #     ----------
+    #     wave_dirs: list[float]
+    #         List of wave directions to evaluate BEM at (degrees).
+    #     tol: float
+    #         Minimum value for the diagonal terms of
+    #         (radiation damping + dissipation).
+    #     """
+    #     log.info(f"Running Capytaine (BEM): {self.nfreq} frequencies x " +
+    #              f"{len(wave_dirs)} wave directions.")
+    #     write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
+    #     data = run_bem(self.fb, self.freq, wave_dirs,
+    #                    rho=self.rho, g=self.g, depth=self.depth,
+    #                    write_info=write_info)
+    #     super().__setattr__('hydro', data)
+    #     # calculate impedance, ensure positive, create matrix
+    #     self.bem_calc_impedance(tol)
 
-    def read_bem(self, fpath: str | Path, tol: float = 1e-6) -> None:
-        """Read a BEM solution from a NetCDF file.
+    # def read_bem(self, fpath: str | Path, tol: float = 1e-6) -> None:
+    #     """Read a BEM solution from a NetCDF file.
 
-        Parameters
-        ----------
-        fpath: str
-            Name of file to read BEM data from.
-        tol: float
-            Minimum value for the diagonal terms of
-            (radiation damping + dissipation).
-        """
-        log.info(f"Reading BEM data from {fpath}.")
-        data = complex_xarray_from_netcdf(fpath)
-        super().__setattr__('hydro', data)
+    #     Parameters
+    #     ----------
+    #     fpath: str
+    #         Name of file to read BEM data from.
+    #     tol: float
+    #         Minimum value for the diagonal terms of
+    #         (radiation damping + dissipation).
+    #     """
+    #     log.info(f"Reading BEM data from {fpath}.")
+    #     data = complex_xarray_from_netcdf(fpath)
+    #     super().__setattr__('hydro', data)
 
-        def diff(v1, v2, var):
-            if not np.allclose(v1, v2):
-                msg = f"Current and saved values of '{var}' are different."
-                msg += "Using current value."
-                log.warning(msg)
+    #     def diff(v1, v2, var):
+    #         if not np.allclose(v1, v2):
+    #             msg = f"Current and saved values of '{var}' are different."
+    #             msg += "Using current value."
+    #             log.warning(msg)
 
-        # check: mass and stiffness
-        bmass = 'mass' in self.hydro
-        bstiffness = 'hydrostatic_stiffness' in self.hydro
-        if bmass:
-            diff(self.hydro['mass'].values, self.mass, 'mass')
-        if bstiffness:
-            diff(self.hydro['hydrostatic_stiffness'].values,
-                 self.hydrostatic_stiffness, 'hydrostatic_stiffness')
+    #     # check: mass and stiffness
+    #     bmass = 'mass' in self.hydro
+    #     bstiffness = 'hydrostatic_stiffness' in self.hydro
+    #     if bmass:
+    #         diff(self.hydro['mass'].values, self.mass, 'mass')
+    #     if bstiffness:
+    #         diff(self.hydro['hydrostatic_stiffness'].values,
+    #              self.hydrostatic_stiffness, 'hydrostatic_stiffness')
 
-        # check: additional linear stiffness and dissipation
-        bstiffness = 'stiffness' in self.hydro
-        bdissipation = 'dissipation' in self.hydro
-        if bstiffness:
-            diff(self.hydro['stiffness'].values, self.stiffness, 'stiffness')
-        if bdissipation:
-            diff(self.hydro['dissipation'].values, self.dissipation,
-                 'dissipation')
+    #     # check: additional linear stiffness and dissipation
+    #     bstiffness = 'stiffness' in self.hydro
+    #     bdissipation = 'dissipation' in self.hydro
+    #     if bstiffness:
+    #         diff(self.hydro['stiffness'].values, self.stiffness, 'stiffness')
+    #     if bdissipation:
+    #         diff(self.hydro['dissipation'].values, self.dissipation,
+    #              'dissipation')
 
-        # add impedance
-        self.bem_calc_impedance(tol)
+    #     # add impedance
+    #     self.bem_calc_impedance(tol)
 
-    def write_bem(self, fpath: str | Path) -> None:
-        """Write the BEM solution to a NetCDF file.
+    # def write_bem(self, fpath: str | Path) -> None:
+    #     """Write the BEM solution to a NetCDF file.
 
-        Parameters
-        ----------
-        fpath: str
-            Name of file to write BEM data to.
-        """
-        log.info(f"Writting BEM data to {fpath}.")
-        complex_xarray_to_netcdf(fpath, self.hydro)
+    #     Parameters
+    #     ----------
+    #     fpath: str
+    #         Name of file to write BEM data to.
+    #     """
+    #     log.info(f"Writting BEM data to {fpath}.")
+    #     complex_xarray_to_netcdf(fpath, self.hydro)
 
-    def bem_calc_impedance(self, tol=1e-6):
-        """Calculate the impedance, ensure positive real diagonal, and
-        create impedance MIMO matrix. """
-        self._bem_add_hydrostatics()
-        self._bem_add_linear_forces()
-        self._bem_calc_transfer_func()
-        # post-process impedance: no negative or too small damping diagonal
-        self._post_process_impedance(tol=tol)
-        # create impedance MIMO matrix
-        self._make_mimo_transfer_mat()
+    # def bem_calc_impedance(self, tol=1e-6):
+    #     """Calculate the impedance, ensure positive real diagonal, and
+    #     create impedance MIMO matrix. """
+    #     self._bem_add_hydrostatics()
+    #     self._bem_add_linear_forces()
+    #     self._bem_calc_transfer_func()
+    #     # post-process impedance: no negative or too small damping diagonal
+    #     self._post_process_impedance(tol=tol)
+    #     # create impedance MIMO matrix
+    #     self._make_mimo_transfer_mat()
 
-    def _bem_calc_transfer_func(self) -> None:
-        """Calculate the transfer function matrix using Capytaine.
-        """
-        log.info("Calculating impedance matrix.")
-        self.hydro['Gi'] = cpy.post_pro.impedance(
-            self.hydro, self.dissipation, self.stiffness)
-        self._bem_calc_impedance()
+    # def _bem_calc_transfer_func(self) -> None:
+    #     """Calculate the transfer function matrix using Capytaine.
+    #     """
+    #     log.info("Calculating impedance matrix.")
+    #     self.hydro['Gi'] = cpy.post_pro.impedance(
+    #         self.hydro, self.dissipation, self.stiffness)
+    #     self._bem_calc_impedance()
 
-    def _bem_calc_impedance(self) -> None:
-        """Calculate the impedance matrix."""
-        self.hydro['Zi'] = self.hydro['Gi'] / (1j*self.hydro.omega)
+    # def _bem_calc_impedance(self) -> None:
+    #     """Calculate the impedance matrix."""
+    #     self.Zi = self.hydro['Gi'] / (1j*self.hydro.omega)
 
-    def _bem_add_hydrostatics(self) -> None:
-        """Add hydrostatic data to self.hydro. """
-        dims = ['radiating_dof', 'influenced_dof']
-        self.hydro['mass'] = (dims, self.mass)
-        self.hydro['hydrostatic_stiffness'] = (
-            dims, self.hydrostatic_stiffness)
-        self._del_impedance()
+    # def _bem_add_hydrostatics(self) -> None:
+    #     """Add hydrostatic data to self.hydro. """
+    #     dims = ['radiating_dof', 'influenced_dof']
+    #     self.hydro['mass'] = (dims, self.mass)
+    #     self.hydro['hydrostatic_stiffness'] = (
+    #         dims, self.hydrostatic_stiffness)
+    #     self._del_impedance()
 
-    def _bem_add_linear_forces(self) -> None:
-        hydro = self.hydro.assign_coords({'dissipation': self.dissipation})
-        hydro = hydro.assign_coords({'stiffness': self.stiffness})
-        super().__setattr__('hydro', hydro)
-        self._del_impedance()
+    # def _bem_add_linear_forces(self) -> None:
+    #     hydro = self.hydro.assign_coords({'dissipation': self.dissipation})
+    #     hydro = hydro.assign_coords({'stiffness': self.stiffness})
+    #     super().__setattr__('hydro', hydro)
+    #     self._del_impedance()
 
-    def _del_impedance(self) -> None:
-        log.info("Impedance matrix deleted. To calculate " +
-                 "impedance call 'self.bem_calc_impedance()'")
-        self.hydro['Gi'] = 'None'
-        self.hydro['Zi'] = 'None'
-        super().__setattr__('_transfer_mat', None)
+    # def _del_impedance(self) -> None:
+    #     log.info("Impedance matrix deleted. To calculate " +
+    #              "impedance call 'self.bem_calc_impedance()'")
+    #     self.hydro['Gi'] = 'None'
+    #     self.Zi = 'None'
+    #     super().__setattr__('_transfer_mat', None)
 
     def _post_process_impedance(self, tol=1e-6) -> None:
         """Enforce damping diagonal >= 0 + tol. """
@@ -510,28 +530,31 @@ class WEC:
                 elem[idof][jdof] = block_diag(*blocks)
         super().__setattr__('_transfer_mat', np.block(elem))
 
-    def bem_calc_inf_added_mass(self) -> None:
-        """Run the BEM to obtain the infinite added mass. """
-        log.info("Running Capytaine for infinite frequency.")
-        inf_data = run_bem(
-            self.fb, [np.infty], wave_dirs=None,
-            rho=self.rho, g=self.g, depth=self.depth)
-        self.hydro['Ainf'] = inf_data.added_mass[0, :, :]
+    # def bem_calc_inf_added_mass(self) -> None:
+    #     """Run the BEM to obtain the infinite added mass. """
+    #     log.info("Running Capytaine for infinite frequency.")
+    #     inf_data = run_bem(
+    #         self.fb, [np.infty], wave_dirs=None,
+    #         rho=self.rho, g=self.g, depth=self.depth)
+    #     self.hydro['Ainf'] = inf_data.added_mass[0, :, :]
 
-    def bem_calc_rao(self) -> None:
-        """Calculate BEM RAOs using capytaine. """
-        self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
+    # def bem_calc_rao(self) -> None:
+    #     """Calculate BEM RAOs using capytaine. """
+    #     self.hydro['rao'] = cpy.post_pro.rao(self.hydro)
 
-    def plot_impedance(self, style: str = 'Bode', option: str = 'symmetric',
+    def plot_impedance(self, 
+                       style: str = 'Bode', 
+                       option: str = 'symmetric',
                        show: bool = True):
         """Plot impedance.
 
         See `wot.plot_impedance()`.
         """
-        fig, axs = plot_impedance(
-            impedance=self.hydro.Zi.values, freq=self.freq, style=style,
-            option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
-            show=show)
+        fig, axs = plot_impedance(impedance=self.Zi, 
+                                  freq=self.freq, 
+                                  style=style,
+                                  option=option, 
+                                  show=show)
         return fig, axs
     
     def power_limit(self, waves: xr.DataSet) -> np.ndarray:
@@ -542,7 +565,7 @@ class WEC:
 
         fd_wec, _ = wave_excitation(self.hydro, waves)
         return power_limit(excitation=fd_wec['excitation_force'],
-                           impedance=self.hydro['Zi'])
+                           impedance=self.Zi)
 
     def optimal_velocity(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal velocity spectrum for hydrodynamic problem.
@@ -551,7 +574,7 @@ class WEC:
         """
         fd_wec, _ = wave_excitation(self.hydro, waves)
         return optimal_velocity(excitation=fd_wec['excitation_force'],
-                                impedance=self.hydro['Zi'])
+                                impedance=self.Zi)
 
     def optimal_position(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal position spectrum for hydrodynamic problem.
@@ -560,15 +583,15 @@ class WEC:
         """
         fd_wec, _ = wave_excitation(self.hydro, waves)
         return optimal_position(excitation=fd_wec['excitation_force'],
-                                impedance=self.hydro['Zi'],
-                                omega=self.hydro['omega'])
+                                impedance=self.Zi,
+                                omega=self.omega)
 
     def natural_frequency(self) -> tuple[npt.ArrayLike, int]:
         """Return natural frequency or frequencies.
 
         See `wot.natural_frequency()`.
         """
-        return natural_frequency(self.hydro.Zi.values, freq=self.freq)
+        return natural_frequency(self.Zi, freq=self.freq)
 
     # methods: solve
     def _get_state_scale(self,
@@ -957,6 +980,20 @@ class WEC:
 
         return freq_dom, time_dom
 
+#TODO - make sure we cannot use Capytaine's method for this
+def make_hydro(freq, wave_dirs, Zi, Hex, stiffness, dof_names):
+    hydro = xr.Dataset(data_vars={
+        "Zi":(["freq","influenced_dof","radiating_dof"], Zi.data),
+        "Hex":(["freq","wave_direction","influenced_dof"], Hex.data),
+        "hydrostatic_stiffness":(["influenced_dof","radiating_dof"], stiffness),
+                },
+                coords={
+                    "freq": (["freq"], freq),
+                    "influenced_dof": (["influenced_dof"], dof_names),
+                    "radiating_dof": (["radiating_dof"], dof_names),
+                    "wave_direction": (["wave_direction"], wave_dirs)
+                })
+    return hydro
 
 def freq_array(f0: float, nfreq: int) -> np.ndarray:
     """Construct equally spaced frequency array.
