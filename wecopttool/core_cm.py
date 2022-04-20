@@ -52,7 +52,7 @@ class WEC:
     * Constraints
     """
 
-    def __init__(self, f0, nfreq, ndof, forces, constraints):
+    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_directions):
         self._freq = _make_freq_array(f0, nfreq)
         self._ndof = ndof
         self._time = self.make_time_vec()
@@ -65,6 +65,15 @@ class WEC:
 
         self.forces = forces
         self.constraints = constraints
+
+        # f(wec, x_wec, x_opt, wave)
+
+
+
+
+    # f = 0
+    # for force in forces.items()
+    #     f += force(wec, x_wec, x_opt, wave)
 
     @staticmethod
     def from_bem(bem_data: xr.Dataset, mass: np.ndarray,
@@ -154,7 +163,7 @@ class WEC:
         Bf = self.hydro['friction']
 
         # TODO: m, Bf, K are not the right size. Options:
-        #       1 - make them the right size
+        #       1 - make them the right size: N_DOF x N_DOF x N_freq
         #       2 - calculate without using the transfer matrix
         #       3 - modify the _make_mimo_... function to accept different sizes
         in_impedance = 1j*w*m
