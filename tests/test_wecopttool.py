@@ -28,7 +28,10 @@ def test_new_init():
     depth = np.infty
     meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
     fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot").keep_immersed_part()
-    fb.add_translation_dof(name="HEAVE")
+    fb.add_translation_dof(direction=(0,0,1),
+                           name="HEAVE")
+    fb.add_translation_dof(direction=(1,0,0),
+                           name="SURGE")
     
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
@@ -43,10 +46,11 @@ def test_new_init():
     write_info = {key: True for key in cpy_options}
     
     hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
+    mass_11 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[0,0]
     mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-    mass = np.atleast_2d(mass_33)
+    mass = np.diag([mass_11,mass_33])
     stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-    stiffness = np.atleast_2d(stiffness_33)
+    stiffness = np.diag([stiffness_33, stiffness_33]) #TODO
     
     fb.mass = fb.add_dofs_labels_to_matrix(mass)
     fb.hydrostatic_stiffness = fb.add_dofs_labels_to_matrix(stiffness)
@@ -56,21 +60,13 @@ def test_new_init():
                                 **write_info
                                 )
     
-    Gi = cpy.post_pro.impedance(hydro, 
-                                dissipation=0, 
-                                stiffness=stiffness)
-    Zi = Gi / (1j * hydro.omega)
-    Hex = hydro['Froude_Krylov_force'] + hydro['diffraction_force']
-    
-    wec = wot.WEC(f0=hydro.omega[0].data/2/np.pi, 
-                  nfreq=len(hydro.omega),
-                  Zi=Zi, 
-                  Hex=Hex,
-                  stiffness=stiffness)
-    print(wec)
-    # wec = wot.WEC.from_hydro(hydro, f_add, constraints)
-    # wec = wot.WEC.from_capytaine(f, fb, f_add, constraints, rho, g, depth)
-    # wec = wot.WEC.from_hydro_file(filename, f_add, constraints)
+    wot.WEC.from_bem(bem_data=hydro,
+                     mass=mass,
+                     hydrostatic_stiffness=stiffness,
+                     friction=None,
+                     f_add=None,
+                     constraints=None,
+                     )
     
 @pytest.fixture()
 def _wec():

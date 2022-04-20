@@ -5,21 +5,23 @@
 from __future__ import annotations
 import stat  # required for Python 3.8 & 3.9 support
 
-
-__all__ = [
-    'WEC', 'real_to_complex_amplitudes', 'freq_array', '_degrees_to_radians',
-    ]
+# TODO
+# __all__ = [
+#     'WEC', 'real_to_complex_amplitudes', 'freq_array', '_degrees_to_radians',
+#     ]
 
 
 import logging
 import copy
 from typing import Iterable, Callable, Any, Optional, Mapping
 from pathlib import Path
+from numpy import isin
 
 import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
+from pyparsing import null_debug_action
 import xarray as xr
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
@@ -30,8 +32,6 @@ from matplotlib.figure import Figure
 
 _log = logging.getLogger(__name__)
 
-# type aliases
-StateFunction = Callable[[WEC, np.ndarray, np.ndarray], np.ndarray]
 
 # Default values
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
@@ -52,18 +52,32 @@ class WEC:
     * Constraints
     """
 
-    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_directions):
+    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_direction, nsubsteps: int=1):
         self._freq = _make_freq_array(f0, nfreq)
         self._ndof = ndof
-        self._time = self.make_time_vec()
-        self._time_mat = self.make_time_mat()
+        self._time = make_time_vec(f0, self.ncomponents, nsubsteps) #TODO method referencing function
+        self._time_mat = make_time_mat(self.omega, self.ncomponents, nsubsteps) #TODO method referencing function
+        #TODO: wave_direction
 
         # derivative matrix
         def block(n): return np.array([[0, 1], [-1, 0]]) * n * self.w0
         blocks = [block(n+1) for n in range(self.nfreq)]
         self.derivative_mat = block_diag(*blocks)
+        
+        def f_from_imp(transfer_mat):
+            def f(wec, x_wec, x_opt, nsubsteps=1):
+                f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
+                return np.dot(self.time_mat, f_fd)
+            return f
+        
+        linear_force_functions
+        if np.all(isinstance(forces.items(),Callable)):
+            linear_force_functions = forces
+        else:
+            for k, v in forces.items():
+                linear_force_functions[k] = f_from_imp(v)
 
-        self.forces = forces
+        self.forces = linear_force_functions
         self.constraints = constraints
 
         # f(wec, x_wec, x_opt, wave)
@@ -75,39 +89,51 @@ class WEC:
     # for force in forces.items()
     #     f += force(wec, x_wec, x_opt, wave)
 
+
     @staticmethod
     def from_bem(bem_data: xr.Dataset, mass: np.ndarray,
                  hydrostatic_stiffness: np.ndarray,
                  friction: Optional[np.ndarray] = None,
-                 f_add: Optional[Mapping[str, StateFunction]] = None,
-                 constraints: list[dict] = []):
+                 f_add: Optional[Mapping[str, Callable[[
+                     WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
+                 constraints: list[dict] = [],
+                 nsubsteps: int=1):
         dims = ['radiating_dof', 'influenced_dof']
 
-        # TODO: option for bem_data to have mass, hs_stiffness, and friction
-        bem_data['mass'] = (dims, mass)
-        bem_data['hydrostatic_stiffness'] = (dims, hydrostatic_stiffness)
-        bem_data = bem_data.assign_coords({'friction': friction})
+        if 'mass' not in list(bem_data.variables.keys()):
+            bem_data['mass'] = (dims, mass)
+        if 'hydrostatic_stiffness' not in list(bem_data.variables.keys()):
+            bem_data['hydrostatic_stiffness'] = (dims, hydrostatic_stiffness)
+        if 'friction' not in list(bem_data.variables.keys()):
+            if friction is None:
+                friction = bem_data['hydrostatic_stiffness']*0
+            bem_data['friction'] = friction
 
-        # TODO check/modify diagonal damping terms if close to zero
+        bem_data = _check_damping(bem_data)
+        
+        if f_add is None:
+            f_add = dict()
 
         # forces in the dynamics equations
-        inertia, linear_forces = _create_standard_forces(bem_data)
-        forces = inertia | linear_forces | f_add
+        linear_force_matrices = _create_standard_force_matrices(bem_data)
+        forces = linear_force_matrices | f_add
 
-        ndof = len(bem_data["influenced_dofs"])
+        ndof = len(bem_data["influenced_dof"])
         f0 = bem_data["omega"].values[0] / (2*np.pi)
         nfreq = len(bem_data["omega"])
-        return WEC(f0, nfreq, ndof, forces, constraints)
+        return WEC(f0, nfreq, ndof, forces, constraints, wave_direction=bem_data['wave_direction'], nsubsteps=nsubsteps)
 
     @staticmethod
     def from_bem_file(file, mass: np.ndarray,
                       hydrostatic_stiffness: np.ndarray,
                       friction: Optional[np.ndarray] = None,
                       f_add: Optional[Mapping[str, StateFunction]] = None,
-                      constraints: list[dict] = []):
+                      constraints: list[dict] = [],
+                      nsubsteps: int=1):
         bem_data = read_file(file)  # TODO
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness,
-                           friction, f_add, constraints)
+                           friction, f_add, constraints,
+                           nsubsteps=nsubsteps)
         return wec
 
     @staticmethod
@@ -119,7 +145,8 @@ class WEC:
                  constraints: list[dict] = [],
                  rho: float = _default_parameters['rho'],
                  depth: float = _default_parameters['depth'],
-                 g: float = _default_parameters['g']) -> None:
+                 g: float = _default_parameters['g'],
+                 nsubsteps: int = 1) -> None:
         # TODO: log.info saying that the bem_data is returned and should be saved for quicker initialization later
         # RUN BEM
         _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
@@ -129,23 +156,26 @@ class WEC:
         bem_data = run_bem(fb, freq, wave_directions,
                         rho=rho, g=g, depth=depth, write_info=write_info)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness,
-                           friction, f_add, constraints)
+                           friction, f_add, constraints,
+                           nsubsteps=nsubsteps)
         return wec, bem_data
 
 
     @staticmethod
-    def from_impedance(f0, nfreq, impedance, f_add, constraints):
+    def from_impedance(f0, nfreq, impedance, f_add, constraints, nsubsteps: int=1):
         ndof = impedance.shape[0]
         # force_impedance =
         transfer_mat = _make_mimo_transfer_mat(impedance)  # TODO
 
-        def force_impedance(wec, x_wec, x_opt, nsubsteps=1):
+        def force_impedance(wec, x_wec, x_opt, nsubsteps=nsubsteps):
             f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec))  # TODO
             return np.dot(time_mat, f_fd)   # TODO
 
         forces =  force_impedance | f_add
-        WEC(f0, nfreq, ndof, forces, constraints)
+        WEC(f0, nfreq, ndof, forces, constraints, nsubsteps=nsubsteps)
 
+
+        
 
     def _add_to_bem(bem_data, mass, stiffness, friction):
         dims = ['radiating_dof', 'influenced_dof']
@@ -154,56 +184,7 @@ class WEC:
         bem_data = bem_data.assign_coords({'friction': friction})
         return bem_data
 
-    def _create_standard_forces(self,):
-        w = self.hydro['omega']
-        A = self.hydro['added_mass']
-        B = self.hydro['radiation_damping']
-        K = self.hydro['hydrostatic_stiffness']
-        m = self.hydro['mass']
-        Bf = self.hydro['friction']
 
-        # TODO: m, Bf, K are not the right size. Options:
-        #       1 - make them the right size: N_DOF x N_DOF x N_freq
-        #       2 - calculate without using the transfer matrix
-        #       3 - modify the _make_mimo_... function to accept different sizes
-        in_impedance = 1j*w*m
-        rad_impedance = -(B + 1j*w*A)
-        hs_impedance = -1j/w*K
-        fric_impedance = -Bf
-
-        rad_mat = self._make_mimo_transfer_mat(rad_impedance)
-        hs_mat = self._make_mimo_transfer_mat(hs_impedance)
-        fric_mat = self._make_mimo_transfer_mat(fric_impedance)
-
-        def f_from_imp(transfer_mat):
-            def f(wec, x_wec, x_opt, nsubsteps=1):
-                f_fd = self.vec_to_dofmat(np.dot(transfer_mat, x_wec))
-                return np.dot(self.time_mat, f_fd)
-            return f
-
-        inertia = f_from_imp(in_impedance)
-
-        linear_hydrodynamic_forces = {
-            "radiation": f_from_imp(rad_mat),
-            "hydrostatic": f_from_imp(hs_mat),
-            "friction": f_from_imp(fric_mat)
-        }
-
-        return inertia, linear_hydrodynamic_forces
-
-    def _make_mimo_transfer_mat(self, imp) -> np.ndarray:
-        """Create a block matrix of the MIMO transfer function.
-        """
-        elem = [[None]*self.ndof for _ in range(self.ndof)]
-        def block(re, im): return np.array([[re, im], [-im, re]])
-        for idof in range(self.ndof):
-            for jdof in range(self.ndof):
-                Zp = imp[:, idof, jdof]
-                re = np.real(Zp)
-                im = np.imag(Zp)
-                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-                elem[idof][jdof] = block_diag(*blocks)
-        return np.block(elem)
 
     # properties: frequency
     @property
@@ -276,44 +257,6 @@ class WEC:
         """Length of the  WEC dynamics state vector."""
         return self.ndof * self.ncomponents
 
-    # methods: time
-    def make_time_vec(self, nsubsteps: int = 1) -> np.ndarray:
-        """Assemble the time vector with n subdivisions.
-
-        Parameters
-        ----------
-        nsubsteps: int
-            Number of subdivisions between the default (implied) time
-            steps.
-
-        Returns
-        -------
-        time_vec: np.ndarray
-        """
-        nsteps = nsubsteps * self.ncomponents
-        return np.linspace(0, 1/self.f0, nsteps, endpoint=False)
-
-    def make_time_mat(self, nsubsteps: int = 1) -> np.ndarray:
-        """Assemble the time matrix that converts the state to
-        time-series.
-
-        Parameters
-        ---------
-        nsubsteps: int
-            Number of subdivisions between the default (implied) time
-            steps.
-
-        Returns
-        -------
-        time_mat: np.ndarray
-        """
-        time = self.make_time_vec(nsubsteps)
-        wt = np.outer(time, self.omega)
-        time_mat = np.empty((nsubsteps*self.ncomponents, self.ncomponents))
-        time_mat[:, 0::2] = np.cos(wt)
-        time_mat[:, 1::2] = np.sin(wt)
-        return time_mat
-
     # methods: state vector
     def decompose_decision_var(self, state: np.ndarray
                                ) -> tuple[np.ndarray, np.ndarray]:
@@ -363,6 +306,101 @@ def degrees_to_radians(degrees: float | npt.ArrayLike
     radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
 
+def _check_damping(bem_data, tol=1e-6) -> xr.Dataset:
+    damping = bem_data['radiation_damping'] + bem_data['friction']
+    dmin = np.diagonal(damping,axis1=1,axis2=2).min()
+    if dmin <= 0.0 + tol:
+        _log.warning(f'Linear damping has negative' +
+                    ' or close to zero terms; shifting up via linear friction.')
+        bem_data['friction'] = bem_data['friction'] + tol-dmin
+    
+    return bem_data
+
+# methods: time
+def make_time_vec(f0: float, ncomponents: int, nsubsteps: int = 1) -> np.ndarray:
+    """Assemble the time vector with n subdivisions.
+
+    Parameters
+    ----------
+    nsubsteps: int
+        Number of subdivisions between the default (implied) time
+        steps.
+
+    Returns
+    -------
+    time_vec: np.ndarray
+    """
+    nsteps = nsubsteps * ncomponents
+    return np.linspace(0, 1/f0, nsteps, endpoint=False)
+
+def make_time_mat(omega: np.ndarray, 
+                  ncomponents: int, nsubsteps: int = 1) -> np.ndarray:
+    """Assemble the time matrix that converts the state to
+    time-series.
+
+    Parameters
+    ---------
+    nsubsteps: int
+        Number of subdivisions between the default (implied) time
+        steps.
+
+    Returns
+    -------
+    time_mat: np.ndarray
+    """
+    f0 = omega[0]/(2*np.pi)
+    time = make_time_vec(f0, ncomponents, nsubsteps)
+    wt = np.outer(time, omega)
+    time_mat = np.empty((nsubsteps*ncomponents, ncomponents))
+    time_mat[:, 0::2] = np.cos(wt)
+    time_mat[:, 1::2] = np.sin(wt)
+    return time_mat
+
+def vec_to_dofmat(vec: np.ndarray, ndof: int) -> np.ndarray:
+        """Convert a vector back to a matrix with one column per DOF.
+        Opposite of ``dofmat_to_vec``. """
+        return np.reshape(vec, (-1, ndof), order='F')
+
+def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
+    """Create a block matrix of the MIMO transfer function.
+    """
+    elem = [[None]*ndof for _ in range(ndof)]
+    def block(re, im): return np.array([[re, im], [-im, re]])
+    for idof in range(ndof):
+        for jdof in range(ndof):
+            Zp = imp[:, idof, jdof]
+            re = np.real(Zp)
+            im = np.imag(Zp)
+            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            elem[idof][jdof] = block_diag(*blocks)
+    return np.block(elem)
+
+def _create_standard_force_matrices(bem_data: xr.Dataset):
+    w = bem_data['omega']
+    A = bem_data['added_mass']
+    B = bem_data['radiation_damping']
+    K = bem_data['hydrostatic_stiffness']
+    m = bem_data['mass']
+    Bf = bem_data['friction']
+    
+    ndof = len(bem_data.influenced_dof)
+
+    # TODO: m, Bf, K are not the right size. Options:
+    #       1 - make them the right size: N_DOF x N_DOF x N_freq
+    #       2 - calculate without using the transfer matrix
+    #       3 - modify the _make_mimo_... function to accept different sizes
+    
+    impedance_components = dict()
+    impedance_components['inertia'] = 1j*w*m
+    impedance_components['radiation'] = -(B + 1j*w*A)
+    impedance_components['hydrostatics'] = -1j/w*K
+    impedance_components['friction'] = -Bf + B*0  #TODO: this is my way of getting the shape right, kind of sloppy?
+    
+    linear_force_mimo_matrices = dict()
+    for k, v in impedance_components.items():
+        linear_force_mimo_matrices[k] = _make_mimo_transfer_mat(v,ndof)
+
+    return linear_force_mimo_matrices
 
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             wave_dirs: Iterable[float] = [0],

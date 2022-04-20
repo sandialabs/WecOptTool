@@ -10,7 +10,7 @@ __license__ = metadata['License']
 __doc__ = (f"{__description__} ({__title__}) developed by {__author__}." +
            f" See: {__uri__}.")
 
-from wecopttool.core import *
+from wecopttool.core_cm import *
 from wecopttool import waves
 from wecopttool import hydrostatics
 from wecopttool import pto
