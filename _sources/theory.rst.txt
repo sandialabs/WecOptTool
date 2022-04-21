@@ -88,7 +88,7 @@ Scaling
 For many WEC problems, :eq:`optim_prob` will be poorly scaled.
 Recall that :math:`x = [x_{w}, x_{u}]`, where :math:`x_{w}` describes the state of the WEC (e.g., velocities) and :math:`x_{u}` is a vector to be optimized to maximize power absorption.
 Consider, for example, a general case without a controller structure, in which :math:`x_{u}` would relate to PTO forces.
-For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e-1)`, but the forces could be :math:`\mathcal{O}(1e3)`.
+For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e{-1})`, but the forces could be :math:`\mathcal{O}(1e3)`.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable :math:`x` and with the objective function :math:`J(x)` can lead to problems with convergence.
 To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`wecopttool.core.WEC.solve`).

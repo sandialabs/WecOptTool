@@ -410,8 +410,8 @@ div.rendered_html tbody tr:hover {
 <p>The problem is defined in three parts: the WEC object, the wave spectrum, and the objective function that we are optimizing for.</p>
 <section id="WEC-object">
 <h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this headline"></a></h3>
-<p>In this section we will create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object, which contains all the information about the WEC and its dynamics. This includes the mesh, degrees of freedom, mass and hydrostatic properties, linear hydrodynamic coefficients (from a BEM solution), additional dynamic forces (e.g. PTO force, mooring, non-linear hydrodynamics), and constraints (e.g. maximum PTO extension). In this case, the only additional force will be the PTO force and the only constraint will be a maximum PTO force of
-<span class="math notranslate nohighlight">\(2000 N\)</span>. Note that the BEM solution is not required when creating the WEC object, it can be calculated or read after the WEC is created. WecOptTool uses Capytaine as a BEM solver, and one of the first things we will do is create a Capytaine FloatingBody.</p>
+<p>In this section we will create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object, which contains all the information about the WEC and its dynamics. This includes the mesh, degrees of freedom, mass and hydrostatic properties, linear hydrodynamic coefficients (from a BEM solution), additional dynamic forces (e.g. PTO force, mooring, non-linear hydrodynamics), and constraints (e.g. maximum PTO extension). In this case, the only additional force will be the PTO force and the only constraint will be a maximum PTO force of 2000 N.
+Note that the BEM solution is not required when creating the WEC object, it can be calculated or read after the WEC is created. WecOptTool uses Capytaine as a BEM solver, and one of the first things we will do is create a Capytaine FloatingBody.</p>
 <p>First, we will create a surface mesh for the hull using an existing function (note, you can use existing STL files, etc.).</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -469,7 +469,7 @@ INFO:capytaine.bodies.bodies:New floating body: WaveBot.
 <img alt="../_images/_examples_tutorial_1_wavebot_7_1.png" src="../_images/_examples_tutorial_1_wavebot_7_1.png" />
 </div>
 </div>
-<p>Next we will add the mass and hydrostatic properties. If these values are known they can be added directly. H Here we will use the fact that the WaveBot is free floating and assume constant density to calculate these properties. Capytaine does not (yet) natively perform hydrostatic calculations. We can use <code class="docutils literal notranslate"><span class="pre">meshmagick</span></code> to do this, which has been wrapped for convenience in <code class="docutils literal notranslate"><span class="pre">wecopttool.hydrostatics</span></code>.</p>
+<p>Next we will add the mass and hydrostatic properties. If these values are known they can be added directly. Here we will use the fact that the WaveBot is free floating and assume constant density to calculate these properties. Capytaine does not (yet) natively perform hydrostatic calculations. We can use <code class="docutils literal notranslate"><span class="pre">meshmagick</span></code> to do this, which has been wrapped for convenience in <code class="docutils literal notranslate"><span class="pre">wecopttool.hydrostatics</span></code>.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -505,7 +505,7 @@ identity matrix.</p>
 </pre></div>
 </div>
 </div>
-<p>Next we will create the constraints, which must be in the correct format for <code class="docutils literal notranslate"><span class="pre">`scipy.optimize.minimize()</span></code> &lt;<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html</a>&gt;`__. We will constraint the PTO force to <span class="math notranslate nohighlight">\(2000 N\)</span> in either direction. We will enforce the constraint at 4 times more points than the dynamics (see theory section for why this is helpful for the pseudo-spectral problem). This will be the only constraint.</p>
+<p>Next we will create the constraints, which must be in the correct format for <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code> (<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">docs</a>). We will constraint the PTO force to 2000 N in either direction. We will enforce the constraint at 4 times more points than the dynamics (see theory section for why this is helpful for the pseudo-spectral problem). This will be the only constraint.</p>
 <p>We will also create the additional dynamics forces function, which will simply be the PTO force.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
@@ -768,7 +768,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 </section>
 <section id="Solve">
 <h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this headline"></a></h2>
-<p>Now we can solve for the optimal PTO force, subject to the dynamics and our additional constraint (no more than <span class="math notranslate nohighlight">\(2000 N\)</span> force). WecOptTool will solve the optimization problem (PTO force that will produce the highest average power) while simultaneously ensuring the dynamics equation is satisfied.</p>
+<p>Now we can solve for the optimal PTO force, subject to the dynamics and our additional constraint (no more than 2000 N force). WecOptTool will solve the optimization problem (PTO force that will produce the highest average power) while simultaneously ensuring the dynamics equation is satisfied.</p>
 <p>To help the optimization we will scale the problem before solving it (see Documentation). WecOptTool allows you to scale the WEC dynamics state (see Documentation), your optimization state (in this case the Fourier coefficients for the PTO force), and the objective function separately. See the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code> function for more information.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
@@ -889,7 +889,7 @@ Average power: -103.18562397064031 W
 <h3>Plotting with xarray<a class="headerlink" href="#Plotting-with-xarray" title="Permalink to this headline"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">xarray</span></code> wrapper on <code class="docutils literal notranslate"><span class="pre">matplotlib.pyplot.plot()</span></code> makes it easy to plot the results quickly. It sets labels and titles automatically based on the metadata stored in the array.</p>
 <p>We will first look at some time-domain solutions. We will only plot a subset of the available quantities; inspect the <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> objects for all stored quantities.</p>
-<p>Note that the PTO force never exceeds <span class="math notranslate nohighlight">\(2000N\)</span>, and that due to the non-linear constraint the WEC heave motion is not sinusoidal.</p>
+<p>Note that the PTO force never exceeds 2000 N, and that due to the non-linear constraint the WEC heave motion is not sinusoidal.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
@@ -1062,7 +1062,7 @@ Text(0, 0.5, &#39;power [W]&#39;)
 <section id="Comparison-to-unconstrained-case">
 <h2>Comparison to unconstrained case<a class="headerlink" href="#Comparison-to-unconstrained-case" title="Permalink to this headline"></a></h2>
 <p>The unconstrained (no maximum PTO force) optimal control can be calculated analytically as the conjugate gradient of the intrinsic impedance. We will compare the two results to gain some insight into the effect of the constraint on the optimal PTO force.</p>
-<p>We will look at comparisons in both the time- and frequency-domain. Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of <span class="math notranslate nohighlight">\(2000 N\)</span>. Also note that the unconstrained optimal PTO force uses only one component at the excitation frequency, while the optimal constrained solution also contains components at odd
+<p>We will look at comparisons in both the time- and frequency-domain. Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of 2000 N. Also note that the unconstrained optimal PTO force uses only one component at the excitation frequency, while the optimal constrained solution also contains components at odd
 multiples of the excitation frequency.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
