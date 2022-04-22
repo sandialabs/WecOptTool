@@ -1542,9 +1542,8 @@ def subsetclose(subset_a: float | npt.ArrayLike,
         List with integer indices where the first array's elements 
         are located inside the second array.
     """
-    assert len(set(subset_a)) == len(subset_a
-                                     ), "Elements in subset_a not unique"
-    assert len(set(set_b)) == len(set_b), "Elements in set_b not unique"
+    assert len(np.unique(subset_a.round(decimals = 6))) == len(subset_a), "Elements in subset_a not unique"
+    assert len(np.unique(set_b.round(decimals = 6))) == len(set_b), "Elements in set_b not unique"
 
     ind = []
     tmp_result = [False for i in range(len(subset_a))]
