@@ -1499,13 +1499,18 @@ def post_process_continuous_time(results: xr.DataArray
     return func
 
 
-def _degrees_to_radians(degrees: float | npt.ArrayLike
+def _degrees_to_radians(degrees: float | npt.ArrayLike,
+                        sort: bool = True,
                        ) -> float | np.ndarray:
     """Convert degrees to radians in range -π to π and sort.
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    # radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    if (radians.size == 1):
+        radians = radians.item()
+    elif (sort):
+        radians = np.sort(radians)
     return radians
 
 def subsetclose(subset_a: float | npt.ArrayLike, 

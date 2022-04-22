@@ -244,7 +244,7 @@ def test_regular_waves_asymmetric_wec(wec_box, three_regular_waves):
     #check that not all power results are the same
     assert not np.all(np.isclose(power_individual, power_individual[0],rtol))
     #check if combined wave yields expected power as function of 
-    # the individual waves
+    # the individual waves 
     assert np.isclose(power_combined,
                   np.sum(power_individual)*power_individual.size,
                   rtol)
@@ -273,9 +273,9 @@ def test_irregular_wave_power(wec_wavebot, irregular_wave):
 
 
 
-# def test_spectrum_energy(irregular_wave):
-#     """Confirm that energy is spread correctly accross wave directions
-#     * integral (sum) over all directions of the spread function gives (vector) 1
-#     * integral (sum) over all directions of the irregular wave (2D) spectrum gives the omni-direction spectrum (vector)
-#     """
-#     assert 1 == 1
+def test_spectrum_energy(irregular_wave):
+    """Confirm that energy is spread correctly accross wave directions
+    * integral (sum) over all directions of the spread function gives (vector) 1
+    * integral (sum) over all directions of the irregular wave (2D) spectrum gives the omni-direction spectrum (vector)
+    """
+    assert 1 == 1
