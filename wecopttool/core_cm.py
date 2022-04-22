@@ -52,32 +52,19 @@ class WEC:
     * Constraints
     """
 
-    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_direction, nsubsteps: int=1):
+    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_direction):
         self._freq = _make_freq_array(f0, nfreq)
         self._ndof = ndof
-        self._time = make_time_vec(f0, self.ncomponents, nsubsteps) #TODO method referencing function
-        self._time_mat = make_time_mat(self.omega, self.ncomponents, nsubsteps) #TODO method referencing function
+        self._time = make_time_vec(f0, self.ncomponents) #TODO method referencing function
+        self._time_mat = make_time_mat(self.omega, self.ncomponents) #TODO method referencing function
         #TODO: wave_direction
 
         # derivative matrix
         def block(n): return np.array([[0, 1], [-1, 0]]) * n * self.w0
         blocks = [block(n+1) for n in range(self.nfreq)]
         self.derivative_mat = block_diag(*blocks)
-        
-        def f_from_imp(transfer_mat):
-            def f(wec, x_wec, x_opt, nsubsteps=1):
-                f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
-                return np.dot(self.time_mat, f_fd)
-            return f
-        
-        linear_force_functions
-        if np.all(isinstance(forces.items(),Callable)):
-            linear_force_functions = forces
-        else:
-            for k, v in forces.items():
-                linear_force_functions[k] = f_from_imp(v)
 
-        self.forces = linear_force_functions
+        self.forces = forces
         self.constraints = constraints
 
         # f(wec, x_wec, x_opt, wave)
@@ -115,13 +102,13 @@ class WEC:
             f_add = dict()
 
         # forces in the dynamics equations
-        linear_force_matrices = _create_standard_force_matrices(bem_data)
-        forces = linear_force_matrices | f_add
+        linear_force__functions, _ = _create_standard_forces(bem_data)
+        forces = linear_force__functions | f_add
 
         ndof = len(bem_data["influenced_dof"])
         f0 = bem_data["omega"].values[0] / (2*np.pi)
         nfreq = len(bem_data["omega"])
-        return WEC(f0, nfreq, ndof, forces, constraints, wave_direction=bem_data['wave_direction'], nsubsteps=nsubsteps)
+        return WEC(f0, nfreq, ndof, forces, constraints, wave_direction=bem_data['wave_direction'])
 
     @staticmethod
     def from_bem_file(file, mass: np.ndarray,
@@ -162,7 +149,7 @@ class WEC:
 
 
     @staticmethod
-    def from_impedance(f0, nfreq, impedance, f_add, constraints, nsubsteps: int=1):
+    def from_impedance(f0, nfreq, impedance, f_add, constraints):
         ndof = impedance.shape[0]
         # force_impedance =
         transfer_mat = _make_mimo_transfer_mat(impedance)  # TODO
@@ -375,7 +362,7 @@ def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
-def _create_standard_force_matrices(bem_data: xr.Dataset):
+def _create_standard_forces(bem_data: xr.Dataset):
     w = bem_data['omega']
     A = bem_data['added_mass']
     B = bem_data['radiation_damping']
@@ -396,11 +383,19 @@ def _create_standard_force_matrices(bem_data: xr.Dataset):
     impedance_components['hydrostatics'] = -1j/w*K
     impedance_components['friction'] = -Bf + B*0  #TODO: this is my way of getting the shape right, kind of sloppy?
     
+    def f_from_imp(transfer_mat):
+            def f(wec, x_wec, x_opt, nsubsteps=1):
+                f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
+                return np.dot(self.time_mat, f_fd)
+            return f
+    
     linear_force_mimo_matrices = dict()
+    linear_force_functions = dict()
     for k, v in impedance_components.items():
         linear_force_mimo_matrices[k] = _make_mimo_transfer_mat(v,ndof)
+        linear_force_functions[k] = f_from_imp(v)
 
-    return linear_force_mimo_matrices
+    return linear_force_functions, linear_force_mimo_matrices
 
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             wave_dirs: Iterable[float] = [0],
