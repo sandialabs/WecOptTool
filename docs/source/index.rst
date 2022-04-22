@@ -6,6 +6,7 @@ WecOptTool
     :hidden:
 
     theory.rst
+    implementation.rst
     tutorials.rst
     references.rst
     source_code.rst
