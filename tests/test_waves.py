@@ -1,4 +1,5 @@
 import os
+from random import random
 
 import pytest
 import autograd.numpy as np
@@ -8,6 +9,7 @@ import meshio
 from scipy.optimize import Bounds
 
 import wecopttool as wot
+from wecopttool.core import freq_array
 from wecopttool.waves import pierson_moskowitz_spectrum as pm
 
 import gmsh
@@ -120,26 +122,64 @@ def three_regular_waves(wec_wavebot):
 
 
 @pytest.fixture()
-def irregular_wave(wec_wavebot):
-    # irregular wave - multi direction
+def irreg_wave_par():
+    """ irregular wave parameters to pass on to omnidirectional wave
+    and longcrested wave """
+
     Hs = 0.1
     Tp = 5
     fp = 1/Tp
     s_max = 10
-    wave_directions = wec_wavebot.hydro.wave_direction.values * 180/np.pi
-    dm = 7.0 # mean direction
-
-    seed = 0.1
-
+    # wave directions
+    wdir_mean = 30 # mean direction
+    wdir_step = 5   #direction degree step
+    wave_directions = np.concatenate(
+                    [np.arange(wdir_mean-180, wdir_mean, wdir_step),
+                     np.arange(wdir_mean, wdir_mean+wdir_step+180, wdir_step)]
+                    )
+    seed = 7
     spectrum_func = lambda f: pm(freq=f, fp=fp, hs=Hs)
+    irreg_wave_par = {
+        "Hs": Hs,
+        "fp": fp,
+        "s_max": s_max,
+        "wdir_mean": wdir_mean,
+        "wdir_step": wdir_step,
+        "wave_directions": wave_directions,
+        "seed":seed,
+        "spectrum_func":spectrum_func
+             }
+    return irreg_wave_par
+
+
+@pytest.fixture()
+def irregular_wave(wec_wavebot, irreg_wave_par):
+
+    wave_directions = irreg_wave_par.get('wave_directions')
+    spectrum_func = irreg_wave_par.get('spectrum_func')
+    seed = irreg_wave_par.get('seed')
+    wdir_mean = irreg_wave_par.get('wdir_mean')
+    fp = irreg_wave_par.get('fp')
+    s_max = irreg_wave_par.get('s_max')
+
     def spread_func(f,d):
-        return wot.waves.spread_cos2s(freq = f, directions = d, dm = dm, fp = fp, s_max= s_max)
+        return wot.waves.spread_cos2s(freq = f, directions = d, 
+                                      dm = wdir_mean, fp = fp, s_max= s_max)
 
     irreg_wave = wot.waves.irregular_wave(wec_wavebot.f0, wec_wavebot.nfreq,
                             wave_directions, spectrum_func, spread_func, seed) 
-        
     return irreg_wave
 
+@pytest.fixture()
+def long_crested_wave(wec_wavebot, irreg_wave_par):
+    spectrum_func = irreg_wave_par.get('spectrum_func')
+    wdir_mean = irreg_wave_par.get('wdir_mean')
+    seed = irreg_wave_par.get('seed')
+
+    long_crested_wave = wot.waves.long_crested_wave(
+                            wec_wavebot.f0, wec_wavebot.nfreq,
+                            spectrum_func, wdir_mean, "PM-spec", seed)
+    return long_crested_wave
 
 def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
     """Confirm that power from multiple regular waves that have the same
@@ -265,17 +305,49 @@ def test_directional_regular_wave_decomposed(wec_wavebot):
 #     assert 1 == 1
 
 
-def test_irregular_wave_power(wec_wavebot, irregular_wave):
+def test_irregular_wave_power(wec_wavebot):
     """Confirm power results for irregular wave are as expected
     TBD how to get this theoretically?
     """
+    # wec_wavebot.run_bem(irregular_wave.wave_directions)
     assert 1 == 1
 
-
-
-def test_spectrum_energy(irregular_wave):
+def test_cos2s_spread(wec_wavebot):
     """Confirm that energy is spread correctly accross wave directions
-    * integral (sum) over all directions of the spread function gives (vector) 1
-    * integral (sum) over all directions of the irregular wave (2D) spectrum gives the omni-direction spectrum (vector)
+    * integral (sum) over all directions of the spread function 
+      gives (vector) 1
     """
-    assert 1 == 1
+    f0 = wec_wavebot.f0
+    nfreq = wec_wavebot.nfreq
+    directions = np.linspace(0, 360, 75, endpoint=False)
+    wdir_mean = random()*360
+    freqs = freq_array(f0, nfreq)
+    s_max = round(random()*10)
+    fp = f0* (1 + random()*nfreq/2)
+    spread = wot.waves.spread_cos2s(freq = freqs, 
+                                    directions = directions, 
+                                    dm = wdir_mean, 
+                                    fp = fp, 
+                                    s_max = s_max)
+    ddir = directions[1]-directions[0]
+    
+    rtol = 0.01
+    assert np.allclose(np.sum(spread, axis = 1)*ddir,
+                        np.ones((1,nfreq)),
+                        rtol
+                      )
+
+
+def test_spectrum_energy(irregular_wave, long_crested_wave):
+    """Confirm that energy is spread correctly accross wave directions
+    * integral (sum) over all directions 
+      of the long crested irregular wave (2D) spectrum 
+      gives the omni-direction spectrum (vector)
+    """
+    wdir_step = (irregular_wave.wave_direction[1] 
+                - irregular_wave.wave_direction[0])
+    rtol= 0.01
+    assert np.allclose(wdir_step.values*180/np.pi * 
+                      irregular_wave.S.sum(dim = 'wave_direction').values, 
+                      (long_crested_wave.S.values).T, rtol
+                      )
