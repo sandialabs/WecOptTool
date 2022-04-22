@@ -60,13 +60,15 @@ def test_new_init():
                                 **write_info
                                 )
     
-    wot.WEC.from_bem(bem_data=hydro,
-                     mass=mass,
-                     hydrostatic_stiffness=stiffness,
-                     friction=None,
-                     f_add=None,
-                     constraints=None,
-                     )
+    wec = wot.WEC.from_bem(bem_data=hydro,
+                           mass=mass,
+                           hydrostatic_stiffness=stiffness,
+                           friction=None,
+                           f_add=None,
+                           constraints=None,
+                           )
+    
+    print(wec)
     
 @pytest.fixture()
 def _wec():

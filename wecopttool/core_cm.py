@@ -62,10 +62,14 @@ class WEC:
         # derivative matrix
         def block(n): return np.array([[0, 1], [-1, 0]]) * n * self.w0
         blocks = [block(n+1) for n in range(self.nfreq)]
-        self.derivative_mat = block_diag(*blocks)
+        self._derivative_mat = block_diag(*blocks)
 
         self.forces = forces
+        
+        if constraints is None: constraints = []
         self.constraints = constraints
+        
+        self._wave_direction = wave_direction
 
         # f(wec, x_wec, x_opt, wave)
 
@@ -134,7 +138,7 @@ class WEC:
                  depth: float = _default_parameters['depth'],
                  g: float = _default_parameters['g'],
                  nsubsteps: int = 1) -> None:
-        # TODO: log.info saying that the bem_data is returned and should be saved for quicker initialization later
+        # TODO: _log.info saying that the bem_data is returned and should be saved for quicker initialization later
         # RUN BEM
         _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
@@ -161,8 +165,6 @@ class WEC:
         forces =  force_impedance | f_add
         WEC(f0, nfreq, ndof, forces, constraints, nsubsteps=nsubsteps)
 
-
-        
 
     def _add_to_bem(bem_data, mass, stiffness, friction):
         dims = ['radiating_dof', 'influenced_dof']
@@ -200,6 +202,11 @@ class WEC:
     def w0(self):
         """Initial frequency (and spacing) in rad/s. See ``freq``."""
         return self.freq[0] * 2 * np.pi
+    
+    @property
+    def wave_direction(self):
+        """Wave directions in radians"""
+        return self._wave_direction
 
     # properties: time
     @property
@@ -261,6 +268,269 @@ class WEC:
         """Flatten a matrix that has one column per DOF.
         Opposite of ``vec_to_dofmat``. """
         return np.reshape(mat, -1, order='F')
+    
+    def _dynamic_residual(self, x: np.ndarray, waves) -> np.ndarray:
+        """Solve WEC dynamics in residual form so that they may be
+        enforced through a nonlinear constraint within an optimization
+        problem.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            Decision variable for optimization problem
+        waves : 
+            TODO
+
+        Returns
+        -------
+        np.ndarray
+            Residuals at collocation points
+
+        """
+        x_wec, x_opt = self.decompose_decision_var(x)
+        
+        force_residual = 0
+        for force in self.forces.items():
+            force_residual = force_residual + force(self, x_wec, x_opt, waves)
+        
+        #TODO - get signs right (f_i - f_exc - f_add)    
+
+        return force_residual
+    
+    
+    def solve(self,
+              waves: xr.Dataset,
+              obj_fun: Callable[[WEC, np.ndarray, np.ndarray], float],
+              nstate_opt: int,
+              x_wec_0: Optional[np.ndarray] = None,
+              x_opt_0: Optional[np.ndarray] = None,
+              scale_x_wec: Optional[list] = None,
+              scale_x_opt: npt.ArrayLike | float = 1.0,
+              scale_obj: float = 1.0,
+              optim_options: dict[str, Any] = {},
+              use_grad: bool = True,
+              maximize: bool = False,
+              bounds_wec: Optional[Bounds] = None,
+              bounds_opt: Optional[Bounds] = None,
+              unconstrained_first: Optional[bool] = False,
+              callback: Callable[[np.ndarray]] = None,
+              ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray, np.ndarray, float,
+                         OptimizeResult]:
+        """Solve the WEC co-design problem.
+
+        Parameters
+        ----------
+        waves: xr.Dataset
+            The wave, described by two 2D DataArrays:
+            elevation variance `S` (m^2*s) and phase `phase` (radians)
+            with coordinates of radial frequency `omega` (radians)
+            and wave direction `wave_direction` (radians).
+            The frequencies and  wave directions must match those in
+            the `bem_data` in `self.hydro`.
+        obj_fun: function
+            Objective function for the control optimization.
+            Takes three inputs:
+            (1) the WEC object,
+            (2) the WEC dynamics state (1D np.ndarray), and
+            (3) the optimization state (1D np.ndarray)
+            and outputs the scalar objective function:
+            tuple[WEC, np.ndarray, np.ndarray] -> float.
+        nstate_opt: int
+            Length of the optimization (controls) state vector.
+        x_wec_0: np.ndarray
+            Initial guess for the WEC dynamics state.
+            If ``None`` it is randomly initiated.
+        x_opt_0: np.ndarray
+            Initial guess for the optimization (control) state.
+            If ``None`` it is randomly initiated.
+        scale_x_wec: list
+            Factors to scale each DOF in ``x_wec`` by, to improve
+            convergence. List length ``ndof``.
+        scale_x_opt: npt.ArrayLike | float
+            Factor to scale ``x_opt`` by, to improve convergence.
+            A single float or an array of size ``nstate_opt``.
+        scale_obj: float
+            Factor to scale ``obj_fun`` by, to improve convergence.
+        optim_options: dict
+            Optimization options passed to the optimizer.
+            See ``scipy.optimize.minimize``.
+        use_grad: bool
+            Whether to use gradient information in the optimization.
+        maximize: bool
+            Whether to maximize the objective function. The default is
+            ``False`` to minimize the objective function.
+        bounds_wec: Bounds
+            Bounds on the WEC components of the decsision variable; see
+            scipy.optimize.minimize
+        bounds_opt: Bounds
+            Bounds on the optimization (control) components of the decsision
+            variable; see scipy.optimize.minimize
+        unconstrained_first: bool
+            If True, run ``solve`` without constraints to get scaling and 
+            initial guess. The default is False.
+        callback: function
+            Called after each iteration; see scipy.optimize.minimize. The
+            default is reported via logging at the INFO level.
+
+        Returns
+        -------
+        time_dom: xr.Dataset
+            Dataset containing the time-domain results.
+        freq_dom: xr.Dataset
+            Dataset containing the frequency-domain results.
+        x_wec: np.ndarray
+            Optimal WEC state.
+        x_opt: np.ndarray
+            Optimal control state.
+        objective: float
+            optimized value of the objective function.
+        res: optimize.optimize.OptimizeResult
+            Raw optimization results.
+        """
+        _log.info("Solving pseudo-spectral control problem.")
+        
+        if x_wec_0 is None:
+            x_wec_0 = np.random.randn(self.nstate_wec)
+        if x_opt_0 is None:
+            x_opt_0 = np.random.randn(nstate_opt)
+
+        if unconstrained_first:
+            _log.info(
+                "Solving without constraints for better scaling and initial guess")
+            wec1 = copy.deepcopy(self)
+            wec1.constraints = []
+            unconstrained_first = False
+            _, _, x_wec_0, x_opt_0, obj, res = wec1.solve(waves,
+                                                          obj_fun,
+                                                          nstate_opt,
+                                                          x_wec_0,
+                                                          x_opt_0,
+                                                          scale_x_wec,
+                                                          scale_x_opt,
+                                                          scale_obj,
+                                                          optim_options,
+                                                          use_grad,
+                                                          maximize,
+                                                          bounds_wec,
+                                                          bounds_opt,
+                                                          unconstrained_first,
+                                                          )
+            scale_x_wec = 1/np.max(np.abs(x_wec_0))
+            scale_x_opt = 1/np.max(np.abs(x_opt_0))
+            scale_obj = 1/np.abs(obj)
+            _log.info(f"Setting x_wec_0: {x_wec_0}")
+            _log.info(f"Setting x_opt_0: {x_opt_0}")
+            _log.info(f"Setting scale_x_wec: {scale_x_wec}")
+            _log.info(f"Setting scale_x_opt: {scale_x_opt}")
+            _log.info(f"Setting scale_obj: {scale_obj}")
+            
+        # scale
+        scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
+        
+        # bounds
+        bounds_in = [bounds_wec, bounds_opt]
+        bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
+                             ub=1*np.ones(self.nstate_wec)*np.inf),
+                      Bounds(lb=-1*np.ones(nstate_opt)*np.inf,
+                             ub=1*np.ones(nstate_opt)*np.inf)]
+        bounds_list = []
+        for bi, bd in zip(bounds_in, bounds_dflt):
+            if bi is not None: bo = bi
+            else: bo = bd
+            bounds_list.append(bo)
+        bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
+                        ub=np.hstack([le.ub for le in bounds_list])*scale)
+
+        # initial guess
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+
+        # wave excitation force
+        fd_we, td_we = wave_excitation(self.hydro, waves)
+        f_exc = td_we['excitation_force']
+
+        # objective function
+        sign = -1.0 if maximize else 1.0
+
+        def obj_fun_scaled(x):
+            x_wec, x_opt = self.decompose_decision_var(x/scale)
+            return obj_fun(self, x_wec, x_opt)*scale_obj*sign
+
+        # constraints
+        constraints = self.constraints.copy()
+
+        for i, icons in enumerate(self.constraints):
+            icons_new = {"type": icons["type"]}
+
+            def make_new_fun(icons):
+                def new_fun(x):
+                    x_wec, x_opt = self.decompose_decision_var(x/scale)
+                    return icons["fun"](self, x_wec, x_opt)
+                return new_fun
+
+            icons_new["fun"] = make_new_fun(icons)
+            if use_grad:
+                icons_new['jac'] = jacobian(icons_new['fun'])
+            constraints[i] = icons_new
+
+        # system dynamics through equality constraint
+        def resid_fun(x):
+            ri = self._dynamic_residual(x/scale, f_exc.values)
+            return self.dofmat_to_vec(ri)
+
+        eq_cons = {'type': 'eq',
+                   'fun': resid_fun,
+                   }
+        if use_grad:
+            eq_cons['jac'] = jacobian(resid_fun)
+        constraints.append(eq_cons)
+
+        optim_options['disp'] = optim_options.get('disp', True)
+
+        if callback is None:
+            def callback(x):
+                x_wec, x_opt = self.decompose_decision_var(x)
+                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: " \
+                    + f"[{np.max(np.abs(x_wec)):.2e}, " \
+                    + f"{np.max(np.abs(x_opt)):.2e}, " \
+                    + f"{np.max(obj_fun_scaled(x)):.2e}]")
+
+        problem = {'fun': obj_fun_scaled,
+                   'x0': x0,
+                   'method': 'SLSQP',
+                   'constraints': constraints,
+                   'options': optim_options,
+                   'bounds': bounds,
+                   'callback':callback,
+                   }
+
+        if use_grad:
+            problem['jac'] = grad(obj_fun_scaled)
+
+        # minimize
+        res = minimize(**problem)
+
+        msg = f'{res.message}    (Exit mode {res.status})'
+        if res.status == 0:
+            _log.info(msg)
+        elif res.status == 9:
+            _log.warning(msg)
+        else:
+            _log.error(msg)
+
+        # unscale
+        res.x = res.x / scale
+        res.fun = res.fun / scale_obj
+
+        # post-process
+        x_wec, x_opt = self.decompose_decision_var(res.x)
+        fd_x, td_x = self._post_process_wec_dynamics(x_wec, x_opt)
+        fd_we = fd_we.reset_coords(drop=True)
+        time_dom = xr.merge([td_x, td_we])
+        freq_dom = xr.merge([fd_x, fd_we])
+
+        objective = res.fun * sign
+
+        return time_dom, freq_dom, x_wec, x_opt, objective, res
 
 
 
@@ -339,8 +609,9 @@ def make_time_mat(omega: np.ndarray,
     time = make_time_vec(f0, ncomponents, nsubsteps)
     wt = np.outer(time, omega)
     time_mat = np.empty((nsubsteps*ncomponents, ncomponents))
-    time_mat[:, 0::2] = np.cos(wt)
-    time_mat[:, 1::2] = np.sin(wt)
+    time_mat[:, 0] = 1.0
+    time_mat[:, 1::2] = np.cos(wt)
+    time_mat[:, 2::2] = np.sin(wt)
     return time_mat
 
 def vec_to_dofmat(vec: np.ndarray, ndof: int) -> np.ndarray:
@@ -362,6 +633,108 @@ def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
+def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
+    return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+
+
+def td_to_fd(td: np.ndarray, n: Optional[int] = None) -> np.ndarray:
+    return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+
+def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
+                    ) -> tuple[xr.Dataset, xr.Dataset]:
+    """Compute the frequency- and time-domain wave excitation force.
+
+    Parameters
+    ----------
+    exc_coeff: xarray.Dataset
+        Exctiation BEM data for the WEC obtained from `capytaine`.
+    waves : xarray.Dataset
+        The wave, described by two 2D DataArrays:
+        elevation variance `S` (m^2*s) and phase `phase` (radians)
+        with coordinates of radial frequency `omega` (radians)
+        and wave direction `wave_direction` (radians). The frequencies
+        and  wave directions must match those in the `exc_coeff`.
+
+    Returns
+    -------
+    freq_dom: xarray.Dataset
+        Frequency domain wave excitation and elevation.
+    time_dom: xarray.Dataset
+        Time domain wave excitation and elevation.
+    """
+    if not np.allclose(waves['omega'].values, exc_coeff['omega'].values):
+        raise ValueError("Wave and BEM frequencies do not match")
+        
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+                exc_coeff['wave_direction'].values)
+    
+    if not w_dir_subset:
+        raise ValueError(
+            "Some wave directions are not in BEM solution " +
+            "\n Wave direction(s):" +
+            f"{(np.rad2deg(waves['wave_direction'].values))} (deg)" +
+            " \n BEM directions: " +
+            f"{np.rad2deg(exc_coeff['wave_direction'].values)} (deg).")
+
+    # add zero frequency
+    assert waves.omega[0] != 0
+    tmp = waves.isel(omega=0).copy(deep=True)
+    tmp['omega'] = tmp['omega'] * 0
+    tmp['S'] = tmp['S'] * 0
+    tmp['phase'] = tmp['phase'] * 0
+    waves_p0 = xr.concat([tmp, waves], dim='omega')
+
+    assert exc_coeff.omega[0] != 0
+    tmp = exc_coeff.isel(omega=0).copy(deep=True)
+    tmp['omega'] = tmp['omega'] * 0
+    tmp = tmp * 0
+    tmp['wavenumber'] = 0.0
+    tmp['wavelength'] = np.inf
+    exc_coeff_p0 = xr.concat([tmp, exc_coeff], dim='omega')
+
+    # complex amplitude
+    dw = waves_p0.omega[1] - waves_p0.omega[0]
+    wave_elev_fd = (np.sqrt(2*waves_p0['S'] / (2*np.pi) * dw) *
+                    np.exp(1j*waves_p0['phase']))
+    wave_elev_fd.attrs['long_name'] = 'wave elevation'
+    wave_elev_fd.attrs['units'] = 'm^2*s'
+    wave_elev_fd = wave_elev_fd.transpose('omega', 'wave_direction')
+
+    # excitation force
+    f_exc_fd = xr.dot(exc_coeff_p0, wave_elev_fd, dims=["wave_direction"])
+    f_exc_fd.attrs['long_name'] = 'wave excitation force'
+    f_exc_fd.attrs['units'] = 'N^2*s or N^2*m^2*s'
+    f_exc_fd = f_exc_fd.transpose('omega', 'influenced_dof')
+
+    freq_dom = xr.Dataset(
+        {'wave_elevation': wave_elev_fd, 'excitation_force': f_exc_fd},)
+    freq_dom['omega'].attrs['long_name'] = 'frequency'
+    freq_dom['omega'].attrs['units'] = '(radians)'
+
+    # time domain
+    nfd = 2 * len(waves['omega']) + 1
+    f0 = waves['omega'][0] / (2*np.pi)
+    time = np.linspace(0, 1/f0, nfd, endpoint=False)
+    dims_td = ['time', ]
+    coords_td = [(dims_td[0], time, {'units': 's'}), ]
+
+    f_exc_td = fd_to_td(f_exc_fd, nfd)
+    dims = dims_td + ['influenced_dof']
+    coords = coords_td + [(dims[1], f_exc_fd.coords[dims[1]].data,)]
+    f_exc_td = xr.DataArray(
+        f_exc_td, dims=dims, coords=coords, attrs=f_exc_fd.attrs)
+    f_exc_td.attrs['units'] = 'N or N*m'
+    time_dom = xr.Dataset({'excitation_force': f_exc_td},)
+
+    eta_all = fd_to_td(wave_elev_fd, nfd)
+    wave_elev_td = np.sum(eta_all, axis=1)
+    wave_elev_td = xr.DataArray(
+        wave_elev_td, dims=dims_td, coords=coords_td, attrs=wave_elev_fd.attrs)
+    wave_elev_td.attrs['units'] = 'm'
+    time_dom['wave_elevation'] = wave_elev_td
+
+    return freq_dom, time_dom
+
 def _create_standard_forces(bem_data: xr.Dataset):
     w = bem_data['omega']
     A = bem_data['added_mass']
@@ -371,20 +744,15 @@ def _create_standard_forces(bem_data: xr.Dataset):
     Bf = bem_data['friction']
     
     ndof = len(bem_data.influenced_dof)
-
-    # TODO: m, Bf, K are not the right size. Options:
-    #       1 - make them the right size: N_DOF x N_DOF x N_freq
-    #       2 - calculate without using the transfer matrix
-    #       3 - modify the _make_mimo_... function to accept different sizes
     
     impedance_components = dict()
     impedance_components['inertia'] = 1j*w*m
     impedance_components['radiation'] = -(B + 1j*w*A)
     impedance_components['hydrostatics'] = -1j/w*K
-    impedance_components['friction'] = -Bf + B*0  #TODO: this is my way of getting the shape right, kind of sloppy?
+    impedance_components['friction'] = -Bf + B*0  #TODO: this is my way of getting the shape right - kind of sloppy?
     
     def f_from_imp(transfer_mat):
-            def f(wec, x_wec, x_opt, nsubsteps=1):
+            def f(wec, x_wec, x_opt, waves):
                 f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
                 return np.dot(self.time_mat, f_fd)
             return f
@@ -394,8 +762,22 @@ def _create_standard_forces(bem_data: xr.Dataset):
     for k, v in impedance_components.items():
         linear_force_mimo_matrices[k] = _make_mimo_transfer_mat(v,ndof)
         linear_force_functions[k] = f_from_imp(v)
+        
+    def f_exc(TF, waves):
+        _, td = _wave_excitation(exc_coeff=TF, waves=waves)
+        return td['excitation_force']
+    
+    def f_exc_fk(wec,x_wec,x_opt,waves):
+        return f_exc(TF=bem_data['Froude_Krylov_force'], waves=waves)
+    
+    def f_exc_diff(wec,x_wec,x_opt,waves):
+        return f_exc(TF=bem_data['diffraction'], waves=waves)
+    
+    linear_force_functions['Froude_Krylov'] = f_exc_fk
+    linear_force_functions['diffraction'] = f_exc_diff
 
     return linear_force_functions, linear_force_mimo_matrices
+
 
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             wave_dirs: Iterable[float] = [0],

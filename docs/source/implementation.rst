@@ -67,3 +67,8 @@ Thus, the portion of :math:`x_{pos}` describing the :math:`k`-th mode would be.
 
 The external state vector (:math:`x_{ext}`) has an analogous composition.
 The mean components in :math:`x_{ext}` can be used to capture, for example, pretension in a tether.
+
+
+
+.. TODO: time vector
+
