@@ -182,11 +182,11 @@ class WEC:
 
     @property
     def nfreq(self):
-        return len(self.freq)
+        return len(self.freq)-1
 
     @property
     def f0(self):
-        return self.freq[0]
+        return self.freq[1]
 
     @property
     def period(self):
@@ -269,6 +269,28 @@ class WEC:
         Opposite of ``vec_to_dofmat``. """
         return np.reshape(mat, -1, order='F')
     
+    
+    def _get_state_scale(self,
+                         scale_x_wec: Optional[list] = None,
+                         scale_x_opt: npt.ArrayLike | float = 1.0,
+                         nstate_opt: Optional[int] = None) -> np.ndarray:
+        """Create a combined scaling array for the state vector. """
+        # scale for x_wec
+        if scale_x_wec == None:
+            scale_x_wec = [1.0] * self.ndof
+        elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
+            scale_x_wec = [scale_x_wec] * self.ndof
+        scale_x_wec = scale_dofs(scale_x_wec, self.ncomponents)
+
+        # scale for x_opt
+        if isinstance(scale_x_opt, float) or isinstance(scale_x_opt, int):
+            if nstate_opt is None:
+                raise ValueError("If 'scale_x_opt' is a scalar, " +
+                                 "'nstate_opt' must be provided")
+            scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
+
+        return np.concatenate([scale_x_wec, scale_x_opt])
+    
     def _dynamic_residual(self, x: np.ndarray, waves) -> np.ndarray:
         """Solve WEC dynamics in residual form so that they may be
         enforced through a nonlinear constraint within an optimization
@@ -289,9 +311,10 @@ class WEC:
         """
         x_wec, x_opt = self.decompose_decision_var(x)
         
+        #TODO: remove key (just for debugging)
         force_residual = 0
-        for force in self.forces.items():
-            force_residual = force_residual + force(self, x_wec, x_opt, waves)
+        for key, force_func in self.forces.items():
+            force_residual = force_residual + force_func(self, x_wec, x_opt, waves)
         
         #TODO - get signs right (f_i - f_exc - f_add)    
 
@@ -444,10 +467,6 @@ class WEC:
         # initial guess
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
-        # wave excitation force
-        fd_we, td_we = wave_excitation(self.hydro, waves)
-        f_exc = td_we['excitation_force']
-
         # objective function
         sign = -1.0 if maximize else 1.0
 
@@ -474,7 +493,7 @@ class WEC:
 
         # system dynamics through equality constraint
         def resid_fun(x):
-            ri = self._dynamic_residual(x/scale, f_exc.values)
+            ri = self._dynamic_residual(x=x/scale, waves=waves)
             return self.dofmat_to_vec(ri)
 
         eq_cons = {'type': 'eq',
@@ -537,7 +556,7 @@ class WEC:
 def _make_freq_array(f0: float, nfreq: int) -> np.ndarray:
     """Construct equally spaced frequency array.
     """
-    return np.arange(1, nfreq+1)*f0
+    return np.arange(0, nfreq+1)*f0
 
 
 def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
@@ -605,9 +624,9 @@ def make_time_mat(omega: np.ndarray,
     -------
     time_mat: np.ndarray
     """
-    f0 = omega[0]/(2*np.pi)
+    f0 = omega[1]/(2*np.pi)
     time = make_time_vec(f0, ncomponents, nsubsteps)
-    wt = np.outer(time, omega)
+    wt = np.outer(time, omega[1:])
     time_mat = np.empty((nsubsteps*ncomponents, ncomponents))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
@@ -626,10 +645,12 @@ def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
     def block(re, im): return np.array([[re, im], [-im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
-            Zp = imp[:, idof, jdof]
+            Zp = imp[1:, idof, jdof]
+            Zp0 = imp[0, idof, jdof]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
@@ -662,19 +683,20 @@ def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
     time_dom: xarray.Dataset
         Time domain wave excitation and elevation.
     """
-    if not np.allclose(waves['omega'].values, exc_coeff['omega'].values):
-        raise ValueError("Wave and BEM frequencies do not match")
+    #TODO
+    # if not np.allclose(waves['omega'].values, exc_coeff['omega'].values):
+    #     raise ValueError("Wave and BEM frequencies do not match")
         
-    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
-                exc_coeff['wave_direction'].values)
-    
-    if not w_dir_subset:
-        raise ValueError(
-            "Some wave directions are not in BEM solution " +
-            "\n Wave direction(s):" +
-            f"{(np.rad2deg(waves['wave_direction'].values))} (deg)" +
-            " \n BEM directions: " +
-            f"{np.rad2deg(exc_coeff['wave_direction'].values)} (deg).")
+    #TODO
+    # w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+    #             exc_coeff['wave_direction'].values)
+    # if not w_dir_subset:
+    #     raise ValueError(
+    #         "Some wave directions are not in BEM solution " +
+    #         "\n Wave direction(s):" +
+    #         f"{(np.rad2deg(waves['wave_direction'].values))} (deg)" +
+    #         " \n BEM directions: " +
+    #         f"{np.rad2deg(exc_coeff['wave_direction'].values)} (deg).")
 
     # add zero frequency
     assert waves.omega[0] != 0
@@ -736,6 +758,17 @@ def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
     return freq_dom, time_dom
 
 def _create_standard_forces(bem_data: xr.Dataset):
+    
+    # add zero freq. components
+    tmp = bem_data.isel(omega=0).copy(deep=True)
+    tmp['omega'] = tmp['omega'] * 0
+    tmp['hydrostatic_stiffness'] = bem_data['hydrostatic_stiffness'] * 1
+    bem_data = xr.concat([tmp, bem_data], dim='omega')
+    bem_data = bem_data.transpose("omega",
+                                  "radiating_dof",
+                                  "influenced_dof",
+                                  "wave_direction")
+    
     w = bem_data['omega']
     A = bem_data['added_mass']
     B = bem_data['radiation_damping']
@@ -744,6 +777,8 @@ def _create_standard_forces(bem_data: xr.Dataset):
     Bf = bem_data['friction']
     
     ndof = len(bem_data.influenced_dof)
+    
+    #TODO: operate on position
     
     impedance_components = dict()
     impedance_components['inertia'] = 1j*w*m
@@ -754,14 +789,14 @@ def _create_standard_forces(bem_data: xr.Dataset):
     def f_from_imp(transfer_mat):
             def f(wec, x_wec, x_opt, waves):
                 f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
-                return np.dot(self.time_mat, f_fd)
+                return np.dot(wec.time_mat, f_fd)
             return f
     
     linear_force_mimo_matrices = dict()
     linear_force_functions = dict()
     for k, v in impedance_components.items():
         linear_force_mimo_matrices[k] = _make_mimo_transfer_mat(v,ndof)
-        linear_force_functions[k] = f_from_imp(v)
+        linear_force_functions[k] = f_from_imp(linear_force_mimo_matrices[k])
         
     def f_exc(TF, waves):
         _, td = _wave_excitation(exc_coeff=TF, waves=waves)
@@ -777,6 +812,27 @@ def _create_standard_forces(bem_data: xr.Dataset):
     linear_force_functions['diffraction'] = f_exc_diff
 
     return linear_force_functions, linear_force_mimo_matrices
+
+
+def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
+    """Create a scaling vector based on a different scale for each DOF.
+
+    Parameters
+    ----------
+    scale_list: list
+        Scale for each DOF.
+    ncomponents: int
+        Number of elements in the state vector for each DOF.
+
+    Returns
+    -------
+    np.ndarray: Scaling vector.
+    """
+    ndof = len(scale_list)
+    scale = []
+    for dof in range(ndof):
+        scale += [scale_list[dof]] * ncomponents
+    return np.array(scale)
 
 
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],

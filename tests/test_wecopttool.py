@@ -19,13 +19,10 @@ from wecopttool.core import power_limit
 
 
 def test_new_init():
-    rho = 1000.0
-    g = 9.81
+
+    rho = 1e3
     f0 = 0.05
-    nfreq = 18
     freq = np.arange(1,18)*f0
-    wave_dirs = [0]
-    depth = np.infty
     meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
     fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot").keep_immersed_part()
     fb.add_translation_dof(direction=(0,0,1),
@@ -36,11 +33,11 @@ def test_new_init():
     solver = cpy.BEMSolver()
     test_matrix = xr.Dataset(coords={
         'rho': [rho],
-        'water_depth': [depth],
+        'water_depth': [np.infty],
         'omega': [ifreq*2*np.pi for ifreq in freq],
-        'wave_direction': wave_dirs,
+        'wave_direction': [0],
         'radiating_dof': list(fb.dofs.keys()),
-        'g': [g],
+        'g': [9.81],
     })
     cpy_options = ['wavenumber','wavelength','mesh','hydrostatics']
     write_info = {key: True for key in cpy_options}
@@ -67,6 +64,19 @@ def test_new_init():
                            f_add=None,
                            constraints=None,
                            )
+    
+    kinematics = np.eye(wec.ndof)
+    pto = wot.pto.PseudoSpectralPTO(wec.nfreq, kinematics)
+    
+    freq = 0.5
+    amplitude = 0.25*0
+    phase = 0.0
+    waves = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
+    
+    wec.solve(waves=waves,
+              obj_fun=pto.average_power,
+              nstate_opt=pto.nstate,
+              )
     
     print(wec)
     
