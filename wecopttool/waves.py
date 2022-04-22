@@ -392,9 +392,10 @@ def spread_cos2s(freq: float | npt.ArrayLike,
         frequency and wave direction.
     """
     freq = np.atleast_1d(freq)
-    rdir = _degrees_to_radians(directions-dm)
+    rdir = _degrees_to_radians(directions-dm,sort = False)
+    # rdir = (directions-dm) * np.pi/180
     pow = np.ones(len(freq)) * 5.0
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
-    cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1)
+    cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1) * (np.pi/180)
     return (cs * np.power.outer(np.cos(rdir/2), 2*s)).T
