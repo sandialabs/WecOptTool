@@ -348,7 +348,8 @@ def test_spectrum_energy(irregular_wave, long_crested_wave):
     wave (2D) spectrum gives the omni-direction spectrum (vector).
     """
     wdir_step = (irregular_wave.wave_direction[1]
-                - irregular_wave.wave_direction[0])
+                - irregular_wave.wave_direction[0]) *180/np.pi
+    # TODO: make units consistent in the wave xarray
     rtol= 0.01
     assert np.allclose(wdir_step.values *
                       irregular_wave.S.sum(dim = 'wave_direction').values,
