@@ -15,7 +15,6 @@ from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
-
 @pytest.fixture()
 def _wec():
     # water properties
@@ -49,6 +48,7 @@ def _wec():
     wec.run_bem(wave_dirs)
 
     return wec
+
 
 @pytest.fixture()
 def wec(_wec):
@@ -164,13 +164,13 @@ def test_solve_initial_guess_analytic(wec, regular_wave, pto):
 
     assert nits[0] > nits[1]
     assert pytest.approx(x_wecs[1],1e0) == x_wec_0
-    
-    
+
+
 def test_complex_to_real_amplitudes(wec, regular_wave):
     x_wec = wec.initial_x_wec_guess_analytic(regular_wave)
     fd_wec = wot.real_to_complex_amplitudes(x_wec)
     x_wec_1 = wot.complex_to_real_amplitudes(fd_wec)
-    
+
     assert np.all(x_wec == x_wec_1)
 
 
@@ -204,7 +204,7 @@ def test_solve_constraints(wec, regular_wave, pto):
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
 
-    *_, x_wec, x_opt, _, res1 = wec.solve(regular_wave, 
+    *_, x_wec, x_opt, _, res1 = wec.solve(regular_wave,
                                           obj_fun,
                                           nstate_opt,
                                           scale_x_wec=1.0,
@@ -309,22 +309,22 @@ def test_wavebot_ps_theoretical_limit(wec, regular_wave, pto):
     obj_fun = pto.average_power
     nstate_opt = pto.nstate
     x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
-    _, fdom, _, _, average_power, _ = wec.solve(regular_wave, 
-                                                obj_fun, 
+    _, fdom, _, _, average_power, _ = wec.solve(regular_wave,
+                                                obj_fun,
                                                 nstate_opt,
-                                                optim_options={'maxiter': 1000, 
-                                                               'ftol': 1e-8}, 
+                                                optim_options={'maxiter': 1000,
+                                                               'ftol': 1e-8},
                                                 x_wec_0=x_wec_0,
                                                 scale_x_wec=1e1,
                                                 scale_x_opt=1e-3,
                                                 scale_obj=1e-2)
-    
+
     plim = power_limit(fdom['excitation_force'], wec.hydro.Zi)
     assert pytest.approx(average_power, 1e-5) == plim
-    
+
     opt_vel = wec.optimal_velocity(regular_wave)
     assert pytest.approx(fdom.vel.data[1:],1e0) == opt_vel
-    
+
     opt_pos = wec.optimal_position(regular_wave)
     assert pytest.approx(fdom.pos.data[1:],1e0) == opt_pos
 
@@ -609,7 +609,7 @@ def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
                                                       obj_fun=pto.average_power,
                                                       nstate_opt=pto.nstate,
                                                       optim_options={
-                                                          'maxiter': 250, 
+                                                          'maxiter': 250,
                                                           'ftol': 1e-8},
                                                       scale_x_wec=1e2,
                                                       scale_x_opt=1e-2,
@@ -621,7 +621,7 @@ def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
 
 
 def test_multiple_dof_fixed_structure_P(surge_heave_wavebot):
-    
+
     kinematics = np.eye(surge_heave_wavebot.ndof)
     names = ["SURGE", "HEAVE"]
     pto = wot.pto.ProportionalPTO(kinematics, names=names)
@@ -858,18 +858,18 @@ def test_solve_callback(wec, regular_wave, pto, capfd):
 
 
 def test_regular_wave_power(wec, regular_wave, pto):
-    """Confirm that regular wave power solver results 
+    """Confirm that regular wave power solver results
     equals the theoretical power"""
     wec.constraints = []
     obj_fun = pto.average_power
-    _, wec_fdom, _, _, obj, _ = wec.solve(regular_wave, obj_fun, 
+    _, wec_fdom, _, _, obj, _ = wec.solve(regular_wave, obj_fun,
                                             nstate_opt = pto.nstate,
                                             scale_x_wec = 1.0,
                                             scale_x_opt = 0.01,
                                             scale_obj = 1e-1,
                                             optim_options={})
 
-    sol_analytic = -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2 
+    sol_analytic = -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2
                             / (8*np.real(wec.hydro.Zi[:, 0, 0])))
     #relative tolerance for assertion
     rtol = 0.005
