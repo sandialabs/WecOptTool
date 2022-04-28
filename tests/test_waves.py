@@ -133,7 +133,7 @@ def irreg_wave_par():
     wdir_step = 5   #direction degree step
     wave_directions = np.concatenate(
                     [np.arange(wdir_mean-180, wdir_mean, wdir_step),
-                     np.arange(wdir_mean, wdir_mean+180, wdir_step)]
+                        np.arange(wdir_mean, wdir_mean+180, wdir_step)]
                     )
     seed = 7
     spectrum_func = lambda f: pm(freq=f, fp=fp, hs=Hs)
@@ -162,7 +162,7 @@ def irregular_wave(wec_wavebot, irreg_wave_par):
 
     def spread_func(f,d):
         return wot.waves.spread_cos2s(freq = f, directions = d,
-                                      dm = wdir_mean, fp = fp, s_max= s_max)
+                                        dm = wdir_mean, fp = fp, s_max= s_max)
 
     irreg_wave = wot.waves.irregular_wave(wec_wavebot.f0, wec_wavebot.nfreq,
                             wave_directions, spectrum_func, spread_func, seed)
@@ -309,7 +309,7 @@ def test_longcrested_wave_power(wec_wavebot):
 def test_irregular_wave_power(wec_wavebot, irregular_wave):
     """Confirm power results for irregular wave are as expected. """
     # TBD how to get this theoretically?
-    wec_wavebot.run_bem(irregular_wave.wave_directions)
+    # wec_wavebot.run_bem(irregular_wave.wave_directions)
     # TODO
     assert 1 == 1
 
@@ -350,7 +350,7 @@ def test_spectrum_energy(irregular_wave, long_crested_wave):
     wdir_step = (irregular_wave.wave_direction[1]
                 - irregular_wave.wave_direction[0])
     rtol= 0.01
-    assert np.allclose(wdir_step.values*180/np.pi *
+    assert np.allclose(wdir_step.values *
                       irregular_wave.S.sum(dim = 'wave_direction').values,
                       (long_crested_wave.S.values).T, rtol
                       )

@@ -56,10 +56,14 @@ def wave_dataset(f0: float, nfreq: int,
     coords = [(dims[0], omega, freq_units), (dims[1], directions, rad_units)]
     tmp = np.zeros([nfreq, ndirections])
 
-    attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
+    if ndirections == 1:
+        units = 'm^2/(rad/s)'
+    else:
+        units = 'm^2/((rad/s)*rad)'
+    attrs = {'units': units, 'long_name': 'elevation variance'}
     spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
 
-    attrs = {'units': 'rad', 'long_name': 'wave phase'}
+    attrs = {'units': 'rad', 'long_name': 'phase'}
     phase = xr.DataArray(tmp.copy(), dims=dims, coords=coords, attrs=attrs)
 
     return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
@@ -146,7 +150,8 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     nfreq: int
         Number of frequencies in frequency array. See ``f0``.
     spectrum_func: function
-        Wave spectrum function. Maps frequencies to amplitude spectrum.
+        Wave omnidirectional spectrum function. Maps frequencies (Hz)
+        to elevation variance spectrum (m^2/Hz).
         float | npt.ArrayLike -> float | np.ndarray
     direction: float, optional
         Direction (in degrees) of the regular wave.
@@ -172,16 +177,17 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
 
     Generate the wave using a Pierson-Moskowitz idealized spectrum.
 
-    >>> wave = lcw(f0=fp/10,
-    ...            nfreq=30,
-    ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
+    >>> wave = lcw(
+    ...     f0=fp/10,
+    ...     nfreq=30,
+    ...     spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
     """
     # empty dataset
     waves = wave_dataset(f0, nfreq, direction)
 
     # amplitude & phase
     freqs = freq_array(f0, nfreq)
-    waves['S'].values = spectrum_func(freqs).reshape(nfreq, 1)
+    waves['S'].values = 1/(2*np.pi) * spectrum_func(freqs).reshape(nfreq, 1)
     waves['phase'].values = _random_phase([nfreq, 1], seed)
 
     # attributes
@@ -210,11 +216,12 @@ def irregular_wave(f0: float, nfreq: int,
     directions: np.ndarray
         Wave directions in degrees. 1D array.
     spectrum_func: function
-        Wave spectrum function. Maps frequencies to amplitude spectrum.
+        Wave omnidirectional spectrum function. Maps frequencies (Hz)
+        to elevation variance spectrum (m^2/Hz).
         float | npt.ArrayLike -> float | np.ndarray
     spread_func: function
-        Wave spreading function. Maps wave frequencies and directions to
-        spread value.
+        Wave spreading function. Maps wave frequencies (Hz) and
+        directions (degrees) to spreading function.
         tuple[float | npt.ArrayLike, float | npt.ArrayLike
         ] -> np.ndarray.
     spectrum_name: str, optional
@@ -270,8 +277,8 @@ def irregular_wave(f0: float, nfreq: int,
     # amplitude & phase
     ndirections = len(directions)
     freqs = freq_array(f0, nfreq)
-    spectrum = spectrum_func(freqs).reshape(nfreq, 1)
-    spread = spread_func(freqs, directions)
+    spectrum = 1/(2*np.pi) * spectrum_func(freqs).reshape(nfreq, 1)
+    spread = 180/(np.pi) * spread_func(freqs, directions)
     assert spread.shape == (nfreq, ndirections)
     waves['S'].values = spectrum * spread
     waves['phase'].values = _random_phase([nfreq, ndirections], seed)
@@ -352,7 +359,7 @@ def jonswap_spectrum(freq:float | npt.ArrayLike, fp:float, hs:float,
                          funclist=[sigma_a, sigma_b])
 
 
-    # Pieson-Moskowitz spectrum
+    # Pierson-Moskowitz spectrum
     Spm = 5/16 * hs**2 * fp**4 * freq**-5 * np.exp(-5/4 * (freq / fp)**-4)
 
     # Modify PM to get JONSWAP spectrum
@@ -396,5 +403,6 @@ def spread_cos2s(freq: float | npt.ArrayLike,
     pow = np.ones(len(freq)) * 5.0
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
-    cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1) * (np.pi/180)
-    return (cs * np.power.outer(np.cos(rdir/2), 2*s)).T
+    cs = 2**(2*s-1)/np.pi * (gamma(s+1))**2/gamma(2*s+1)
+    spread = (cs*np.power.outer(np.cos(rdir/2), 2*s)).T
+    return spread * (np.pi/180)
