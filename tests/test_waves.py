@@ -309,7 +309,7 @@ def test_longcrested_wave_power(wec_wavebot):
 def test_irregular_wave_power(wec_wavebot, irregular_wave):
     """Confirm power results for irregular wave are as expected. """
     # TBD how to get this theoretically?
-    wec_wavebot.run_bem(irregular_wave.wave_directions)
+    # wec_wavebot.run_bem(irregular_wave.wave_directions)
     # TODO
     assert 1 == 1
 
