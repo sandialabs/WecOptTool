@@ -133,7 +133,7 @@ def irreg_wave_par():
     wdir_step = 5   #direction degree step
     wave_directions = np.concatenate(
                     [np.arange(wdir_mean-180, wdir_mean, wdir_step),
-                     np.arange(wdir_mean, wdir_mean+wdir_step+180, wdir_step)]
+                     np.arange(wdir_mean, wdir_mean+180, wdir_step)]
                     )
     seed = 7
     spectrum_func = lambda f: pm(freq=f, fp=fp, hs=Hs)
@@ -306,10 +306,10 @@ def test_longcrested_wave_power(wec_wavebot):
     assert 1 == 1
 
 
-def test_irregular_wave_power(wec_wavebot):
+def test_irregular_wave_power(wec_wavebot, irregular_wave):
     """Confirm power results for irregular wave are as expected. """
     # TBD how to get this theoretically?
-    # wec_wavebot.run_bem(irregular_wave.wave_directions)
+    wec_wavebot.run_bem(irregular_wave.wave_directions)
     # TODO
     assert 1 == 1
 
