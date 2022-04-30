@@ -605,8 +605,8 @@ def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
     # WEC
     surge_heave_wavebot.f_add = {'pto': pto.force_on_wec}
 
-    x_wec_0 = np.zeros(surge_heave_wavebot.nstate_wec)
-    x_opt_0 = np.zeros(pto.nstate)
+    x_wec_0 = np.ones(surge_heave_wavebot.nstate_wec)
+    x_opt_0 = np.ones(pto.nstate)
 
     _, fdom, _, _, obj, _ = surge_heave_wavebot.solve(regular_wave,
                                                       obj_fun=pto.average_power,
