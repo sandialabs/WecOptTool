@@ -53,10 +53,10 @@ class WEC:
     #   hydrodynamics, etc.)
     # * Constraints
 
-    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_directions):
+    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_direction):
         """
         f0 in Hz
-        wave_directions (list/array) in degrees
+        wave_direction (list/array) in degrees
         forces: f(wec, x_wec, x_opt, wave) -> array ndof x ntimes
         """
         self._freq = frequency(f0, nfreq)
@@ -66,40 +66,36 @@ class WEC:
         self._ndof = ndof
         self.forces = forces
         self.constraints = constraints if (constraints is not None) else []
-        self._wave_directions = degrees_to_radians(wave_directions, sort=True)
+        self._wave_direction = degrees_to_radians(wave_direction, sort=True)
 
     @staticmethod
-    def from_bem(bem_data: xr.Dataset, mass: np.ndarray,
-                 hydrostatic_stiffness: np.ndarray,
+    def from_bem(bem_data: xr.Dataset, mass: Optional[np.ndarray] = None,
+                 hydrostatic_stiffness: Optional[np.ndarray] = None,
                  friction: Optional[np.ndarray] = None,
                  f_add: Optional[Mapping[str, Callable[[
                      WEC, np.ndarray, np.ndarray], np.ndarray]]] = None,
-                 constraints: list[dict] = [],
-                 nsubsteps: int=1):
-        dims = ['radiating_dof', 'influenced_dof']
+                 constraints: Optional[list[dict]] = None,
+                 ):
+        """
+        """
+        # add mass, hydrostatic stiffness, and friction to bem_data
+        bem_data = _add_to_bem(bem_data, mass, hydrostatic_stiffness, friction)
 
-        if 'mass' not in list(bem_data.variables.keys()):
-            bem_data['mass'] = (dims, mass)
-        if 'hydrostatic_stiffness' not in list(bem_data.variables.keys()):
-            bem_data['hydrostatic_stiffness'] = (dims, hydrostatic_stiffness)
-        if 'friction' not in list(bem_data.variables.keys()):
-            if friction is None:
-                friction = bem_data['hydrostatic_stiffness']*0
-            bem_data['friction'] = friction
-
-        bem_data = _check_damping(bem_data)
-
-        if f_add is None:
-            f_add = dict()
+        # check real part of damping diagonal > 0
+        tol = 1e-6
+        bem_data = _check_damping(bem_data, tol)
 
         # forces in the dynamics equations
-        linear_force__functions, _ = _standard_forces(bem_data)
-        forces = linear_force__functions | f_add
+        linear_force_functions, _ = standard_forces(bem_data)
+        f_add = f_add if (f_add is not None) else {}
+        forces = linear_force_functions | f_add
 
         ndof = len(bem_data["influenced_dof"])
         f0 = bem_data["omega"].values[0] / (2*np.pi)
         nfreq = len(bem_data["omega"])
-        return WEC(f0, nfreq, ndof, forces, constraints, wave_direction=bem_data['wave_direction'])
+        constraints = constraints if (constraints is not None) else []
+        wave_direction = bem_data['wave_direction']
+        return WEC(f0, nfreq, ndof, forces, constraints, wave_direction)
 
     @staticmethod
     def from_bem_file(file, mass: np.ndarray,
@@ -117,7 +113,7 @@ class WEC:
     @staticmethod
     def from_floating_body(self, fb: cpy.FloatingBody, mass: np.ndarray,
                  hydrostatic_stiffness: np.ndarray, f0: float, nfreq: int,
-                 wave_directions: npt.ArrayLike = np.array([0.0,]),
+                 wave_direction: npt.ArrayLike = np.array([0.0,]),
                  friction: Optional[np.ndarray] = None,
                  f_add: Optional[Mapping[str, StateFunction]] = None,
                  constraints: list[dict] = [],
@@ -128,10 +124,10 @@ class WEC:
         # TODO: _log.info saying that the bem_data is returned and should be saved for quicker initialization later
         # RUN BEM
         _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
-                 f"{len(wave_directions)} wave directions.")
+                 f"{len(wave_direction)} wave directions.")
         freq = frequency(f0, nfreq)
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
-        bem_data = run_bem(fb, freq, wave_directions,
+        bem_data = run_bem(fb, freq, wave_direction,
                         rho=rho, g=g, depth=depth, write_info=write_info)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness,
                            friction, f_add, constraints,
@@ -151,12 +147,7 @@ class WEC:
         forces =  force_impedance | f_add
         WEC(f0, nfreq, ndof, forces, constraints, nsubsteps=nsubsteps)
 
-    def _add_to_bem(bem_data, mass, stiffness, friction):
-        dims = ['radiating_dof', 'influenced_dof']
-        bem_data['mass'] = (dims, mass)
-        bem_data['hydrostatic_stiffness'] = (dims, stiffness)
-        bem_data = bem_data.assign_coords({'friction': friction})
-        return bem_data
+
 
 
 
@@ -198,9 +189,9 @@ class WEC:
 
     # properties: waves
     @property
-    def wave_directions(self):
+    def wave_direction(self):
         """Wave directions in degrees."""
-        return self._wave_directions * 180/np.pi
+        return self._wave_direction * 180/np.pi
 
     # properties: time
     @property
@@ -546,6 +537,43 @@ class WEC:
         return time_dom, freq_dom, x_wec, x_opt, objective, res
 
 
+def _add_to_bem(bem_data, mass=None, hydrostatic_stiffness=None, friction=None):
+
+    vars = {'mass': mass, 'friction': friction,
+            'hydrostatic_stiffness': hydrostatic_stiffness}
+
+    err_both = f'BEM data already has variable "{name}" with diferent values'
+    err_none = f'Variable "{name}" not provided.'
+
+    ndof = len(bem_data["influenced_dof"])
+    friction = friction if (friction is not None) else np.zeros([ndof, ndof])
+
+    dims = ['radiating_dof', 'influenced_dof']
+
+    for name, data in vars.items():
+        org = name in bem_data.variables.keys()
+        new = data is not None
+        if new and org:
+            if not np.allclose(data, bem_data.variables[name]):
+                raise ValueError(err_both)
+        elif (not new) and (not org):
+            raise ValueError(err_none)
+        else:
+            bem_data[name] = (dims, data)
+
+    return bem_data
+
+
+def _check_damping(bem_data, tol=1e-6) -> xr.Dataset:
+    damping = bem_data['radiation_damping'] + bem_data['friction']
+    dmin = np.diagonal(damping, axis1=1, axis2=2).min()
+    if dmin <= 0.0 + tol:
+        _log.warning(f'Linear damping has negative' +
+                    ' or close to zero terms; shifting up via linear friction.')
+        bem_data['friction'] = bem_data['friction'] + tol-dmin
+
+    return bem_data
+
 
 def frequency(f0: float, nfreq: int) -> np.ndarray:
     """Construct equally spaced frequency array.
@@ -578,17 +606,6 @@ def degrees_to_radians(degrees: float | npt.ArrayLike, sort: bool = True,
     elif (sort):
         radians = np.sort(radians)
     return radians
-
-
-def _check_damping(bem_data, tol=1e-6) -> xr.Dataset:
-    damping = bem_data['radiation_damping'] + bem_data['friction']
-    dmin = np.diagonal(damping,axis1=1,axis2=2).min()
-    if dmin <= 0.0 + tol:
-        _log.warning(f'Linear damping has negative' +
-                    ' or close to zero terms; shifting up via linear friction.')
-        bem_data['friction'] = bem_data['friction'] + tol-dmin
-
-    return bem_data
 
 
 def time(f0: float, nfreq: int, nsubsteps: int = 1) -> np.ndarray:
@@ -799,7 +816,7 @@ def standard_forces(bem_data: xr.Dataset):
     linear_force_mimo_matrices = dict()
     linear_force_functions = dict()
     for k, v in impedance_components.items():
-        linear_force_mimo_matrices[k] = _mimo_transfer_mat(v,ndof)
+        linear_force_mimo_matrices[k] = mimo_transfer_mat(v, ndof)
         linear_force_functions[k] = f_from_imp(linear_force_mimo_matrices[k])
 
     def f_exc(TF, waves):
