@@ -3,7 +3,8 @@
 
 
 from __future__ import annotations
-import stat  # required for Python 3.8 & 3.9 support
+# import stat  # required for Python 3.8 & 3.9 support
+
 
 # TODO
 # __all__ = [
@@ -30,56 +31,42 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 
+# logger
 _log = logging.getLogger(__name__)
 
-
-# Default values
+# default values
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+
 
 class WEC:
     """Class representing a specific wave energy converter (WEC).
     An instance contains the  following information about the WEC,
     environment, and dynamic modeling:
-
-    * Geometry
-    * Degrees of freedom
-    * Mass properties
-    * Hydrostatic properties
-    * Linear frequency domain hydrodynamic coefficients
-    * Water properties
-    * Additional dynamic forces (power take-off, mooring, nonlinear
-      hydrodynamics, etc.)
-    * Constraints
     """
+    # * Geometry
+    # * Degrees of freedom
+    # * Mass properties
+    # * Hydrostatic properties
+    # * Linear frequency domain hydrodynamic coefficients
+    # * Water properties
+    # * Additional dynamic forces (power take-off, mooring, nonlinear
+    #   hydrodynamics, etc.)
+    # * Constraints
 
-    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_direction):
-        self._freq = _make_freq_array(f0, nfreq)
+    def __init__(self, f0, nfreq, ndof, forces, constraints, wave_directions):
+        """
+        f0 in Hz
+        wave_directions (list/array) in degrees
+        forces: f(wec, x_wec, x_opt, wave) -> array ndof x ntimes
+        """
+        self._freq = frequency(f0, nfreq)
+        self._time = time(f0, nfreq)
+        self._time_mat = time_mat(f0, nfreq)
+        self._derivative_mat = derivative_mat(f0, nfreq)
         self._ndof = ndof
-        self._time = make_time_vec(f0, self.ncomponents) #TODO method referencing function
-        self._time_mat = make_time_mat(self.omega, self.ncomponents) #TODO method referencing function
-        #TODO: wave_direction
-
-        # derivative matrix
-        def block(n): return np.array([[0, 1], [-1, 0]]) * n * self.w0
-        blocks = [block(n+1) for n in range(self.nfreq)]
-        self._derivative_mat = block_diag(*blocks)
-
         self.forces = forces
-        
-        if constraints is None: constraints = []
-        self.constraints = constraints
-        
-        self._wave_direction = wave_direction
-
-        # f(wec, x_wec, x_opt, wave)
-
-
-
-
-    # f = 0
-    # for force in forces.items()
-    #     f += force(wec, x_wec, x_opt, wave)
-
+        self.constraints = constraints if (constraints is not None) else []
+        self._wave_directions = degrees_to_radians(wave_directions, sort=True)
 
     @staticmethod
     def from_bem(bem_data: xr.Dataset, mass: np.ndarray,
@@ -101,12 +88,12 @@ class WEC:
             bem_data['friction'] = friction
 
         bem_data = _check_damping(bem_data)
-        
+
         if f_add is None:
             f_add = dict()
 
         # forces in the dynamics equations
-        linear_force__functions, _ = _create_standard_forces(bem_data)
+        linear_force__functions, _ = _standard_forces(bem_data)
         forces = linear_force__functions | f_add
 
         ndof = len(bem_data["influenced_dof"])
@@ -142,7 +129,7 @@ class WEC:
         # RUN BEM
         _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
-        freq = _make_freq_array(f0, nfreq)
+        freq = frequency(f0, nfreq)
         write_info = ['hydrostatics', 'mesh', 'wavelength', 'wavenumber']
         bem_data = run_bem(fb, freq, wave_directions,
                         rho=rho, g=g, depth=depth, write_info=write_info)
@@ -151,12 +138,11 @@ class WEC:
                            nsubsteps=nsubsteps)
         return wec, bem_data
 
-
     @staticmethod
     def from_impedance(f0, nfreq, impedance, f_add, constraints):
         ndof = impedance.shape[0]
         # force_impedance =
-        transfer_mat = _make_mimo_transfer_mat(impedance)  # TODO
+        transfer_mat = _mimo_transfer_mat(impedance)  # TODO
 
         def force_impedance(wec, x_wec, x_opt, nsubsteps=nsubsteps):
             f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec))  # TODO
@@ -165,13 +151,18 @@ class WEC:
         forces =  force_impedance | f_add
         WEC(f0, nfreq, ndof, forces, constraints, nsubsteps=nsubsteps)
 
-
     def _add_to_bem(bem_data, mass, stiffness, friction):
         dims = ['radiating_dof', 'influenced_dof']
         bem_data['mass'] = (dims, mass)
         bem_data['hydrostatic_stiffness'] = (dims, stiffness)
         bem_data = bem_data.assign_coords({'friction': friction})
         return bem_data
+
+
+
+
+
+
 
 
 
@@ -195,18 +186,21 @@ class WEC:
 
     @property
     def omega(self):
-        """Frequency array in radians per second ω=2πf."""
+        """Angular frequency array in radians per second ω=2πf."""
         return self.freq * 2 * np.pi
 
     @property
     def w0(self):
-        """Initial frequency (and spacing) in rad/s. See ``freq``."""
-        return self.freq[0] * 2 * np.pi
-    
+        """Initial angular frequency (and spacing) in rad/s.
+        See ``freq``.
+        """
+        return self.freq[1] * 2 * np.pi
+
+    # properties: waves
     @property
-    def wave_direction(self):
-        """Wave directions in radians"""
-        return self._wave_direction
+    def wave_directions(self):
+        """Wave directions in degrees."""
+        return self._wave_directions * 180/np.pi
 
     # properties: time
     @property
@@ -268,8 +262,8 @@ class WEC:
         """Flatten a matrix that has one column per DOF.
         Opposite of ``vec_to_dofmat``. """
         return np.reshape(mat, -1, order='F')
-    
-    
+
+
     def _get_state_scale(self,
                          scale_x_wec: Optional[list] = None,
                          scale_x_opt: npt.ArrayLike | float = 1.0,
@@ -290,7 +284,7 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         return np.concatenate([scale_x_wec, scale_x_opt])
-    
+
     def _dynamic_residual(self, x: np.ndarray, waves) -> np.ndarray:
         """Solve WEC dynamics in residual form so that they may be
         enforced through a nonlinear constraint within an optimization
@@ -300,7 +294,7 @@ class WEC:
         ----------
         x : np.ndarray
             Decision variable for optimization problem
-        waves : 
+        waves :
             TODO
 
         Returns
@@ -310,17 +304,17 @@ class WEC:
 
         """
         x_wec, x_opt = self.decompose_decision_var(x)
-        
+
         #TODO: remove key (just for debugging)
         force_residual = 0
         for key, force_func in self.forces.items():
             force_residual = force_residual + force_func(self, x_wec, x_opt, waves)
-        
-        #TODO - get signs right (f_i - f_exc - f_add)    
+
+        #TODO - get signs right (f_i - f_exc - f_add)
 
         return force_residual
-    
-    
+
+
     def solve(self,
               waves: xr.Dataset,
               obj_fun: Callable[[WEC, np.ndarray, np.ndarray], float],
@@ -389,7 +383,7 @@ class WEC:
             Bounds on the optimization (control) components of the decsision
             variable; see scipy.optimize.minimize
         unconstrained_first: bool
-            If True, run ``solve`` without constraints to get scaling and 
+            If True, run ``solve`` without constraints to get scaling and
             initial guess. The default is False.
         callback: function
             Called after each iteration; see scipy.optimize.minimize. The
@@ -411,7 +405,7 @@ class WEC:
             Raw optimization results.
         """
         _log.info("Solving pseudo-spectral control problem.")
-        
+
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
@@ -446,10 +440,10 @@ class WEC:
             _log.info(f"Setting scale_x_wec: {scale_x_wec}")
             _log.info(f"Setting scale_x_opt: {scale_x_opt}")
             _log.info(f"Setting scale_obj: {scale_obj}")
-            
+
         # scale
         scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
-        
+
         # bounds
         bounds_in = [bounds_wec, bounds_opt]
         bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
@@ -553,7 +547,7 @@ class WEC:
 
 
 
-def _make_freq_array(f0: float, nfreq: int) -> np.ndarray:
+def frequency(f0: float, nfreq: int) -> np.ndarray:
     """Construct equally spaced frequency array.
     """
     return np.arange(0, nfreq+1)*f0
@@ -573,14 +567,18 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
 
 
-def degrees_to_radians(degrees: float | npt.ArrayLike
-                        ) -> float | np.ndarray:
+def degrees_to_radians(degrees: float | npt.ArrayLike, sort: bool = True,
+                       ) -> float | np.ndarray:
     """Convert degrees to radians in range -π to π and sort.
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    if (radians.size == 1):
+        radians = radians.item()
+    elif (sort):
+        radians = np.sort(radians)
     return radians
+
 
 def _check_damping(bem_data, tol=1e-6) -> xr.Dataset:
     damping = bem_data['radiation_damping'] + bem_data['friction']
@@ -589,11 +587,11 @@ def _check_damping(bem_data, tol=1e-6) -> xr.Dataset:
         _log.warning(f'Linear damping has negative' +
                     ' or close to zero terms; shifting up via linear friction.')
         bem_data['friction'] = bem_data['friction'] + tol-dmin
-    
+
     return bem_data
 
-# methods: time
-def make_time_vec(f0: float, ncomponents: int, nsubsteps: int = 1) -> np.ndarray:
+
+def time(f0: float, nfreq: int, nsubsteps: int = 1) -> np.ndarray:
     """Assemble the time vector with n subdivisions.
 
     Parameters
@@ -606,10 +604,11 @@ def make_time_vec(f0: float, ncomponents: int, nsubsteps: int = 1) -> np.ndarray
     -------
     time_vec: np.ndarray
     """
-    nsteps = nsubsteps * ncomponents
+    nsteps = nsubsteps * (2*nfreq + 1)
     return np.linspace(0, 1/f0, nsteps, endpoint=False)
 
-def make_time_mat(omega: np.ndarray, 
+
+def time_mat(f0: float, nfreq: int,
                   ncomponents: int, nsubsteps: int = 1) -> np.ndarray:
     """Assemble the time matrix that converts the state to
     time-series.
@@ -624,8 +623,8 @@ def make_time_mat(omega: np.ndarray,
     -------
     time_mat: np.ndarray
     """
-    f0 = omega[1]/(2*np.pi)
-    time = make_time_vec(f0, ncomponents, nsubsteps)
+    time = time(f0, ncomponents, nsubsteps)
+    omega = frequency(f0, nfreq) * 2*np.pi
     wt = np.outer(time, omega[1:])
     time_mat = np.empty((nsubsteps*ncomponents, ncomponents))
     time_mat[:, 0] = 1.0
@@ -633,12 +632,14 @@ def make_time_mat(omega: np.ndarray,
     time_mat[:, 2::2] = np.sin(wt)
     return time_mat
 
+
 def vec_to_dofmat(vec: np.ndarray, ndof: int) -> np.ndarray:
         """Convert a vector back to a matrix with one column per DOF.
         Opposite of ``dofmat_to_vec``. """
         return np.reshape(vec, (-1, ndof), order='F')
 
-def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
+
+def mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
     """Create a block matrix of the MIMO transfer function.
     """
     elem = [[None]*ndof for _ in range(ndof)]
@@ -654,6 +655,7 @@ def _make_mimo_transfer_mat(imp: np.ndarray, ndof:int) -> np.ndarray:
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
+
 def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
 
@@ -661,7 +663,8 @@ def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
 def td_to_fd(td: np.ndarray, n: Optional[int] = None) -> np.ndarray:
     return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
 
-def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
+
+def wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
                     ) -> tuple[xr.Dataset, xr.Dataset]:
     """Compute the frequency- and time-domain wave excitation force.
 
@@ -686,9 +689,9 @@ def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
     #TODO
     # if not np.allclose(waves['omega'].values, exc_coeff['omega'].values):
     #     raise ValueError("Wave and BEM frequencies do not match")
-        
+
     #TODO
-    # w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+    # w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values,
     #             exc_coeff['wave_direction'].values)
     # if not w_dir_subset:
     #     raise ValueError(
@@ -757,8 +760,9 @@ def _wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset
 
     return freq_dom, time_dom
 
-def _create_standard_forces(bem_data: xr.Dataset):
-    
+
+def standard_forces(bem_data: xr.Dataset):
+
     # add zero freq. components
     tmp = bem_data.isel(omega=0).copy(deep=True)
     tmp['omega'] = tmp['omega'] * 0
@@ -768,46 +772,46 @@ def _create_standard_forces(bem_data: xr.Dataset):
                                   "radiating_dof",
                                   "influenced_dof",
                                   "wave_direction")
-    
+
     w = bem_data['omega']
     A = bem_data['added_mass']
     B = bem_data['radiation_damping']
     K = bem_data['hydrostatic_stiffness']
     m = bem_data['mass']
     Bf = bem_data['friction']
-    
+
     ndof = len(bem_data.influenced_dof)
-    
+
     #TODO: operate on position
-    
+
     impedance_components = dict()
     impedance_components['inertia'] = 1j*w*m
     impedance_components['radiation'] = -(B + 1j*w*A)
     impedance_components['hydrostatics'] = -1j/w*K
     impedance_components['friction'] = -Bf + B*0  #TODO: this is my way of getting the shape right - kind of sloppy?
-    
+
     def f_from_imp(transfer_mat):
             def f(wec, x_wec, x_opt, waves):
                 f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec), ndof)
                 return np.dot(wec.time_mat, f_fd)
             return f
-    
+
     linear_force_mimo_matrices = dict()
     linear_force_functions = dict()
     for k, v in impedance_components.items():
-        linear_force_mimo_matrices[k] = _make_mimo_transfer_mat(v,ndof)
+        linear_force_mimo_matrices[k] = _mimo_transfer_mat(v,ndof)
         linear_force_functions[k] = f_from_imp(linear_force_mimo_matrices[k])
-        
+
     def f_exc(TF, waves):
         _, td = _wave_excitation(exc_coeff=TF, waves=waves)
         return td['excitation_force']
-    
+
     def f_exc_fk(wec,x_wec,x_opt,waves):
         return f_exc(TF=bem_data['Froude_Krylov_force'], waves=waves)
-    
+
     def f_exc_diff(wec,x_wec,x_opt,waves):
         return f_exc(TF=bem_data['diffraction'], waves=waves)
-    
+
     linear_force_functions['Froude_Krylov'] = f_exc_fk
     linear_force_functions['diffraction'] = f_exc_diff
 
@@ -884,3 +888,58 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     write_info = {key: True for key in write_info}
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     return solver.fill_dataset(test_matrix, [wec_im], **write_info)
+
+
+def subsetclose(subset_a: float | npt.ArrayLike,
+                set_b: float | npt.ArrayLike,
+                rtol: float = 1.e-5, atol: float = 1.e-8,
+                equal_nan: bool = False) -> tuple[bool, list]:
+    """
+    Compare if two arrays are subset equal within a tolerance.
+    Parameters
+    ----------
+    subset_a: float | npt.ArrayLike
+        First array which is tested for being subset.
+    set_b: float | npt.ArrayLike
+        Second array which is tested for containing subset_a.
+    rtol: float
+        The relative tolerance parameter.
+    atol: float
+        The absolute tolerance parameter.
+    equal_nan: bool
+        Whether to compare NaNs as equal.
+    Returns
+    -------
+    result: bool
+        Boolean if the entire first array is a subset of second array
+    ind: list
+        List with integer indices where the first array's elements
+        are located inside the second array.
+    """
+    # TODO is there a way to check this using the given tolerances?
+    assert len(np.unique(subset_a.round(decimals=6))) == len(
+        subset_a), "Elements in subset_a not unique"
+    assert len(np.unique(set_b.round(decimals=6))) == len(
+        set_b), "Elements in set_b not unique"
+
+    ind = []
+    tmp_result = [False for i in range(len(subset_a))]
+    for subset_element in subset_a:
+        for set_element in set_b:
+            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
+                tmp_set_ind = np.where(
+                    np.isclose(set_element, set_b, rtol, atol, equal_nan))
+                tmp_subset_ind = np.where(
+                    np.isclose(subset_element, subset_a, rtol, atol,
+                               equal_nan))
+                ind.append(int(tmp_set_ind[0]))
+                tmp_result[int(tmp_subset_ind[0])] = True
+    result = all(tmp_result)
+    return(result, ind)
+
+
+def derivative_mat(f0: float, nfreq: int) -> np.ndarray:
+    def block(n): return np.array([[0, 1], [-1, 0]]) * n * f0 * 2*np.pi
+    blocks = [block(n+1) for n in range(nfreq)]
+    blocks = [0.0] + blocks
+    return block_diag(*blocks)
