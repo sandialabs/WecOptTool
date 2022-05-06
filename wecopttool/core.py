@@ -581,10 +581,10 @@ class WEC:
             option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
             show=show)
         return fig, axs
-    
+
     def power_limit(self, waves: xr.DataSet) -> np.ndarray:
         """Return theoretical power limit for hydrodynamic problem.
-        
+
         See `wot.power_limit()`
         """
 
@@ -594,7 +594,7 @@ class WEC:
 
     def optimal_velocity(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal velocity spectrum for hydrodynamic problem.
-        
+
         See `wot.optimal_velocity()`
         """
         fd_wec, _ = wave_excitation(self.hydro, waves)
@@ -603,7 +603,7 @@ class WEC:
 
     def optimal_position(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal position spectrum for hydrodynamic problem.
-        
+
         See `wot.optimal_position()`
         """
         fd_wec, _ = wave_excitation(self.hydro, waves)
@@ -641,7 +641,7 @@ class WEC:
         return np.concatenate([scale_x_wec, scale_x_opt])
 
     def initial_x_wec_guess_analytic(self, waves: xr.Dataset) -> np.ndaray:
-        """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
+        """Initial guess for `x_wec` based on optimal hydrodynamic solution to
         be passed to `wec.solve`.
 
         Parameters
@@ -653,7 +653,7 @@ class WEC:
         -------
         x_wec_0
             Initial guess for `x_wec`
-            
+
         Examples
         --------
         >>> x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
@@ -739,7 +739,7 @@ class WEC:
             Bounds on the optimization (control) components of the decsision
             variable; see scipy.optimize.minimize
         unconstrained_first: bool
-            If True, run ``solve`` without constraints to get scaling and 
+            If True, run ``solve`` without constraints to get scaling and
             initial guess. The default is False.
         callback: function
             Called after each iteration; see scipy.optimize.minimize. The
@@ -761,7 +761,7 @@ class WEC:
             Raw optimization results.
         """
         log.info("Solving pseudo-spectral control problem.")
-        
+
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
@@ -796,10 +796,10 @@ class WEC:
             log.info(f"Setting scale_x_wec: {scale_x_wec}")
             log.info(f"Setting scale_x_opt: {scale_x_opt}")
             log.info(f"Setting scale_obj: {scale_obj}")
-            
+
         # scale
         scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
-        
+
         # bounds
         bounds_in = [bounds_wec, bounds_opt]
         bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
@@ -936,7 +936,7 @@ class WEC:
         for f_add_fun in self.f_add.values():
             f_add = f_add + f_add_fun(self, x_wec, x_opt)
 
-        return f_i - f_exc - f_add
+        return f_i - f_exc + f_add
 
     def _post_process_wec_dynamics(self,
                                    x_wec: np.ndarray,
@@ -1027,17 +1027,17 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
 
 
 def complex_to_real_amplitudes(fd: np.ndarray) -> np.ndarray:
-    """Convert from one complex amplitude to two real amplitudes per 
+    """Convert from one complex amplitude to two real amplitudes per
     frequency."""
-    
+
     m = fd.shape[0]
     n = fd.shape[1]
     out = np.zeros((1+2*(m-1),n))
-    
+
     out[0,:] = fd[0,:]
     out[1::2,:] = fd[1:].real
     out[2::2,:] = -1*fd[1:].imag
-    
+
     return out
 
 
@@ -1108,10 +1108,10 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     """
     if not np.allclose(waves['omega'].values, bem_data['omega'].values):
         raise ValueError("Wave and BEM frequencies do not match")
-        
-    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values,
                 bem_data['wave_direction'].values)
-    
+
     if not w_dir_subset:
         raise ValueError(
             "Some wave directions are not in BEM solution " +
@@ -1252,7 +1252,7 @@ def optimal_velocity(excitation: npt.ArrayLike, impedance: npt.ArrayLike
         Optimal velocity for power absorption.
     """
     opt_vel = np.concatenate([np.linalg.lstsq(2*impedance[w_ind, :, :].real,
-                                              excitation[w_ind+1, :])[0] 
+                                              excitation[w_ind+1, :])[0]
                               for w_ind in range(impedance.shape[0])])
     return np.atleast_2d(opt_vel).transpose()
 
@@ -1294,11 +1294,11 @@ def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
     power_limit
         Upper limit for power absorption.
     """
-    
+
     pls = np.concatenate([np.linalg.lstsq(8*impedance[w_ind, :, :].real,
-                                          np.abs(excitation[w_ind+1, :])**2)[0] 
+                                          np.abs(excitation[w_ind+1, :])**2)[0]
                          for w_ind in range(impedance.shape[0])])
-    
+
     power_limit = -1 * np.sum(pls)
 
     return power_limit
@@ -1508,9 +1508,10 @@ def _degrees_to_radians(degrees: float | npt.ArrayLike
     radians = radians.item() if (radians.size == 1) else np.sort(radians)
     return radians
 
-def subsetclose(subset_a: float | npt.ArrayLike, 
+
+def subsetclose(subset_a: float | npt.ArrayLike,
                 set_b: float | npt.ArrayLike,
-                rtol: float = 1.e-5, atol:float = 1.e-8, 
+                rtol: float = 1.e-5, atol:float = 1.e-8,
                 equal_nan: bool = False) -> tuple[bool, list]:
     """
     Compare if two arrays are subset equal within a tolerance.
@@ -1532,9 +1533,9 @@ def subsetclose(subset_a: float | npt.ArrayLike,
     Returns
     -------
     result: bool
-        Boolean if the entire first array is a subset of second array 
+        Boolean if the entire first array is a subset of second array
     ind: list
-        List with integer indices where the first array's elements 
+        List with integer indices where the first array's elements
         are located inside the second array.
     """
     assert len(set(subset_a)) == len(subset_a
@@ -1549,7 +1550,7 @@ def subsetclose(subset_a: float | npt.ArrayLike,
                 tmp_set_ind = np.where(
                     np.isclose(set_element, set_b , rtol, atol, equal_nan))
                 tmp_subset_ind = np.where(
-                    np.isclose(subset_element, subset_a , rtol, atol, 
+                    np.isclose(subset_element, subset_a , rtol, atol,
                                equal_nan))
                 ind.append( int(tmp_set_ind[0]) )
                 tmp_result[ int(tmp_subset_ind[0]) ] = True

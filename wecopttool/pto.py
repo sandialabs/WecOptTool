@@ -118,7 +118,7 @@ class _PTO:
         """
         force_td = self.force(wec, x_wec, x_opt, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, nsubsteps)
-        return vel_td * force_td
+        return -1*vel_td * force_td
 
     def force_on_wec(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: npt.ArrayLike,
                      nsubsteps: int = 1) -> np.ndarray:
@@ -322,7 +322,7 @@ class PseudoSpectralPTO(_PTO):
             pos = self._wec_pos_to_pto_pos(wec_pos)
             vel = np.dot(wec.derivative_mat, pos)
             vel_vec = self._dofmat_to_vec(vel[1:, :])
-            energy_produced = 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
+            energy_produced = -1 * 1/(2*wec.f0) * np.dot(vel_vec, x_opt)
         else:
             energy_produced = super().energy(wec, x_wec, x_opt, nsubsteps)
         return energy_produced
