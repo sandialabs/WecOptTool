@@ -1508,7 +1508,7 @@ def post_process_continuous_time(results: xr.DataArray
         t = np.array(t)
         f = np.zeros(t.shape)
         for freq, mag in zip(results.omega.values, results.values):
-            f += np.real(mag)*np.cos(freq*t) - np.imag(mag)*np.sin(freq*t)
+            f += np.real(mag)*np.cos(freq*t) + np.imag(mag)*np.sin(freq*t)
         return f
 
     return func

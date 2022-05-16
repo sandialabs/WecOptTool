@@ -437,7 +437,7 @@ class _LinearPTO(_PTO):
         """Create a block matrix of the MIMO transfer function.
         """
         elem = [[None]*self.ndof2 for _ in range(self.ndof2)]
-        def block(re, im): return np.array([[re, im], [-im, re]])
+        def block(re, im): return np.array([[re, -im], [im, re]])
         for idof in range(self.ndof2):
             for jdof in range(self.ndof2):
                 Zp = self._impedance_abcd[idof, jdof, :]
