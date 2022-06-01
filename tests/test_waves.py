@@ -353,4 +353,4 @@ def test_spectrum_energy(irregular_wave, long_crested_wave):
     rtol= 0.01
     w1 = wdir_step.values * irregular_wave.S.sum(dim = 'wave_direction').values
     w2 = (long_crested_wave.S.values).T
-    assert np.allclose(w1, w2, rtol)
+    assert np.allclose(w1, w2, rtol) 
