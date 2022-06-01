@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -107,7 +108,7 @@
 }
 </style>
 <section id="module-wecopttool.waves">
-<span id="wecopttool-waves"></span><h1>wecopttool.waves<a class="headerlink" href="#module-wecopttool.waves" title="Permalink to this headline"></a></h1>
+<span id="wecopttool-waves"></span><h1>wecopttool.waves<a class="headerlink" href="#module-wecopttool.waves" title="Permalink to this heading"></a></h1>
 <p>Provide the wave definition structure and provide
 functions for creating different common types of waves.</p>
 <p>This module provides the (empty) dataset structure for waves in
@@ -130,10 +131,11 @@ Frequency array given as
 [<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
 <li><p><strong>directions</strong> (<em>np.ndarray</em>) – Wave directions in degrees. 1D array.</p></li>
-<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave spectrum function. Maps frequencies to amplitude spectrum.
+<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave omnidirectional spectrum function. Maps frequencies (Hz)
+to elevation variance spectrum (m^2/Hz).
 float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
-<li><p><strong>spread_func</strong> (<em>function</em>) – Wave spreading function. Maps wave frequencies and directions to
-spread value.
+<li><p><strong>spread_func</strong> (<em>function</em>) – Wave spreading function. Maps wave frequencies (Hz) and
+directions (degrees) to spreading function.
 tuple[float | npt.ArrayLike, float | npt.ArrayLike
 ] -&gt; np.ndarray.</p></li>
 <li><p><strong>spectrum_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the spectrum function.</p></li>
@@ -223,7 +225,8 @@ spectrum.</p>
 Frequency array given as
 [<code class="docutils literal notranslate"><span class="pre">f0</span></code>, 2 x <code class="docutils literal notranslate"><span class="pre">f0</span></code>, …, <code class="docutils literal notranslate"><span class="pre">nfreq</span></code> x <code class="docutils literal notranslate"><span class="pre">f0</span></code>].</p></li>
 <li><p><strong>nfreq</strong> (<em>int</em>) – Number of frequencies in frequency array. See <code class="docutils literal notranslate"><span class="pre">f0</span></code>.</p></li>
-<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave spectrum function. Maps frequencies to amplitude spectrum.
+<li><p><strong>spectrum_func</strong> (<em>function</em>) – Wave omnidirectional spectrum function. Maps frequencies (Hz)
+to elevation variance spectrum (m^2/Hz).
 float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
 <li><p><strong>direction</strong> (<em>float</em><em>, </em><em>optional</em>) – Direction (in degrees) of the regular wave.</p></li>
 <li><p><strong>spectrum_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Name of the spectrum function.</p></li>
@@ -247,9 +250,10 @@ float | npt.ArrayLike -&gt; float | np.ndarray</p></li>
 </pre></div>
 </div>
 <p>Generate the wave using a Pierson-Moskowitz idealized spectrum.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wave</span> <span class="o">=</span> <span class="n">lcw</span><span class="p">(</span><span class="n">f0</span><span class="o">=</span><span class="n">fp</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">nfreq</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
-<span class="gp">... </span>           <span class="n">spectrum_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">pm</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="o">=</span><span class="n">Hs</span><span class="p">))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wave</span> <span class="o">=</span> <span class="n">lcw</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">f0</span><span class="o">=</span><span class="n">fp</span><span class="o">/</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">nfreq</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">spectrum_func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">pm</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="o">=</span><span class="n">Hs</span><span class="p">))</span>
 </pre></div>
 </div>
 </dd></dl>

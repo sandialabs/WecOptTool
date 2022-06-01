@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -366,7 +367,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Tutorial-1---WaveBot">
-<h1>Tutorial 1 - WaveBot<a class="headerlink" href="#Tutorial-1---WaveBot" title="Permalink to this headline"></a></h1>
+<h1>Tutorial 1 - WaveBot<a class="headerlink" href="#Tutorial-1---WaveBot" title="Permalink to this heading"></a></h1>
 <p>The goal of this tutorial is to show a simple example of the inner optimization loop in WecOptTool. It uses a one-body WEC, the WaveBot, in one degree of freedom in regular waves. The goal is to <strong>find the optimal PTO force time-series</strong> that produce the most energy subject to a maximum force the PTO can excert.</p>
 <img alt="WaveBot Photo" src="https://live.staticflickr.com/65535/51855905347_de87ccaaba_z.jpg" />
 <p>We will start by loading the necessary modules and creating a save directory:</p>
@@ -406,10 +407,10 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <section id="Problem-setup">
-<h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this headline"></a></h2>
+<h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this heading"></a></h2>
 <p>The problem is defined in three parts: the WEC object, the wave spectrum, and the objective function that we are optimizing for.</p>
 <section id="WEC-object">
-<h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this headline"></a></h3>
+<h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this heading"></a></h3>
 <p>In this section we will create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object, which contains all the information about the WEC and its dynamics. This includes the mesh, degrees of freedom, mass and hydrostatic properties, linear hydrodynamic coefficients (from a BEM solution), additional dynamic forces (e.g. PTO force, mooring, non-linear hydrodynamics), and constraints (e.g. maximum PTO extension). In this case, the only additional force will be the PTO force and the only constraint will be a maximum PTO force of 2000 N.
 Note that the BEM solution is not required when creating the WEC object, it can be calculated or read after the WEC is created. WecOptTool uses Capytaine as a BEM solver, and one of the first things we will do is create a Capytaine FloatingBody.</p>
 <p>First, we will create a surface mesh for the hull using an existing function (note, you can use existing STL files, etc.).</p>
@@ -726,7 +727,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 </div>
 </section>
 <section id="Waves">
-<h3>Waves<a class="headerlink" href="#Waves" title="Permalink to this headline"></a></h3>
+<h3>Waves<a class="headerlink" href="#Waves" title="Permalink to this heading"></a></h3>
 <p>The wave environment must be specified as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> containing two 2-dimensional <code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>: (1) the amplitude spectrum magnitude <code class="docutils literal notranslate"><span class="pre">S</span></code> (m^2*s) and (2) the phase <code class="docutils literal notranslate"><span class="pre">phase</span></code> (rad). The two coordinates are the wave frequency <code class="docutils literal notranslate"><span class="pre">omega</span></code> (rad/s) and the direction <code class="docutils literal notranslate"><span class="pre">wave_direction</span></code> (rad). The <code class="docutils literal notranslate"><span class="pre">wecopttool.waves</span></code> submodule contains functions for creating this <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> for different types of wave environments.</p>
 <p>In this case we will use a regular wave with a frequency of 0.3 Hz and an amplitude of 0.0625 m. We will use the <code class="docutils literal notranslate"><span class="pre">wecopttool.waves.regular_wave</span></code> function.</p>
 <p>Now we may create a regular wave using the <code class="docutils literal notranslate"><span class="pre">wecopttool.waves</span></code> submodule. In this case, we will use a wave with a frequency of 0.3 Hz and an amplitude of 0.0625 m.</p>
@@ -743,7 +744,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 </div>
 </section>
 <section id="Objective-function">
-<h3>Objective function<a class="headerlink" href="#Objective-function" title="Permalink to this headline"></a></h3>
+<h3>Objective function<a class="headerlink" href="#Objective-function" title="Permalink to this heading"></a></h3>
 <p>The objective function is the quantity (scalar) we want to optimize. It is function of both the WEC dynamics state and the user-defined optimization state. We will need to give the solver the objective function to optimize and the size of the optimization state. In this case these are the average PTO power and the number of Fourier coefficients in the pseudo-spectral representation of the PTO force, respectively. We can get both of these from the PTO object we created.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
@@ -757,7 +758,7 @@ INFO:wecopttool.core:Writting BEM data to results_tutorial_1/bem.nc.
 </section>
 </section>
 <section id="Solve">
-<h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this headline"></a></h2>
+<h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this heading"></a></h2>
 <p>Now we can solve for the optimal PTO force, subject to the dynamics and our additional constraint (no more than 2000 N force). WecOptTool will solve the optimization problem (PTO force that will produce the highest average power) while simultaneously ensuring the dynamics equation is satisfied.</p>
 <p>To help the optimization we will scale the problem before solving it (see Documentation). WecOptTool allows you to scale the WEC dynamics state (see Documentation), your optimization state (in this case the Fourier coefficients for the PTO force), and the objective function separately. See the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code> function for more information.</p>
 <div class="nbinput nblast docutils container">
@@ -841,7 +842,7 @@ Wall time: 3.65 s
 </div>
 </section>
 <section id="Results">
-<h2>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h2>
+<h2>Results<a class="headerlink" href="#Results" title="Permalink to this heading"></a></h2>
 <p>In this section we will save, view, and plot the results.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
@@ -875,7 +876,7 @@ Average power: -103.18571817025861 W
 </pre></div></div>
 </div>
 <section id="Plotting-with-xarray">
-<h3>Plotting with xarray<a class="headerlink" href="#Plotting-with-xarray" title="Permalink to this headline"></a></h3>
+<h3>Plotting with xarray<a class="headerlink" href="#Plotting-with-xarray" title="Permalink to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">xarray</span></code> wrapper on <code class="docutils literal notranslate"><span class="pre">matplotlib.pyplot.plot()</span></code> makes it easy to plot the results quickly. It sets labels and titles automatically based on the metadata stored in the array.</p>
 <p>We will first look at some time-domain solutions. We will only plot a subset of the available quantities; inspect the <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> objects for all stored quantities.</p>
 <p>Note that the PTO force never exceeds 2000 N, and that due to the non-linear constraint the WEC heave motion is not sinusoidal.</p>
@@ -967,7 +968,7 @@ Average power: -103.18571817025861 W
 </div>
 </section>
 <section id="Plotting-Continuous-Time">
-<h3>Plotting Continuous Time<a class="headerlink" href="#Plotting-Continuous-Time" title="Permalink to this headline"></a></h3>
+<h3>Plotting Continuous Time<a class="headerlink" href="#Plotting-Continuous-Time" title="Permalink to this heading"></a></h3>
 <p>The pseudo-spectral method is a discrete-frequency but continuous time approach. The time-domain xarrays only contain the times corresponding to a inverse Fourier tranform of the complex amplitudes. This however might not be fine enough time discretization for plotting. We will now create more smooth plots.</p>
 <p>First let’s plot the WEC position.</p>
 <div class="nbinput docutils container">
@@ -1049,7 +1050,7 @@ Text(0, 0.5, &#39;power [W]&#39;)
 </section>
 </section>
 <section id="Comparison-to-unconstrained-case">
-<h2>Comparison to unconstrained case<a class="headerlink" href="#Comparison-to-unconstrained-case" title="Permalink to this headline"></a></h2>
+<h2>Comparison to unconstrained case<a class="headerlink" href="#Comparison-to-unconstrained-case" title="Permalink to this heading"></a></h2>
 <p>The unconstrained (no maximum PTO force) optimal control can be calculated analytically as the conjugate gradient of the intrinsic impedance. We will compare the two results to gain some insight into the effect of the constraint on the optimal PTO force.</p>
 <p>We will look at comparisons in both the time- and frequency-domain. Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of 2000 N. Also note that the unconstrained optimal PTO force uses only one component at the excitation frequency, while the optimal constrained solution also contains components at odd
 multiples of the excitation frequency.</p>

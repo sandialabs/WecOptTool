@@ -15,6 +15,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -356,7 +357,7 @@ div.rendered_html tbody tr:hover {
 }
 </style>
 <section id="Tutorial-2---WaveBot-Optimization">
-<h1>Tutorial 2 - WaveBot Optimization<a class="headerlink" href="#Tutorial-2---WaveBot-Optimization" title="Permalink to this headline"></a></h1>
+<h1>Tutorial 2 - WaveBot Optimization<a class="headerlink" href="#Tutorial-2---WaveBot-Optimization" title="Permalink to this heading"></a></h1>
 <p>The goal of this tutorial is to show a simple example of using both outer and inner optimization loops in WecOptTool. Like the first tutorial, it uses the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius</strong> (<code class="docutils literal notranslate"><span class="pre">r2</span></code>) that maximizes the average absorbed power, while maintaining a constant volume. A constant volume is achieved by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius (<code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p>
 <p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geometry (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in <em>Tutorial 1</em> and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to
 setup. Note however that automatic differentiation is not an option due to the presence of the inner optimization loop. In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>.</p>
@@ -387,7 +388,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 </div>
 </div>
 <section id="Problem-setup">
-<h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this headline"></a></h2>
+<h2>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this heading"></a></h2>
 <p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -528,7 +529,7 @@ setup. Note however that automatic differentiation is not an option due to the p
 </div>
 </section>
 <section id="Solve">
-<h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this headline"></a></h2>
+<h2>Solve<a class="headerlink" href="#Solve" title="Permalink to this heading"></a></h2>
 <p>Finally, we may call this objective function with an optimization algorithm. Here, a simple <em>brute force</em> optimization approach is used for illustrative purposes, but any variety of options could be applied. The optimization algorithm will call our objective function, which in turn will create a new WaveBot hull, run the necessary BEM calculations for the hull, and find the PTO force that provides the most absorbed power for that hull. This process will be conducted for the range of <code class="docutils literal notranslate"><span class="pre">r2</span></code>
 values that we specify.</p>
 <div class="nbinput docutils container">
@@ -616,7 +617,7 @@ time (hh:mm:ss): 0:00:42.934866
 </div>
 </section>
 <section id="Results">
-<h2>Results<a class="headerlink" href="#Results" title="Permalink to this headline"></a></h2>
+<h2>Results<a class="headerlink" href="#Results" title="Permalink to this heading"></a></h2>
 <p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code>. It is also clear that when the WEC is cylindrical (where <code class="docutils literal notranslate"><span class="pre">r2=0.88</span></code>), power absorption is reduced.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:

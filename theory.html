@@ -15,6 +15,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -112,7 +113,7 @@
 }
 </style>
 <section id="theory-practice">
-<h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Permalink to this headline"></a></h1>
+<h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
@@ -120,7 +121,7 @@ For a more detailed explanation, please see <span id="id1">[<a class="reference 
 A journal paper will be available soon.</p>
 </div>
 <section id="basic-concept">
-<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Permalink to this headline"></a></h2>
+<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Permalink to this heading"></a></h2>
 <p>WecOptTool uses a pseudo-spectral method <span id="id2">[<a class="reference internal" href="references.html#id3" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks synchronously:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -163,7 +164,7 @@ Some examples of problems which can be addressed within this framework include:<
 </div></blockquote>
 </section>
 <section id="how-s-this-different-from-what-i-m-used-to">
-<h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Permalink to this headline"></a></h2>
+<h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Permalink to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
 <a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" /></a>
@@ -176,9 +177,9 @@ At first the solution will not be correct, but as the optimization algorithm ite
 </div>
 </section>
 <section id="practical-concerns">
-<h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Permalink to this headline"></a></h2>
+<h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Permalink to this heading"></a></h2>
 <section id="automatic-differentiation">
-<h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Permalink to this headline"></a></h3>
+<h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Permalink to this heading"></a></h3>
 <p>In practice, the size of the decision vector <span class="math notranslate nohighlight">\(x\)</span> from <a class="reference internal" href="#equation-optim-prob">(1)</a> will often be quite large.
 For a single degree of freedom device, <span class="math notranslate nohighlight">\(x\)</span> can easily be <span class="math notranslate nohighlight">\(\mathcal{O}(1e2)\)</span>.
 To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the <a class="reference external" href="https://en.wikipedia.org/wiki/Automatic_differentiation">automatic differentiation</a> package <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a>.
@@ -186,7 +187,7 @@ In practice, most WecOptTool users should only need to know that when writing cu
 Note that <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a> does not support all of <a class="reference external" href="https://numpy.org">NumPy</a> (see the <a class="reference external" href="https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy">Autograd documentation</a>) and using unsupported parts can result in silent failure of the automatic differentiation.</p>
 </section>
 <section id="scaling">
-<h3>Scaling<a class="headerlink" href="#scaling" title="Permalink to this headline"></a></h3>
+<h3>Scaling<a class="headerlink" href="#scaling" title="Permalink to this heading"></a></h3>
 <p>For many WEC problems, <a class="reference internal" href="#equation-optim-prob">(1)</a> will be poorly scaled.
 Recall that <span class="math notranslate nohighlight">\(x = [x_{w}, x_{u}]\)</span>, where <span class="math notranslate nohighlight">\(x_{w}\)</span> describes the state of the WEC (e.g., velocities) and <span class="math notranslate nohighlight">\(x_{u}\)</span> is a vector to be optimized to maximize power absorption.
 Consider, for example, a general case without a controller structure, in which <span class="math notranslate nohighlight">\(x_{u}\)</span> would relate to PTO forces.
@@ -198,7 +199,7 @@ Additionally, you may set <code class="code docutils literal notranslate"><span 
 Depending on your problem, it may also be helpful to use the <code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.initial_x_wec_guess()</span></code> method and/or the <code class="code docutils literal notranslate"><span class="pre">unconstrained_first</span></code> for <a class="reference internal" href="source_code.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.solve()</span></code></a>.</p>
 </section>
 <section id="constraints">
-<h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline"></a></h3>
+<h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading"></a></h3>
 <p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
 This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
@@ -206,14 +207,14 @@ It may be required to enforce constraints at more points than the dynamics (as d
 In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="source_code_pto.html#wecopttool.pto.PseudoSpectralPTO.force" title="wecopttool.pto.PseudoSpectralPTO.force"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PseudoSpectralPTO.force()</span></code></a>).</p>
 </section>
 <section id="buoyancy-gravity">
-<h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Permalink to this headline"></a></h3>
+<h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Permalink to this heading"></a></h3>
 <p>As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
 In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="source_code.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
 </section>
 <section id="pto-kinematics">
-<h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Permalink to this headline"></a></h3>
+<h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Permalink to this heading"></a></h3>
 <p>The <a class="reference internal" href="source_code_pto.html#module-wecopttool.pto" title="wecopttool.pto"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.pto</span></code></a> module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
 Creating one of these pre-defined PTOs requires specifying the <em>kinematics matrix</em>.
 Here, the kinematics matrix, <span class="math notranslate nohighlight">\(K\)</span>, is defined as the linear transformation from the WEC position (e.g., heave) in the global frame, <span class="math notranslate nohighlight">\(x\)</span>, to the PTO position in the PTO frame (e.g., tether length/generator rotation), <span class="math notranslate nohighlight">\(p\)</span>:</p>

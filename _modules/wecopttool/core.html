@@ -14,6 +14,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -1587,13 +1588,18 @@
     <span class="k">return</span> <span class="n">func</span></div>
 
 
-<span class="k">def</span> <span class="nf">_degrees_to_radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span>
+<span class="k">def</span> <span class="nf">_degrees_to_radians</span><span class="p">(</span><span class="n">degrees</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">,</span>
+                        <span class="n">sort</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Convert degrees to radians in range -π to π and sort.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">degrees</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
     <span class="n">radians</span><span class="p">[</span><span class="n">radians</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">radians</span> <span class="o">=</span> <span class="n">radians</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
+    <span class="c1"># radians = radians.item() if (radians.size == 1) else np.sort(radians)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">radians</span> <span class="o">=</span> <span class="n">radians</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">sort</span><span class="p">):</span>
+        <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">radians</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">radians</span>
 
 
@@ -1626,9 +1632,8 @@
 <span class="sd">        List with integer indices where the first array&#39;s elements</span>
 <span class="sd">        are located inside the second array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">subset_a</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">subset_a</span>
-                                     <span class="p">),</span> <span class="s2">&quot;Elements in subset_a not unique&quot;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">set_b</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">set_b</span><span class="p">),</span> <span class="s2">&quot;Elements in set_b not unique&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">subset_a</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">subset_a</span><span class="p">),</span> <span class="s2">&quot;Elements in subset_a not unique&quot;</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">set_b</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">decimals</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">set_b</span><span class="p">),</span> <span class="s2">&quot;Elements in set_b not unique&quot;</span>
 
     <span class="n">ind</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">tmp_result</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">subset_a</span><span class="p">))]</span>
