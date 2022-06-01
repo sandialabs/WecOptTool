@@ -15,7 +15,6 @@ from wecopttool.geom import WaveBot
 from wecopttool.core import power_limit
 
 
-
 @pytest.fixture()
 def _wec():
     # water properties
@@ -49,6 +48,7 @@ def _wec():
     wec.run_bem(wave_dirs)
 
     return wec
+
 
 @pytest.fixture()
 def wec(_wec):
@@ -605,6 +605,9 @@ def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
     # WEC
     surge_heave_wavebot.f_add = {'pto': pto.force_on_wec}
 
+    x_wec_0 = np.ones(surge_heave_wavebot.nstate_wec)
+    x_opt_0 = np.ones(pto.nstate)
+
     _, fdom, _, _, obj, _ = surge_heave_wavebot.solve(regular_wave,
                                                       obj_fun=pto.average_power,
                                                       nstate_opt=pto.nstate,
@@ -614,6 +617,8 @@ def test_multiple_dof_ps_theoretical_limit(regular_wave, surge_heave_wavebot):
                                                       scale_x_wec=1e2,
                                                       scale_x_opt=1e-2,
                                                       scale_obj=1,
+                                                      x_wec_0 = x_wec_0,
+                                                      x_opt_0 = x_opt_0,
                                                       )
 
     plim = power_limit(fdom['excitation_force'], surge_heave_wavebot.hydro.Zi)
