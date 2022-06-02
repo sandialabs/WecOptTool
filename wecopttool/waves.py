@@ -21,7 +21,7 @@ import numpy.typing as npt
 import xarray as xr
 from scipy.special import gamma
 
-from wecopttool.core import freq_array, _degrees_to_radians
+from wecopttool.core import frequency, degrees_to_radians
 
 
 def wave_dataset(f0: float, nfreq: int,
@@ -45,16 +45,16 @@ def wave_dataset(f0: float, nfreq: int,
     xr.Dataset
         Empty wave dataset.
     """
-    directions = np.atleast_1d(_degrees_to_radians(directions))
+    directions = np.atleast_1d(degrees_to_radians(directions))
     ndirections = len(directions)
-    freqs = freq_array(f0, nfreq)
+    freqs = frequency(f0, nfreq)
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
     freq_units = {'units': 'rad/s'}
     rad_units = {'units': 'rad'}
     coords = [(dims[0], omega, freq_units), (dims[1], directions, rad_units)]
-    tmp = np.zeros([nfreq, ndirections])
+    tmp = np.zeros([nfreq+1, ndirections])
 
     attrs = {'units': 'm^2*s', 'long_name': 'wave amplitude'}
     spectrum = xr.DataArray(tmp, dims=dims, coords=coords, attrs=attrs)
@@ -118,7 +118,7 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
         rphase = _random_phase()
         phase = np.degrees(rphase)
     else:
-        rphase = _degrees_to_radians(phase)
+        rphase = degrees_to_radians(phase)
     waves['phase'].loc[{'omega': iomega}] = rphase
 
     # attributes
@@ -180,7 +180,7 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     waves = wave_dataset(f0, nfreq, direction)
 
     # amplitude & phase
-    freqs = freq_array(f0, nfreq)
+    freqs = frequency(f0, nfreq)
     waves['S'].values = spectrum_func(freqs).reshape(nfreq, 1)
     waves['phase'].values = _random_phase([nfreq, 1], seed)
 
@@ -269,7 +269,7 @@ def irregular_wave(f0: float, nfreq: int,
 
     # amplitude & phase
     ndirections = len(directions)
-    freqs = freq_array(f0, nfreq)
+    freqs = frequency(f0, nfreq)
     spectrum = spectrum_func(freqs).reshape(nfreq, 1)
     spread = spread_func(freqs, directions)
     assert spread.shape == (nfreq, ndirections)
@@ -392,7 +392,7 @@ def spread_cos2s(freq: float | npt.ArrayLike,
         frequency and wave direction.
     """
     freq = np.atleast_1d(freq)
-    rdir = _degrees_to_radians(directions-dm)
+    rdir = degrees_to_radians(directions-dm)
     pow = np.ones(len(freq)) * 5.0
     pow[freq > fp] = -2.5
     s = s_max * (freq/fp)**pow
