@@ -12,7 +12,7 @@ wave frequency ``omega`` (rad/s)  and direction ``wave_direction`` (rad).
 """
 
 
-from __future__ import annotations  # TODO: delete after python 3.10
+from __future__ import annotations  # TODO: for Python 3.8 & 3.9 support
 import warnings
 from typing import Callable
 
