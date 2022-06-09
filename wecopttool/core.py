@@ -54,6 +54,7 @@ class WEC:
     def __init__(self, f1, nfreq, ndof, forces, constraints=None) -> TWEC:
         """
         """
+        # TODO: consider asking for mass matrix at this stage and separating inertia from true forces.
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
         self._time_mat = time_mat(f1, nfreq)
@@ -160,7 +161,23 @@ class WEC:
         return WEC(f1, nfreq, ndof, forces, constraints)
 
     # TODO: solve
+    def solve(self, waves, obj_func, ...):
 
+        # system dynamics through equality constraint
+        def resid_fun(x):
+            x_s = x/scale  # TODO
+            x_wec, x_opt = self.decompose_decision_var(x_s)  # TODO
+            ri = np.zeros([self.ncomponents, self.ndof])
+            for f in self.forces.values:
+                ri = ri + f(self, x_wec, x_opt, waves)
+            return self.dofmat_to_vec(ri)
+
+        eq_cons = {'type': 'eq',
+                   'fun': resid_fun,
+                   }
+        if use_grad:
+            eq_cons['jac'] = jacobian(resid_fun)
+        constraints.append(eq_cons)
 
     # public properties, for convenience
     @property
@@ -216,7 +233,11 @@ class WEC:
     def dofmat_to_vec(self, mat: np.ndarray):
         return dofmat_to_vec(mat)
 
-    # TODO: td_to_fd & fd_to_td
+    def fd_to_td(self, fd: np.ndarray):
+        return fd_to_td(fd, self.f1, self.nfreq)
+
+    def td_to_fd(self, td: np.ndarray):
+        return td_to_fd(td)
 
 
 def ncomponents(nfreq : int) -> int:
@@ -454,23 +475,10 @@ def check_linear_damping(hydro_data, tol=1e-6) -> xr.Dataset:
     return hydro_data_new
 
 
-# no unit tests yet
-def add_zerofreq_to_xr(data):
-    """frequency variable must be called `omega`."""
-    if not np.isclose(data.coords['omega'][0].values, 0):
-        tmp = data.isel(omega=0).copy(deep=True)
-        tmp['omega'] = tmp['omega'] * 0
-        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
-        print(vars)
-        for var in vars:
-            tmp[var] = tmp[var] * 0
-        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
-    return data
-
-
 def standard_forces(hydro_data: xr.Dataset):
     """
     """
+    # TODO: signs, i.e. LFH or RHS of equation
     hydro_data = hydro_data.transpose(
          "omega", "wave_direction", "radiating_dof", "influenced_dof")
 
@@ -517,6 +525,20 @@ def standard_forces(hydro_data: xr.Dataset):
         linear_force_functions[name] = f_from_waves(value)
 
     return linear_force_functions
+
+
+# no unit tests yet
+def add_zerofreq_to_xr(data):
+    """frequency variable must be called `omega`."""
+    if not np.isclose(data.coords['omega'][0].values, 0):
+        tmp = data.isel(omega=0).copy(deep=True)
+        tmp['omega'] = tmp['omega'] * 0
+        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
+        print(vars)
+        for var in vars:
+            tmp[var] = tmp[var] * 0
+        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
+    return data
 
 
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
