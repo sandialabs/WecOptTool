@@ -44,8 +44,8 @@ def bem_data():
 
     added_mass = np.ones([ndof, ndof, nfreq+1])
     radiation_damping = np.ones([ndof, ndof, nfreq+1])
-    diffraction_force = np.ones([ndof, ndir, nfreq+1])
-    Froude_Krylov_force = np.ones([ndof, ndir, nfreq+1])
+    diffraction_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
+    Froude_Krylov_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
 
     data_vars = {'added_mass': (radiation_dims, added_mass),
                  'radiation_damping': (radiation_dims, radiation_damping),
@@ -483,34 +483,49 @@ def test_standard_forces(hydro_data):
     wave_freq = w/(2*np.pi)
     wave_amp = 1.1
     wave_phase = 0.46
+    wave_phase_deg = np.rad2deg(wave_phase)
+    diff = 4 + 5j
+    fk_coeff = -2 + 1.2j
     data['mass'][:, :] = np.eye(ndof)*mass
     data['hydrostatic_stiffness'][:, :] = np.eye(ndof)*hstiff
     data['friction'][:, :] = np.eye(ndof)*fric
     data['radiation_damping'].values[:, :, index_freq] = np.eye(ndof)*rad
     data['added_mass'].values[:, :, index_freq] = np.eye(ndof)*addmass
-    data['diffraction_force'].values[:, :, index_freq] = np.zeros(ndof, ndir)
+    data['diffraction_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
+    data['diffraction_force'].values[0, 0, index_freq] = diff
+    data['Froude_Krylov_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
+    data['Froude_Krylov_force'].values[0, 0, index_freq] = fk_coeff
 
     forces = wot.standard_forces(data)
 
     wec = wot.WEC(f1, nfreq, ndof, {}, [])
-    waves = wot.waves.regular_wave(f1, nfreq, wave_freq, wave_amp, wave_phase)
+    waves = wot.waves.regular_wave(f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
     inertia = forces['inertia'](wec, x_wec, None, None)
     radiation = forces['radiation'](wec, x_wec, None, None)
     hydrostatics = forces['hydrostatics'](wec, x_wec, None, None)
     friction = forces['friction'](wec, x_wec, None, None)
-    fk = forces['Froude_Krylov'](None, None, None, waves)
-    diffraction = forces['diffraction'](None, None, None, waves)
+    fk = forces['Froude_Krylov'](wec, None, None, waves)
+    diffraction = forces['diffraction'](wec, None, None, waves)
 
     inertia_truth = mass * acc
     radiation_truth = rad*vel + addmass*acc
     hydrostatics_truth = hstiff*pos
     friction_truth = fric*vel
+    diff_comp = wave_amp*np.exp(1j*wave_phase) * diff
+    diffraction_truth =  (np.real(diff_comp) * np.cos(w*t) -
+                          np.imag(diff_comp) * np.sin(w*t))
+    fk_comp = wave_amp*np.exp(1j*wave_phase) * fk_coeff
+    fk_truth =  np.real(fk_comp) * np.cos(w*t) - np.imag(fk_comp) * np.sin(w*t)
 
-    assert np.allclose(inertia[:, 0], inertia_truth)
-    assert np.allclose(inertia[:, 1], 0)
-    assert np.allclose(radiation[:, 0], radiation_truth)
-    assert np.allclose(radiation[:, 1], 0)
-    assert np.allclose(hydrostatics[:, 0], hydrostatics_truth)
-    assert np.allclose(hydrostatics[:, 1], 0)
-    assert np.allclose(friction[:, 0], friction_truth)
-    assert np.allclose(friction[:, 1], 0)
+    forces = [
+        (inertia, inertia_truth),
+        (radiation, radiation_truth),
+        (hydrostatics, hydrostatics_truth),
+        (friction, friction_truth),
+        (diffraction, diffraction_truth),
+        (fk, fk_truth)
+    ]
+
+    for f_calc, f_truth in forces:
+        assert np.allclose(f_calc[:, 0], f_truth)
+        assert np.allclose(f_calc[:, 1], 0)

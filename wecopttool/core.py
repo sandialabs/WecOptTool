@@ -504,7 +504,8 @@ def standard_forces(hydro_data: xr.Dataset):
     # wave excitation
     def f_from_waves(force_coeff):
         def f(wec, x_wec, x_opt, waves):
-            return wave_excitation(force_coeff, waves)
+            f_fd = complex_to_real(wave_excitation(force_coeff, waves))
+            return np.dot(wec.time_mat, f_fd)
         return f
 
     excitation_coefficients = {
@@ -512,7 +513,7 @@ def standard_forces(hydro_data: xr.Dataset):
         'diffraction': hydro_data['diffraction_force']
     }
 
-    for name, value in excitation_coefficients:
+    for name, value in excitation_coefficients.items():
         linear_force_functions[name] = f_from_waves(value)
 
     return linear_force_functions
@@ -525,7 +526,6 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             depth: float = _default_parameters['depth'],
             ) -> xr.Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
-    Change the convention from `-iωt` to `+iωt`
 
     Parameters
     ----------
@@ -565,6 +565,12 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
                   'wavenumber': True}
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     bem_data = solver.fill_dataset(test_matrix, [wec_im], **write_info)
+    return change_bem_convention(bem_data)
+
+
+def change_bem_convention(bem_data):
+    """Change the convention from `-iωt` to `+iωt`.
+    """
     bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
     bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
