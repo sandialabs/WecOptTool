@@ -525,6 +525,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             depth: float = _default_parameters['depth'],
             ) -> xr.Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
+    Change the convention from `-iωt` to `+iωt`
 
     Parameters
     ----------
@@ -563,7 +564,11 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     write_info = {'hydrostatics': True, 'mesh': True, 'wavelength': True,
                   'wavenumber': True}
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
-    return solver.fill_dataset(test_matrix, [wec_im], **write_info)
+    bem_data = solver.fill_dataset(test_matrix, [wec_im], **write_info)
+    bem_data['Froude_Krylov_force'] = np.conjugate(
+        bem_data['Froude_Krylov_force'])
+    bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    return bem_data
 
 
 def linear_hydrodynamics(bem_data, mass=None, hydrostatic_stiffness=None, friction=None):
