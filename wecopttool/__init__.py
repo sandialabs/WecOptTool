@@ -12,6 +12,6 @@ __doc__ = (f"{__description__} ({__title__}) developed by {__author__}." +
 
 from wecopttool.core import *
 from wecopttool import waves
-from wecopttool import hydrostatics
-from wecopttool import pto
-from wecopttool import geom
+# from wecopttool import hydrostatics
+# from wecopttool import pto
+# from wecopttool import geom
