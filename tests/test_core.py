@@ -457,7 +457,7 @@ def test_check_linear_damping(hydro_data):
     assert data_new_nofric.equals(data_org_nofric) # only friction is changed
 
 
-def test_standard_forces(hydro_data):
+def test_standard_forces_inertia(hydro_data):
     data = hydro_data.copy(deep=True)
     nfreq = len(data.omega) - 1
     f1 = data.omega.values[1] / (2*np.pi)
@@ -498,9 +498,10 @@ def test_standard_forces(hydro_data):
 
     forces = wot.standard_forces(data)
 
-    wec = wot.WEC(f1, nfreq, ndof, {}, [])
+    wec = wot.WEC(f1, nfreq, {}, mass=data['mass'].values)
     waves = wot.waves.regular_wave(f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
-    inertia = forces['inertia'](wec, x_wec, None, None)
+    inertia_func = wot.inertia(f1, nfreq, mass=data['mass'].values)
+    inertia = inertia_func(wec, x_wec, None, None)
     radiation = forces['radiation'](wec, x_wec, None, None)
     hydrostatics = forces['hydrostatics'](wec, x_wec, None, None)
     friction = forces['friction'](wec, x_wec, None, None)

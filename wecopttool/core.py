@@ -1,11 +1,9 @@
 """Provide core functionality for solving the pseudo-spectral problem
-for wave energy converters.
+for wave energy converters (WEC).
 """
 
 
 from __future__ import annotations
-from argparse import ArgumentError  # TODO: for Python 3.8 & 3.9 support
-
 
 __all__ = [
     'WEC', 'TWEC', 'TStateFunction',
@@ -14,26 +12,27 @@ __all__ = [
     'fd_to_td', 'td_to_fd', 'read_netcdf', 'write_netcdf',
     'vec_to_dofmat', 'dofmat_to_vec', 'run_bem',
     'add_zerofreq_to_xr', 'complex_to_real', 'real_to_complex', 'wave_elevation',
-    'linear_hydrodynamics', 'check_linear_damping',
-]   # TODO
+    'linear_hydrodynamics', 'check_linear_damping', 'inertia',
+]   # TODO: clean exports
 
+# TODO: clean imports
 import logging
-# import copy  # TODO
+# import copy
 from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar
 from pathlib import Path
-# from numpy import isin  # TODO
+# from numpy import isin
 
 import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
-# from pyparsing import null_debug_action  # TODO
+# from pyparsing import null_debug_action
 import xarray as xr
 import capytaine as cpy
-# from scipy.optimize import minimize, OptimizeResult, Bounds  # TODO
+from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag
-# import matplotlib.pyplot as plt  # TODO
-# from matplotlib.figure import Figure  # TODO
+# import matplotlib.pyplot as plt
+# from matplotlib.figure import Figure
 
 
 # logger
@@ -47,46 +46,82 @@ TWEC = TypeVar("TWEC", bound="WEC")
 TStateFunction = Callable[
     [TWEC, np.ndarray, np.ndarray, xr.Dataset], np.ndarray]
 
-
+# TODO: Docstrings
+# TODO: Type hints
 class WEC:
     """
     """
-    def __init__(self, f1, nfreq, ndof, forces, constraints=None) -> TWEC:
+    def __init__(self, f1, nfreq, forces, constraints=None,
+                 mass: Optional[np.ndarray] = None,
+                 ndof: Optional[int] = None,
+                 inertia_in_forces: bool = False) -> TWEC:
         """
         """
-        # TODO: consider asking for mass matrix at this stage and separating inertia from true forces.
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
         self._time_mat = time_mat(f1, nfreq)
         self._derivative_mat = derivative_mat(f1, nfreq)
-        self._ndof = ndof
         self.forces = forces
+        self.inertia_in_forces = inertia_in_forces
         self.constraints = constraints if (constraints is not None) else []
 
+        # inertia options
+        def _missing(var_name, condition):
+            msg = (f"`{var_name}` must be provided if `inertia_in_forces` is" +
+                    f"`{condition}`.")
+            return msg
+
+        def _ignored(var_name, condition):
+            msg = (f"`{var_name}` is not used when `inertia_in_forces` is " +
+                    f"`{condition}` and should not be provided")
+            return msg
+
+        if inertia_in_forces:
+            condition = "True"
+            if mass is not None:
+                mass = None
+                _log.warning(_ignored("mass", condition))
+            if ndof is None:
+                raise ValueError(_missing("ndof", condition))
+        elif not inertia_in_forces:
+            condition = "False"
+            if mass is None:
+                raise ValueError(_missing("mass", condition))
+            mass = np.atleast_2d(np.squeeze(mass))
+            if ndof is not None:
+                _log.warning(_ignored("ndof", condition))
+                if ndof != mass.shape[0]:
+                    _log.warning(
+                        "Provided value of `ndof` does not match size of " +
+                        f"`mass` matrix. Using `ndof={mass.shape[0]}`.")
+            ndof = mass.shape[0]
+        if mass.shape != (ndof, ndof):
+            raise ValueError(
+                "'mass' must be a square matrix of size equal to the number " +
+                " of degrees of freedom.")
+
+        self.mass = mass
+        self._ndof = ndof
+        self.inertia = None if inertia_in_forces else inertia(f1, nfreq, mass)
+
+    def __repr__(self):
+        f'{self.__class__.__name__} with {self.ndof} DOFs.'
+
+    # other initialization methods
     @staticmethod
     def from_bem(bem_data: xr.Dataset, mass: Optional[np.ndarray] = None,
                  hydrostatic_stiffness: Optional[np.ndarray] = None,
                  friction: Optional[np.ndarray] = None,
                  f_add: Optional[Mapping[str, TStateFunction]] = None,
                  constraints: Optional[list[dict]] = None,
-                 damping_tol: float = 1e-6,
+                 min_damping: Optional[float] = 1e-6,
                  ) -> TWEC:
         """
         """
         # add mass, hydrostatic stiffness, and friction
         hydro_data = linear_hydrodynamics(
             bem_data, mass, hydrostatic_stiffness, friction)
-
-        # TODO: option to not correct damping
-        # TODO: Capytaine: excitation forces phases, flip? convention?
-        ndof = len(hydro_data["influenced_dof"])
-        wave_directions = hydro_data['wave_direction']
-
-        # frequency array
-        f1 = hydro_data["omega"].values[1] / (2*np.pi)
-        nfreq = len(hydro_data["omega"]) - 1
-        assert np.allclose(np.arange(0, f1*(nfreq+0.5), f1)*2*np.pi,
-                           hydro_data["omega"].values) # TODO raise error w message
+        mass = hydro_data['mass'].values if mass is None else mass
 
         # add zero frequency if not included
         if not np.isclose(hydro_data.coords['omega'][0].values, 0):
@@ -96,18 +131,24 @@ class WEC:
                 "coefficients (radiation and excitation) to zero.")
             hydro_data = add_zerofreq_to_xr(hydro_data)
 
+        # frequency array
+        f1 = hydro_data["omega"].values[1] / (2*np.pi)
+        nfreq = len(hydro_data["omega"]) - 1
+        w_check =  np.arange(0, f1*(nfreq+0.5), f1)*2*np.pi
+        if not np.allclose(w_check, hydro_data["omega"].values):
+            raise ValueError("Frequency array `omega` must be evenly spaced.")
+
         # check real part of damping diagonal > 0
-        hydro_data = check_linear_damping(hydro_data, damping_tol)
+        if min_damping is not None:
+            hydro_data = check_linear_damping(hydro_data, min_damping)
 
         # forces in the dynamics equations
-        linear_force_functions, _ = standard_forces(hydro_data)
+        linear_force_functions = standard_forces(hydro_data)
         f_add = f_add if (f_add is not None) else {}
         forces = linear_force_functions | f_add
-
         # constraints
         constraints = constraints if (constraints is not None) else []
-
-        return WEC(f1, nfreq, ndof, forces, constraints, wave_directions)
+        return WEC(f1, nfreq, forces, constraints, mass)
 
     @staticmethod
     def from_bem_file(file, mass: Optional[np.ndarray] = None,
@@ -115,11 +156,11 @@ class WEC:
                       friction: Optional[np.ndarray] = None,
                       f_add: Optional[Mapping[str, TStateFunction]] = None,
                       constraints: list[dict] = None,
+                      min_damping: Optional[float] = 1e-6,
                       ) -> TWEC:
-        # TODO: option to not correct damping
         bem_data = read_netcdf(file)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
-                           f_add, constraints)
+                           f_add, constraints, min_damping=min_damping)
         return wec
 
     @staticmethod
@@ -132,54 +173,191 @@ class WEC:
                  rho: float = _default_parameters['rho'],
                  depth: float = _default_parameters['depth'],
                  g: float = _default_parameters['g'],
+                 min_damping: Optional[float] = 1e-6,
                  ) -> tuple[TWEC, xr.Dataset]:
-        # TODO: option to not correct damping
-        # TODO: _log.info saying that the hydro_data is returned and should be saved for quicker initialization later
         # RUN BEM
+        _log.info("This function, `WEC.from_floating_body`, returns the " +
+                  "`hydro_data` DataSet. This should be saved for quicker " +
+                  "initialization using the `WEC.from_bem_file` function." +
+                  "To save, use the `write_netcdf` function.")
         _log.info(f"Running Capytaine (BEM): {nfreq+1} frequencies x " +
-                 f"{len(wave_directions)} wave directions.")  # TODO: run the zero-frequency?
-        freq = frequency(f1, nfreq)
+                 f"{len(wave_directions)} wave directions.")
+        freq = np.concatenate([[0.0], frequency(f1, nfreq)])
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
-        wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness,
-                           friction, f_add, constraints)
+        wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
+                           f_add, constraints, min_damping=min_damping)
         hydro_data = linear_hydrodynamics(
             bem_data, mass, hydrostatic_stiffness, friction)
         return wec, hydro_data
 
     @staticmethod
-    def from_impedance(f1, nfreq, impedance, f_add, constraints):
-        # TODO: finish implementing this!
-        ndof = impedance.shape[0]
-        transfer_mat = mimo_transfer_mat(impedance)
+    def from_impedance(f1, nfreq, impedance, exc_coeff, f_add=None,
+                       constraints=None):
 
-        def force_impedance(wec, x_wec, x_opt, waves):
-            f_fd = vec_to_dofmat(np.dot(transfer_mat, x_wec))
-            return np.dot(wec.time_mat, f_fd)
+        # impedance matrix shape
+        shape = impedance.shape
+        if (impedance.ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq+1):
+            raise ValueError(
+                "`impedance` must have shape `ndof x ndof x (nfreq+1)`, " +
+                "including the zero-frequency component.")
 
-        forces =  force_impedance | f_add
-        return WEC(f1, nfreq, ndof, forces, constraints)
+        # impedance force
+        position_transfer = impedance / (1j*impedance.omega)
+        force_impedance = force_from_position_transfer_fun(position_transfer)
 
-    # TODO: solve
-    def solve(self, waves, obj_func, ...):
+        # excitation force
+        force_excitation = force_from_waves(exc_coeff)
 
-        # system dynamics through equality constraint
+        # all forces
+        f_add = {} if f_add is None else f_add
+        forces =  force_impedance | force_excitation | f_add
+
+        # wec
+        wec = WEC(f1, nfreq, forces, constraints,
+                  inertia_in_forces=True, ndof=impedance.shape[0])
+        return wec
+
+    # solve
+    def solve(self, waves, obj_fun,
+              nstate_opt: int,
+              x_wec_0: Optional[np.ndarray] = None,
+              x_opt_0: Optional[np.ndarray] = None,
+              scale_x_wec: Optional[list] = None,
+              scale_x_opt: npt.ArrayLike | float = 1.0,
+              scale_obj: float = 1.0,
+              optim_options: dict[str, Any] = {},
+              use_grad: bool = True,
+              maximize: bool = False,
+              bounds_wec: Optional[Bounds] = None,
+              bounds_opt: Optional[Bounds] = None,
+              callback: Optional[Callable[[np.ndarray]]] = None,
+              ):
+        _log.info("Solving pseudo-spectral control problem.")
+
+        # scale x_wec
+        if scale_x_wec == None:
+            scale_x_wec = [1.0] * self.ndof
+        elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
+            scale_x_wec = [scale_x_wec] * self.ndof
+        scale_x_wec = scale_dofs(scale_x_wec, self.ncomponents)
+
+        # scale x_opt
+        if isinstance(scale_x_opt, float) or isinstance(scale_x_opt, int):
+            if nstate_opt is None:
+                raise ValueError("If 'scale_x_opt' is a scalar, " +
+                                    "'nstate_opt' must be provided")
+            scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
+
+        # scale
+        scale = np.concatenate([scale_x_wec, scale_x_opt])
+
+        # initial guess
+        if x_wec_0 is None:
+            x_wec_0 = np.random.randn(self.nstate_wec)
+        if x_opt_0 is None:
+            x_opt_0 = np.random.randn(nstate_opt)
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+
+        # objective function
+        sign = -1.0 if maximize else 1.0
+
+        def obj_fun_scaled(x):
+            x_wec, x_opt = self.decompose_decision_var(x/scale)
+            return obj_fun(self, x_wec, x_opt, waves)*scale_obj*sign
+
+        # constraints
+        constraints = self.constraints.copy()
+
+        for i, icons in enumerate(self.constraints):
+            icons_new = {"type": icons["type"]}
+
+            def make_new_fun(icons):
+                def new_fun(x):
+                    x_wec, x_opt = self.decompose_decision_var(x/scale)
+                    return icons["fun"](self, x_wec, x_opt, waves)
+                return new_fun
+
+            icons_new["fun"] = make_new_fun(icons)
+            if use_grad:
+                icons_new['jac'] = jacobian(icons_new['fun'])
+            constraints[i] = icons_new
+
+        # system dynamics through equality constraint, ma - Σf = 0
         def resid_fun(x):
-            x_s = x/scale  # TODO
-            x_wec, x_opt = self.decompose_decision_var(x_s)  # TODO
-            ri = np.zeros([self.ncomponents, self.ndof])
-            for f in self.forces.values:
-                ri = ri + f(self, x_wec, x_opt, waves)
+            x_s = x/scale
+            x_wec, x_opt = self.decompose_decision_var(x_s)
+            # inertia, ma
+            if not self.inertia_in_forces:
+                ri = self.inertia(self, x_wec, x_opt, waves)
+            else:
+                ri = np.zeros([self.ncomponents, self.ndof])
+            # forces, -Σf
+            for f in self.forces.values():
+                ri = ri - f(self, x_wec, x_opt, waves)
             return self.dofmat_to_vec(ri)
 
-        eq_cons = {'type': 'eq',
-                   'fun': resid_fun,
-                   }
+        eq_cons = {'type': 'eq', 'fun': resid_fun}
         if use_grad:
             eq_cons['jac'] = jacobian(resid_fun)
         constraints.append(eq_cons)
 
-    # public properties, for convenience
+        # bounds
+        if (bounds_wec is None) and (bounds_opt is None):
+            bounds = None
+        else:
+            # TODO: allow for all options of Bounds.
+            bounds_in = [bounds_wec, bounds_opt]
+            inf_wec = np.ones(self.nstate_wec)*np.inf
+            inf_opt = np.ones(nstate_opt)*np.inf
+            bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
+                            Bounds(lb=-inf_opt, ub=inf_opt)]
+            bounds_list = []
+            for bi, bd in zip(bounds_in, bounds_dflt):
+                if bi is not None:
+                    bo = bi
+                else:
+                    bo = bd
+                bounds_list.append(bo)
+            bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
+                            ub=np.hstack([le.ub for le in bounds_list])*scale)
+
+
+        # optimization problem
+        optim_options['disp'] = optim_options.get('disp', True)
+        problem = {'fun': obj_fun_scaled,
+                    'x0': x0,
+                    'method': 'SLSQP',
+                    'constraints': constraints,
+                    'options': optim_options,
+                    'bounds': bounds,
+                    'callback':callback,
+                    }
+        if use_grad:
+            problem['jac'] = grad(obj_fun_scaled)
+
+
+        # minimize
+        res = minimize(**problem)
+
+        msg = f'{res.message}    (Exit mode {res.status})'
+        if res.status == 0:
+            _log.info(msg)
+        elif res.status == 9:
+            _log.warning(msg)
+        else:
+            raise Exception(msg)
+
+        # unscale
+        res.x = res.x / scale
+        res.fun = res.fun / scale_obj
+
+        # post-process
+        # TODO
+
+        return res # TODO
+
+    # properties
     @property
     def ndof(self):
         return self._ndof
@@ -217,10 +395,29 @@ class WEC:
         return self._derivative_mat
 
     @property
+    def dt(self):
+        """Time spacing."""
+        return self._time[1]
+
+    @property
+    def tf(self):
+        """Final time (repeat period). Not included in time vector. """
+        return 1/self.f1
+
+    @property
     def ncomponents(self):
         return ncomponents(self.nfreq)
 
-    # copies of outer functions with less arguments, for convinience
+    @property
+    def nstate_wec(self):
+        """Length of the  WEC dynamics state vector."""
+        return self.ndof * self.ncomponents
+
+    # other methods
+    def decompose_decision_var(self, state: np.ndarray
+                              ) -> tuple[np.ndarray, np.ndarray]:
+        return decompose_decision_var(state, self.ndof, self.nfreq)
+
     def time_nsubsteps(self, nsubsteps: int):
         return time(self.f1, self.nfreq, nsubsteps)
 
@@ -456,7 +653,7 @@ def write_netcdf(fpath: str | Path, data: xr.Dataset) -> None:
     cpy.io.xarray.separate_complex_values(data).to_netcdf(fpath)
 
 
-def check_linear_damping(hydro_data, tol=1e-6) -> xr.Dataset:
+def check_linear_damping(hydro_data, min_damping=1e-6) -> xr.Dataset:
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
     friction = hydro_data_new['friction']
@@ -466,19 +663,47 @@ def check_linear_damping(hydro_data, tol=1e-6) -> xr.Dataset:
         iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
         dmin = (iradiation+ifriction).min()
-        if dmin <= 0.0 + tol:
+        if dmin <= 0.0 + min_damping:
             dof = hydro_data_new.influenced_dof.values[idof]
+            delta = min_damping-dmin
             _log.warning(
                 f'Linear damping for DOF "{dof}" has negative or close to ' +
-                'zero terms. Shifting up via linear friction.')
-            hydro_data_new['friction'][idof, idof] = ifriction + (tol-dmin)
+                'zero terms. Shifting up via linear friction of ' +
+                f'{delta.values} N/(m/s).')
+            hydro_data_new['friction'][idof, idof] = (ifriction + delta)
     return hydro_data_new
+
+
+def force_from_position_transfer_fun(position_transfer):
+    def force(wec, x_wec, x_opt, waves):
+        transfer_mat = mimo_transfer_mat(position_transfer)
+        force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
+        return np.dot(wec.time_mat, force_fd)
+    return force
+
+
+def force_from_impedance(omega, impedance):
+    return force_from_position_transfer_fun(impedance/(1j*omega))
+
+
+def force_from_waves(force_coeff):
+    def force(wec, x_wec, x_opt, waves):
+        force_fd = complex_to_real(wave_excitation(force_coeff, waves))
+        return np.dot(wec.time_mat, force_fd)
+    return force
+
+
+def inertia(f1, nfreq, mass):
+    omega = np.reshape(frequency(f1, nfreq)*2*np.pi, [1,1,-1])
+    mass = np.expand_dims(mass, -1)
+    position_transfer_function = -1*omega**2*mass + 0j
+    inertia_fun = force_from_position_transfer_fun(position_transfer_function)
+    return inertia_fun
 
 
 def standard_forces(hydro_data: xr.Dataset):
     """
     """
-    # TODO: signs, i.e. LFH or RHS of equation
     hydro_data = hydro_data.transpose(
          "omega", "wave_direction", "radiating_dof", "influenced_dof")
 
@@ -487,54 +712,39 @@ def standard_forces(hydro_data: xr.Dataset):
     A = hydro_data['added_mass']
     B = hydro_data['radiation_damping']
     K = hydro_data['hydrostatic_stiffness']
-    m = hydro_data['mass']
     Bf = hydro_data['friction']
 
     position_transfer_functions = dict()
-    position_transfer_functions['inertia'] = -1*w**2*m + 0j
     position_transfer_functions['radiation'] = 1j*w*B + -1*w**2*A
     position_transfer_functions['hydrostatics'] = (
         (K + 0j).expand_dims({"omega": B.omega}) )
     position_transfer_functions['friction'] = 1j*w*Bf
 
-    def f_from_imp(transfer_mat):
-        def f(wec, x_wec, x_opt, waves):
-            f_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
-            return np.dot(wec.time_mat, f_fd)
-        return f
-
     linear_force_functions = dict()
     for name, value in position_transfer_functions.items():
         value = value.transpose("radiating_dof", "influenced_dof", "omega")
+        value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
-            f_from_imp(mimo_transfer_mat(value)) )
+            force_from_position_transfer_fun(value))
 
     # wave excitation
-    def f_from_waves(force_coeff):
-        def f(wec, x_wec, x_opt, waves):
-            f_fd = complex_to_real(wave_excitation(force_coeff, waves))
-            return np.dot(wec.time_mat, f_fd)
-        return f
-
     excitation_coefficients = {
         'Froude_Krylov': hydro_data['Froude_Krylov_force'],
         'diffraction': hydro_data['diffraction_force']
     }
 
     for name, value in excitation_coefficients.items():
-        linear_force_functions[name] = f_from_waves(value)
+        linear_force_functions[name] = force_from_waves(value)
 
     return linear_force_functions
 
 
-# no unit tests yet
 def add_zerofreq_to_xr(data):
     """frequency variable must be called `omega`."""
     if not np.isclose(data.coords['omega'][0].values, 0):
         tmp = data.isel(omega=0).copy(deep=True)
         tmp['omega'] = tmp['omega'] * 0
         vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
-        print(vars)
         for var in vars:
             tmp[var] = tmp[var] * 0
         data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
@@ -601,7 +811,6 @@ def change_bem_convention(bem_data):
 
 def linear_hydrodynamics(bem_data, mass=None, hydrostatic_stiffness=None, friction=None):
     """Add mass, hydrostatic stiffness, and linear friction to BEM.
-    Complex conjugate of Capytaine excitation coefficients.
     """
     vars = {'mass': mass, 'friction': friction,
             'hydrostatic_stiffness': hydrostatic_stiffness}
@@ -626,8 +835,9 @@ def linear_hydrodynamics(bem_data, mass=None, hydrostatic_stiffness=None, fricti
             if name=='friction':
                 ndof = len(hydro_data["influenced_dof"])
                 hydro_data[name] = (dims, np.zeros([ndof, ndof]))
-            raise ValueError(
-                f'Variable "{name}" is not in BEM data and was not provided.')
+            else:
+                raise ValueError(f'Variable "{name}" is not in BEM data and ' +
+                                 'was not provided.')
         elif new:
             hydro_data[name] = (dims, data)
 
@@ -681,3 +891,33 @@ def subset_close(subset_a: float | npt.ArrayLike,
                 tmp_result[ int(tmp_subset_ind[0]) ] = True
     subset = all(tmp_result)
     return subset, ind
+
+
+def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
+    """Create a scaling vector based on a different scale for each DOF.
+
+    Parameters
+    ----------
+    scale_list: list
+        Scale for each DOF.
+    ncomponents: int
+        Number of elements in the state vector for each DOF.
+
+    Returns
+    -------
+    np.ndarray: Scaling vector.
+    """
+    ndof = len(scale_list)
+    scale = []
+    for dof in range(ndof):
+        scale += [scale_list[dof]] * ncomponents
+    return np.array(scale)
+
+
+def decompose_decision_var(state: np.ndarray, ndof, nfreq
+                               ) -> tuple[np.ndarray, np.ndarray]:
+        """Split the state vector into the WEC dynamics state and the
+        optimization (control) state. x = [x_wec, x_opt].
+        """
+        nstate_wec = ndof * ncomponents(nfreq)
+        return state[:nstate_wec], state[nstate_wec:]
