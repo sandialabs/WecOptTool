@@ -210,7 +210,7 @@ class WEC:
         force_excitation = force_from_waves(exc_coeff)
 
         # all forces
-        f_add = {} if f_add is None else f_add
+        f_add = {} if (f_add is None) else f_add
         forces =  force_impedance | force_excitation | f_add
 
         # wec
