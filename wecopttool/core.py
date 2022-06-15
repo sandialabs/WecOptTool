@@ -105,7 +105,7 @@ class WEC:
         self.inertia = None if inertia_in_forces else inertia(f1, nfreq, mass)
 
     def __repr__(self):
-        f'{self.__class__.__name__} with {self.ndof} DOFs.'
+        f'{self.__class__.__name__}' #TODO - make this more rich
 
     # other initialization methods
     @staticmethod
@@ -127,7 +127,7 @@ class WEC:
         if not np.isclose(hydro_data.coords['omega'][0].values, 0):
             _log.warning(
                 "Provided BEM data does not include the zero-frequency " +
-                "components. Setting the zero-frequency comoponents for all " +
+                "components. Setting the zero-frequency components for all " +
                 "coefficients (radiation and excitation) to zero.")
             hydro_data = add_zerofreq_to_xr(hydro_data)
 
@@ -175,20 +175,60 @@ class WEC:
                  g: float = _default_parameters['g'],
                  min_damping: Optional[float] = 1e-6,
                  ) -> tuple[TWEC, xr.Dataset]:
+        """Create a WEC object from a Capytaine FloatingBody
+        TODO
+        Parameters
+        ----------
+        fb
+            Capytaine FloatingBody
+        mass
+            _description_
+        hydrostatic_stiffness
+            _description_
+        f1
+            Fundamental frequency [Hz]
+        nfreq
+            Number of frequencies (not including zero frequency), 
+            i.e., freqs = [0, f1, 2*f1, ..., nfreq*f1]
+        wave_directions
+            _description_, by default np.array([0.0,])
+        friction
+            _description_, by default None
+        f_add
+            _description_, by default None
+        constraints
+            _description_, by default []
+        rho
+            _description_, by default 1025
+        depth
+            _description_, by default Inf
+        g
+            _description_, by default 9.81
+        min_damping
+            _description_, by default 1e-6
+
+        Returns
+        -------
+        tuple[TWEC, xr.Dataset]
+            _description_
+        """
+        
         # RUN BEM
         _log.info("This function, `WEC.from_floating_body`, returns the " +
-                  "`hydro_data` DataSet. This should be saved for quicker " +
-                  "initialization using the `WEC.from_bem_file` function." +
-                  "To save, use the `write_netcdf` function.")
+                  "`hydro_data` xarray DataSet. If using the same " + 
+                  "hydrodynamic bodies, `hydro_data` may be save to " +
+                  "a .nc file using the `write_netcdf` method. " + 
+                  "With this .nc file, you can avoid re-running the BEM " + 
+                  "by using `WEC.from_bem_file`.")
         _log.info(f"Running Capytaine (BEM): {nfreq+1} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
-        freq = np.concatenate([[0.0], frequency(f1, nfreq)])
-        bem_data = run_bem(
-            fb, freq, wave_directions, rho=rho, g=g, depth=depth)
+        freq = frequency(f1, nfreq)[1:]
+        bem_data = run_bem(fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
                            f_add, constraints, min_damping=min_damping)
         hydro_data = linear_hydrodynamics(
             bem_data, mass, hydrostatic_stiffness, friction)
+        hydro_data = add_zerofreq_to_xr(hydro_data)
         return wec, hydro_data
 
     @staticmethod
@@ -793,8 +833,12 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     if wave_dirs is None:
         # radiation only problem, no diffraction or excitation
         test_matrix = test_matrix.drop_vars('wave_direction')
-    write_info = {'hydrostatics': True, 'mesh': True, 'wavelength': True,
-                  'wavenumber': True}
+    write_info = {
+                #  'hydrostatics': True, 
+                #   'mesh': True, 
+                #   'wavelength': True,
+                #   'wavenumber': True,
+                  }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     bem_data = solver.fill_dataset(test_matrix, [wec_im], **write_info)
     return change_bem_convention(bem_data)

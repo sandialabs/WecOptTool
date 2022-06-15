@@ -17,7 +17,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 import xarray as xr
 from scipy.linalg import block_diag
 
-from wecopttool.core import WEC, real_to_complex_amplitudes
+from wecopttool.core import WEC, real_to_complex
 
 
 class _PTO:
@@ -187,17 +187,17 @@ class _PTO:
         # position
         wec_pos = wec.vec_to_dofmat(x_wec)
         pos = wec_pos @ self._kinematics_t
-        pos_fd = real_to_complex_amplitudes(pos)
+        pos_fd = real_to_complex(pos)
         pos_td = wec.time_mat @ pos
 
         # velocity
         vel = wec.derivative_mat @ pos
-        vel_fd = real_to_complex_amplitudes(vel)
+        vel_fd = real_to_complex(vel)
         vel_td = wec.time_mat @ vel
 
         # acceleration
         acc = wec.derivative_mat @ vel
-        acc_fd = real_to_complex_amplitudes(acc)
+        acc_fd = real_to_complex(acc)
         acc_td = wec.time_mat @ acc
 
         # force
