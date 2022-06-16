@@ -405,6 +405,11 @@ class WEC:
         return 1/self.f1
 
     @property
+    def nt(self):
+        """Number of timesteps."""
+        return self.ncomponents
+
+    @property
     def ncomponents(self):
         return ncomponents(self.nfreq)
 
@@ -435,6 +440,7 @@ class WEC:
 
     def td_to_fd(self, td: np.ndarray):
         return td_to_fd(td)
+
 
 
 def ncomponents(nfreq : int) -> int:
