@@ -151,14 +151,14 @@ class WEC:
         return WEC(f1, nfreq, forces, constraints, mass)
 
     @staticmethod
-    def from_bem_file(file, mass: Optional[np.ndarray] = None,
+    def from_bem_file(file_name, mass: Optional[np.ndarray] = None,
                       hydrostatic_stiffness: Optional[np.ndarray] = None,
                       friction: Optional[np.ndarray] = None,
                       f_add: Optional[Mapping[str, TStateFunction]] = None,
                       constraints: list[dict] = None,
                       min_damping: Optional[float] = 1e-6,
                       ) -> TWEC:
-        bem_data = read_netcdf(file)
+        bem_data = read_netcdf(file_name)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
                            f_add, constraints, min_damping=min_damping)
         return wec
@@ -362,6 +362,14 @@ class WEC:
             bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                             ub=np.hstack([le.ub for le in bounds_list])*scale)
 
+        # callback
+        if callback is None:
+            def callback(x):
+                x_wec, x_opt = self.decompose_decision_var(x)
+                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                          + f"[{np.max(np.abs(x_wec)):.2e}, "
+                          + f"{np.max(np.abs(x_opt)):.2e}, "
+                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
 
         # optimization problem
         optim_options['disp'] = optim_options.get('disp', True)
@@ -375,7 +383,6 @@ class WEC:
                     }
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
-
 
         # minimize
         res = minimize(**problem)
