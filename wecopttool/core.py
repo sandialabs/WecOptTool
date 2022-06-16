@@ -398,7 +398,7 @@ class WEC:
     def fd_to_td(self, fd: np.ndarray) -> np.ndarray:
         """Convert from frequency domain to time domain using the FFT.
         """
-        return fd_to_td(fd, self.ncomponents)
+        return fd_to_td(fd, self.time_mat)
 
     def td_to_fd(self, td: np.ndarray) -> np.ndarray:
         """Convert from frequency domain to time domain using the iFFT.
@@ -498,13 +498,25 @@ class WEC:
         """Calculate the transfer function matrix using Capytaine.
         """
         log.info("Calculating impedance matrix.")
-        self.hydro['Gi'] = cpy.post_pro.impedance(
-            self.hydro, self.dissipation, self.stiffness)
+        # self.hydro['Gi'] = cpy.post_pro.impedance(
+            # self.hydro, self.dissipation, self.stiffness)  # TODO: once capytaine pushes fix
+        def impedance(data, d, s):  # TODO: DELETE >>>
+            w = data.coords['omega']
+            Z = (-w**2*(data['mass'] + data['added_mass'])
+                 - 1j*w* data['radiation_damping']
+                 + data['hydrostatic_stiffness'])
+            if d is not None:
+                Z = Z - 1j*w*d
+            if s is not None:
+                Z = Z + s
+            return Z
+        self.hydro['Gi'] = impedance(
+            self.hydro, self.dissipation, self.stiffness)  # TODO: <<< DELETE
         self._bem_calc_impedance()
 
     def _bem_calc_impedance(self) -> None:
         """Calculate the impedance matrix."""
-        self.hydro['Zi'] = self.hydro['Gi'] / (1j*self.hydro.omega)
+        self.hydro['Zi'] = self.hydro['Gi'] / (-1j*self.hydro.omega)
 
     def _bem_add_hydrostatics(self) -> None:
         """Add hydrostatic data to self.hydro. """
@@ -533,7 +545,7 @@ class WEC:
         for idof in range(self.ndof):
             Gi_imag = np.imag(self.hydro['Gi'].isel(
                 radiating_dof=idof, influenced_dof=idof))
-            damping = Gi_imag / self.omega
+            damping = Gi_imag / (-1*self.omega)
             dmin = damping.min().values
             if dmin <= 0.0 + tol:
                 dof = self.hydro['Gi'].influenced_dof.values[idof]
@@ -546,7 +558,7 @@ class WEC:
         position.
         """
         elem = [[None]*self.ndof for _ in range(self.ndof)]
-        def block(re, im): return np.array([[re, im], [-im, re]])
+        def block(re, im): return np.array([[re, -im], [im, re]])
         for idof in range(self.ndof):
             for jdof in range(self.ndof):
                 K = np.array([self.hydrostatic_stiffness[idof, jdof]])
@@ -581,32 +593,32 @@ class WEC:
             option=option, dof_names=self.hydro.influenced_dof.values.tolist(),
             show=show)
         return fig, axs
-    
+
     def power_limit(self, waves: xr.DataSet) -> np.ndarray:
         """Return theoretical power limit for hydrodynamic problem.
-        
+
         See `wot.power_limit()`
         """
 
-        fd_wec, _ = wave_excitation(self.hydro, waves)
+        fd_wec, _ = wave_excitation(self.hydro, waves, self.time_mat)
         return power_limit(excitation=fd_wec['excitation_force'],
                            impedance=self.hydro['Zi'])
 
     def optimal_velocity(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal velocity spectrum for hydrodynamic problem.
-        
+
         See `wot.optimal_velocity()`
         """
-        fd_wec, _ = wave_excitation(self.hydro, waves)
+        fd_wec, _ = wave_excitation(self.hydro, waves, self.time_mat)
         return optimal_velocity(excitation=fd_wec['excitation_force'],
                                 impedance=self.hydro['Zi'])
 
     def optimal_position(self, waves: xr.DataSet) -> np.ndarray:
         """Return optimal position spectrum for hydrodynamic problem.
-        
+
         See `wot.optimal_position()`
         """
-        fd_wec, _ = wave_excitation(self.hydro, waves)
+        fd_wec, _ = wave_excitation(self.hydro, waves, self.time_mat)
         return optimal_position(excitation=fd_wec['excitation_force'],
                                 impedance=self.hydro['Zi'],
                                 omega=self.hydro['omega'])
@@ -641,7 +653,7 @@ class WEC:
         return np.concatenate([scale_x_wec, scale_x_opt])
 
     def initial_x_wec_guess_analytic(self, waves: xr.Dataset) -> np.ndaray:
-        """Initial guess for `x_wec` based on optimal hydrodynamic solution to 
+        """Initial guess for `x_wec` based on optimal hydrodynamic solution to
         be passed to `wec.solve`.
 
         Parameters
@@ -653,7 +665,7 @@ class WEC:
         -------
         x_wec_0
             Initial guess for `x_wec`
-            
+
         Examples
         --------
         >>> x_wec_0 = wec.initial_x_wec_guess_analytic(regular_wave)
@@ -739,7 +751,7 @@ class WEC:
             Bounds on the optimization (control) components of the decsision
             variable; see scipy.optimize.minimize
         unconstrained_first: bool
-            If True, run ``solve`` without constraints to get scaling and 
+            If True, run ``solve`` without constraints to get scaling and
             initial guess. The default is False.
         callback: function
             Called after each iteration; see scipy.optimize.minimize. The
@@ -761,7 +773,7 @@ class WEC:
             Raw optimization results.
         """
         log.info("Solving pseudo-spectral control problem.")
-        
+
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
@@ -796,10 +808,10 @@ class WEC:
             log.info(f"Setting scale_x_wec: {scale_x_wec}")
             log.info(f"Setting scale_x_opt: {scale_x_opt}")
             log.info(f"Setting scale_obj: {scale_obj}")
-            
+
         # scale
         scale = self._get_state_scale(scale_x_wec, scale_x_opt, nstate_opt)
-        
+
         # bounds
         bounds_in = [bounds_wec, bounds_opt]
         bounds_dflt = [Bounds(lb=-1*np.ones(self.nstate_wec)*np.inf,
@@ -818,7 +830,7 @@ class WEC:
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # wave excitation force
-        fd_we, td_we = wave_excitation(self.hydro, waves)
+        fd_we, td_we = wave_excitation(self.hydro, waves, self.time_mat)
         f_exc = td_we['excitation_force']
 
         # objective function
@@ -1023,30 +1035,32 @@ def real_to_complex_amplitudes(fd: np.ndarray, first_row_is_mean: bool = True
     else:
         ndof = fd.shape[1]
         mean = np.zeros([1, ndof])
-    return np.concatenate((mean, fd[0::2, :] - 1j*fd[1::2, :]), axis=0)
-
+    return np.concatenate((mean, fd[0::2, :] + 1j*fd[1::2, :]), axis=0)
 
 def complex_to_real_amplitudes(fd: np.ndarray) -> np.ndarray:
-    """Convert from one complex amplitude to two real amplitudes per 
+    """Convert from one complex amplitude to two real amplitudes per
     frequency."""
-    
+
+    if len(fd.shape) == 1:
+        fd = np.expand_dims(fd, -1)
     m = fd.shape[0]
     n = fd.shape[1]
     out = np.zeros((1+2*(m-1),n))
-    
-    out[0,:] = fd[0,:]
+
+    assert np.all(np.isreal(fd[0, :]))
+    out[0, :] = fd[0, :].real
     out[1::2,:] = fd[1:].real
-    out[2::2,:] = -1*fd[1:].imag
-    
+    out[2::2,:] = fd[1:].imag
+
     return out
 
 
-def fd_to_td(fd: np.ndarray, n: Optional[int] = None) -> np.ndarray:
-    return np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+def fd_to_td(fd: np.ndarray, time_mat) -> np.ndarray:
+    return time_mat @ complex_to_real_amplitudes(fd)
 
 
 def td_to_fd(td: np.ndarray, n: Optional[int] = None) -> np.ndarray:
-    return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+    return np.conj(np.fft.rfft(td*2, n=n, axis=0, norm='forward'))
 
 
 def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
@@ -1084,8 +1098,8 @@ def complex_xarray_to_netcdf(fpath: str | Path, bem_data: xr.Dataset) -> None:
     cpy.io.xarray.separate_complex_values(bem_data).to_netcdf(fpath)
 
 
-def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
-                    ) -> tuple[xr.Dataset, xr.Dataset]:
+def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset,
+                    time_mat: np.ndarray) -> tuple[xr.Dataset, xr.Dataset]:
     """Compute the frequency- and time-domain wave excitation force.
 
     Parameters
@@ -1108,10 +1122,10 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     """
     if not np.allclose(waves['omega'].values, bem_data['omega'].values):
         raise ValueError("Wave and BEM frequencies do not match")
-        
-    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values, 
+
+    w_dir_subset, w_indx = subsetclose(waves['wave_direction'].values,
                 bem_data['wave_direction'].values)
-    
+
     if not w_dir_subset:
         raise ValueError(
             "Some wave directions are not in BEM solution " +
@@ -1123,6 +1137,7 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     # excitation BEM
     exc_coeff = bem_data['Froude_Krylov_force'] + \
         bem_data['diffraction_force']
+
 
     # add zero frequency
     assert waves.omega[0] != 0
@@ -1166,7 +1181,7 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     dims_td = ['time', ]
     coords_td = [(dims_td[0], time, {'units': 's'}), ]
 
-    f_exc_td = fd_to_td(f_exc_fd, nfd)
+    f_exc_td = fd_to_td(f_exc_fd, time_mat)
     dims = dims_td + ['influenced_dof']
     coords = coords_td + [(dims[1], f_exc_fd.coords[dims[1]].data,)]
     f_exc_td = xr.DataArray(
@@ -1174,7 +1189,7 @@ def wave_excitation(bem_data: xr.Dataset, waves: xr.Dataset
     f_exc_td.attrs['units'] = 'N or N*m'
     time_dom = xr.Dataset({'excitation_force': f_exc_td},)
 
-    eta_all = fd_to_td(wave_elev_fd, nfd)
+    eta_all = fd_to_td(wave_elev_fd, time_mat)
     wave_elev_td = np.sum(eta_all, axis=1)
     wave_elev_td = xr.DataArray(
         wave_elev_td, dims=dims_td, coords=coords_td, attrs=wave_elev_fd.attrs)
@@ -1252,7 +1267,7 @@ def optimal_velocity(excitation: npt.ArrayLike, impedance: npt.ArrayLike
         Optimal velocity for power absorption.
     """
     opt_vel = np.concatenate([np.linalg.lstsq(2*impedance[w_ind, :, :].real,
-                                              excitation[w_ind+1, :])[0] 
+                                              excitation[w_ind+1, :])[0]
                               for w_ind in range(impedance.shape[0])])
     return np.atleast_2d(opt_vel).transpose()
 
@@ -1274,7 +1289,7 @@ def optimal_position(excitation: npt.ArrayLike, impedance: npt.ArrayLike,
         Optimal position for power absorption.
     """
     opt_vel = optimal_velocity(excitation, impedance)
-    opt_pos = opt_vel / (1j * np.atleast_2d(omega.data).transpose())
+    opt_pos = opt_vel / (-1j * np.atleast_2d(omega.data).transpose())
     return opt_pos
 
 
@@ -1294,11 +1309,11 @@ def power_limit(excitation: npt.ArrayLike, impedance: npt.ArrayLike
     power_limit
         Upper limit for power absorption.
     """
-    
+
     pls = np.concatenate([np.linalg.lstsq(8*impedance[w_ind, :, :].real,
-                                          np.abs(excitation[w_ind+1, :])**2)[0] 
+                                          np.abs(excitation[w_ind+1, :])**2)[0]
                          for w_ind in range(impedance.shape[0])])
-    
+
     power_limit = -1 * np.sum(pls)
 
     return power_limit
@@ -1493,24 +1508,30 @@ def post_process_continuous_time(results: xr.DataArray
         t = np.array(t)
         f = np.zeros(t.shape)
         for freq, mag in zip(results.omega.values, results.values):
-            f += np.real(mag)*np.cos(freq*t) - np.imag(mag)*np.sin(freq*t)
+            f += np.real(mag)*np.cos(freq*t) + np.imag(mag)*np.sin(freq*t)
         return f
 
     return func
 
 
-def _degrees_to_radians(degrees: float | npt.ArrayLike
+def _degrees_to_radians(degrees: float | npt.ArrayLike,
+                        sort: bool = True,
                        ) -> float | np.ndarray:
     """Convert degrees to radians in range -π to π and sort.
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    # radians = radians.item() if (radians.size == 1) else np.sort(radians)
+    if (radians.size == 1):
+        radians = radians.item()
+    elif (sort):
+        radians = np.sort(radians)
     return radians
 
-def subsetclose(subset_a: float | npt.ArrayLike, 
+
+def subsetclose(subset_a: float | npt.ArrayLike,
                 set_b: float | npt.ArrayLike,
-                rtol: float = 1.e-5, atol:float = 1.e-8, 
+                rtol: float = 1.e-5, atol:float = 1.e-8,
                 equal_nan: bool = False) -> tuple[bool, list]:
     """
     Compare if two arrays are subset equal within a tolerance.
@@ -1532,14 +1553,13 @@ def subsetclose(subset_a: float | npt.ArrayLike,
     Returns
     -------
     result: bool
-        Boolean if the entire first array is a subset of second array 
+        Boolean if the entire first array is a subset of second array
     ind: list
-        List with integer indices where the first array's elements 
+        List with integer indices where the first array's elements
         are located inside the second array.
     """
-    assert len(set(subset_a)) == len(subset_a
-                                     ), "Elements in subset_a not unique"
-    assert len(set(set_b)) == len(set_b), "Elements in set_b not unique"
+    assert len(np.unique(subset_a.round(decimals = 6))) == len(subset_a), "Elements in subset_a not unique"
+    assert len(np.unique(set_b.round(decimals = 6))) == len(set_b), "Elements in set_b not unique"
 
     ind = []
     tmp_result = [False for i in range(len(subset_a))]
@@ -1549,7 +1569,7 @@ def subsetclose(subset_a: float | npt.ArrayLike,
                 tmp_set_ind = np.where(
                     np.isclose(set_element, set_b , rtol, atol, equal_nan))
                 tmp_subset_ind = np.where(
-                    np.isclose(subset_element, subset_a , rtol, atol, 
+                    np.isclose(subset_element, subset_a , rtol, atol,
                                equal_nan))
                 ind.append( int(tmp_set_ind[0]) )
                 tmp_result[ int(tmp_subset_ind[0]) ] = True
