@@ -116,7 +116,39 @@ class WEC:
                  constraints: Optional[list[dict]] = None,
                  min_damping: Optional[float] = 1e-6,
                  ) -> TWEC:
-        """
+        """Create a WEC object from an xarray Dataset
+
+        Parameters
+        ----------
+        bem_data
+            _description_
+        mass
+           Inertia matrix of size `ndof x ndof`, by default None. If None, value
+           from bem_data will be used.
+        hydrostatic_stiffness
+            _description_, by default None. If None, value from bem_data will be used.
+        friction
+            _description_, by default None. If None, value from bem_data will be used.
+        f_add
+            Dictionary with entries {'force_name': fun}, where fun has a 
+            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
+            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+        constraints
+            List of constraints, see documentation for scipy.optimize.minimize 
+            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
+            by default []
+        min_damping
+            Minimum damping level to ensure stable system, by default 1e-6
+
+        Returns
+        -------
+        WEC
+            TODO
+
+        Raises
+        ------
+        ValueError
+            TODO
         """
         # add mass, hydrostatic stiffness, and friction
         hydro_data = linear_hydrodynamics(
@@ -132,11 +164,7 @@ class WEC:
             hydro_data = add_zerofreq_to_xr(hydro_data)
 
         # frequency array
-        f1 = hydro_data["omega"].values[1] / (2*np.pi)
-        nfreq = len(hydro_data["omega"]) - 1
-        w_check =  np.arange(0, f1*(nfreq+0.5), f1)*2*np.pi
-        if not np.allclose(w_check, hydro_data["omega"].values):
-            raise ValueError("Frequency array `omega` must be evenly spaced.")
+        f1, nfreq = check_frequency_vector(hydro_data.omega.values)
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
@@ -151,13 +179,44 @@ class WEC:
         return WEC(f1, nfreq, forces, constraints, mass)
 
     @staticmethod
-    def from_bem_file(file_name, mass: Optional[np.ndarray] = None,
+    def from_bem_file(file_name: str, mass: Optional[np.ndarray] = None,
                       hydrostatic_stiffness: Optional[np.ndarray] = None,
                       friction: Optional[np.ndarray] = None,
                       f_add: Optional[Mapping[str, TStateFunction]] = None,
                       constraints: list[dict] = None,
                       min_damping: Optional[float] = 1e-6,
                       ) -> TWEC:
+        """Create a WEC object from a previously saved .nc file.
+
+        Parameters
+        ----------
+        file_name
+            Filename, including path
+        mass
+           Inertia matrix of size `ndof x ndof`, by default None. If None, value
+           from .nc file will be used.
+        hydrostatic_stiffness
+            Hydrostatic stiffness matrix of size `ndof x ndof`, by default None.
+            If None, value from .nc file will be used.
+        friction
+            Linear friction matrix of size `ndof x ndof`, by default None. If 
+            None, value from .nc file will be used.
+        f_add
+            Dictionary with entries {'force_name': fun}, where fun has a 
+            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
+            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+        constraints
+            List of constraints, see documentation for scipy.optimize.minimize 
+            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
+            by default []
+        min_damping
+            Minimum damping level to ensure stable system, by default 1e-6
+
+        Returns
+        -------
+        WEC
+            TODO
+        """
         bem_data = read_netcdf(file_name)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
                            f_add, constraints, min_damping=min_damping)
@@ -176,41 +235,48 @@ class WEC:
                  min_damping: Optional[float] = 1e-6,
                  ) -> tuple[TWEC, xr.Dataset]:
         """Create a WEC object from a Capytaine FloatingBody
-        TODO
+        
         Parameters
         ----------
         fb
             Capytaine FloatingBody
         mass
-            _description_
+            Inertia matrix of size `ndof x ndof`
         hydrostatic_stiffness
-            _description_
+            Hydrostatic stiffness matrix of size `ndof x ndof`
         f1
             Fundamental frequency [Hz]
         nfreq
             Number of frequencies (not including zero frequency), 
-            i.e., freqs = [0, f1, 2*f1, ..., nfreq*f1]
+            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
         wave_directions
-            _description_, by default np.array([0.0,])
+            Array of wave directions [deg] at which to perform BEM excitation 
+            calculations, by default np.array([0.0,])
         friction
-            _description_, by default None
+            Linear friction matrix of size `ndof x ndof`, by default None
         f_add
-            _description_, by default None
+            Dictionary with entries {'force_name': fun}, where fun has a 
+            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
+            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
         constraints
-            _description_, by default []
+            List of constraints, see documentation for scipy.optimize.minimize 
+            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
+            by default []
         rho
-            _description_, by default 1025
+            Density of water [kg/m^3], by default 1025
         depth
-            _description_, by default Inf
+            Water depth [m], by default Inf
         g
-            _description_, by default 9.81
+            Acceleration due to gravity [m/s], by default 9.81
         min_damping
-            _description_, by default 1e-6
+            Minimum damping level to ensure stable system, by default 1e-6
 
         Returns
         -------
-        tuple[TWEC, xr.Dataset]
-            _description_
+        WEC
+            TODO
+        hydro_data
+            TODO
         """
         
         # RUN BEM
@@ -232,8 +298,39 @@ class WEC:
         return wec, hydro_data
 
     @staticmethod
-    def from_impedance(f1, nfreq, impedance, exc_coeff, f_add=None,
-                       constraints=None):
+    def from_impedance(freqs, impedance, exc_coeff, f_add=None,
+                       constraints=None) -> TWEC:
+        """Create a WEC object from an impedance.
+
+        Parameters
+        ----------
+        freqs
+            Frequency vector [Hz], `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+        impedance
+            Complex impedance of size `ndof x ndof x nfreq`
+        exc_coeff
+            Complex excitation transfer function of size `ndof x nfreq`
+        f_add
+            Dictionary with entries {'force_name': fun}, where fun has a 
+            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
+            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+        constraints
+            List of constraints, see documentation for scipy.optimize.minimize 
+            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
+            by default []
+
+        Returns
+        -------
+        WEC
+            TODO
+
+        Raises
+        ------
+        ValueError
+            TODO
+        """
+        
+        f1, nfreq = check_frequency_vector(freqs)
 
         # impedance matrix shape
         shape = impedance.shape
@@ -272,7 +369,7 @@ class WEC:
               bounds_wec: Optional[Bounds] = None,
               bounds_opt: Optional[Bounds] = None,
               callback: Optional[Callable[[np.ndarray]]] = None,
-              ):
+              ): #TODO -> ?
         _log.info("Solving pseudo-spectral control problem.")
 
         # scale x_wec
@@ -972,3 +1069,18 @@ def decompose_decision_var(state: np.ndarray, ndof, nfreq
         """
         nstate_wec = ndof * ncomponents(nfreq)
         return state[:nstate_wec], state[nstate_wec:]
+
+
+def check_frequency_vector(freqs):
+    """Check that the frequency vector is evenly spaced and that the spacing
+    is the fundamental frequency
+    """
+    f1 = freqs[1] / (2*np.pi)
+    nfreq = len(freqs) - 1
+    w_check = np.arange(0, f1*(nfreq+0.5), f1)*2*np.pi
+    if not np.allclose(w_check, freqs):
+        raise ValueError("Frequency array `omega` must be evenly spaced by" +
+                         "the fundamental frequency " +
+                         "(i.e.,`omega = [0, f1, 2*f1, ..., nfreq*f1])")
+
+    return f1, nfreq
