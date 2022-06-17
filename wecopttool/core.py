@@ -331,7 +331,7 @@ class WEC:
                     'constraints': constraints,
                     'options': optim_options,
                     'bounds': bounds,
-                    'callback':callback,
+                    'callback':callback,  # TODO: allow callback functions to take (wec, x_wec, x_opt, waves) as arguments not x
                     }
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
