@@ -49,13 +49,60 @@ TStateFunction = Callable[
 # TODO: Docstrings
 # TODO: Type hints
 class WEC:
-    """
+    """A wave energy converter (WEC) object for performing simulations using
+    the pseudo-spectral solution method.
     """
     def __init__(self, f1, nfreq, forces, constraints=None,
                  mass: Optional[np.ndarray] = None,
                  ndof: Optional[int] = None,
                  inertia_in_forces: bool = False) -> TWEC:
-        """
+        """Create a WEC object directly from forces (may be linear or nonlinear)
+
+        Parameters
+        ----------
+        f1
+            Fundamental frequency [Hz]
+        nfreq
+            Number of frequencies (not including zero frequency), 
+            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+        forces
+            Dictionary with entries {'force_name': fun}, where fun has a 
+            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
+            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+        constraints
+            List of constraints, see documentation for scipy.optimize.minimize 
+            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
+            by default []
+        mass
+           Inertia matrix of size `ndof x ndof`, by default None. If None, value
+           from bem_data will be used.
+        ndof
+            Number of degrees of freedom, by default None
+            TODO - shouldn't this be set to mass.shape[0] if left as none?
+        inertia_in_forces
+            Set to True if inertial forces are included in the `forces` 
+            argument, by default False
+
+        Returns
+        -------
+        WEC
+            TODO
+
+        Raises
+        ------
+        ValueError
+            TODO
+        ValueError
+            TODO
+        ValueError
+            TODO
+            
+        See Also
+        --------
+        from_bem
+        from_bem_file
+        from_floating_body
+        from_impedance
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
@@ -126,9 +173,11 @@ class WEC:
            Inertia matrix of size `ndof x ndof`, by default None. If None, value
            from bem_data will be used.
         hydrostatic_stiffness
-            _description_, by default None. If None, value from bem_data will be used.
+            _description_, by default None. If None, value from bem_data will be 
+            used.
         friction
-            _description_, by default None. If None, value from bem_data will be used.
+            _description_, by default None. If None, value from bem_data will be 
+            used.
         f_add
             Dictionary with entries {'force_name': fun}, where fun has a 
             signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
@@ -277,6 +326,10 @@ class WEC:
             TODO
         hydro_data
             TODO
+            
+        Examples
+        --------
+        TODO
         """
         
         # RUN BEM
@@ -369,7 +422,74 @@ class WEC:
               bounds_wec: Optional[Bounds] = None,
               bounds_opt: Optional[Bounds] = None,
               callback: Optional[Callable[[np.ndarray]]] = None,
-              ): #TODO -> ?
+              ) -> OptimizeResult:
+        """Simulate WEC dynamics using a pseudo-spectral solution method.
+
+        Parameters
+        ----------
+        waves
+            xarray DataSet with the structure and elements shown by 
+            `wecopttool.waves`
+        obj_fun
+            Objective function to minimize for pseudo-spectral solution, must 
+            have signature `fun(wec, x_wec, x_opt, waves)` and return a scalar
+        nstate_opt
+            Length of the optimization (controls) state vector
+        x_wec_0
+            Initial guess for the WEC dynamics state. If ``None`` it is randomly 
+            initiated.
+        x_opt_0
+            Initial guess for the optimization (control) state. If ``None`` it 
+            is randomly initiated.
+        scale_x_wec
+            Factor(s) to scale each DOF in ``x_wec`` by, to improve convergence. 
+            A single float or an array of size ``ndof``.
+        scale_x_opt
+            Factor(s) to scale ``x_opt`` by, to improve convergence. A single 
+            float or an array of size ``nstate_opt``.
+        scale_obj
+            Factor to scale ``obj_fun`` by, to improve convergence.
+        optim_options
+            _Optimization options passed to the optimizer. See 
+            ``scipy.optimize.minimize``.
+        use_grad
+             If True, optimization with utilize `autograd` supplied gradients, 
+             by default True
+        maximize
+            Whether to maximize the objective function. The default is
+            ``False`` to minimize the objective function.
+        bounds_wec
+            Bounds on the WEC components of the decision variable; see
+            `scipy.optimize.minimize`
+        bounds_opt
+            Bounds on the optimization (control) components of the decision
+            variable; see `scipy.optimize.minimize`
+        callback
+            Called after each iteration; see `scipy.optimize.minimize`. The
+            default is reported via logging at the INFO level.
+
+        Returns
+        -------
+        TODO - add other outputs
+        res
+            Results produced by scipy.optimize.minimize
+            
+        Raises
+        ------
+        ValueError
+            TODO
+        Exception
+            TODO
+            
+        See Also
+        --------
+        wecopttool.waves
+        
+        Examples
+        --------
+        TODO
+        """
+        
         _log.info("Solving pseudo-spectral control problem.")
 
         # scale x_wec
@@ -504,34 +624,42 @@ class WEC:
     # properties
     @property
     def ndof(self):
+        """Number of degrees of freedom"""
         return self._ndof
 
     @property
     def frequency(self):
+        """Frequency vector [Hz]"""
         return self._freq
 
     @property
     def f1(self):
+        """Fundamental frequency [Hz]"""
         return self._freq[1]
 
     @property
     def nfreq(self):
+        """Number of frequencies"""
         return len(self._freq)-1
 
     @property
     def omega(self):
-        return self._freq / (2*np.pi)
+        """Radial frequency vector [rad/s]"""
+        return self._freq * (2*np.pi)
 
     @property
     def w1(self):
+        """Fundamental radial frequency [rad/s]"""
         return self.omega[1]
 
     @property
     def time(self):
+        """TODO"""
         return self._time
 
     @property
     def time_mat(self):
+        """TODO"""
         return self._time_mat
 
     @property
@@ -540,32 +668,42 @@ class WEC:
 
     @property
     def dt(self):
-        """Time spacing."""
+        """Time spacing [s]"""
         return self._time[1]
 
     @property
     def tf(self):
-        """Final time (repeat period). Not included in time vector. """
+        """Final time (repeat period) [s]. (Not included in time vector.)"""
         return 1/self.f1
 
     @property
     def ncomponents(self):
+        """Number of Fourier components (2*nfreq + 1)"""
         return ncomponents(self.nfreq)
 
     @property
     def nstate_wec(self):
-        """Length of the  WEC dynamics state vector."""
+        """Length of the  WEC dynamics state vector"""
         return self.ndof * self.ncomponents
 
     # other methods
     def decompose_decision_var(self, state: np.ndarray
                               ) -> tuple[np.ndarray, np.ndarray]:
+        """Split the state vector into the WEC dynamics state and the
+        optimization (control) state.
+        
+        Examples
+        --------
+        >>> x_wec, x_opt = wec.decompose_decision_var(x)
+        """
         return decompose_decision_var(state, self.ndof, self.nfreq)
 
     def time_nsubsteps(self, nsubsteps: int):
+        """Time vector with sub-steps"""
         return time(self.f1, self.nfreq, nsubsteps)
 
     def time_mat_nsubsteps(self, nsubsteps: int):
+        """Time matrix with sub-steps"""
         return time_mat(self.f1, self.nfreq, nsubsteps)
 
     def vec_to_dofmat(self, vec: np.ndarray):
@@ -589,8 +727,20 @@ def frequency(f1: float, nfreq: int) -> np.ndarray:
     """Construct equally spaced frequency array.
 
     The array includes 0 and has length of `nfreq+1`.
-    f1 is fundamental frequency (1st harmonic).
-    f = [0, f1, 2*f1, ..., nfreq*f1]
+    `f1` is fundamental frequency (1st harmonic).
+    `f = [0, f1, 2*f1, ..., nfreq*f1]`
+    
+    Parameters
+    ----------
+    f1
+        Fundamental frequency [Hz]
+    nfreq
+        Number of frequencies
+        
+    Returns
+    -------
+    freqs
+        Frequency array, e.g., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
     """
     return np.arange(0, nfreq+1)*f1
 
@@ -600,14 +750,14 @@ def time(f1: float, nfreq: int, nsubsteps: int = 1) -> np.ndarray:
 
     Parameters
     ----------
-    nsubsteps: int
+    nsubsteps
         Number of steps between the default (implied) time steps.
         A value of `1` corresponds to the default step length.
         dt = dt_default * 1/nsubsteps.
 
     Returns
     -------
-    time_vec: np.ndarray
+    time_vec
     """
     nsteps = nsubsteps * ncomponents(nfreq)
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
@@ -619,7 +769,7 @@ def time_mat(f1: float, nfreq: int, nsubsteps: int = 1) -> np.ndarray:
 
     Parameters
     ---------
-    nsubsteps: int
+    nsubsteps
         Number of subdivisions between the default (implied) time
         steps.
 
@@ -739,11 +889,13 @@ def td_to_fd(td: np.ndarray) -> np.ndarray:
 
 
 def wave_elevation(waves):
-    """
-    example time domain:
-    >> elevation_fd = wave_elevation(waves)
-    >> nfd = 2 * len(waves['omega']) + 1
-    >> elevation_td = fd_to_td(elevation_fd, nfd)
+    """Free surface elevation
+    
+    Examples
+    --------
+    >>> elevation_fd = wave_elevation(waves)
+    >>> nfd = 2 * len(waves['omega']) + 1
+    >>> elevation_td = fd_to_td(elevation_fd, nfd)
     """
     if not waves.omega[0]==0.0:
         raise ValueError("first frequency must be 0.0")
@@ -755,9 +907,12 @@ def wave_elevation(waves):
 
 
 def wave_excitation(exc_coeff, waves):
-    """
-    wave frequencies same as exc_coeff. Directions can be a subset.
-    frequencies must be evenly spaced and start at 0.
+    """Excitation force due to waves
+    
+    Notes
+    -----
+    Wave frequencies must be same as exc_coeff. Directions can be a subset.
+    Frequencies must be evenly spaced and start at 0.
     """
     omega_w = waves['omega'].values
     omega_e = exc_coeff['omega'].values
@@ -791,13 +946,28 @@ def read_netcdf(fpath: str | Path) -> xr.Dataset:
 
 
 def write_netcdf(fpath: str | Path, data: xr.Dataset) -> None:
-    """Save an xarray dataSet with possibly complex entries as a NetCDF
+    """Save an `xarray.Dataset` with possibly complex entries as a NetCDF
     file.
     """
     cpy.io.xarray.separate_complex_values(data).to_netcdf(fpath)
 
 
 def check_linear_damping(hydro_data, min_damping=1e-6) -> xr.Dataset:
+    """Ensure that the linear hydrodynamics (friction + radiation damping) 
+    have positive damping
+
+    Parameters
+    ----------
+    hydro_data
+        Linear hydrodynamic data stored in an `xarray.Dataset`
+    min_damping
+        Minimum threshold for damping, by default 1e-6
+
+    Returns
+    -------
+    hydro_data
+        Updated `xarray.Dataset` with `damping >= min_damping`
+    """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
     friction = hydro_data_new['friction']
@@ -846,7 +1016,7 @@ def inertia(f1, nfreq, mass):
 
 
 def standard_forces(hydro_data: xr.Dataset):
-    """
+    """Create functions for linear hydrodynamic forces.
     """
     hydro_data = hydro_data.transpose(
          "omega", "wave_direction", "radiating_dof", "influenced_dof")
@@ -883,8 +1053,14 @@ def standard_forces(hydro_data: xr.Dataset):
     return linear_force_functions
 
 
-def add_zerofreq_to_xr(data):
-    """frequency variable must be called `omega`."""
+def add_zerofreq_to_xr(data:xr.Dataset):
+    """Add zero frequency element to `xarray.Dataset` containing linear 
+    hydrodynamic data
+    
+    Notes
+    -----
+    Frequency variable must be called `omega`.
+    """
     if not np.isclose(data.coords['omega'][0].values, 0):
         tmp = data.isel(omega=0).copy(deep=True)
         tmp['omega'] = tmp['omega'] * 0
@@ -958,7 +1134,7 @@ def change_bem_convention(bem_data):
 
 
 def linear_hydrodynamics(bem_data, mass=None, hydrostatic_stiffness=None, friction=None):
-    """Add mass, hydrostatic stiffness, and linear friction to BEM.
+    """Add rigid body mass, hydrostatic stiffness, and linear friction to BEM.
     """
     vars = {'mass': mass, 'friction': friction,
             'hydrostatic_stiffness': hydrostatic_stiffness}
@@ -1000,27 +1176,28 @@ def subset_close(subset_a: float | npt.ArrayLike,
                 set_b: float | npt.ArrayLike,
                 rtol: float = 1.e-5, atol:float = 1.e-8,
                 equal_nan: bool = False) -> tuple[bool, list]:
-    """
-    Compare if two arrays are subset equal within a tolerance.
+    """Check if two arrays are subset equal within a tolerance.
+    
     Parameters
     ----------
-    subset_a: float | npt.ArrayLike
+    subset_a
         First array which is tested for being subset.
-    set_b: float | npt.ArrayLike
-        Second array which is tested for containing subset_a.
-    rtol: float
+    set_b
+        Second array which is tested for containing `subset_a`.
+    rtol
         The relative tolerance parameter.
-    atol: float
+    atol
         The absolute tolerance parameter.
-    equal_nan: bool
+    equal_nan
         Whether to compare NaNs as equal.
+        
     Returns
     -------
-    subset: bool
+    subset
         Whether the first array is a subset of second array
-    ind: list
-        List with integer indices where the first array's elements
-        are located inside the second array.
+    ind
+        List with integer indices where the first array's elements are located 
+        inside the second array.
     """
     assert len(np.unique(subset_a.round(decimals = 6))) == len(subset_a), "Elements in subset_a not unique"
     assert len(np.unique(set_b.round(decimals = 6))) == len(set_b), "Elements in set_b not unique"
@@ -1046,14 +1223,14 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 
     Parameters
     ----------
-    scale_list: list
+    scale_list
         Scale for each DOF.
-    ncomponents: int
+    ncomponents
         Number of elements in the state vector for each DOF.
 
     Returns
     -------
-    np.ndarray: Scaling vector.
+    np.ndarray
     """
     ndof = len(scale_list)
     scale = []
@@ -1065,15 +1242,15 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
 def decompose_decision_var(state: np.ndarray, ndof, nfreq
                                ) -> tuple[np.ndarray, np.ndarray]:
         """Split the state vector into the WEC dynamics state and the
-        optimization (control) state. x = [x_wec, x_opt].
+        optimization (control) state. `x = [x_wec, x_opt]`.
         """
         nstate_wec = ndof * ncomponents(nfreq)
         return state[:nstate_wec], state[nstate_wec:]
 
 
-def check_frequency_vector(freqs):
+def check_frequency_vector(freqs: npt.ArrayLike):
     """Check that the frequency vector is evenly spaced and that the spacing
-    is the fundamental frequency
+    is the fundamental frequency.
     """
     f1 = freqs[1] / (2*np.pi)
     nfreq = len(freqs) - 1
