@@ -400,7 +400,7 @@ class _LinearPTO(_PTO):
         """
         _PTO.__init__(self, kinematics, names)
         self.nfreq = nfreq
-        if len(impedance.shape) == 2:
+        if impedance.ndim == 2:
             impedance = np.tile(np.expand_dims(impedance, 2), self.nfreq)
         self.impedance = impedance
         self._make_abcd()

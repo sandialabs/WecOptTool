@@ -22,7 +22,7 @@ from wecopttool.core import WEC
 
 class PTO:
 
-    def __init__(self, ndof, ncomponents, kinematics, controller, names: list[str] | None = None):
+    def __init__(self, ndof, ncomponents, kinematics, controller, impedance=None, names: list[str] | None = None):
         """
         ndof: int
         kinematics: wec, wec_position -> kinematics matrix
@@ -55,17 +55,6 @@ class PTO:
     def nstate(self):
         return self.ndof*self.ncomponents
 
-    def _position(self, wec, x_wec):
-        return wec.vec_to_dofmat(x_wec)
-
-    def _velocity(self, wec, x_wec):
-        pos_wec = self._position(wec, x_wec)
-        return np.dot(wec.derivative_mat, pos_wec)
-
-    def _acceleration(self, wec, x_wec):
-        vel_wec = self._velocity(wec, x_wec)
-        return np.dot(wec.derivative_mat, vel_wec)
-
     def _kinematics(self, wec, x_wec, f_wec):
         pos_wec = wec.vec_to_dofmat(x_wec)
         pos_wec_td = np.dot(wec.time_mat, pos_wec)
@@ -79,17 +68,23 @@ class PTO:
     def position(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: Optional[npt.ArrayLike],
                  waves=None, nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO position time-series."""
-        return self._kinematics(wec, x_wec, self._position(wec, x_wec))
+        pos_wec = wec.vec_to_dofmat(x_wec)
+        return self._kinematics(wec, x_wec, pos_wec)
 
     def velocity(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: Optional[npt.ArrayLike],
                  waves=None, nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO position time-series."""
-        return self._kinematics(wec, x_wec, self._velocity(wec, x_wec))
+        pos_wec = wec.vec_to_dofmat(x_wec)
+        vel_wec = np.dot(wec.derivative_mat, pos_wec)
+        return self._kinematics(wec, x_wec, vel_wec)
 
     def acceleration(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: Optional[npt.ArrayLike],
                  waves=None, nsubsteps: int = 1) -> np.ndarray:
         """Calculate the PTO position time-series."""
-        return self._kinematics(wec, x_wec, self._acceleration(wec, x_wec))
+        pos_wec = wec.vec_to_dofmat(x_wec)
+        vel_wec = np.dot(wec.derivative_mat, pos_wec)
+        acc_wec = np.dot(wec.derivative_mat, vel_wec)
+        return self._kinematics(wec, x_wec, acc_wec)
 
     def force_on_wec(self, wec: WEC, x_wec: npt.ArrayLike, x_opt: Optional[npt.ArrayLike],
                      waves=None, nsubsteps: int = 1):
@@ -144,6 +139,7 @@ def _controller_pid(wec: WEC, pto:PTO, x_wec: npt.ArrayLike,
         force_td = force_td + u*B
         idx = idx + 1
 
+    # TODO: replace if statements with zero/one multiplication
     if proportional:
         vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         update_force_td(vel_td)
@@ -178,3 +174,18 @@ def controller_p(wec: WEC, pto:PTO, x_wec: npt.ArrayLike,
     force = _controller_pid(wec, pto, x_wec, x_opt, waves, nsubsteps,
                             proportional=True, integral=False, derivative=False)
     return force
+
+
+def _make_abcd(impedance, ndof):
+    z_11 = impedance[:ndof, :ndof, :]  # Fu
+    z_12 = impedance[:ndof, ndof:, :]  # Fi
+    z_21 = impedance[ndof:, :ndof, :]  # Vu
+    z_22 = impedance[ndof:, ndof:, :]  # Vi
+    z_12_inv = np.linalg.inv(z_12.T).T
+
+    mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
+    abcd_11 = -1 * mmult(z_12_inv, z_11)
+    abcd_12 = z_12_inv
+    abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
+    abcd_22 = mmult(z_22, z_12_inv)
+    return np.block([[abcd_11, abcd_12], [abcd_21, abcd_22]])
