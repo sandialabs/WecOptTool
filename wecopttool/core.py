@@ -26,19 +26,27 @@ import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
+
 # from pyparsing import null_debug_action
 import xarray as xr
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
-from scipy.linalg import block_diag
+from scipy.linalg import block_diag, dft
 # import matplotlib.pyplot as plt
 # from matplotlib.figure import Figure
+
+
+
+
+import warnings
+warnings.filterwarnings("ignore", message="Casting complex values to real discards the imaginary part")
 
 
 # logger
 _log = logging.getLogger(__name__)
 
 # default values
+# _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
 
 # type aliases
@@ -263,7 +271,7 @@ class WEC:
         sign = -1.0 if maximize else 1.0
 
         def obj_fun_scaled(x):
-            x_wec, x_opt = self.decompose_decision_var(x/scale)
+            x_wec, x_opt = self.decompose_state(x/scale)
             return obj_fun(self, x_wec, x_opt, waves)*scale_obj*sign
 
         # constraints
@@ -274,7 +282,7 @@ class WEC:
 
             def make_new_fun(icons):
                 def new_fun(x):
-                    x_wec, x_opt = self.decompose_decision_var(x/scale)
+                    x_wec, x_opt = self.decompose_state(x/scale)
                     return icons["fun"](self, x_wec, x_opt, waves)
                 return new_fun
 
@@ -286,7 +294,7 @@ class WEC:
         # system dynamics through equality constraint, ma - Σf = 0
         def resid_fun(x):
             x_s = x/scale
-            x_wec, x_opt = self.decompose_decision_var(x_s)
+            x_wec, x_opt = self.decompose_state(x_s)
             # inertia, ma
             if not self.inertia_in_forces:
                 ri = self.inertia(self, x_wec, x_opt, waves)
@@ -419,9 +427,9 @@ class WEC:
         return self.ndof * self.ncomponents
 
     # other methods
-    def decompose_decision_var(self, state: np.ndarray
+    def decompose_state(self, state: np.ndarray
                               ) -> tuple[np.ndarray, np.ndarray]:
-        return decompose_decision_var(state, self.ndof, self.nfreq)
+        return decompose_state(state, self.ndof, self.nfreq)
 
     def time_nsubsteps(self, nsubsteps: int):
         return time(self.f1, self.nfreq, nsubsteps)
@@ -438,9 +446,8 @@ class WEC:
     def fd_to_td(self, fd: np.ndarray):
         return fd_to_td(fd, self.f1, self.nfreq)
 
-    def td_to_fd(self, td: np.ndarray):
-        return td_to_fd(td)
-
+    def td_to_fd(self, td: np.ndarray, fft=True):
+        return td_to_fd(td, fft)
 
 
 def ncomponents(nfreq : int) -> int:
@@ -572,11 +579,19 @@ def complex_to_real(fd: np.ndarray) -> np.ndarray:
     fd= atleast_2d(fd)
     nfreq = fd.shape[0] - 1
     ndof = fd.shape[1]
-    out = np.zeros((1+2*nfreq, ndof))
     assert np.all(np.isreal(fd[0, :]))
-    out[0, :] = fd[0, :].real
-    out[1::2, :] = fd[1:].real
-    out[2::2, :] = fd[1:].imag
+    # does not work with autograd:
+    #     out = np.zeros((1+2*nfreq, ndof))
+    #     out[0, :] = fd[0, :].real
+    #     out[1::2, :] = fd[1:].real
+    #     out[2::2, :] = fd[1:].imag
+    a = np.real(fd[0:1, :])
+    b = np.real(fd[1:, :])
+    c = np.imag(fd[1:, :])
+    out = np.concatenate([np.transpose(b), np.transpose(c)])
+    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+    out = np.concatenate([a, out])
+    assert out.shape == (2*nfreq+1, ndof)
     return out
 
 
@@ -594,10 +609,14 @@ def fd_to_td(fd: np.ndarray, f1=None, nfreq=None) -> np.ndarray:
     return td
 
 
-def td_to_fd(td: np.ndarray) -> np.ndarray:
+def td_to_fd(td: np.ndarray, fft=True):
     td= atleast_2d(td)
     n = td.shape[0]
-    return np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+    if fft:
+        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+    else:
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    return fd
 
 
 def wave_elevation(waves):
@@ -757,6 +776,7 @@ def add_zerofreq_to_xr(data):
     return data
 
 
+# def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             wave_dirs: Iterable[float] = [0],
             rho: float = _default_parameters['rho'],
@@ -920,7 +940,7 @@ def scale_dofs(scale_list: list[float], ncomponents: int) -> np.ndarray:
     return np.array(scale)
 
 
-def decompose_decision_var(state: np.ndarray, ndof, nfreq
+def decompose_state(state: np.ndarray, ndof, nfreq
                                ) -> tuple[np.ndarray, np.ndarray]:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state. x = [x_wec, x_opt].
