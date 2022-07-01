@@ -23,26 +23,21 @@ from wecopttool.core import WEC, complex_to_real, td_to_fd, dofmat_to_vec, vec_t
 
 class PTO:
 
-    def __init__(self, ndof, ncomponents, kinematics, controller,
+    def __init__(self, ndof, kinematics, controller,
                  power, names: Optional[list[str]] = None):
         """
         ndof: int
-        ncomponents: int, number of states per DOF
         kinematics: (...) -> kinematics matrix
         controller: (...) -> pto force in td in pto frame
         power: (...) -> power time-series
+        (...) = (pto, wec, x_wec, x_opt, waves, nsubsteps)
         """
         self.ndof = ndof
-        self.ncomponents = ncomponents
         self.force = controller
         self.kinematics = kinematics
         self.power = power
         names = [f'PTO_{i+1}' for i in range(ndof)] if names is None else names
         self.names = names
-
-    @property
-    def nstate(self):
-        return self.ndof*self.ncomponents
 
     def _tmat(self, wec, nsubsteps: int = 1):
         if nsubsteps==1:
@@ -136,13 +131,18 @@ class PTO:
 # kinematics
 def kinematics_linear(kinematics_mat):
 
-    def fun(pto, wec, x_wec, x_opt, waves):
-        return np.repeat(kinematics_mat[:, :, np.newaxis], wec.nt, axis=-1)
+    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
+        n = (wec.nt-1)*nsubsteps + 1
+        return np.repeat(kinematics_mat[:, :, np.newaxis], n, axis=-1)
 
     return fun
 
 
 def kinematics_nonlinear(kinematics_fun):
+    """
+    kinematics_fun(pos_wec_td: [ndof_wec x npos_wec]) -> [ndof_pto x ndof_wec x npos_wec]
+    The given function should work on multiple input positions.
+    """
 
     def fun(pto, wec, x_wec, x_opt, waves):
         pos_wec = wec.vec_to_dofmat(x_wec)
@@ -156,7 +156,7 @@ def kinematics_nonlinear(kinematics_fun):
 def controller_unstructured():
 
     def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        x_opt = np.reshape(x_opt, (pto.ncomponents, pto.ndof), order='F')
+        x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
         tmat = pto._tmat(wec, nsubsteps)
         return np.dot(tmat, x_opt)
 
@@ -191,36 +191,6 @@ def controller_pid(proportional=True, integral=True, derivative=True):
 
 
 # power conversion chain
-def _make_abcd(impedance, ndof):
-    z_11 = impedance[:ndof, :ndof, :]  # Fu
-    z_12 = impedance[:ndof, ndof:, :]  # Fi
-    z_21 = impedance[ndof:, :ndof, :]  # Vu
-    z_22 = impedance[ndof:, ndof:, :]  # Vi
-    z_12_inv = np.linalg.inv(z_12.T).T
-
-    mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
-    abcd_11 = -1 * mmult(z_12_inv, z_11)
-    abcd_12 = z_12_inv
-    abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
-    abcd_22 = mmult(z_22, z_12_inv)
-    return np.block([[[abcd_11], [abcd_12]], [[abcd_21], [abcd_22]]])
-
-
-def _make_mimo_transfer_mat(impedance_abcd, ndof) -> np.ndarray:
-        """Create a block matrix of the MIMO transfer function.
-        """
-        elem = [[None]*2*ndof for _ in range(2*ndof)]
-        def block(re, im): return np.array([[re, -im], [im, re]])
-        for idof in range(2*ndof):
-            for jdof in range(2*ndof):
-                Zp = impedance_abcd[idof, jdof, :]
-                re = np.real(Zp)
-                im = np.imag(Zp)
-                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-                elem[idof][jdof] = block_diag(*blocks)
-        return np.block(elem)
-
-
 def power_linear(impedance):
     ndof = impedance.shape[0] // 2
     impedance_abcd = _make_abcd(impedance, ndof)
@@ -258,10 +228,40 @@ def power_efficiency_map(efficiency, impedance=None):
     # impedance_abcd = _make_abcd(impedance, pto.ndof)
 
     def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        # get new flow and effort variable (inputs to efficiency map)
-        # get mechanical power at efficiency map input stage
+        # get new flow and effort variable (inputs to efficiency map) by using the MIMO impedance matrix
+        # get mechanical power at efficiency map input stage by multiplying the two variables
         # get efficiencies from map, multiply by mech power, integrate?
         # return power time-series, [ntime_steps x ndof_pto]
         return power
 
     return fun
+
+
+def _make_abcd(impedance, ndof):
+    z_11 = impedance[:ndof, :ndof, :]  # Fu
+    z_12 = impedance[:ndof, ndof:, :]  # Fi
+    z_21 = impedance[ndof:, :ndof, :]  # Vu
+    z_22 = impedance[ndof:, ndof:, :]  # Vi
+    z_12_inv = np.linalg.inv(z_12.T).T
+
+    mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
+    abcd_11 = -1 * mmult(z_12_inv, z_11)
+    abcd_12 = z_12_inv
+    abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
+    abcd_22 = mmult(z_22, z_12_inv)
+    return np.block([[[abcd_11], [abcd_12]], [[abcd_21], [abcd_22]]])
+
+
+def _make_mimo_transfer_mat(impedance_abcd, ndof) -> np.ndarray:
+        """Create a block matrix of the MIMO transfer function.
+        """
+        elem = [[None]*2*ndof for _ in range(2*ndof)]
+        def block(re, im): return np.array([[re, -im], [im, re]])
+        for idof in range(2*ndof):
+            for jdof in range(2*ndof):
+                Zp = impedance_abcd[idof, jdof, :]
+                re = np.real(Zp)
+                im = np.imag(Zp)
+                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+                elem[idof][jdof] = block_diag(*blocks)
+        return np.block(elem)
