@@ -144,9 +144,10 @@ def kinematics_nonlinear(kinematics_fun):
     The given function should work on multiple input positions.
     """
 
-    def fun(pto, wec, x_wec, x_opt, waves):
+    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps):
         pos_wec = wec.vec_to_dofmat(x_wec)
-        pos_wec_td = np.dot(wec.time_mat, pos_wec)
+        tmat = pto._tmat(wec, nsubsteps)
+        pos_wec_td = np.dot(tmat, pos_wec)
         return kinematics_fun(pos_wec_td)
 
     return fun
