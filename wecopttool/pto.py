@@ -9,6 +9,7 @@ dynamics.
 
 
 from __future__ import annotations
+import imp
 
 
 from typing import Optional
@@ -23,21 +24,43 @@ from wecopttool.core import WEC, complex_to_real, td_to_fd, dofmat_to_vec, vec_t
 
 class PTO:
 
-    def __init__(self, ndof, kinematics, controller,
-                 power, names: Optional[list[str]] = None):
+    def __init__(self, ndof, kinematics, controller=None, impedance=None, efficiency=None,
+                 names: Optional[list[str]] = None):
         """
-        ndof: int
-        kinematics: (...) -> kinematics matrix
         controller: (...) -> pto force in td in pto frame
         power: (...) -> power time-series
         (...) = (pto, wec, x_wec, x_opt, waves, nsubsteps)
         """
         self.ndof = ndof
+        # names
+        if names is None:
+            self.names = [f'PTO_{i}' for i in range(ndof)] if names is None else names
+        else:
+            self.names = names
+        # kinematics
+        if callable(kinematics):
+            def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
+                pos_wec = wec.vec_to_dofmat(x_wec)
+                tmat = self._tmat(wec, nsubsteps)
+                pos_wec_td = np.dot(tmat, pos_wec)
+                return kinematics(pos_wec_td)
+        else:
+            def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
+                n = (wec.nt-1)*nsubsteps + 1
+                return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
+        self.kinematics = kinematics_fun
+        # controller
+        if controller is None:
+            controller = controller_unstructured
         self.force = controller
-        self.kinematics = kinematics
-        self.power = power
-        names = [f'PTO_{i+1}' for i in range(ndof)] if names is None else names
-        self.names = names
+        # power
+        self.impedance = impedance
+        self.efficiency = efficiency
+        if impedance is not None:
+            impedance_abcd = _make_abcd(impedance, ndof)
+            self.transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
+        else:
+            self.transfer_mat = None
 
     def _tmat(self, wec, nsubsteps: int = 1):
         if nsubsteps==1:
@@ -55,7 +78,7 @@ class PTO:
         assert f_wec_td.shape == (wec.nt, wec.ndof)
         f_wec_td = np.expand_dims(np.transpose(f_wec_td), axis=0)
         assert f_wec_td.shape == (1, wec.ndof, wec.nt)
-        kinematics_mat = self.kinematics(self, wec, x_wec, x_opt, waves)
+        kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves)
         return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
 
     def position(self, wec: WEC, x_wec: npt.ArrayLike,
@@ -89,7 +112,7 @@ class PTO:
         assert force_td.shape == (wec.nt, self.ndof)
         force_td = np.expand_dims(np.transpose(force_td), axis=0)
         assert force_td.shape == (1, wec.ndof, wec.nt)
-        kinematics_mat = self.kinematics(self, wec, x_wec, x_opt, waves)
+        kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves)
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
 
@@ -115,10 +138,36 @@ class PTO:
         energy = self.mechanical_energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
 
+    def power(self, wec: WEC, x_wec: npt.ArrayLike,
+              x_opt: Optional[npt.ArrayLike], waves=None, nsubsteps: int = 1):
+        e1_td = self.force(self, wec, x_wec, x_opt, waves)
+        q1_td = self.velocity(wec, x_wec, x_opt, waves)
+        # convert e1 (PTO force), q1 (PTO velocity) to e2,q2
+        if self.impedance is not None:
+            q1 = complex_to_real(td_to_fd(q1_td, False))
+            e1 = complex_to_real(td_to_fd(e1_td, False))
+            vars_1 = np.hstack([q1[1:, :], e1[1:, :]])
+            vars_1_flat = dofmat_to_vec(vars_1)
+            vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
+            vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
+            e2 = vars_2[:, self.ndof:]
+            q2 = vars_2[:, :self.ndof]
+            time_mat = self._tmat(wec, nsubsteps)[:, 1:]
+            e2_td = np.dot(time_mat, e2)
+            q2_td = np.dot(time_mat, q2)
+        else:
+            e2_td = e1_td
+            q2_td = q1_td
+        # power
+        power_out = e2_td * q2_td
+        if self.efficiency is not None:
+            power_out = power_out * self.efficiency(e2_td, q2_td)
+        return power_out
+
     def energy(self, wec: WEC, x_wec: npt.ArrayLike,
                x_opt: Optional[npt.ArrayLike],
                waves=None, nsubsteps: int = 1):
-        power_td = self.power(self, wec, x_wec, x_opt, waves, nsubsteps)
+        power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
 
     def average_power(self, wec: WEC, x_wec: npt.ArrayLike,
@@ -128,116 +177,7 @@ class PTO:
         return energy / wec.tf
 
 
-# kinematics
-def kinematics_linear(kinematics_mat):
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        n = (wec.nt-1)*nsubsteps + 1
-        return np.repeat(kinematics_mat[:, :, np.newaxis], n, axis=-1)
-
-    return fun
-
-
-def kinematics_nonlinear(kinematics_fun):
-    """
-    kinematics_fun(pos_wec_td: [ndof_wec x npos_wec]) -> [ndof_pto x ndof_wec x npos_wec]
-    The given function should work on multiple input positions.
-    """
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps):
-        pos_wec = wec.vec_to_dofmat(x_wec)
-        tmat = pto._tmat(wec, nsubsteps)
-        pos_wec_td = np.dot(tmat, pos_wec)
-        return kinematics_fun(pos_wec_td)
-
-    return fun
-
-
-# controllers
-def controller_unstructured():
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
-        tmat = pto._tmat(wec, nsubsteps)
-        return np.dot(tmat, x_opt)
-
-    return fun
-
-
-def controller_pid(proportional=True, integral=True, derivative=True):
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        ndof = pto.ndof
-        force_td = np.zeros([wec.nt, ndof])
-        idx = 0
-
-        def update_force_td(B):
-            nonlocal idx, force_td
-            u = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-            force_td = force_td + u*B
-            idx = idx + 1
-
-        if proportional:
-            vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-            update_force_td(vel_td)
-        if integral:
-            pos_td = pto.position(wec, x_wec, x_opt, waves, nsubsteps)
-            update_force_td(pos_td)
-        if derivative:
-            acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
-            update_force_td(acc_td)
-        return force_td
-
-    return fun
-
-
 # power conversion chain
-def power_linear(impedance):
-    ndof = impedance.shape[0] // 2
-    impedance_abcd = _make_abcd(impedance, ndof)
-    transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        velocity_td = pto.velocity(wec, x_wec, x_opt, waves)
-        velocity = complex_to_real(td_to_fd(velocity_td, False))
-        force_td = pto.force(pto, wec, x_wec, x_opt, waves)
-        force = complex_to_real(td_to_fd(force_td, False))
-        mech_vars = np.hstack([velocity[1:, :], force[1:, :]])
-        mech_flat = dofmat_to_vec(mech_vars)
-        elec_flat = np.dot(transfer_mat, mech_flat)
-        elec_vars = vec_to_dofmat(elec_flat, 2*ndof)
-        current = elec_vars[:, :ndof]
-        voltage = elec_vars[:, ndof:]
-        time_mat = pto._tmat(wec, nsubsteps)[:, 1:]
-        current_td = np.dot(time_mat, current)
-        voltage_td = np.dot(time_mat, voltage)
-        return current_td*voltage_td
-
-    return fun
-
-
-def power_efficiency_map(efficiency, impedance=None):
-    """`impedance` maps PTO velocity and force to some other
-    flow (`q`) & effort (`e`) variables, e.g. generator rotational
-    speed and torque. These new variables are the inputs to the
-    efficiency map.
-    The `efficiency` map gives the ratio `P/P0` of actual power `P` to
-    maximum power `P0=e*q` for given values of `e` and `q`.
-    """
-    raise NotImplementedError()
-    # if impedance is None, create np.eye(2*ndof) + repeat n times
-    # impedance_abcd = _make_abcd(impedance, pto.ndof)
-
-    def fun(pto, wec, x_wec, x_opt, waves, nsubsteps=1):
-        # get new flow and effort variable (inputs to efficiency map) by using the MIMO impedance matrix
-        # get mechanical power at efficiency map input stage by multiplying the two variables
-        # get efficiencies from map, multiply by mech power, integrate?
-        # return power time-series, [ntime_steps x ndof_pto]
-        return power
-
-    return fun
-
-
 def _make_abcd(impedance, ndof):
     z_11 = impedance[:ndof, :ndof, :]  # Fu
     z_12 = impedance[:ndof, ndof:, :]  # Fi
@@ -254,15 +194,58 @@ def _make_abcd(impedance, ndof):
 
 
 def _make_mimo_transfer_mat(impedance_abcd, ndof) -> np.ndarray:
-        """Create a block matrix of the MIMO transfer function.
-        """
-        elem = [[None]*2*ndof for _ in range(2*ndof)]
-        def block(re, im): return np.array([[re, -im], [im, re]])
-        for idof in range(2*ndof):
-            for jdof in range(2*ndof):
-                Zp = impedance_abcd[idof, jdof, :]
-                re = np.real(Zp)
-                im = np.imag(Zp)
-                blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-                elem[idof][jdof] = block_diag(*blocks)
-        return np.block(elem)
+    """Create a block matrix of the MIMO transfer function.
+    """
+    elem = [[None]*2*ndof for _ in range(2*ndof)]
+    def block(re, im): return np.array([[re, -im], [im, re]])
+    for idof in range(2*ndof):
+        for jdof in range(2*ndof):
+            Zp = impedance_abcd[idof, jdof, :]
+            re = np.real(Zp)
+            im = np.imag(Zp)
+            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            elem[idof][jdof] = block_diag(*blocks)
+    return np.block(elem)
+
+
+# controllers
+def controller_unstructured(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+    x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
+    tmat = pto._tmat(wec, nsubsteps)
+    return np.dot(tmat, x_opt)
+
+
+def controller_pid(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1,
+                   proportional=True, integral=True, derivative=True):
+    ndof = pto.ndof
+    force_td = np.zeros([wec.nt, ndof])
+    idx = 0
+
+    def update_force_td(B):
+        nonlocal idx, force_td
+        u = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
+        force_td = force_td + u*B
+        idx = idx + 1
+
+    if proportional:
+        vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+        update_force_td(vel_td)
+    if integral:
+        pos_td = pto.position(wec, x_wec, x_opt, waves, nsubsteps)
+        update_force_td(pos_td)
+    if derivative:
+        acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
+        update_force_td(acc_td)
+    return force_td
+
+
+def controller_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
+                               True, True, False)
+    return force_td
+
+
+def controller_p(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
+                               True, False, False)
+    return force_td
