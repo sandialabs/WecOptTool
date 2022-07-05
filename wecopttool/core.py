@@ -759,6 +759,7 @@ def time(f1: float, nfreq: int, nsubsteps: int = 1) -> np.ndarray:
     -------
     time_vec
     """
+    if nsubsteps < 1: raise ValueError("`nsubsteps` must be 1 or greater")
     nsteps = nsubsteps * ncomponents(nfreq)
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
