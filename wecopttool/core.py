@@ -492,24 +492,24 @@ class WEC:
         
         _log.info("Solving pseudo-spectral control problem.")
 
-        # scale x_wec
+        # x_wec scaling vector
         if scale_x_wec == None:
             scale_x_wec = [1.0] * self.ndof
         elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
             scale_x_wec = [scale_x_wec] * self.ndof
         scale_x_wec = scale_dofs(scale_x_wec, self.ncomponents)
 
-        # scale x_opt
+        # x_opt scaling vector
         if isinstance(scale_x_opt, float) or isinstance(scale_x_opt, int):
             if nstate_opt is None:
                 raise ValueError("If 'scale_x_opt' is a scalar, " +
                                     "'nstate_opt' must be provided")
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
-        # scale
+        # composite scaling vector
         scale = np.concatenate([scale_x_wec, scale_x_opt])
 
-        # initial guess
+        # decision variable initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
