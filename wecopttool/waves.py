@@ -352,7 +352,7 @@ def jonswap_spectrum(freq:float | npt.ArrayLike, fp:float, hs:float,
                          funclist=[sigma_a, sigma_b])
 
 
-    # Pieson-Moskowitz spectrum
+    # Pierson-Moskowitz spectrum
     Spm = 5/16 * hs**2 * fp**4 * freq**-5 * np.exp(-5/4 * (freq / fp)**-4)
 
     # Modify PM to get JONSWAP spectrum
