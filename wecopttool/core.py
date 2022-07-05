@@ -602,24 +602,119 @@ class WEC:
             problem['jac'] = grad(obj_fun_scaled)
 
         # minimize
-        res = minimize(**problem)
+        optim_res = minimize(**problem)
 
-        msg = f'{res.message}    (Exit mode {res.status})'
-        if res.status == 0:
+        msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
+        if optim_res.status == 0:
             _log.info(msg)
-        elif res.status == 9:
+        elif optim_res.status == 9:
             _log.warning(msg)
         else:
             raise Exception(msg)
 
         # unscale
-        res.x = res.x / scale
-        res.fun = res.fun / scale_obj
+        optim_res.x = optim_res.x / scale
+        optim_res.fun = optim_res.fun / scale_obj
 
         # post-process
-        # TODO
+        res_fd, res_td = self.post_process(waves, optim_res, nsubsteps=1)
 
-        return res # TODO
+        return res_fd, res_td, optim_res
+    
+    
+    def post_process(self, waves: xr.Dataset, res: OptimizeResult, 
+                     nsubsteps: int,
+                     ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
+                                      np.ndarray, float]:
+        """TODO"""
+
+        x_wec, x_opt = self.decompose_decision_var(res.x)
+        dof_names = np.arange(self.ndof) # TODO: creates these names at WEC.init
+
+        # frequency domain
+        force_da_list = []
+        for name, force in self.forces.items():
+            
+            force_td_tmp = force(self, x_wec, x_opt, waves)
+            force_fd = self.td_to_fd(force_td_tmp)
+            force_da = xr.DataArray(data=force_fd,
+                        coords={'omega':self.omega,
+                                'influenced_dof':dof_names},
+                        attrs={'units':'N*s or Nm*s'}
+                        ).expand_dims({'type':[name]})
+            force_da_list.append(force_da)
+            
+        fd_forces = xr.concat(force_da_list, dim='type')
+        fd_forces.omega.attrs['units'] = 'rad/s'
+        fd_forces.omega.attrs['long_name'] = 'Frequency'
+        fd_forces.influenced_dof.attrs['long_name'] = 'Degree of freedom'
+        fd_forces.type.attrs['long_name'] = 'Type'
+        fd_forces.name = 'force'
+        fd_forces.attrs['long_name'] = 'Force'
+            
+        pos = self.vec_to_dofmat(x_wec)
+        pos_fd = real_to_complex(pos)
+        
+        vel = self.derivative_mat @ pos
+        vel_fd = real_to_complex(vel)
+        
+        acc = self.derivative_mat @ vel
+        acc_fd = real_to_complex(acc)
+        
+        fd_state = xr.Dataset(
+            data_vars={
+                'pos': (['omega', 'influenced_dof'],
+                        pos_fd,
+                        {'long_name': 'Position', 'units': 'm^2*s or rad^2*s'}),
+                'vel': (['omega', 'influenced_dof'],
+                        vel_fd,
+                        {'long_name': 'Velocity', 'units': 'm^2/s or rad^2/s'}),
+                'acc': (['omega', 'influenced_dof'],
+                        acc_fd,
+                        {'long_name': 'Velocity', 'units': 'm^2/s^3 or rad^2/s^3'})},
+            coords={
+                'omega': ('omega', 
+                          self.omega, 
+                          {'long_name': 'Frequency', 'units': 'rad/s'}),
+                'influenced_dof': ('influenced_dof',
+                                   dof_names,
+                                   {'long_name': 'Degree of freedom'})},
+            attrs={} #TODO: add time stamp
+            )
+        
+        results_fd = xr.merge([fd_state, fd_forces])
+        results_fd = results_fd.transpose('omega','influenced_dof','type')
+        
+        # time domain
+        
+        def time_results(da:xr.DataArray, time:xr.DataArray):
+            #TODO - maybe break this function out?
+            out = np.zeros((*da.isel(omega=0).shape, len(time)))
+            for w, mag in zip(da.omega, da):
+                out = out + \
+                    np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
+            
+            return out
+        
+        t_dat = self.time_nsubsteps(nsubsteps)
+        time = xr.DataArray(data=t_dat, 
+                            name='time', dims='time', coords=[t_dat])
+        results_td = results_fd.map(lambda x: time_results(x, time))
+        
+        results_td['pos'].attrs['long_name'] = 'Position'
+        results_td['pos'].attrs['units'] = 'm or rad'
+        
+        results_td['vel'].attrs['long_name'] = 'Velocity'
+        results_td['vel'].attrs['units'] = 'm/s or rad/s'
+        
+        results_td['acc'].attrs['long_name'] = 'Acceleration'
+        results_td['acc'].attrs['units'] = 'm/s^2 or rad/s^2'
+        
+        results_td['force'].attrs['long_name'] = 'Force'
+        results_td['force'].attrs['units'] = 'N or Nm'
+        
+        return results_fd, results_td
+
 
     # properties
     @property
