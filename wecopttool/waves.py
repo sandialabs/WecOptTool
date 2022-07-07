@@ -6,14 +6,17 @@ This module provides the (empty) dataset structure for waves in
 It also provides functions for creating common types of waves such as
 regular waves and irregular waves.
 The dataset structure is an xarray.Dataset containing the following two
-2D xarray.DataArrray: (1)  the amplitude spectrum  magnitude ``S``
-(m^2*s) and (2) the phase  ``phase`` (rad). The 2D coordinates are:
-wave frequency ``omega`` (rad/s)  and direction ``wave_direction`` (rad).
+2D xarray.DataArrray: (1) the amplitude spectrum  magnitude ``S``
+(m^2/Hz) and (2) the phase ``phase`` (rad). The 2D coordinates are:
+wave angular frequency ``omega`` (rad/s)  and direction
+``wave_direction`` (rad).
 """
 
 
-from __future__ import annotations  # TODO: for Python 3.8 & 3.9 support
-import warnings
+from __future__ import annotations
+
+
+import logging
 from typing import Callable
 
 import numpy as np
@@ -24,19 +27,22 @@ from scipy.special import gamma
 from wecopttool.core import frequency, degrees_to_radians
 
 
-def wave_dataset(f0: float, nfreq: int,
+# logger
+_log = logging.getLogger(__name__)
+
+def wave_dataset(f1: float, nfreq: int,
                  directions: float | npt.ArrayLike) -> xr.Dataset:
     """Create an empty wave dataset with correct dimensions and
     coordinates.
 
     Parameters
     ----------
-    f0: float
+    f1: float
         Initial frequency (in Hz) for frequency array.
         Frequency array given as
-        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
+        [``f1``, 2 x ``f1``, ..., ``nfreq`` x ``f1``].
     nfreq: int
-        Number of frequencies in frequency array. See ``f0``.
+        Number of frequencies in frequency array. See ``f1``.
     directions: np.ndarray
         Wave directions in degrees. 1D array.
 
@@ -47,7 +53,7 @@ def wave_dataset(f0: float, nfreq: int,
     """
     directions = np.atleast_1d(degrees_to_radians(directions))
     ndirections = len(directions)
-    freqs = frequency(f0, nfreq)
+    freqs = frequency(f1, nfreq)
     omega = freqs*2*np.pi
 
     dims = ('omega', 'wave_direction')
@@ -65,19 +71,19 @@ def wave_dataset(f0: float, nfreq: int,
     return xr.Dataset({'S': spectrum, 'phase': phase}, attrs={})
 
 
-def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
+def regular_wave(f1: float, nfreq: int, freq: float, amplitude: float,
                  phase: float | None = None, direction: float = 0.0
                  ) -> xr.Dataset:
     """Create the dataset for a regular wave.
 
     Parameters
     ----------
-    f0: float
+    f1: float
         Initial frequency (in Hz) for frequency array.
         Frequency array given as
-        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
+        [``0``, ``f1``, 2 x ``f1``, ..., ``nfreq`` x ``f1``].
     nfreq: int
-        Number of frequencies in frequency array. See ``f0``.
+        Number of frequencies in frequency array. See ``f1``.
     freq: float
         Frequency (in Hz) of the regular wave. If ``freq`` not in the
         frequency array, the closest value is used and a warning is
@@ -100,18 +106,18 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
                           " single incident wave direction")
 
     # empty dataset
-    waves = wave_dataset(f0, nfreq, direction)
+    waves = wave_dataset(f1, nfreq, direction)
 
     # get index
     omega = freq*2*np.pi
     iomega = waves.sel(omega=omega, method='nearest').omega.values
     ifreq = iomega/(2*np.pi)
     if not np.isclose(iomega, omega):
-        warnings.warn(f"Requested frequency {freq} Hz is not in array. " +
+        _log.warning(f"Requested frequency {freq} Hz is not in array. " +
                       f"Using nearest value of {ifreq} Hz.")
 
     # amplitude
-    waves['S'].loc[{'omega': iomega}] = 0.5 * amplitude**2 / f0
+    waves['S'].loc[{'omega': iomega}] = 0.5 * amplitude**2 / f1
 
     # phase
     if phase is None:
@@ -132,19 +138,19 @@ def regular_wave(f0: float, nfreq: int, freq: float, amplitude: float,
     return waves
 
 
-def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
+def long_crested_wave(f1: float, nfreq: int, spectrum_func: Callable,
                       direction: float = 0.0, spectrum_name: str = '',
                       seed: int | None = None) -> xr.Dataset:
     """Create the dataset for a long-crested irregular wave.
 
     Parameters
     ----------
-    f0: float
+    f1: float
         Initial frequency (in Hz) for frequency array.
         Frequency array given as
-        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
+        [``0``, ``f1``, 2 x ``f1``, ..., ``nfreq`` x ``f1``].
     nfreq: int
-        Number of frequencies in frequency array. See ``f0``.
+        Number of frequencies in frequency array. See ``f1``.
     spectrum_func: function
         Wave spectrum function. Maps frequencies to amplitude spectrum.
         float | npt.ArrayLike -> float | np.ndarray
@@ -172,17 +178,17 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
 
     Generate the wave using a Pierson-Moskowitz idealized spectrum.
 
-    >>> wave = lcw(f0=fp/10,
+    >>> wave = lcw(f1=fp/10,
     ...            nfreq=30,
     ...            spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs))
     """
     # empty dataset
-    waves = wave_dataset(f0, nfreq, direction)
+    waves = wave_dataset(f1, nfreq, direction)
 
     # amplitude & phase
-    freqs = frequency(f0, nfreq)
-    waves['S'].values = spectrum_func(freqs).reshape(nfreq, 1)
-    waves['phase'].values = _random_phase([nfreq, 1], seed)
+    freqs = frequency(f1, nfreq)
+    waves['S'].values = spectrum_func(freqs).reshape(nfreq+1, 1)
+    waves['phase'].values = _random_phase([nfreq+1, 1], seed)
 
     # attributes
     waves.attrs['Wave type'] = 'Long-crested irregular'
@@ -192,7 +198,7 @@ def long_crested_wave(f0: float, nfreq: int, spectrum_func: Callable,
     return waves
 
 
-def irregular_wave(f0: float, nfreq: int,
+def irregular_wave(f1: float, nfreq: int,
                    directions: float | npt.ArrayLike,
                    spectrum_func: Callable, spread_func: Callable,
                    spectrum_name: str = '', spread_name: str = '',
@@ -201,12 +207,12 @@ def irregular_wave(f0: float, nfreq: int,
 
     Parameters
     ----------
-    f0: float
+    f1: float
         Initial frequency (in Hz) for frequency array.
         Frequency array given as
-        [``f0``, 2 x ``f0``, ..., ``nfreq`` x ``f0``].
+        [``0``, ``f1``, 2 x ``f1``, ..., ``nfreq`` x ``f1``].
     nfreq: int
-        Number of frequencies in frequency array. See ``f0``.
+        Number of frequencies in frequency array. See ``f1``.
     directions: np.ndarray
         Wave directions in degrees. 1D array.
     spectrum_func: function
@@ -258,23 +264,23 @@ def irregular_wave(f0: float, nfreq: int,
 
     Generate the wave.
 
-    >>> wave = wot.waves.irregular_wave(f0=fp/10,
+    >>> wave = wot.waves.irregular_wave(f1=fp/10,
     ...                                 nfreq=20,
     ...                                 directions=directions,
     ...                                 spectrum_func=spectrum_func,
     ...                                 spread_func=spread_func)
     """
     # empty dataset
-    waves = wave_dataset(f0, nfreq, directions)
+    waves = wave_dataset(f1, nfreq, directions)
 
     # amplitude & phase
     ndirections = len(directions)
-    freqs = frequency(f0, nfreq)
-    spectrum = spectrum_func(freqs).reshape(nfreq, 1)
+    freqs = frequency(f1, nfreq)
+    spectrum = spectrum_func(freqs).reshape(nfreq+1, 1)
     spread = spread_func(freqs, directions)
-    assert spread.shape == (nfreq, ndirections)
+    assert spread.shape == (nfreq+1, ndirections)
     waves['S'].values = spectrum * spread
-    waves['phase'].values = _random_phase([nfreq, ndirections], seed)
+    waves['phase'].values = _random_phase([nfreq+1, ndirections], seed)
 
     # attributes
     waves.attrs['Wave type'] = 'Irregular'
