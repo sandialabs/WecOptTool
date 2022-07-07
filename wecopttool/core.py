@@ -40,6 +40,7 @@ _log = logging.getLogger(__name__)
 
 # default values
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+_default_min_damping = 1e-6
 
 # type aliases
 TWEC = TypeVar("TWEC", bound="WEC")
@@ -48,71 +49,98 @@ TStateFunction = Callable[
 
 # TODO: Docstrings
 # TODO: Type hints
+# TODO: Math equations, code snippets, URLs, and other emphasis
 class WEC:
-    """A wave energy converter (WEC) object for performing simulations using
-    the pseudo-spectral solution method.
+    """A wave energy converter (WEC) object for performing simulations
+    using the pseudo-spectral solution method.
     """
-    def __init__(self, f1, nfreq, forces, constraints=None,
+    def __init__(self, f1:float, nfreq:int, forces: dict[str, TStateFunction],
+                 constraints: Optional[list[dict]] = None,
                  mass: Optional[np.ndarray] = None,
                  ndof: Optional[int] = None,
                  inertia_in_forces: bool = False) -> TWEC:
-        """Create a WEC object directly from forces (may be linear or nonlinear)
+        """Create a WEC object directly from its inertia matrix and
+        list of forces.
+
+        The `WEC` class describes a WEC's equation of motion as
+        :math:`ma=Σf` where the `mass` matrix specifies the inertia
+        :math:`m`, and the `forces` dictionary specifies the different
+        forces to be summed.
+        The forces an be linear or nonlinear.
+        If `inertia_in_forces` is `True` the equation of motion is
+        :math:`Σf=0`, which is included to allow for initialization
+        using an intrinsic impedance through the `WEC.from_impedance`
+        initialization function.
+
+        Note, however, that direct initialization of a `WEC` object as
+        `WEC(f1, nfrew, forces, ...)` is discouraged.
+        Instead use one of the other initialization methods listed in
+        the *See Also* section.
 
         Parameters
         ----------
         f1
-            Fundamental frequency [Hz]
+            Fundamental frequency [Hz].
         nfreq
-            Number of frequencies (not including zero frequency), 
-            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+            Number of frequencies (not including zero frequency),
+            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
         forces
-            Dictionary with entries {'force_name': fun}, where fun has a 
-            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
-            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+            Dictionary with entries `{'force_name': fun}`, where `fun`
+            has a  signature `def fun(wec, x_wec, x_opt, waves):`, and
+            returns forces in the time-domain of size
+            `2*nfreq + 1 x ndof`.
         constraints
-            List of constraints, see documentation for scipy.optimize.minimize 
-            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
-            by default []
+            List of constraints, see documentation for
+            `scipy.optimize.minimize<https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html)>`_
+            for description and options of constraints dictionaries.
+            If `None`: empty list `[]`.
         mass
-           Inertia matrix of size `ndof x ndof`, by default None. If None, value
-           from bem_data will be used.
+           Inertia matrix of size `ndof x ndof`.
+           Not used if `inertia_in_forces` is `True`.
         ndof
-            Number of degrees of freedom, by default None
-            TODO - shouldn't this be set to mass.shape[0] if left as none?
+            Number of degrees of freedom.
+            Must be specified if `inertia_in_forces` is `True`, else
+            not used.
         inertia_in_forces
-            Set to True if inertial forces are included in the `forces` 
-            argument, by default False
-
-        Returns
-        -------
-        WEC
-            TODO
+            Set to True if inertial forces are included in the `forces`
+            argument.
+            This scenario is rare.
+            If using an intrinsic impedance, consider initializing with
+            `from_impedance` instead.
 
         Raises
         ------
         ValueError
-            TODO
+            If `inertia_in_forces` is `True` but `ndof` is not
+            specified.
         ValueError
-            TODO
+            If `inertia_in_forces` is `False` but `mass` is not
+            specified.
         ValueError
-            TODO
-            
+            If `mass` does not have the correct size (`ndof` x `ndof`).
+
         See Also
         --------
-        from_bem
-        from_bem_file
-        from_floating_body
-        from_impedance
+        from_bem : Initialize a `WEC` object from BEM results.
+        from_bem_file :
+            Initialize a `WEC` object from a file containing BEM
+            results.
+        from_floating_body:
+            Initialize a `WEC` object from a `capitaine.FloatingBody`
+            object.
+        from_impedance:
+            Initialize a `WEC` object from an intrinsic impedance array.
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
         self._time_mat = time_mat(f1, nfreq)
         self._derivative_mat = derivative_mat(f1, nfreq)
         self.forces = forces
-        self.inertia_in_forces = inertia_in_forces
         self.constraints = constraints if (constraints is not None) else []
 
         # inertia options
+        self.inertia_in_forces = inertia_in_forces
+
         def _missing(var_name, condition):
             msg = (f"`{var_name}` must be provided if `inertia_in_forces` is" +
                     f"`{condition}`.")
@@ -140,64 +168,114 @@ class WEC:
                 if ndof != mass.shape[0]:
                     _log.warning(
                         "Provided value of `ndof` does not match size of " +
-                        f"`mass` matrix. Using `ndof={mass.shape[0]}`.")
+                        f"`mass` matrix. Setting `ndof={mass.shape[0]}`.")
             ndof = mass.shape[0]
-        if mass.shape != (ndof, ndof):
-            raise ValueError(
-                "'mass' must be a square matrix of size equal to the number " +
-                " of degrees of freedom.")
+
+            if mass.shape != (ndof, ndof):
+                raise ValueError(
+                    "'mass' must be a square matrix of size equal to " +
+                    "the number of degrees of freedom.")
 
         self.mass = mass
-        self._ndof = ndof
+        self.ndof = ndof
         self.inertia = None if inertia_in_forces else inertia(f1, nfreq, mass)
 
     def __repr__(self):
-        f'{self.__class__.__name__}' #TODO - make this more rich
+        f'{self.__class__.__name__}' #TODO - make this more rich. Always defined and determines the dimensions of the problem: ndof, f1, nfreq. Could also do number/names of forces, number of constraints.
 
     # other initialization methods
     @staticmethod
-    def from_bem(bem_data: xr.Dataset, mass: Optional[np.ndarray] = None,
+    def from_bem(bem_data: xr.Dataset,
+                 mass: Optional[np.ndarray] = None,
                  hydrostatic_stiffness: Optional[np.ndarray] = None,
                  friction: Optional[np.ndarray] = None,
-                 f_add: Optional[Mapping[str, TStateFunction]] = None,
+                 f_add: Optional[dict[str, TStateFunction]] = None,
                  constraints: Optional[list[dict]] = None,
-                 min_damping: Optional[float] = 1e-6,
+                 min_damping: Optional[float] = _default_min_damping,
                  ) -> TWEC:
-        """Create a WEC object from an xarray Dataset
+        """Create a WEC object from linear hydrodynamic coefficients
+        obtained using the boundary element method (BEM) code Capytaine.
+
+        The returned `WEC` object contains the inertia and the default
+        linear forces: radiation, diffraction, and Froude-Krylov.
+        Additional forces can be specified through `f_add`.
+
+        Note that because Capytaine uses a different sign convention,
+        the direct results from capytaine must be modified using
+        `wecopttool.change_bem_convention` before calling this
+        initialization function.
+        Instead, the recommended approach is to use
+        `wecopttool.run_bem`,
+        rather than running Capytaine directly, which outputs the
+        results in the correct convention.
+
+        In addition to the Capytaine results, if the dataset contains
+        the `mass`, `hydrostatic_stiffness`, or `friction` these do not
+        need to be provided separately.
 
         Parameters
         ----------
         bem_data
-            _description_
+            Linear hydrodynamic coefficients obtained using the boundary
+            element method (BEM) code Capytaine, with sign convention
+            corrected.
         mass
-           Inertia matrix of size `ndof x ndof`, by default None. If None, value
-           from bem_data will be used.
+           Inertia matrix of size `ndof x ndof`.
+           `None` if included in `bem_data`.
         hydrostatic_stiffness
-            _description_, by default None. If None, value from bem_data will be 
-            used.
+            Linear hydrostatic restoring coefficient of size
+            `nodf x ndof`.
+            `None` if included in `bem_data`.
         friction
-            _description_, by default None. If None, value from bem_data will be 
-            used.
+            Linear friction, in addition to radiation damping, of size
+            `nodf x ndof`.
+            `None` if included in `bem_data` or to set to zero.
         f_add
-            Dictionary with entries {'force_name': fun}, where fun has a 
-            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
-            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+            Dictionary with entries `{'force_name': fun}`, where `fun`
+            has a  signature `def fun(wec, x_wec, x_opt, waves):`, and
+            returns forces in the time-domain of size
+            `2*nfreq + 1 x ndof`.
         constraints
-            List of constraints, see documentation for scipy.optimize.minimize 
-            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
-            by default []
+            List of constraints, see documentation for
+            `scipy.optimize.minimize<https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html)>`_
+            for description and options of constraints dictionaries.
+            If `None`: empty list `[]`.
         min_damping
-            Minimum damping level to ensure stable system, by default 1e-6
+            Minimum damping level to ensure a stable system.
+            See `check_linear_damping` for more details.
 
         Returns
         -------
         WEC
-            TODO
+            An instance of the `wecopttool.WEC` class.
 
         Raises
         ------
         ValueError
-            TODO
+            If either `mass` or `hydrostatic_stiffness` are `None` and
+            is not included in `bem_data`.
+            See `linear_hydrodynamics`.
+        ValueError
+            If any of `mass`, `hydrostatic_stiffness`, or `stiffness`
+            are both provided and included in `bem_data` but have
+            different values.
+            See `linear_hydrodynamics`.
+
+        See Also
+        --------
+        run_bem: Run Capytaine and use correct sign convention.
+        linear_hydrodynamics:
+            Add `mass`, `hydrostatic_stiffness`, and `friction` to the
+            BEM dataset.
+        change_bem_convention:
+            Correct the sign convention of Capytaine outputs.
+        write_netcdf: Save BEM dataset to a file.
+        check_linear_damping:
+            Ensure minimum damping value in hydrodynamic coefficients
+            dataset.
+        from_bem_file :
+            Initialize a `WEC` object from a file containing BEM
+            results.
         """
         # add mass, hydrostatic stiffness, and friction
         hydro_data = linear_hydrodynamics(
@@ -228,43 +306,42 @@ class WEC:
         return WEC(f1, nfreq, forces, constraints, mass)
 
     @staticmethod
-    def from_bem_file(file_name: str, mass: Optional[np.ndarray] = None,
+    def from_bem_file(file_name: str,
+                      mass: Optional[np.ndarray] = None,
                       hydrostatic_stiffness: Optional[np.ndarray] = None,
                       friction: Optional[np.ndarray] = None,
-                      f_add: Optional[Mapping[str, TStateFunction]] = None,
-                      constraints: list[dict] = None,
-                      min_damping: Optional[float] = 1e-6,
+                      f_add: Optional[dict[str, TStateFunction]] = None,
+                      constraints: Optional[list[dict]] = None,
+                      min_damping: Optional[float] = _default_min_damping,
                       ) -> TWEC:
-        """Create a WEC object from a previously saved .nc file.
+        """Create a WEC object from a NetCDF file containing linear
+        hydrodynamic coefficients obtained using the boundary element
+        method (BEM) code Capytaine.
+
+        This initialization function calls `from_bem` after reading the
+        NetCDF file.
+        See `from_bem` for more details including complete description
+        of parameters.
+
+        Note that because Capytaine uses a different sign convention,
+        the direct results from capytaine must be modified using
+        `wecopttool.change_bem_convention` before saving the NetCDF
+        file. See `from_bem` for more details.
 
         Parameters
         ----------
         file_name
-            Filename, including path
-        mass
-           Inertia matrix of size `ndof x ndof`, by default None. If None, value
-           from .nc file will be used.
-        hydrostatic_stiffness
-            Hydrostatic stiffness matrix of size `ndof x ndof`, by default None.
-            If None, value from .nc file will be used.
-        friction
-            Linear friction matrix of size `ndof x ndof`, by default None. If 
-            None, value from .nc file will be used.
-        f_add
-            Dictionary with entries {'force_name': fun}, where fun has a 
-            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
-            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
-        constraints
-            List of constraints, see documentation for scipy.optimize.minimize 
-            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
-            by default []
-        min_damping
-            Minimum damping level to ensure stable system, by default 1e-6
+            Path to NetCDF file.
 
         Returns
         -------
         WEC
-            TODO
+            An instance of the `wecopttool.WEC` class.
+
+        See Also
+        --------
+        read_netcdf: Read a BEM dataset from a NetCDF file.
+        from_bem : Initialize a `WEC` object from BEM results
         """
         bem_data = read_netcdf(file_name)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
@@ -272,117 +349,120 @@ class WEC:
         return wec
 
     @staticmethod
-    def from_floating_body(fb: cpy.FloatingBody, mass: np.ndarray,
-                 hydrostatic_stiffness: np.ndarray, f1: float, nfreq: int,
-                 wave_directions: npt.ArrayLike = np.array([0.0,]),
-                 friction: Optional[np.ndarray] = None,
-                 f_add: Optional[Mapping[str, TStateFunction]] = None,
-                 constraints: list[dict] = [],
-                 rho: float = _default_parameters['rho'],
-                 depth: float = _default_parameters['depth'],
-                 g: float = _default_parameters['g'],
-                 min_damping: Optional[float] = 1e-6,
-                 ) -> tuple[TWEC, xr.Dataset]:
-        """Create a WEC object from a Capytaine FloatingBody
-        
+    def from_floating_body(
+        fb: cpy.FloatingBody, f1: float, nfreq: int,
+        mass: np.ndarray, hydrostatic_stiffness: np.ndarray,
+        friction: Optional[np.ndarray] = None,
+        f_add: Optional[dict[str, TStateFunction]] = None,
+        constraints: Optional[list[dict]] = None,
+        min_damping: float = _default_min_damping,
+        wave_directions: npt.ArrayLike = np.array([0.0,]),
+        rho: float = _default_parameters['rho'],
+        g: float = _default_parameters['g'],
+        depth: float = _default_parameters['depth'],
+        ) -> tuple[TWEC, xr.Dataset]:
+        """Create a WEC object from a Capytaine `FloatingBody`.
+
+        Capytaine `FloatingBody` objects contain information on the
+        mesh and degrees of freedom.
+
+        This initialization method calls `run_bem` followed by
+        `from_bem`.
+        See `run_bem` and `from_bem` for more details
+        including complete description of parameters.
+
+        This will run Capytaine to obtain the linear hydrodynamic
+        coefficients, which can take from a few minutes to several
+        hours.
+        Instead, if the hydrodynamic coefficients can be reused, it is
+        recommended to run Capytaine first and save the results using
+        `run_bem` and `write_netcdf`, and then initialize the `WEC`
+        object using `from_bem_file`.
+        This initialization method should be reserved for the cases
+        where the hydrodynamic coefficients constantly change and are
+        not reused, as for example for geometry optimization.
+
         Parameters
         ----------
         fb
-            Capytaine FloatingBody
-        mass
-            Inertia matrix of size `ndof x ndof`
-        hydrostatic_stiffness
-            Hydrostatic stiffness matrix of size `ndof x ndof`
+            Capytaine FloatingBody.
         f1
-            Fundamental frequency [Hz]
+            Fundamental frequency [Hz].
         nfreq
-            Number of frequencies (not including zero frequency), 
-            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
-        wave_directions
-            Array of wave directions [deg] at which to perform BEM excitation 
-            calculations, by default np.array([0.0,])
-        friction
-            Linear friction matrix of size `ndof x ndof`, by default None
-        f_add
-            Dictionary with entries {'force_name': fun}, where fun has a 
-            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
-            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
-        constraints
-            List of constraints, see documentation for scipy.optimize.minimize 
-            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
-            by default []
-        rho
-            Density of water [kg/m^3], by default 1025
-        depth
-            Water depth [m], by default Inf
-        g
-            Acceleration due to gravity [m/s], by default 9.81
-        min_damping
-            Minimum damping level to ensure stable system, by default 1e-6
+            Number of frequencies (not including zero frequency),
+            i.e., `freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
 
         Returns
         -------
         WEC
-            TODO
-        hydro_data
-            TODO
-            
-        Examples
+            An instance of the `wecopttool.WEC` class.
+
+        See Also
         --------
-        TODO
+        run_bem: Run Capytaine and use correct sign convention.
+        from_bem_file :
+            Initialize a `WEC` object from a file containing BEM
+            results.
         """
-        
+
         # RUN BEM
-        _log.info("This function, `WEC.from_floating_body`, returns the " +
-                  "`hydro_data` xarray DataSet. If using the same " + 
-                  "hydrodynamic bodies, `hydro_data` may be save to " +
-                  "a .nc file using the `write_netcdf` method. " + 
-                  "With this .nc file, you can avoid re-running the BEM " + 
-                  "by using `WEC.from_bem_file`.")
         _log.info(f"Running Capytaine (BEM): {nfreq+1} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
         freq = frequency(f1, nfreq)[1:]
-        bem_data = run_bem(fb, freq, wave_directions, rho=rho, g=g, depth=depth)
+        bem_data = run_bem(
+            fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
                            f_add, constraints, min_damping=min_damping)
-        hydro_data = linear_hydrodynamics(
-            bem_data, mass, hydrostatic_stiffness, friction)
-        hydro_data = add_zerofreq_to_xr(hydro_data)
-        return wec, hydro_data
+        return wec
 
     @staticmethod
-    def from_impedance(freqs, impedance, exc_coeff, f_add=None,
-                       constraints=None) -> TWEC:
-        """Create a WEC object from an impedance.
+    def from_impedance(freqs: np.ndarray, impedance: np.ndarray,
+                       exc_coeff: np.ndarray,
+                       f_add: Optional[dict[str, TStateFunction]] = None,
+                       constraints: Optional[list[dict]] = None
+                       ) -> TWEC:
+        """Create a WEC object from an impedance array.
+
+        The intrinsic (mechanical) impedance :math:`Z(ω)` linearly
+        relates excitation forces :math:`F(ω)` to WEC velocity
+        :math:`U(ω)` as :math:`ZU=F`.
+        Using linear hydrodynamic coefficients, e.g. from a BEM code
+        like Capytaine, the impedance is given as
+        :math:`Z(ω) = (m+A(ω))*iω + B(ω) + B_f + K/(iω)`.
+        The impedance can also be obtained experimentally.
 
         Parameters
         ----------
         freqs
-            Frequency vector [Hz], `freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+            Frequency vector [Hz],
+            `freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
         impedance
-            Complex impedance of size `ndof x ndof x nfreq`
+            Complex impedance of size `ndof x ndof x nfreq+1`.
         exc_coeff
-            Complex excitation transfer function of size `ndof x nfreq`
+            Complex excitation transfer function of size `ndof x nfreq`.
         f_add
-            Dictionary with entries {'force_name': fun}, where fun has a 
-            signature `def fun(wec, x_wec, x_opt, waves):`, and returns forces 
-            in the time-domain of size `2*nfreq + 1 x ndof`, by default None
+            Dictionary with entries `{'force_name': fun}`, where `fun`
+            has a  signature `def fun(wec, x_wec, x_opt, waves):`, and
+            returns forces in the time-domain of size
+            `2*nfreq + 1 x ndof`.
         constraints
-            List of constraints, see documentation for scipy.optimize.minimize 
-            (https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html), 
-            by default []
+            List of constraints, see documentation for
+            `scipy.optimize.minimize<https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html)>`_
+            for description and options of constraints dictionaries.
+            If `None`: empty list `[]`.
 
         Returns
         -------
         WEC
-            TODO
+            An instance of the `wecopttool.WEC` class.
 
         Raises
         ------
         ValueError
-            TODO
+            If `impedance` does not have the correct size:
+            `ndof x ndof x nfreq+1`.
         """
-        
+
         f1, nfreq = check_frequency_vector(freqs)
 
         # impedance matrix shape
@@ -428,32 +508,32 @@ class WEC:
         Parameters
         ----------
         waves
-            xarray DataSet with the structure and elements shown by 
+            xarray DataSet with the structure and elements shown by
             `wecopttool.waves`
         obj_fun
-            Objective function to minimize for pseudo-spectral solution, must 
+            Objective function to minimize for pseudo-spectral solution, must
             have signature `fun(wec, x_wec, x_opt, waves)` and return a scalar
         nstate_opt
             Length of the optimization (controls) state vector
         x_wec_0
-            Initial guess for the WEC dynamics state. If ``None`` it is randomly 
+            Initial guess for the WEC dynamics state. If ``None`` it is randomly
             initiated.
         x_opt_0
-            Initial guess for the optimization (control) state. If ``None`` it 
+            Initial guess for the optimization (control) state. If ``None`` it
             is randomly initiated.
         scale_x_wec
-            Factor(s) to scale each DOF in ``x_wec`` by, to improve convergence. 
+            Factor(s) to scale each DOF in ``x_wec`` by, to improve convergence.
             A single float or an array of size ``ndof``.
         scale_x_opt
-            Factor(s) to scale ``x_opt`` by, to improve convergence. A single 
+            Factor(s) to scale ``x_opt`` by, to improve convergence. A single
             float or an array of size ``nstate_opt``.
         scale_obj
             Factor to scale ``obj_fun`` by, to improve convergence.
         optim_options
-            _Optimization options passed to the optimizer. See 
+            _Optimization options passed to the optimizer. See
             ``scipy.optimize.minimize``.
         use_grad
-             If True, optimization with utilize `autograd` supplied gradients, 
+             If True, optimization with utilize `autograd` supplied gradients,
              by default True
         maximize
             Whether to maximize the objective function. The default is
@@ -473,23 +553,23 @@ class WEC:
         TODO - add other outputs
         res
             Results produced by scipy.optimize.minimize
-            
+
         Raises
         ------
         ValueError
             TODO
         Exception
             TODO
-            
+
         See Also
         --------
         wecopttool.waves
-        
+
         Examples
         --------
         TODO
         """
-        
+
         _log.info("Solving pseudo-spectral control problem.")
 
         # x_wec scaling vector
@@ -620,9 +700,9 @@ class WEC:
         res_fd, res_td = self.post_process(waves, optim_res, nsubsteps=1)
 
         return res_fd, res_td, optim_res
-    
-    
-    def post_process(self, waves: xr.Dataset, res: OptimizeResult, 
+
+
+    def post_process(self, waves: xr.Dataset, res: OptimizeResult,
                      nsubsteps: int,
                      ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
                                       np.ndarray, float]:
@@ -634,7 +714,7 @@ class WEC:
         # frequency domain
         force_da_list = []
         for name, force in self.forces.items():
-            
+
             force_td_tmp = force(self, x_wec, x_opt, waves)
             force_fd = self.td_to_fd(force_td_tmp)
             force_da = xr.DataArray(data=force_fd,
@@ -643,7 +723,7 @@ class WEC:
                         attrs={'units':'N*s or Nm*s'}
                         ).expand_dims({'type':[name]})
             force_da_list.append(force_da)
-            
+
         fd_forces = xr.concat(force_da_list, dim='type')
         fd_forces.omega.attrs['units'] = 'rad/s'
         fd_forces.omega.attrs['long_name'] = 'Frequency'
@@ -651,16 +731,16 @@ class WEC:
         fd_forces.type.attrs['long_name'] = 'Type'
         fd_forces.name = 'force'
         fd_forces.attrs['long_name'] = 'Force'
-            
+
         pos = self.vec_to_dofmat(x_wec)
         pos_fd = real_to_complex(pos)
-        
+
         vel = self.derivative_mat @ pos
         vel_fd = real_to_complex(vel)
-        
+
         acc = self.derivative_mat @ vel
         acc_fd = real_to_complex(acc)
-        
+
         fd_state = xr.Dataset(
             data_vars={
                 'pos': (['omega', 'influenced_dof'],
@@ -673,112 +753,131 @@ class WEC:
                         acc_fd,
                         {'long_name': 'Velocity', 'units': 'm^2/s^3 or rad^2/s^3'})},
             coords={
-                'omega': ('omega', 
-                          self.omega, 
+                'omega': ('omega',
+                          self.omega,
                           {'long_name': 'Frequency', 'units': 'rad/s'}),
                 'influenced_dof': ('influenced_dof',
                                    dof_names,
                                    {'long_name': 'Degree of freedom'})},
             attrs={} #TODO: add time stamp
             )
-        
+
         results_fd = xr.merge([fd_state, fd_forces])
         results_fd = results_fd.transpose('omega','influenced_dof','type')
-        
+
         # time domain
-        
+
         def time_results(da:xr.DataArray, time:xr.DataArray):
             #TODO - maybe break this function out?
             out = np.zeros((*da.isel(omega=0).shape, len(time)))
             for w, mag in zip(da.omega, da):
                 out = out + \
                     np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
-            
+
             return out
-        
+
         t_dat = self.time_nsubsteps(nsubsteps)
-        time = xr.DataArray(data=t_dat, 
+        time = xr.DataArray(data=t_dat,
                             name='time', dims='time', coords=[t_dat])
         results_td = results_fd.map(lambda x: time_results(x, time))
-        
+
         results_td['pos'].attrs['long_name'] = 'Position'
         results_td['pos'].attrs['units'] = 'm or rad'
-        
+
         results_td['vel'].attrs['long_name'] = 'Velocity'
         results_td['vel'].attrs['units'] = 'm/s or rad/s'
-        
+
         results_td['acc'].attrs['long_name'] = 'Acceleration'
         results_td['acc'].attrs['units'] = 'm/s^2 or rad/s^2'
-        
+
         results_td['force'].attrs['long_name'] = 'Force'
         results_td['force'].attrs['units'] = 'N or Nm'
-        
+
         return results_fd, results_td
 
 
     # properties
     @property
     def ndof(self):
-        """Number of degrees of freedom"""
-        return self._ndof
+        """Number of degrees of freedom."""
+        return self.ndof
 
     @property
     def frequency(self):
-        """Frequency vector [Hz]"""
+        """Frequency vector [Hz]."""
         return self._freq
 
     @property
     def f1(self):
-        """Fundamental frequency [Hz]"""
+        """Fundamental frequency [Hz]."""
         return self._freq[1]
 
     @property
     def nfreq(self):
-        """Number of frequencies"""
+        """Number of frequencies, not including the zero-frequency."""
         return len(self._freq)-1
 
     @property
     def omega(self):
-        """Radial frequency vector [rad/s]"""
+        """Radial frequency vector [rad/s]."""
         return self._freq * (2*np.pi)
 
     @property
     def w1(self):
-        """Fundamental radial frequency [rad/s]"""
+        """Fundamental radial frequency [rad/s]."""
         return self.omega[1]
 
     @property
     def time(self):
-        """TODO"""
+        """Time vector [s], size `2*nfreq+1 x ndof`, not containing the
+        end time `tf`."""
         return self._time
 
     @property
     def time_mat(self):
-        """TODO"""
+        """Matrix to create time-series from Fourier coefficients.
+
+        For some array of Fourier coefficients `x`, size
+        `2*nfreq+1 x ndof`, the time series, also size
+        `2*nfreq+1 x ndof`, is obtained as `time_mat @ x`.
+        """
         return self._time_mat
 
     @property
     def derivative_mat(self):
+        """Matrix to create Fourier coefficients of the derivative of
+        some quantity.
+
+        For some array of Fourier coefficients `x`, size
+        `2*nfreq+1 x ndof`, the Fourier coefficients of the derivative
+        of `x` are obtained as `derivative_mat @ x`.
+        """
         return self._derivative_mat
 
     @property
     def dt(self):
-        """Time spacing [s]"""
+        """Time spacing [s]."""
         return self._time[1]
 
     @property
     def tf(self):
-        """Final time (repeat period) [s]. (Not included in time vector.)"""
+        """Final time (repeat period) [s]. Not included in `time`
+        vector.
+        """
         return 1/self.f1
 
     @property
     def ncomponents(self):
-        """Number of Fourier components (2*nfreq + 1)"""
+        """Number of Fourier components (`2*nfreq + 1`) for each degree
+        of freedom.
+        """
         return ncomponents(self.nfreq)
 
     @property
     def nstate_wec(self):
-        """Length of the  WEC dynamics state vector"""
+        """Length of the WEC dynamics state vector consisting of the
+        Fourier coefficient of the position of each degree of freedom.
+        """
         return self.ndof * self.ncomponents
 
     # other methods
@@ -786,28 +885,80 @@ class WEC:
                               ) -> tuple[np.ndarray, np.ndarray]:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
-        
+
         Examples
         --------
         >>> x_wec, x_opt = wec.decompose_decision_var(x)
+
+        See Also
+        --------
+        decompose_decision_var
         """
         return decompose_decision_var(state, self.ndof, self.nfreq)
 
     def time_nsubsteps(self, nsubsteps: int):
-        """Time vector with sub-steps"""
+        """Create a time vector with finer discretization.
+
+        The time vector contains nsubsteps per implied/default time
+        steps.
+        For example `wec.time_nsubsteps(2)` would contain an additional
+        time point halfway between every two time points in `wec.time`.
+
+        See Also
+        --------
+        time, WEC.time
+        """
         return time(self.f1, self.nfreq, nsubsteps)
 
     def time_mat_nsubsteps(self, nsubsteps: int):
-        """Time matrix with sub-steps"""
+        """Create a time matrix similar to `WEC.time_mat` but with finer
+        time-domain discretization.
+
+        See `WEC.time_mat` and `WEC.time_nsubsteps` for more details.
+
+        See Also
+        --------
+        time_mat, WEC.time_mat, WEC.time_nsubsteps
+        """
         return time_mat(self.f1, self.nfreq, nsubsteps)
 
     def vec_to_dofmat(self, vec: np.ndarray):
+        """Convert a vector to a matrix with one column per degree of
+        freedom.
+
+        The input vector must contain the same number of elements for
+        each degree of freedom, with all the elements of the first DOF
+        first, folowed by the second DOF, and so on.
+
+        Examples
+        --------
+        >>> x_wec, x_opt = wec.decompose_decision_var(x)
+        >>> x_wec_mat = wec.vec_to_dofmat(x_wec)
+
+        See Also
+        --------
+        WEC.dofmat_to_vec, vec_to_dofmat
+        """
         return vec_to_dofmat(vec, self.ndof)
 
     def dofmat_to_vec(self, mat: np.ndarray):
+        """Flatten a matrix to a vector.
+
+        Opposite of `WEC.vec_to_dofmat`
+
+        See Also
+        --------
+        WEC.vec_to_dofmat, dofmat_to_vec
+        """
         return dofmat_to_vec(mat)
 
     def fd_to_td(self, fd: np.ndarray):
+        """Convert a frequency-domain array to time-domain.
+
+        See Also
+        --------
+        WEC.td_to_fd, fd_to_td
+        """
         return fd_to_td(fd, self.f1, self.nfreq)
 
     def td_to_fd(self, td: np.ndarray):
@@ -824,14 +975,14 @@ def frequency(f1: float, nfreq: int) -> np.ndarray:
     The array includes 0 and has length of `nfreq+1`.
     `f1` is fundamental frequency (1st harmonic).
     `f = [0, f1, 2*f1, ..., nfreq*f1]`
-    
+
     Parameters
     ----------
     f1
         Fundamental frequency [Hz]
     nfreq
         Number of frequencies
-        
+
     Returns
     -------
     freqs
@@ -986,7 +1137,7 @@ def td_to_fd(td: np.ndarray) -> np.ndarray:
 
 def wave_elevation(waves):
     """Free surface elevation
-    
+
     Examples
     --------
     >>> elevation_fd = wave_elevation(waves)
@@ -1004,7 +1155,7 @@ def wave_elevation(waves):
 
 def wave_excitation(exc_coeff, waves):
     """Excitation force due to waves
-    
+
     Notes
     -----
     Wave frequencies must be same as exc_coeff. Directions can be a subset.
@@ -1049,7 +1200,7 @@ def write_netcdf(fpath: str | Path, data: xr.Dataset) -> None:
 
 
 def check_linear_damping(hydro_data, min_damping=1e-6) -> xr.Dataset:
-    """Ensure that the linear hydrodynamics (friction + radiation damping) 
+    """Ensure that the linear hydrodynamics (friction + radiation damping)
     have positive damping
 
     Parameters
@@ -1150,9 +1301,9 @@ def standard_forces(hydro_data: xr.Dataset):
 
 
 def add_zerofreq_to_xr(data:xr.Dataset):
-    """Add zero frequency element to `xarray.Dataset` containing linear 
+    """Add zero frequency element to `xarray.Dataset` containing linear
     hydrodynamic data
-    
+
     Notes
     -----
     Frequency variable must be called `omega`.
@@ -1172,6 +1323,7 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             rho: float = _default_parameters['rho'],
             g: float = _default_parameters['g'],
             depth: float = _default_parameters['depth'],
+            write_info: Optional[dict[str, bool]] = None
             ) -> xr.Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
 
@@ -1209,12 +1361,12 @@ def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
     if wave_dirs is None:
         # radiation only problem, no diffraction or excitation
         test_matrix = test_matrix.drop_vars('wave_direction')
-    write_info = {
-                #  'hydrostatics': True, 
-                #   'mesh': True, 
-                #   'wavelength': True,
-                #   'wavenumber': True,
-                  }
+    if write_info is None:
+        write_info = {'hydrostatics': False,
+                      'mesh': False,
+                      'wavelength': False,
+                      'wavenumber': False,
+                     }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     bem_data = solver.fill_dataset(test_matrix, [wec_im], **write_info)
     return change_bem_convention(bem_data)
@@ -1273,7 +1425,7 @@ def subset_close(subset_a: float | npt.ArrayLike,
                 rtol: float = 1.e-5, atol:float = 1.e-8,
                 equal_nan: bool = False) -> tuple[bool, list]:
     """Check if two arrays are subset equal within a tolerance.
-    
+
     Parameters
     ----------
     subset_a
@@ -1286,13 +1438,13 @@ def subset_close(subset_a: float | npt.ArrayLike,
         The absolute tolerance parameter.
     equal_nan
         Whether to compare NaNs as equal.
-        
+
     Returns
     -------
     subset
         Whether the first array is a subset of second array
     ind
-        List with integer indices where the first array's elements are located 
+        List with integer indices where the first array's elements are located
         inside the second array.
     """
     assert len(np.unique(subset_a.round(decimals = 6))) == len(subset_a), "Elements in subset_a not unique"
