@@ -5,48 +5,45 @@ for wave energy converters (WEC).
 
 from __future__ import annotations
 
+
 __all__ = [
     'WEC', 'TWEC', 'TStateFunction',
-    'frequency', 'time', 'time_mat', 'derivative_mat', 'degrees_to_radians',
-    'ncomponents', 'standard_forces', 'mimo_transfer_mat', 'wave_excitation',
-    'fd_to_td', 'td_to_fd', 'read_netcdf', 'write_netcdf',
-    'vec_to_dofmat', 'dofmat_to_vec', 'run_bem',
-    'add_zerofreq_to_xr', 'complex_to_real', 'real_to_complex', 'wave_elevation',
-    'linear_hydrodynamics', 'check_linear_damping', 'inertia',
-]   # TODO: clean exports
+    'ncomponents', 'frequency', 'time', 'time_mat', 'derivative_mat',
+    'degrees_to_radians', 'vec_to_dofmat', 'dofmat_to_vec',
+    'mimo_transfer_mat', 'real_to_complex', 'complex_to_real',
+    'fd_to_td', 'td_to_fd', 'wave_elevation', 'wave_excitation',
+    'read_netcdf', 'write_netcdf', 'check_linear_damping',
+    'force_from_position_transfer_fun', 'force_from_impedance',
+    'force_from_waves', 'inertia', 'standard_forces',
+    'add_zerofreq_to_xr', 'run_bem', 'change_bem_convention',
+    'linear_hydrodynamics', 'atleast_2d', 'subset_close', 'scale_dofs',
+    'decompose_state', 'check_frequency_vector',
+]
 
-# TODO: clean imports
 import logging
-# import copy
 from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar
 from pathlib import Path
-# from numpy import isin
+import warnings
 
 import numpy.typing as npt
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
 
-# from pyparsing import null_debug_action
 import xarray as xr
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
-# import matplotlib.pyplot as plt
-# from matplotlib.figure import Figure
-
-
-
-
-import warnings
-warnings.filterwarnings("ignore", message="Casting complex values to real discards the imaginary part")
 
 
 # logger
 _log = logging.getLogger(__name__)
 
+# autograd warnings
+filter_msg = "Casting complex values to real discards the imaginary part"
+warnings.filterwarnings("ignore", message=filter_msg)
+
 # default values
-# _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
 _default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
 _default_min_damping = 1e-6
 
@@ -55,9 +52,6 @@ TWEC = TypeVar("TWEC", bound="WEC")
 TStateFunction = Callable[
     [TWEC, np.ndarray, np.ndarray, xr.Dataset], np.ndarray]
 
-# TODO: Docstrings
-# TODO: Type hints
-# TODO: Math equations, code snippets, URLs, and other emphasis
 class WEC:
     """A wave energy converter (WEC) object for performing simulations
     using the pseudo-spectral solution method.
@@ -66,7 +60,8 @@ class WEC:
                  constraints: Optional[list[dict]] = None,
                  mass: Optional[np.ndarray] = None,
                  ndof: Optional[int] = None,
-                 inertia_in_forces: bool = False) -> TWEC:
+                 inertia_in_forces: bool = False,
+                 dof_names: Optional[list[str]] = None) -> TWEC:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 
@@ -115,6 +110,9 @@ class WEC:
             This scenario is rare.
             If using an intrinsic impedance, consider initializing with
             `from_impedance` instead.
+        dof_names
+            Names of the different degrees of freedom (e.g. 'Heave').
+            If `None` the names `'DOF_0', ..., 'DOF_N'` are used.
 
         Raises
         ------
@@ -188,8 +186,16 @@ class WEC:
         self.ndof = ndof
         self.inertia = None if inertia_in_forces else inertia(f1, nfreq, mass)
 
-    def __repr__(self):
-        f'{self.__class__.__name__}' #TODO - make this more rich. Always defined and determines the dimensions of the problem: ndof, f1, nfreq. Could also do number/names of forces, number of constraints.
+        # names
+        if dof_names is None:
+            self.dof_names = [f'DOF_{i}' for i in range(ndof)]
+        else:
+            self.dof_names = dof_names
+
+    def __str__(self):
+        str = (f'{self.__class__.__name__}: {self.ndof} DOF, ' +
+               f'f=[0, {self.f1}, ..., {self.nfreq}({self.f1})] Hz.')
+        return str
 
     # other initialization methods
     @staticmethod
@@ -358,17 +364,17 @@ class WEC:
 
     @staticmethod
     def from_floating_body(
-        fb: cpy.FloatingBody, f1: float, nfreq: int,
-        mass: np.ndarray, hydrostatic_stiffness: np.ndarray,
-        friction: Optional[np.ndarray] = None,
-        f_add: Optional[dict[str, TStateFunction]] = None,
-        constraints: Optional[list[dict]] = None,
-        min_damping: float = _default_min_damping,
-        wave_directions: npt.ArrayLike = np.array([0.0,]),
-        rho: float = _default_parameters['rho'],
-        g: float = _default_parameters['g'],
-        depth: float = _default_parameters['depth'],
-        ) -> tuple[TWEC, xr.Dataset]:
+            fb: cpy.FloatingBody, f1: float, nfreq: int,
+            mass: np.ndarray, hydrostatic_stiffness: np.ndarray,
+            friction: Optional[np.ndarray] = None,
+            f_add: Optional[dict[str, TStateFunction]] = None,
+            constraints: Optional[list[dict]] = None,
+            min_damping: float = _default_min_damping,
+            wave_directions: npt.ArrayLike = np.array([0.0,]),
+            rho: float = _default_parameters['rho'],
+            g: float = _default_parameters['g'],
+            depth: float = _default_parameters['depth'],
+            ) -> tuple[TWEC, xr.Dataset]:
         """Create a WEC object from a Capytaine `FloatingBody`.
 
         Capytaine `FloatingBody` objects contain information on the
@@ -709,25 +715,21 @@ class WEC:
 
         return res_fd, res_td, optim_res
 
-
-    def post_process(self, waves: xr.Dataset, res: OptimizeResult,
-                     nsubsteps: int,
-                     ) -> tuple[xr.Dataset, xr.Dataset, np.ndarray,
-                                      np.ndarray, float]:
+    def post_process(self,
+                     waves: xr.Dataset, res: OptimizeResult, nsubsteps: int
+                     ) -> tuple[xr.Dataset, xr.Dataset]:
         """TODO"""
 
         x_wec, x_opt = self.decompose_state(res.x)
-        dof_names = np.arange(self.ndof) # TODO: creates these names at WEC.init
 
         # frequency domain
         force_da_list = []
         for name, force in self.forces.items():
-
             force_td_tmp = force(self, x_wec, x_opt, waves)
             force_fd = self.td_to_fd(force_td_tmp)
             force_da = xr.DataArray(data=force_fd,
-                        coords={'omega':self.omega,
-                                'influenced_dof':dof_names},
+                        coords={'omega':self.omega,  # TODO: omega or frequency?
+                                'influenced_dof':self.dof_names},
                         attrs={'units':'N*s or Nm*s'}
                         ).expand_dims({'type':[name]})
             force_da_list.append(force_da)
@@ -753,7 +755,7 @@ class WEC:
             data_vars={
                 'pos': (['omega', 'influenced_dof'],
                         pos_fd,
-                        {'long_name': 'Position', 'units': 'm^2*s or rad^2*s'}),
+                        {'long_name': 'Position', 'units': 'm^2*s or rad^2*s'}),  # TODO: leave as /Hz for density functions
                 'vel': (['omega', 'influenced_dof'],
                         vel_fd,
                         {'long_name': 'Velocity', 'units': 'm^2/s or rad^2/s'}),
@@ -765,7 +767,7 @@ class WEC:
                           self.omega,
                           {'long_name': 'Frequency', 'units': 'rad/s'}),
                 'influenced_dof': ('influenced_dof',
-                                   dof_names,
+                                   self.dof_names,
                                    {'long_name': 'Degree of freedom'})},
             attrs={} #TODO: add time stamp
             )
@@ -802,7 +804,6 @@ class WEC:
         results_td['force'].attrs['units'] = 'N or Nm'
 
         return results_fd, results_td
-
 
     # properties
     @property
@@ -895,17 +896,37 @@ class WEC:
 
     # other methods
     def decompose_state(self, state: np.ndarray
-                              ) -> tuple[np.ndarray, np.ndarray]:
+                       ) -> tuple[np.ndarray, np.ndarray]:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
+        The WEC dynamics state consists of the Fourier coefficients of
+        the position of each degree of freedom.
+        The optimization state depends on the chosen control states for
+        the problem.
+
+        Calls `decompose_state` with the appropriate inputs for the WEC
+        object.
+
+        Parameters
+        ----------
+        state
+            Combined WEC and optimization states.
+
+        Returns
+        -------
+        state_wec
+            WEC state vector.
+        state_opt
+            Optimization (control) state.
+
         Examples
         --------
-        >>> x_wec, x_opt = wec.decompose_decision_var(x)
+        >>> x_wec, x_opt = wec.decompose_state(x)
 
         See Also
         --------
-        decompose_decision_var
+        decompose_state
         """
         return decompose_state(state, self.ndof, self.nfreq)
 
@@ -917,6 +938,19 @@ class WEC:
         For example `wec.time_nsubsteps(2)` would contain an additional
         time point halfway between every two time points in `wec.time`.
 
+        Calls `time` with the appropriate inputs for the WEC object.
+
+        Parameters
+        ----------
+        nsubsteps
+            Number of substeps between implied/default time steps.
+
+        Returns
+        -------
+        time
+            Time vector [s], size `2*WEC.nfreq*nsubsteps+1 x WEC.ndof`,
+            not containing the end time `WEC.tf`.
+
         See Also
         --------
         time, WEC.time
@@ -925,9 +959,21 @@ class WEC:
 
     def time_mat_nsubsteps(self, nsubsteps: int):
         """Create a time matrix similar to `WEC.time_mat` but with finer
-        time-domain discretization.
+        time-domain discretization corresponding to
+        `WEC.time_nsubsteps`.
 
-        See `WEC.time_mat` and `WEC.time_nsubsteps` for more details.
+        Calls `time_mat` with the appropriate inputs for the WEC object.
+
+        Parameters
+        ----------
+        nsubsteps
+            Number of substeps between implied/default time steps.
+
+        Returns
+        -------
+        time_mat
+            Matrix to create a finer time-series from Fourier
+            coefficients.
 
         See Also
         --------
@@ -943,38 +989,104 @@ class WEC:
         each degree of freedom, with all the elements of the first DOF
         first, folowed by the second DOF, and so on.
 
+        Opposite of `WEC.dofmat_to_vec`.
+
+        Calls `vec_to_dofmat` with the appropriate inputs for the WEC
+        object.
+
+        Parameters
+        ----------
+        vec
+            One-dimensional vector.
+
+        Returns
+        -------
+        mat
+            Matrix with one column per degree of freedom.
+
         Examples
         --------
-        >>> x_wec, x_opt = wec.decompose_decision_var(x)
+        >>> x_wec, x_opt = wec.decompose_state(x)
         >>> x_wec_mat = wec.vec_to_dofmat(x_wec)
 
         See Also
         --------
-        WEC.dofmat_to_vec, vec_to_dofmat
+        vec_to_dofmat, WEC.dofmat_to_vec
         """
         return vec_to_dofmat(vec, self.ndof)
 
     def dofmat_to_vec(self, mat: np.ndarray):
         """Flatten a matrix to a vector.
 
-        Opposite of `WEC.vec_to_dofmat`
+        Opposite of `WEC.vec_to_dofmat`.
+
+        Calls `dofmat_to_vec` with the appropriate inputs for the WEC
+        object.
+
+        Parameters
+        ----------
+        mat
+            Matrix with one column per degree of freedom.
+
+        Returns
+        -------
+        vec
+            One-dimensional vector.
 
         See Also
         --------
-        WEC.vec_to_dofmat, dofmat_to_vec
+        dofmat_to_vec, WEC.vec_to_dofmat
         """
         return dofmat_to_vec(mat)
 
     def fd_to_td(self, fd: np.ndarray):
         """Convert a frequency-domain array to time-domain.
 
+        Opposite of `WEC.td_to_fd`.
+
+        Calls `fd_to_td` with the appropriate inputs for the WEC
+        object.
+
+        Parameters
+        ----------
+        fd
+            Frequency-domain complex array with shape `WEC.nfreq+1 x N`
+            for any `N`.
+
+        Returns
+        -------
+        td
+            Time-domain real array with shape `2*WEC.nfreq+1 x N`.
+
         See Also
         --------
-        WEC.td_to_fd, fd_to_td
+        fd_to_td, WEC.td_to_fd
         """
         return fd_to_td(fd, self.f1, self.nfreq)
 
-    def td_to_fd(self, td: np.ndarray, fft=True):
+    def td_to_fd(self, td: np.ndarray, fft: bool = True):
+        """Convert a time-domain array to frequency-domain.
+
+        Opposite of WEC.fd_to_td.
+
+        Calls `fd_to_td` with the appropriate inputs for the WEC
+        object.
+
+        Parameters
+        ----------
+        td
+            Time-domain real array with shape `2*WEC.nfreq+1 x N` for
+            any `N`.
+
+        Returns
+        -------
+        fd
+            Frequency-domain complex array with shape `WEC.nfreq+1 x N`.
+
+        See Also
+        --------
+        td_to_fd, WEC.fd_to_td
+        """
         return td_to_fd(td, fft)
 
 
@@ -1343,7 +1455,6 @@ def add_zerofreq_to_xr(data:xr.Dataset):
     return data
 
 
-# def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
 def run_bem(fb: cpy.FloatingBody, freq: Iterable[float] = [np.infty],
             wave_dirs: Iterable[float] = [0],
             rho: float = _default_parameters['rho'],

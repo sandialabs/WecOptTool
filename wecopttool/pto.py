@@ -34,7 +34,7 @@ class PTO:
         self.ndof = ndof
         # names
         if names is None:
-            self.names = [f'PTO_{i}' for i in range(ndof)] if names is None else names
+            self.names = [f'PTO_{i}' for i in range(ndof)]
         else:
             self.names = names
         # kinematics
