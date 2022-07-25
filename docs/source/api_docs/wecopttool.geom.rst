@@ -1,4 +1,8 @@
-wecopttool.geom
+﻿wecopttool.geom
 ===============
+
 .. automodule:: wecopttool.geom
-    :members:
+
+   
+   
+   

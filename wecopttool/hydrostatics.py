@@ -1,5 +1,5 @@
-"""Provide functions for calculating hydrostatic and mass
-properties for floating bodies.
+"""Functions for calculating hydrostatic and mass properties for
+floating bodies.
 """
 
 
