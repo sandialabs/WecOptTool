@@ -8,7 +8,6 @@ import pytest
 from pytest import approx
 import numpy as np
 import xarray as xr
-import capytaine as cpy
 
 import wecopttool as wot
 
@@ -48,9 +47,9 @@ def bem_data():
     Froude_Krylov_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
 
     data_vars = {'added_mass': (radiation_dims, added_mass),
-                 'radiation_damping': (radiation_dims, radiation_damping),
-                 'diffraction_force': (excitation_dims, diffraction_force),
-                 'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
+                    'radiation_damping': (radiation_dims, radiation_damping),
+                    'diffraction_force': (excitation_dims, diffraction_force),
+                    'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
     }
     return xr.Dataset(data_vars=data_vars, coords=coords)
 
@@ -204,6 +203,7 @@ def test_degrees_to_radians():
         assert r==approx(wot.degrees_to_radians(d))  # special cases
 
 
+# test both vec_to_dofmat and dofmat_to_vec
 def test_vec_to_dofmat_to_vec():
     """Test both `vec_to_dofmat` and `dofmat_to_vec`."""
     vec = np.array([1,2,3,4,5,6])
@@ -275,6 +275,7 @@ def test_mimo_transfer_mat():
     assert np.allclose(Z_mimo @ X, F)
 
 
+# test both real_to_complex and complex_to_real
 def test_real_to_complex_to_real():
     comp_amp = np.array([[1+0j, 11+0j],  # f0
                          [2+3j, 12+13j],  # f1
@@ -301,6 +302,7 @@ def test_real_to_complex_to_real():
     assert np.allclose(comp_1d, comp_1d_calc.squeeze())
 
 
+# test both fd_to_td and td_to_fd
 def test_fd_to_td_to_fd(f1, nfreq):
     fd = np.zeros([nfreq+1, 2], dtype=complex)
     freq = wot.frequency(f1, nfreq)
@@ -431,6 +433,7 @@ def test_wave_excitation(f1, nfreq, wave_regular, waves_multi):
         wot.wave_excitation(exc_coeff, waves)
 
 
+# test both read_netcdf and write_netcdf
 def test_read_write_netcdf(hydro_data):
     cwd = os.path.dirname(__file__)
     bem_file_tmp = os.path.join(cwd, 'bem_tmp.nc')
@@ -509,24 +512,24 @@ def test_standard_forces_inertia(hydro_data):
     diffraction = forces['diffraction'](wec, None, None, waves)
 
     inertia_truth = mass * acc
-    radiation_truth = rad*vel + addmass*acc
-    hydrostatics_truth = hstiff*pos
-    friction_truth = fric*vel
+    radiation_truth = -(rad*vel + addmass*acc)
+    hydrostatics_truth = -hstiff*pos
+    friction_truth = -fric*vel
     diff_comp = wave_amp*np.exp(1j*wave_phase) * diff
     diffraction_truth =  (np.real(diff_comp) * np.cos(w*t) -
-                          np.imag(diff_comp) * np.sin(w*t))
+                            np.imag(diff_comp) * np.sin(w*t))
     fk_comp = wave_amp*np.exp(1j*wave_phase) * fk_coeff
     fk_truth =  np.real(fk_comp) * np.cos(w*t) - np.imag(fk_comp) * np.sin(w*t)
 
     forces = [
-        (inertia, inertia_truth),
-        (radiation, radiation_truth),
-        (hydrostatics, hydrostatics_truth),
-        (friction, friction_truth),
-        (diffraction, diffraction_truth),
-        (fk, fk_truth)
+        (inertia, inertia_truth, "inertia"),
+        (radiation, radiation_truth, "radiation"),
+        (hydrostatics, hydrostatics_truth, "hydrostatics"),
+        (friction, friction_truth, "friction"),
+        (diffraction, diffraction_truth, "diffraction"),
+        (fk, fk_truth, "")
     ]
 
-    for f_calc, f_truth in forces:
-        assert np.allclose(f_calc[:, 0], f_truth)
+    for f_calc, f_truth, name in forces:
+        assert np.allclose(f_calc[:, 0], f_truth), f"FAILED: {name}!"
         assert np.allclose(f_calc[:, 1], 0)
