@@ -1850,7 +1850,8 @@ def run_bem(
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
     depth: float = _default_parameters['depth'],
-    write_info: Optional[Mapping[str, bool]] = None
+    write_info: Optional[Mapping[str, bool]] = None,
+    njobs: int = 1,
 ) -> Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
 
@@ -1883,6 +1884,9 @@ def run_bem(
         :python:`['hydrostatics', 'mesh', 'wavelength', 'wavenumber']`.
         See :python:`capytiane.io.xarray.assemble_dataset` for more
         details.
+    njobs
+        Number of jobs to run in parallel.
+        See :python:`capytaine.bem.solver.fill_dataset`
 
     See Also
     --------
@@ -1909,7 +1913,8 @@ def run_bem(
                       'wavenumber': False,
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
-    bem_data = solver.fill_dataset(test_matrix, wec_im, **write_info)
+    bem_data = solver.fill_dataset(
+        test_matrix, wec_im, njobs=njobs, **write_info)
     return change_bem_convention(bem_data)
 
 
@@ -1920,6 +1925,8 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     convention (:math:`x(t)=Xe^{-iωt}`), where :math:`X` is the
     frequency-domain response, to the more standard convention
     used in WecOptTool (:math:`x(t)=Xe^{+iωt}`).
+
+    NOTE: This might change in Capytaine in the future.
 
     Parameters
     ----------
