@@ -1,6 +1,7 @@
 """ Unit tests for functions in the `core.py` module.
 Does not include the WEC class.
 """
+
 import os
 import random
 
@@ -46,10 +47,11 @@ def bem_data():
     diffraction_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
     Froude_Krylov_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
 
-    data_vars = {'added_mass': (radiation_dims, added_mass),
-                    'radiation_damping': (radiation_dims, radiation_damping),
-                    'diffraction_force': (excitation_dims, diffraction_force),
-                    'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
+    data_vars = {
+        'added_mass': (radiation_dims, added_mass),
+        'radiation_damping': (radiation_dims, radiation_damping),
+        'diffraction_force': (excitation_dims, diffraction_force),
+        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
     }
     return xr.Dataset(data_vars=data_vars, coords=coords)
 
@@ -57,10 +59,12 @@ def bem_data():
 @pytest.fixture(scope='module')
 def hydro_data(bem_data):
     ndof = len(bem_data.influenced_dof)
-    mass = np.ones([ndof, ndof])
+    inertia_matrix = np.ones([ndof, ndof])
     stiffness = np.ones([ndof, ndof])
     friction = np.ones([ndof, ndof])
-    return wot.linear_hydrodynamics(bem_data, mass, stiffness, friction)
+    data = wot.linear_hydrodynamics(
+        bem_data, inertia_matrix, stiffness, friction)
+    return data
 
 
 @pytest.fixture
@@ -414,7 +418,8 @@ def test_wave_excitation(f1, nfreq, wave_regular, waves_multi):
     fexc_reg_exp = np.zeros([nfreq+1, ndof], dtype=complex)
     for idof in range(ndof):
         idir = 0
-        fexc_reg_exp[n_r, idof] = exc_coeff[n_r, idir, idof] * wave_elev_regular
+        fexc_reg_exp[n_r, idof] = (
+            exc_coeff[n_r, idir, idof] * wave_elev_regular)
     fexc_multi_exp = np.zeros([nfreq+1, ndof], dtype=complex)
     for idof in range(ndof):
         for idir in range(ndir):
@@ -453,10 +458,13 @@ def test_check_linear_damping(hydro_data):
     data_new = wot.check_linear_damping(data, tol)
     data_new_nofric = data_new.copy(deep=True).drop_vars('friction')
     data_org_nofric = data_org.copy(deep=True).drop_vars('friction')
-    nodiag = lambda x: x.friction.values - np.diag(np.diagonal(x.friction.values))
+
+    def nodiag(x):
+        return x.friction.values - np.diag(np.diagonal(x.friction.values))
+
     assert data.equals(data_org)  # no side effects
     assert np.allclose(np.diagonal(data_new.friction.values), tol)  # values
-    assert np.allclose(nodiag(data_new), nodiag(data_org))  # only diagonal changed
+    assert np.allclose(nodiag(data_new), nodiag(data_org))  # only diag changed
     assert data_new_nofric.equals(data_org_nofric) # only friction is changed
 
 
@@ -489,21 +497,26 @@ def test_standard_forces_inertia(hydro_data):
     wave_phase_deg = np.rad2deg(wave_phase)
     diff = 4 + 5j
     fk_coeff = -2 + 1.2j
-    data['mass'][:, :] = np.eye(ndof)*mass
+    data['inertia_matrix'][:, :] = np.eye(ndof)*mass
     data['hydrostatic_stiffness'][:, :] = np.eye(ndof)*hstiff
     data['friction'][:, :] = np.eye(ndof)*fric
     data['radiation_damping'].values[:, :, index_freq] = np.eye(ndof)*rad
     data['added_mass'].values[:, :, index_freq] = np.eye(ndof)*addmass
-    data['diffraction_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
+    data['diffraction_force'].values[:, :, index_freq] = (
+        np.zeros([ndof, ndir], dtype=complex))
     data['diffraction_force'].values[0, 0, index_freq] = diff
-    data['Froude_Krylov_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
+    data['Froude_Krylov_force'].values[:, :, index_freq] = (
+        np.zeros([ndof, ndir], dtype=complex))
     data['Froude_Krylov_force'].values[0, 0, index_freq] = fk_coeff
 
     forces = wot.standard_forces(data)
 
-    wec = wot.WEC(f1, nfreq, {}, mass=data['mass'].values)
-    waves = wot.waves.regular_wave(f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
-    inertia_func = wot.inertia(f1, nfreq, mass=data['mass'].values)
+    wec = wot.WEC(
+        f1, nfreq, {}, inertia_matrix=data['inertia_matrix'].values)
+    waves = wot.waves.regular_wave(
+        f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
+    inertia_func = wot.inertia(
+        f1, nfreq, inertia_matrix=data['inertia_matrix'].values)
     inertia = inertia_func(wec, x_wec, None, None)
     radiation = forces['radiation'](wec, x_wec, None, None)
     hydrostatics = forces['hydrostatics'](wec, x_wec, None, None)

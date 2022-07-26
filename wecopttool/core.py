@@ -69,7 +69,7 @@ class WEC:
         nfreq:int,
         forces: TIForceDict,
         constraints: Optional[Iterable[Mapping]] = None,
-        mass: Optional[ndarray] = None,
+        inertia_matrix: Optional[ndarray] = None,
         ndof: Optional[int] = None,
         inertia_in_forces: bool = False,
         dof_names: Optional[Iterable[str]] = None
@@ -78,9 +78,9 @@ class WEC:
         list of forces.
 
         The :python:`WEC` class describes a WEC's equation of motion as
-        :math:`ma=Σf` where the :python:`mass` matrix specifies the
-        inertia :math:`m`, and the :python:`forces` dictionary specifies
-        the different forces to be summed.
+        :math:`ma=Σf` where the :python:`inertia_matrix` matrix
+        specifies the inertia :math:`m`, and the :python:`forces`
+        dictionary specifies the different forces to be summed.
         The forces can be linear or nonlinear.
         If :python:`inertia_in_forces is True` the equation of motion is
         :math:`Σf=0`, which is included to allow for initialization
@@ -110,7 +110,7 @@ class WEC:
             :python:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
-        mass
+        inertia_matrix
            Inertia matrix of size :python:`ndof x ndof`.
            Not used if :python:`inertia_in_forces` is :python:`True`.
         ndof
@@ -135,10 +135,10 @@ class WEC:
             If :python:`inertia_in_forces is True` but :python:`ndof` is
             not specified.
         ValueError
-            If :python:`inertia_in_forces is False` but :python:`mass`
-            is not specified.
+            If :python:`inertia_in_forces is False` but
+            :python:`inertia_matrix` is not specified.
         ValueError
-            If :python:`mass` does not have the correct size
+            If :python:`inertia_matrix` does not have the correct size
             (:python:`ndof x ndof`).
         ValueError
             If :python:`dof_names` does not have the correct size
@@ -178,31 +178,36 @@ class WEC:
 
         if inertia_in_forces:
             condition = "True"
-            if mass is not None:
-                _log.warning(_ignored("mass", condition))
-                mass = None
+            if inertia_matrix is not None:
+                _log.warning(_ignored("inertia_matrix", condition))
+                inertia_matrix = None
             if ndof is None:
                 raise ValueError(_missing("ndof", condition))
         elif not inertia_in_forces:
             condition = "False"
-            if mass is None:
-                raise ValueError(_missing("mass", condition))
-            mass = np.atleast_2d(np.squeeze(mass))
+            if inertia_matrix is None:
+                raise ValueError(_missing("inertia_matrix", condition))
+            inertia_matrix = np.atleast_2d(np.squeeze(inertia_matrix))
             if ndof is not None:
                 _log.warning(_ignored("ndof", condition))
-                if ndof != mass.shape[0]:
+                if ndof != inertia_matrix.shape[0]:
                     _log.warning(
                         "Provided value of `ndof` does not match size of " +
-                        f"`mass` matrix. Setting `ndof={mass.shape[0]}`.")
-            ndof = mass.shape[0]
+                        "`inertia_matrix`. Setting " +
+                        f"`ndof={inertia_matrix.shape[0]}`.")
+            ndof = inertia_matrix.shape[0]
 
-            if mass.shape != (ndof, ndof):
+            if inertia_matrix.shape != (ndof, ndof):
                 raise ValueError(
-                    "'mass' must be a square matrix of size equal to " +
-                    "the number of degrees of freedom.")
-        self._mass = mass
+                    "'inertia_matrix' must be a square matrix of size equal " +
+                    "to the number of degrees of freedom.")
+        self._inertia_matrix = inertia_matrix
         self._ndof = ndof
-        self._inertia = None if inertia_in_forces else inertia(f1, nfreq, mass)
+        if inertia_in_forces:
+            _inertia = None
+        else:
+            _inertia = inertia(f1, nfreq, inertia_matrix)
+        self._inertia = _inertia
 
         # names
         if dof_names is None:
@@ -220,7 +225,7 @@ class WEC:
     @staticmethod
     def from_bem(
         bem_data: Union[Dataset, Union[str, Path]],
-        mass: Optional[ndarray] = None,
+        inertia_matrix: Optional[ndarray] = None,
         hydrostatic_stiffness: Optional[ndarray] = None,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
@@ -248,8 +253,9 @@ class WEC:
         The results can be saved using :python:`write_netcdf`.
 
         In addition to the Capytaine results, if the dataset contains
-        the :python:`mass`, :python:`hydrostatic_stiffness`, or
-        :python:`friction` these do not need to be provided separately.
+        the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
+        or :python:`friction` these do not need to be provided
+        separately.
 
         Parameters
         ----------
@@ -257,7 +263,7 @@ class WEC:
             Linear hydrodynamic coefficients obtained using the boundary
             element method (BEM) code Capytaine, with sign convention
             corrected.
-        mass
+        inertia_matrix
            Inertia matrix of size :python:`ndof x ndof`.
            :python:`None` if included in :python:`bem_data`.
         hydrostatic_stiffness
@@ -292,14 +298,15 @@ class WEC:
         Raises
         ------
         ValueError
-            If either :python:`mass` or :python:`hydrostatic_stiffness`
-            are :python:`None` and is not included in
-            :python:`bem_data`.
+            If either :python:`inertia_matrix` or
+            :python:`hydrostatic_stiffness` are :python:`None` and is
+            not included in :python:`bem_data`.
             See :python:`linear_hydrodynamics`.
         ValueError
-            If any of :python:`mass`, :python:`hydrostatic_stiffness`,
-            or :python:`stiffness` are both provided and included in
-            :python:`bem_data` but have different values.
+            If any of :python:`inertia_matrix`,
+            :python:`hydrostatic_stiffness`, or :python:`stiffness` are
+            both provided and included in :python:`bem_data` but have
+            different values.
             See :python:`linear_hydrodynamics`.
 
         See Also
@@ -309,10 +316,11 @@ class WEC:
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
-        # add mass, hydrostatic stiffness, and friction
+        # add inertia_matrix, hydrostatic stiffness, and friction
         hydro_data = linear_hydrodynamics(
-            bem_data, mass, hydrostatic_stiffness, friction)
-        mass = hydro_data['mass'].values if mass is None else mass
+            bem_data, inertia_matrix, hydrostatic_stiffness, friction)
+        if inertia_matrix is None:
+            inertia_matrix = hydro_data['inertia_matrix'].values
 
         # add zero frequency if not included
         if not np.isclose(hydro_data.coords['omega'][0].values, 0):
@@ -335,14 +343,14 @@ class WEC:
         forces = linear_force_functions | f_add
         # constraints
         constraints = constraints if (constraints is not None) else []
-        return WEC(f1, nfreq, forces, constraints, mass)
+        return WEC(f1, nfreq, forces, constraints, inertia_matrix)
 
     @staticmethod
     def from_floating_body(
         fb: cpy.FloatingBody,
         f1: float,
         nfreq: int,
-        mass: ndarray,
+        inertia_matrix: ndarray,
         hydrostatic_stiffness: ndarray,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
@@ -381,7 +389,7 @@ class WEC:
         nfreq
             Number of frequencies (not including zero frequency),
             i.e., :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
-        mass
+        inertia_matrix
            Inertia matrix of size :python:`ndof x ndof`.
         hydrostatic_stiffness
             Linear hydrostatic restoring coefficient of size
@@ -429,8 +437,9 @@ class WEC:
         freq = frequency(f1, nfreq)[1:]
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
-        wec = WEC.from_bem(bem_data, mass, hydrostatic_stiffness, friction,
-                           f_add, constraints, min_damping=min_damping)
+        wec = WEC.from_bem(
+            bem_data, inertia_matrix, hydrostatic_stiffness, friction, f_add,
+            constraints, min_damping=min_damping)
         return wec
 
     @staticmethod
@@ -875,11 +884,11 @@ class WEC:
         return self._inertia_in_forces
 
     @property
-    def mass(self) -> ndarray:
-        """Mass matrix.
+    def inertia_matrix(self) -> ndarray:
+        """Inertia (mass) matrix.
         :python:`None` if  :python:`inertia_in_forces is True`.
         """
-        return self._mass
+        return self._inertia_matrix
 
     @property
     def inertia(self) -> TStateFunction:
@@ -1737,7 +1746,11 @@ def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
     return force
 
 
-def inertia(f1: float, nfreq: int, mass: ArrayLike) -> TStateFunction:
+def inertia(
+    f1: float,
+    nfreq: int,
+    inertia_matrix: ArrayLike
+) -> TStateFunction:
     """Create the inertia "force" from the inertia matrix.
 
     Parameters
@@ -1746,12 +1759,12 @@ def inertia(f1: float, nfreq: int, mass: ArrayLike) -> TStateFunction:
         Fundamental frequency :python:`f1` [Hz].
     nfreq
         Number of frequencies.
-    mass
+    inertia_matrix
         Inertia matrix.
     """
     omega = np.reshape(frequency(f1, nfreq)*2*np.pi, [1,1,-1])
-    mass = np.expand_dims(mass, -1)
-    position_transfer_function = -1*omega**2*mass + 0j
+    inertia_matrix = np.expand_dims(inertia_matrix, -1)
+    position_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_position_transfer(position_transfer_function)
     return inertia_fun
 
@@ -1921,12 +1934,12 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
 
 def linear_hydrodynamics(
     bem_data: Dataset,
-    mass: Optional[ArrayLike] = None,
+    inertia_matrix: Optional[ArrayLike] = None,
     hydrostatic_stiffness: Optional[ArrayLike] = None,
     friction: Optional[ArrayLike] = None
 ) -> Dataset:
-    """Add rigid body mass, hydrostatic stiffness, and linear friction
-    to BEM data.
+    """Add rigid body inertia_matrix, hydrostatic stiffness, and linear
+    friction to BEM data.
 
     Returns the Dataset with the additional information added.
 
@@ -1936,7 +1949,7 @@ def linear_hydrodynamics(
         Linear hydrodynamic coefficients obtained using the boundary
         element method (BEM) code Capytaine, with sign convention
         corrected.
-    mass
+    inertia_matrix
         Inertia matrix of size `ndof x ndof`.
         `None` if included in `bem_data`.
     hydrostatic_stiffness
@@ -1950,14 +1963,16 @@ def linear_hydrodynamics(
     Raises
     ------
     ValueError
-        If either :python:`mass` or :python:`hydrostatic_stiffness` are
-        :python:`None` and is not included in :python:`bem_data`.
+        If either :python:`inertia_matrix` or
+        :python:`hydrostatic_stiffness` are :python:`None` and is not
+        included in :python:`bem_data`.
     ValueError
-        If any of :python:`mass`, :python:`hydrostatic_stiffness`, or
-        :python:`friction` are both provided and included in
-        :python:`bem_data` but have different values.
+        If any of :python:`inertia_matrix`,
+        :python:`hydrostatic_stiffness`, or :python:`friction` are both
+        provided and included in :python:`bem_data` but have different
+        values.
     """
-    vars = {'mass': mass, 'friction': friction,
+    vars = {'inertia_matrix': inertia_matrix, 'friction': friction,
             'hydrostatic_stiffness': hydrostatic_stiffness}
 
     dims = ['radiating_dof', 'influenced_dof']
