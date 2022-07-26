@@ -9,6 +9,12 @@ WecOptTool
     implementation.rst
     tutorials.rst
     references.rst
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+    :titlesonly:
+
     api_docs.rst
 
 The Wave Energy Converter Design Optimization Toolbox (WecOptTool) is an open-source software for conducting optimization studies of wave energy converters (WEC) and their control strategies.

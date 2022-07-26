@@ -17,7 +17,7 @@ The main way to interact with *WecOptTool* is through the WEC class:
 
 .. autosummary::
    :toctree: api_docs
-   :template: class-template.rst
+   :template: class-template-separate-files.rst
    :recursive:
    :nosignatures:
 
@@ -28,11 +28,14 @@ Modules
 
 .. autosummary::
    :toctree: api_docs
-   :template: module-template.rst
    :recursive:
    :nosignatures:
+   :template: module-template-functions-only.rst
 
    wecopttool.core
+
+   :template: module-template.rst
+
    wecopttool.pto
    wecopttool.waves
    wecopttool.hydrostatics

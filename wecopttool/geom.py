@@ -20,22 +20,27 @@ class WaveBot:
 
     """
 
-    def __init__(self, r1: float = 0.88, r2: float = 0.35, h1: float = 0.17,
-                 h2: float = 0.37, freeboard: float = 0.01,) -> None:
+    def __init__(self,
+        r1: float = 0.88,
+        r2: float = 0.35,
+        h1: float = 0.17,
+        h2: float = 0.37,
+        freeboard: float = 0.01,
+    ) -> None:
         """
         Parameters
         ----------
-        r1 : float, optional
+        r1
             Outer-most radius (of cylindrical section).
             The default is 0.88.
-        r2 : float, optional
+        r2
             Inner-most radius (of the conic frustum).
             The default is 0.35.
-        h1 : float, optional
+        h1
             Height of the cylindrical section. The default is 0.17.
-        h2 : float, optional
+        h2
             Height of the conic frustum section. The default is 0.37.
-        freeboard : float, optional
+        freeboard
             Freeboard above free surface (will be removed later for BEM
             calculations). The default is 0.01. The draft of the
             cylindrical section is h1-freeboard.
