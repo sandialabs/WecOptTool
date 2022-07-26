@@ -5,11 +5,13 @@
 from __future__ import annotations  # TODO: delete after python 3.10
 
 
-import matplotlib as mpl
+from typing import Optional
+
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import Axes, Figure
 import pygmsh
 import gmsh
-import meshio
+from meshio._mesh import Mesh
 
 
 class WaveBot:
@@ -27,47 +29,38 @@ class WaveBot:
         h2: float = 0.37,
         freeboard: float = 0.01,
     ) -> None:
-        """
+        """Create a WaveBot with specific dimensions.
+
         Parameters
         ----------
         r1
             Outer-most radius (of cylindrical section).
-            The default is 0.88.
         r2
             Inner-most radius (of the conic frustum).
-            The default is 0.35.
         h1
-            Height of the cylindrical section. The default is 0.17.
+            Height of the cylindrical section.
         h2
-            Height of the conic frustum section. The default is 0.37.
+            Height of the conic frustum section.
         freeboard
             Freeboard above free surface (will be removed later for BEM
-            calculations). The default is 0.01. The draft of the
-            cylindrical section is h1-freeboard.
+            calculations). The draft of the cylindrical section is
+            :python:`h1-freeboard`.
         """
-
         self.r1 = r1
         self.r2 = r2
         self.h1 = h1
         self.h2 = h2
         self.freeboard = freeboard
-
         self.gear_ratio = 12.47
 
-    def mesh(self, mesh_size_factor: float = 0.1) -> meshio._mesh.Mesh:
+    def mesh(self, mesh_size_factor: float = 0.1) -> Mesh:
         """Generate surface mesh of hull.
 
         Parameters
         ----------
-        mesh_size_factor : float, optional
-            Smaller values give a finer mesh. The default is 0.1.
-
-        Returns
-        -------
-        mesh : meshio._mesh.Mesh
-            Mesh object for the hull.
+        mesh_size_factor
+            Control for the mesh size. Smaller values give a finer mesh.
         """
-
         with pygmsh.occ.Geometry() as geom:
             gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
             cyl = geom.add_cylinder([0, 0, 0],
@@ -83,24 +76,24 @@ class WaveBot:
 
         return mesh
 
-    def plot_cross_section(self, show: bool = False,
-                           ax: mpl.axes._subplots.AxesSubplot | None = None,
-                           **kwargs) -> None:
+    def plot_cross_section(self,
+        show: bool = False,
+        ax: Optional[Axes] = None,
+        **kwargs,
+    ) -> tuple[Figure, Axes]:
         """
         Plot hull cross-section.
 
         Parameters
         ----------
-        show : bool, optional
+        show
             Whether to show the figure.
-        ax : matplotlib.axes._subplots.AxesSubplot, optional
-            Existing axes. The default is None. If None, new axes will
-            be created.
+        ax
+            Existing axes. The default is None.
+            If None, new axes will be created.
         **kwargs
             Passed to pyplot.plot().
-
         """
-
         if ax is None:
             fig, ax = plt.subplots()
         else:

@@ -73,7 +73,7 @@ class WEC:
         ndof: Optional[int] = None,
         inertia_in_forces: bool = False,
         dof_names: Optional[Iterable[str]] = None
-    ) -> TWEC:
+    ) -> None:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 

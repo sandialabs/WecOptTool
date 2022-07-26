@@ -100,6 +100,8 @@ autodoc_type_aliases = {
     'TIForceDict': 'Mapping[str, StateFunction]',
     'DataArray': 'DataArray',
     'Dataset': 'Dataset',
+    'Figure': 'Figure',
+    'Axes': 'Axes',
     }
 autodoc_class_signature = "separated"
 highlight_language = 'python3'
@@ -107,3 +109,6 @@ rst_prolog = """
 .. role:: python(code)
    :language: python
 """
+autodoc_default_options = {
+    'exclude-members': '__new__'
+}
