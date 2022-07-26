@@ -1,5 +1,5 @@
-""" Unit tests for functions in the `core.py` module.
-Does not include the WEC class.
+""" Unit tests for functions in the :python:`core.py` module.
+Does not include the :python:`WEC` class.
 """
 
 import os
