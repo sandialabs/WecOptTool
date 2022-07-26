@@ -1909,7 +1909,7 @@ def run_bem(
                       'wavenumber': False,
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
-    bem_data = solver.fill_dataset(test_matrix, [wec_im], **write_info)
+    bem_data = solver.fill_dataset(test_matrix, wec_im, **write_info)
     return change_bem_convention(bem_data)
 
 
