@@ -504,8 +504,9 @@ class WEC:
                 "including the zero-frequency component.")
 
         # impedance force
-        position_transfer = impedance / (1j*impedance.omega)
-        force_impedance = force_from_position_transfer(position_transfer)
+        rao_transfer_function = impedance / (1j*impedance.omega)
+        force_impedance = force_from_rao_transfer_function(
+            rao_transfer_function)
 
         # excitation force
         force_excitation = force_from_waves(exc_coeff)
@@ -1328,22 +1329,21 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     return np.reshape(mat, -1, order='F')
 
 
-def mimo_transfer_mat(imp: ArrayLike) -> ndarray:
+def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
-    The input is a complex impedance matrix :python:`Z` that relates the
-    complex Fourier representation of a flow variable :python:`Q`
-    (e.g., velocity, current, etc.) to an effort variable :python:`E`
-    (e.g., force, voltage, etc.) as :python:`e=Zq`.
+    The input is a complex transfer matrix that relates the complex
+    Fourier representation of two variables.
+    For example, it can be an impedance matrix or an RAO transfer
+    matrix.
     The input complex impedance matrix has shape
     :python`ndof x ndof (nfreq+1)`.
     The zero-frequency components, at :python:`imp[:,:,0]`, are
     real-valued.
 
-    Returns the 2D real matrix :python:`M` that transform the state
-    representation of a flow variable :python:`q` to the state
-    representation of the effort variable :python:`e`, as
-    :python:`e=Mq`.
+    Returns the 2D real matrix that transform the state representation
+    of the input variable variable to the state representation of the
+    output variable.
     Here, a state representation :python:`x` consists of the mean (DC)
     component followed by the real and imaginary components of the
     Fourier coefficients as
@@ -1351,19 +1351,19 @@ def mimo_transfer_mat(imp: ArrayLike) -> ndarray:
 
     Parameters
     ----------
-    imp
-        Complex impedance matrix.
+    transfer_mat
+        Complex transfer matrix.
     """
-    ndof = imp.shape[0]
-    assert imp.shape[1] == ndof
+    ndof = transfer_mat.shape[0]
+    assert transfer_mat.shape[1] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
-            Zp0 = imp[idof, jdof, 0]
+            Zp0 = transfer_mat[idof, jdof, 0]
             assert np.all(np.isreal(Zp0))
             Zp0 = np.real(Zp0)
-            Zp = imp[idof, jdof, 1:]
+            Zp = transfer_mat[idof, jdof, 1:]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
@@ -1687,8 +1687,8 @@ def check_linear_damping(
     return hydro_data_new
 
 
-def force_from_position_transfer(
-    position_transfer: ArrayLike,
+def force_from_rao_transfer_function(
+    rao_transfer_mat: ArrayLike,
 ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
 
@@ -1697,7 +1697,7 @@ def force_from_position_transfer(
 
     Parameters
     ----------
-    position_transfer
+    rao_transfer_mat
         Complex position transfer matrix.
 
     See Also
@@ -1705,7 +1705,7 @@ def force_from_position_transfer(
     force_from_impedance,
     """
     def force(wec, x_wec, x_opt, waves):
-        transfer_mat = mimo_transfer_mat(position_transfer)
+        transfer_mat = mimo_transfer_mat(rao_transfer_mat)
         force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
         return np.dot(wec.time_mat, force_fd)
     return force
@@ -1726,9 +1726,9 @@ def force_from_impedance(
 
     See Also
     --------
-    force_from_position_transfer,
+    force_from_rao_transfer_function,
     """
-    return force_from_position_transfer(impedance/(1j*omega))
+    return force_from_rao_transfer_function(impedance/(1j*omega))
 
 
 def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
@@ -1764,8 +1764,8 @@ def inertia(
     """
     omega = np.reshape(frequency(f1, nfreq)*2*np.pi, [1,1,-1])
     inertia_matrix = np.expand_dims(inertia_matrix, -1)
-    position_transfer_function = -1*omega**2*inertia_matrix + 0j
-    inertia_fun = force_from_position_transfer(position_transfer_function)
+    rao_transfer_function = -1*omega**2*inertia_matrix + 0j
+    inertia_fun = force_from_rao_transfer_function(rao_transfer_function)
     return inertia_fun
 
 
@@ -1791,18 +1791,18 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     K = hydro_data['hydrostatic_stiffness']
     Bf = hydro_data['friction']
 
-    position_transfer_functions = dict()
-    position_transfer_functions['radiation'] = 1j*w*B + -1*w**2*A
-    position_transfer_functions['hydrostatics'] = (
+    rao_transfer_functions = dict()
+    rao_transfer_functions['radiation'] = 1j*w*B + -1*w**2*A
+    rao_transfer_functions['hydrostatics'] = (
         (K + 0j).expand_dims({"omega": B.omega}) )
-    position_transfer_functions['friction'] = 1j*w*Bf
+    rao_transfer_functions['friction'] = 1j*w*Bf
 
     linear_force_functions = dict()
-    for name, value in position_transfer_functions.items():
+    for name, value in rao_transfer_functions.items():
         value = value.transpose("radiating_dof", "influenced_dof", "omega")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
-            force_from_position_transfer(value))
+            force_from_rao_transfer_function(value))
 
     # wave excitation
     excitation_coefficients = {
