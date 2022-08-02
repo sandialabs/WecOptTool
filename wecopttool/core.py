@@ -322,14 +322,6 @@ class WEC:
         if inertia_matrix is None:
             inertia_matrix = hydro_data['inertia_matrix'].values
 
-        # add zero frequency if not included
-        if not np.isclose(hydro_data.coords['omega'][0].values, 0):
-            _log.warning(
-                "Provided BEM data does not include the zero-frequency " +
-                "components. Setting the zero-frequency components for all " +
-                "coefficients (radiation and excitation) to zero.")
-            hydro_data = add_zerofreq_to_xr(hydro_data)
-
         # frequency array
         f1, nfreq = frequency_parameters(hydro_data.omega.values)
 
@@ -1159,14 +1151,14 @@ def ncomponents(nfreq : int) -> int:
     return 2*nfreq + 1
 
 
-def frequency(f1: float, nfreq: int) -> ndarray:
+def frequency(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
     """Construct equally spaced frequency array.
 
     The array includes :python:`0` and has length of :python:`nfreq+1`.
     :python:`f1` is fundamental frequency (1st harmonic).
 
     Returns the frequency array, e.g.,
-    :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+    :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
 
     Parameters
     ----------
@@ -1174,8 +1166,12 @@ def frequency(f1: float, nfreq: int) -> ndarray:
         Fundamental frequency :python:`f1` [Hz].
     nfreq
         Number of frequencies.
+    zero_freq
+        Whether to include the zero-frequency.
     """
-    return np.arange(0, nfreq+1)*f1
+    freq = np.arange(0, nfreq+1)*f1
+    freq = freq[1:] if not zero_freq else freq
+    return freq
 
 
 def time(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
@@ -1372,7 +1368,7 @@ def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     return np.block(elem)
 
 
-def real_to_complex(fd: ArrayLike) -> ndarray:
+def real_to_complex(fd: ArrayLike, zero_freq: bool = True) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
 
@@ -1395,20 +1391,25 @@ def real_to_complex(fd: ArrayLike) -> ndarray:
     fd
         Array containing the real and imaginary components of the
         Fourier coefficients.
+    zero_freq
+        Whether the mean (DC) component is included.
 
     See Also
     --------
     complex_to_real,
     """
     fd= atleast_2d(fd)
-    assert np.all(np.isreal(fd[0, :]))
-    assert fd.shape[0]%2==1
-    mean = fd[0:1, :]
-    fd = fd[1:, :]
-    return np.concatenate((mean, fd[0::2, :] + 1j*fd[1::2, :]), axis=0)
+    if zero_freq:
+        assert fd.shape[0]%2==1
+        mean = fd[0:1, :]
+        fd = fd[1:, :]
+    fdc = fd[0::2, :] + 1j*fd[1::2, :]
+    if zero_freq:
+        fdc = np.concatenate((mean, fdc), axis=0)
+    return fdc
 
 
-def complex_to_real(fd: ArrayLike) -> ndarray:
+def complex_to_real(fd: ArrayLike, zero_freq: bool=True) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
 
@@ -1429,22 +1430,31 @@ def complex_to_real(fd: ArrayLike) -> ndarray:
     ----------
     fd
         Array containing the complex Fourier coefficients.
+    zero_freq
+        Whether the mean (DC) component is included.
 
     See Also
     --------
     real_to_complex,
     """
-    fd= atleast_2d(fd)
+    fd = atleast_2d(fd)
     nfreq = fd.shape[0] - 1
     ndof = fd.shape[1]
-    assert np.all(np.isreal(fd[0, :]))
-    a = np.real(fd[0:1, :])
-    b = np.real(fd[1:, :])
-    c = np.imag(fd[1:, :])
+    if zero_freq:
+        assert np.all(np.isreal(fd[0, :]))
+        a = np.real(fd[0:1, :])
+        b = np.real(fd[1:, :])
+        c = np.imag(fd[1:, :])
+    else:
+        b = np.real(fd)
+        c = np.imag(fd)
     out = np.concatenate([np.transpose(b), np.transpose(c)])
     out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
-    out = np.concatenate([a, out])
-    assert out.shape == (2*nfreq+1, ndof)
+    if zero_freq:
+        out = np.concatenate([a, out])
+        assert out.shape == (2*nfreq+1, ndof)
+    else:
+        assert out.shape == (2*nfreq, ndof)
     return out
 
 
@@ -1488,7 +1498,7 @@ def fd_to_td(fd: ArrayLike, f1=None, nfreq=None) -> ndarray:
     --------
     td_to_fd, time, time_mat
     """
-    fd= atleast_2d(fd)
+    fd = atleast_2d(fd)
     if (f1 is not None) and (nfreq is not None):
         tmat = time_mat(f1, nfreq)
         td = tmat @ complex_to_real(fd)
@@ -1527,37 +1537,6 @@ def td_to_fd(td: ArrayLike, fft: bool = True) -> ndarray:
     return fd
 
 
-def wave_elevation(waves: Dataset) -> ndarray:
-    """Create the complex,  frequency-domain, free surface elevation
-    from the elevation variance spectrum and phase angles.
-
-    Examples
-    --------
-    >>> elevation_fd = wave_elevation(waves)
-    >>> nfd = 2 * len(waves['omega']) + 1
-    >>> elevation_td = fd_to_td(elevation_fd, nfd)
-
-    Parameters
-    ----------
-    waves
-        Wave elevation variance spectrum and phase indexed by frequency
-        and direction angle.
-
-    Raises
-    ------
-    ValueError
-        If frequencies are not in the correct format: evenly spaced
-        starting with the zero-frequency.
-    """
-    if not waves.omega[0]==0.0:
-        raise ValueError("first frequency must be 0.0")
-    if not np.allclose(np.diff(waves.omega), np.diff(waves.omega)[0]):
-        raise ValueError("Wave frequencies must be evenly spaced.")
-    dw = waves.omega[1]
-    fd = np.sqrt((2*waves['S'] / (2*np.pi)) * dw) * np.exp(1j*waves['phase'])
-    return fd.values
-
-
 def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
@@ -1573,8 +1552,7 @@ def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
         Complex excitation coefficients indexed by frequency and
         direction angle.
     waves
-        Wave elevation variance spectrum and phase indexed by frequency
-        and direction angle.
+        Complex frequency-domain wave elevation.
 
     Raises
     ------
@@ -1591,7 +1569,8 @@ def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
     dir_e = exc_coeff['wave_direction'].values
     exc_coeff = exc_coeff.transpose(
         'omega', 'wave_direction', 'influenced_dof').values
-    wave_elev_fd = np.expand_dims(wave_elevation(waves), -1)
+
+    wave_elev_fd = np.expand_dims(waves.values, -1)
 
     if not np.allclose(omega_w, omega_e):
         raise ValueError("Wave and excitation frequencies do not match.")
@@ -1741,7 +1720,7 @@ def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
         direction angle.
     """
     def force(wec, x_wec, x_opt, waves):
-        force_fd = complex_to_real(wave_excitation(force_coeff, waves))
+        force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
         return np.dot(wec.time_mat, force_fd)
     return force
 
@@ -1814,33 +1793,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
         linear_force_functions[name] = force_from_waves(value)
 
     return linear_force_functions
-
-
-def add_zerofreq_to_xr(data: Dataset) -> Dataset:
-    """Add zero frequency element to `xarray.Dataset` containing linear
-    hydrodynamic data.
-
-    If the Dataset allready contains the zero-frequency components,
-    the Dataset is returned unchanged, else the it is expanded to
-    include :python:`omega=0` and values of :python:`0` are added.
-
-    Parameters
-    ----------
-    data
-        A Dataset indexed by frequency.
-
-    Notes
-    -----
-    Frequency variable must be called `omega`.
-    """
-    if not np.isclose(data.coords['omega'][0].values, 0):
-        tmp = data.isel(omega=0).copy(deep=True)
-        tmp['omega'] = tmp['omega'] * 0
-        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
-        for var in vars:
-            tmp[var] = tmp[var] * 0
-        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
-    return data
 
 
 def run_bem(
@@ -2151,7 +2103,10 @@ def decompose_state(
     return state[:nstate_wec], state[nstate_wec:]
 
 
-def frequency_parameters(freqs: ArrayLike) -> tuple[float, int]:
+def frequency_parameters(
+    freqs: ArrayLike,
+    zero_freq: bool = True,
+) -> tuple[float, int]:
     """Return the fundamental frequency and the number of frequencies
     in a frequency array.
 
@@ -2163,6 +2118,8 @@ def frequency_parameters(freqs: ArrayLike) -> tuple[float, int]:
     ----------
     freqs
         The frequency array, starting at zero and having equal spacing.
+    zero_freq
+        Whether the first frequency should be zero.
 
     Returns
     -------
@@ -2175,14 +2132,28 @@ def frequency_parameters(freqs: ArrayLike) -> tuple[float, int]:
     Raises
     ------
     ValueError
-        If the frequency vector does not include the zero frequency or
-        is not evenly spaced.
-
+        If the frequency vector is not evenly spaced.
+    ValueError
+        If the zero-frequency was expected but not included or not
+        expected but included.
     """
-    f1 = freqs[1] / (2*np.pi)
-    nfreq = len(freqs) - 1
-    w_check = np.arange(0, f1*(nfreq+0.5), f1)*2*np.pi
-    if not np.allclose(w_check, freqs):
+    if np.isclose(freqs[0], 0.0):
+        if zero_freq:
+            freqs0 = freqs[:]
+        else:
+            raise ValueError('Zero frequency was included.')
+    else:
+        if zero_freq:
+            raise ValueError(
+                'Frequency array must start with the zero frequency.')
+        else:
+            freqs0 = np.concatenate([[0.0,], freqs])
+
+    f1 = freqs0[1]
+    nfreq = len(freqs0) - 1
+    f_check = np.arange(0, f1*(nfreq+0.5), f1)
+    print(np.diff(freqs0))
+    if not np.allclose(f_check, freqs0):
         raise ValueError("Frequency array `omega` must be evenly spaced by" +
                          "the fundamental frequency " +
                          "(i.e.,`omega = [0, f1, 2*f1, ..., nfreq*f1])")

@@ -125,3 +125,6 @@ class WaveBot:
             plt.show()
 
         return fig, ax
+
+
+# TODO: Include at least one more example. Something different. OSWEC (pitch)? RM3 (2 bodies)?
