@@ -25,7 +25,7 @@ def stiffness_matrix(
     g: float = _default_parameters['g'],
     center_of_mass: Optional[Iterable[float]] = None,
 ) -> DataArray:
-    """Compute the hydrostatic stiffenss of a Capytaine floating body.
+    """Compute the hydrostatic stiffness of a Capytaine floating body.
 
     .. note:: Only works for rigid body DOFs which must be named
               according to the Capytaine convention (e.g.,

@@ -216,10 +216,18 @@ class WEC:
             raise ValueError("`dof_names` must have length `ndof`.")
         self._dof_names = list(dof_names)
 
-    def __str__(self):
-        str = (f'{self.__class__.__name__}: {self.ndof} DOF, ' +
+    def __str__(self) -> str:
+        str = (f'{self.__class__.__name__}: ' +
+               f'DOFs ({self.ndof})={self.dof_names}, ' +
                f'f=[0, {self.f1}, ..., {self.nfreq}({self.f1})] Hz.')
         return str
+
+    def __repr__(self) -> str:
+        type_ = type(self)
+        module = type_.__module__
+        qualname = type_.__qualname__
+        repr_org = f"<{module}.{qualname} object at {hex(id(self))}>"
+        return repr_org + " :: " + self.__str__()
 
     # other initialization methods
     @staticmethod
@@ -323,7 +331,7 @@ class WEC:
             inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
-        f1, nfreq = frequency_parameters(hydro_data.omega.values)
+        f1, nfreq = frequency_parameters(hydro_data.omega.values, False)
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
@@ -456,10 +464,10 @@ class WEC:
         Parameters
         ----------
         freqs
-            Frequency vector [Hz],
-            :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
+            Frequency vector [Hz] not including the zero frequency,
+            :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
         impedance
-            Complex impedance of size :python:`ndof x ndof x nfreq+1`.
+            Complex impedance of size :python:`ndof x ndof x nfreq`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`ndof x nfreq`.
@@ -484,16 +492,15 @@ class WEC:
         ------
         ValueError
             If :python:`impedance` does not have the correct size:
-            :python:`ndof x ndof x nfreq+1`.
+            :python:`ndof x ndof x nfreq`.
         """
-        f1, nfreq = frequency_parameters(freqs)
+        f1, nfreq = frequency_parameters(freqs, False)
 
         # impedance matrix shape
         shape = impedance.shape
-        if (impedance.ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq+1):
+        if (impedance.ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
-                "`impedance` must have shape `ndof x ndof x (nfreq+1)`, " +
-                "including the zero-frequency component.")
+                "`impedance` must have shape `ndof x ndof x (nfreq)`.")
 
         # impedance force
         rao_transfer_function = impedance / (1j*impedance.omega)
@@ -1114,7 +1121,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return fd_to_td(fd, self.f1, self.nfreq)
+        return fd_to_td(fd, self.f1, self.nfreq, True)
 
     def td_to_fd(self, td: ndarray, fft: bool = True) -> ndarray:
         """Convert a time-domain array to frequency-domain.
@@ -1136,10 +1143,10 @@ class WEC:
         --------
         td_to_fd, WEC.fd_to_td
         """
-        return td_to_fd(td, fft)
+        return td_to_fd(td, fft, True)
 
 
-def ncomponents(nfreq : int) -> int:
+def ncomponents(nfreq : int, zero_freq: bool = True) -> int:
     """Number of Fourier components (:python:`2*nfreq + 1`) for each
     DOF.
 
@@ -1147,8 +1154,13 @@ def ncomponents(nfreq : int) -> int:
     ----------
     nfreq
         Number of frequencies.
+    zero_freq
+        Whether to include the zero-frequency.
     """
-    return 2*nfreq + 1
+    ncomp = 2*nfreq
+    if zero_freq:
+        ncomp = ncomp + 1
+    return ncomp
 
 
 def frequency(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
@@ -1199,7 +1211,12 @@ def time(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
 
-def time_mat(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
+def time_mat(
+    f1: float,
+    nfreq: int,
+    nsubsteps: int = 1,
+    zero_freq: bool = True,
+) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
 
@@ -1221,6 +1238,8 @@ def time_mat(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
+    zero_freq
+        Whether the first frequency should be zero.
     """
     t = time(f1, nfreq, nsubsteps)
     omega = frequency(f1, nfreq) * 2*np.pi
@@ -1230,10 +1249,12 @@ def time_mat(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
     time_mat[:, 2::2] = -np.sin(wt)
+    if not zero_freq:
+        time_mat = time_mat[:, 1:]
     return time_mat
 
 
-def derivative_mat(f1: float, nfreq: int) -> ndarray:
+def derivative_mat(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
 
@@ -1252,10 +1273,13 @@ def derivative_mat(f1: float, nfreq: int) -> ndarray:
         Fundamental frequency :python:`f1` [Hz].
     nfreq
         Number of frequencies.
+    zero_freq
+        Whether the first frequency should be zero.
     """
     def block(n): return np.array([[0, -1], [1, 0]]) * n*f1 * 2*np.pi
     blocks = [block(n+1) for n in range(nfreq)]
-    blocks = [0.0] + blocks
+    if zero_freq:
+        blocks = [0.0] + blocks
     return block_diag(*blocks)
 
 
@@ -1333,9 +1357,7 @@ def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     For example, it can be an impedance matrix or an RAO transfer
     matrix.
     The input complex impedance matrix has shape
-    :python`ndof x ndof (nfreq+1)`.
-    The zero-frequency components, at :python:`imp[:,:,0]`, are
-    real-valued.
+    :python`ndof x ndof (nfreq)`.
 
     Returns the 2D real matrix that transform the state representation
     of the input variable variable to the state representation of the
@@ -1356,14 +1378,16 @@ def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
-            Zp0 = transfer_mat[idof, jdof, 0]
-            assert np.all(np.isreal(Zp0))
-            Zp0 = np.real(Zp0)
-            Zp = transfer_mat[idof, jdof, 1:]
+            # Zp0 = transfer_mat[idof, jdof, 0]
+            # assert np.all(np.isreal(Zp0))
+            # Zp0 = np.real(Zp0)
+            # Zp = transfer_mat[idof, jdof, 1:]
+            Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            blocks =[Zp0] + blocks
+            # blocks =[Zp0] + blocks
+            blocks = [0.0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
@@ -1438,7 +1462,7 @@ def complex_to_real(fd: ArrayLike, zero_freq: bool=True) -> ndarray:
     real_to_complex,
     """
     fd = atleast_2d(fd)
-    nfreq = fd.shape[0] - 1
+    nfreq = fd.shape[0] - 1 if zero_freq else fd.shape[0]
     ndof = fd.shape[1]
     if zero_freq:
         assert np.all(np.isreal(fd[0, :]))
@@ -1458,7 +1482,12 @@ def complex_to_real(fd: ArrayLike, zero_freq: bool=True) -> ndarray:
     return out
 
 
-def fd_to_td(fd: ArrayLike, f1=None, nfreq=None) -> ndarray:
+def fd_to_td(
+    fd: ArrayLike,
+    f1=None,
+    nfreq=None,
+    zero_freq: bool=True,
+) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
     of time-domain responses.
 
@@ -1487,6 +1516,8 @@ def fd_to_td(fd: ArrayLike, f1=None, nfreq=None) -> ndarray:
         Fundamental frequency :python:`f1` [Hz].
     nfreq
         Number of frequencies.
+    zero_freq
+        Whether the mean (DC) component is included.
 
     Raises
     ------
@@ -1501,7 +1532,9 @@ def fd_to_td(fd: ArrayLike, f1=None, nfreq=None) -> ndarray:
     fd = atleast_2d(fd)
     if (f1 is not None) and (nfreq is not None):
         tmat = time_mat(f1, nfreq)
-        td = tmat @ complex_to_real(fd)
+        if not zero_freq:
+            tmat = tmat[:, 1:]
+        td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 1 + 2*(fd.shape[0]-1)
         td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
@@ -1511,7 +1544,7 @@ def fd_to_td(fd: ArrayLike, f1=None, nfreq=None) -> ndarray:
     return td
 
 
-def td_to_fd(td: ArrayLike, fft: bool = True) -> ndarray:
+def td_to_fd(td: ArrayLike, fft: bool = True, zero_freq: bool=True) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
@@ -1523,6 +1556,8 @@ def td_to_fd(td: ArrayLike, fft: bool = True) -> ndarray:
         Real array of time-domains responses.
     fft
         Whether to use the real FFT.
+    zero_freq
+        Whether the mean (DC) component is returned.
 
     See Also
     --------
@@ -1534,6 +1569,8 @@ def td_to_fd(td: ArrayLike, fft: bool = True) -> ndarray:
         fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
     else:
         fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    if not zero_freq:
+        fd = fd[1:, :]
     return fd
 
 
@@ -1573,7 +1610,7 @@ def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
     wave_elev_fd = np.expand_dims(waves.values, -1)
 
     if not np.allclose(omega_w, omega_e):
-        raise ValueError("Wave and excitation frequencies do not match.")
+        raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
 
     subset, sub_ind = subset_close(dir_w, dir_e)
 
@@ -1721,7 +1758,7 @@ def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
     """
     def force(wec, x_wec, x_opt, waves):
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        return np.dot(wec.time_mat, force_fd)
+        return np.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
 
@@ -1741,7 +1778,7 @@ def inertia(
     inertia_matrix
         Inertia matrix.
     """
-    omega = np.reshape(frequency(f1, nfreq)*2*np.pi, [1,1,-1])
+    omega = np.reshape(frequency(f1, nfreq, False)*2*np.pi, [1,1,-1])
     inertia_matrix = np.expand_dims(inertia_matrix, -1)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_rao_transfer_function(rao_transfer_function)
@@ -2152,7 +2189,6 @@ def frequency_parameters(
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
     f_check = np.arange(0, f1*(nfreq+0.5), f1)
-    print(np.diff(freqs0))
     if not np.allclose(f_check, freqs0):
         raise ValueError("Frequency array `omega` must be evenly spaced by" +
                          "the fundamental frequency " +

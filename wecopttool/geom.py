@@ -34,16 +34,16 @@ class WaveBot:
         Parameters
         ----------
         r1
-            Outer-most radius (of cylindrical section).
+            Outer-most radius (of cylindrical section) [m].
         r2
-            Inner-most radius (of the conic frustum).
+            Inner-most radius (of the conic frustum) [m].
         h1
-            Height of the cylindrical section.
+            Height of the cylindrical section [m].
         h2
-            Height of the conic frustum section.
+            Height of the conic frustum section [m].
         freeboard
             Freeboard above free surface (will be removed later for BEM
-            calculations). The draft of the cylindrical section is
+            calculations) [m]. The draft of the cylindrical section is
             :python:`h1-freeboard`.
         """
         self.r1 = r1
