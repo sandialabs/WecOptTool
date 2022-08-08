@@ -11,14 +11,21 @@ dynamics.
 from __future__ import annotations
 
 
-from typing import Optional
+from typing import Optional, TypeVar, Callable, Iterable
 
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
+from autograd.numpy import ndarray
 import numpy.typing as npt
 from scipy.linalg import block_diag
+from xarray import DataArray, Dataset
 
 from wecopttool.core import WEC, complex_to_real, td_to_fd, dofmat_to_vec, vec_to_dofmat
+from wecopttool.core import TWEC, TStateFunction, FArrayLike
+
+
+# type aliases
+TPTO = TypeVar("TPTO", bound="PTO")
 
 
 class PTO:
@@ -26,16 +33,15 @@ class PTO:
     def __init__(self, ndof, kinematics, controller=None, impedance=None, efficiency=None,
                  names: Optional[list[str]] = None):
         """
-        controller: (...) -> pto force in td in pto frame
-        power: (...) -> power time-series
-        (...) = (pto, wec, x_wec, x_opt, waves, nsubsteps)
+
         """
-        self.ndof = ndof
+        self._ndof = ndof
         # names
         if names is None:
-            self.names = [f'PTO_{i}' for i in range(ndof)]
+            self._names = [f'PTO_{i}' for i in range(ndof)]
         else:
-            self.names = names
+            self._names = names
+            # TODO: if 1 dof and single string, convert to list.
         # kinematics
         if callable(kinematics):
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
@@ -47,19 +53,66 @@ class PTO:
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
                 n = (wec.nt-1)*nsubsteps + 1
                 return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
-        self.kinematics = kinematics_fun
+        self._kinematics = kinematics_fun
         # controller
         if controller is None:
             controller = controller_unstructured
-        self.force = controller
+
+        def force(wec, x_wec, x_opt, waves, nsubsteps=1):
+            return controller(self, wec, x_wec, x_opt, waves, nsubsteps=1)
+
+        self._force = force
+
         # power
-        self.impedance = impedance
-        self.efficiency = efficiency
+        self._impedance = impedance
+        self._efficiency = efficiency
         if impedance is not None:
             impedance_abcd = _make_abcd(impedance, ndof)
-            self.transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
+            self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
         else:
-            self.transfer_mat = None
+            self._transfer_mat = None
+
+    @property
+    def ndof(self) -> int:
+        """Number of degrees of freedom.
+        """
+        return self._ndof
+
+    @property
+    def names(self) -> ndarray:
+        """DOF Names.
+        """
+        return self._names
+
+    @property
+    def kinematics(self) -> TStateFunction:
+        """Kinemtaics function.
+        """
+        return self._kinematics
+
+    @property
+    def force(self) -> TStateFunction:
+        """PTO force in PTO coordinates.
+        """
+        return self._force
+
+    @property
+    def impedance(self) -> ndarray:
+        """Impedance matrix.
+        """
+        return self._impedance
+
+    @property
+    def efficiency(self) -> Callable[[FArrayLike, FArrayLike], FArrayLike]:
+        """Efficiency function.
+        """
+        return self._efficiency
+
+    @property
+    def transfer_mat(self) -> ndarray:
+        """Transfer matrix.
+        """
+        return self._transfer_mat
 
     def _tmat(self, wec, nsubsteps: int = 1):
         if nsubsteps==1:
@@ -68,7 +121,7 @@ class PTO:
             tmat = wec.time_mat_nsubsteps(nsubsteps)
         return tmat
 
-    def _kinematics(self, f_wec, wec, x_wec, x_opt=None, waves=None, nsubsteps: int = 1):
+    def _fkinematics(self, f_wec, wec, x_wec, x_opt=None, waves=None, nsubsteps: int = 1):
         """ Return time-domain values in the PTO frame.
         `f_wec`: Fourier coefficients of some quantity "f" in the WEC frame.
         """
@@ -85,7 +138,7 @@ class PTO:
                  waves=None, nsubsteps: int = 1):
         """Calculate the PTO position time-series."""
         pos_wec = wec.vec_to_dofmat(x_wec)
-        return self._kinematics(pos_wec, wec, x_wec, x_opt, waves, nsubsteps)
+        return self._fkinematics(pos_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def velocity(self, wec: WEC, x_wec: npt.ArrayLike,
                  x_opt: Optional[npt.ArrayLike],
@@ -93,7 +146,7 @@ class PTO:
         """Calculate the PTO velocity time-series."""
         pos_wec = wec.vec_to_dofmat(x_wec)
         vel_wec = np.dot(wec.derivative_mat, pos_wec)
-        return self._kinematics(vel_wec, wec, x_wec, x_opt, waves, nsubsteps)
+        return self._fkinematics(vel_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def acceleration(self, wec: WEC, x_wec: npt.ArrayLike,
                      x_opt: Optional[npt.ArrayLike],
@@ -102,12 +155,12 @@ class PTO:
         pos_wec = wec.vec_to_dofmat(x_wec)
         vel_wec = np.dot(wec.derivative_mat, pos_wec)
         acc_wec = np.dot(wec.derivative_mat, vel_wec)
-        return self._kinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
+        return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def force_on_wec(self, wec: WEC, x_wec: npt.ArrayLike,
                      x_opt: Optional[npt.ArrayLike],
                      waves=None, nsubsteps: int = 1):
-        force_td = self.force(self, wec, x_wec, x_opt, waves, nsubsteps)
+        force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         assert force_td.shape == (wec.nt, self.ndof)
         force_td = np.expand_dims(np.transpose(force_td), axis=0)
         assert force_td.shape == (1, wec.ndof, wec.nt)
@@ -121,7 +174,7 @@ class PTO:
         """Calculate the PTO power time-series in each PTO DOF
         for a given system state.
         """
-        force_td = self.force(self, wec, x_wec, x_opt, waves, nsubsteps)
+        force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         return vel_td * force_td
 
@@ -139,19 +192,19 @@ class PTO:
 
     def power(self, wec: WEC, x_wec: npt.ArrayLike,
               x_opt: Optional[npt.ArrayLike], waves=None, nsubsteps: int = 1):
-        e1_td = self.force(self, wec, x_wec, x_opt, waves)
+        e1_td = self.force(wec, x_wec, x_opt, waves)
         q1_td = self.velocity(wec, x_wec, x_opt, waves)
         # convert e1 (PTO force), q1 (PTO velocity) to e2,q2
         if self.impedance is not None:
             q1 = complex_to_real(td_to_fd(q1_td, False))
             e1 = complex_to_real(td_to_fd(e1_td, False))
-            vars_1 = np.hstack([q1[1:, :], e1[1:, :]])
+            vars_1 = np.hstack([q1, e1])
             vars_1_flat = dofmat_to_vec(vars_1)
             vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
             vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
             e2 = vars_2[:, self.ndof:]
             q2 = vars_2[:, :self.ndof]
-            time_mat = self._tmat(wec, nsubsteps)[:, 1:]
+            time_mat = self._tmat(wec, nsubsteps)
             e2_td = np.dot(time_mat, e2)
             q2_td = np.dot(time_mat, q2)
         else:
@@ -203,6 +256,7 @@ def _make_mimo_transfer_mat(impedance_abcd, ndof) -> np.ndarray:
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            blocks = [0.0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
@@ -220,10 +274,10 @@ def controller_pid(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1,
     force_td = np.zeros([wec.nt, ndof])
     idx = 0
 
-    def update_force_td(B):
+    def update_force_td(response):
         nonlocal idx, force_td
-        u = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-        force_td = force_td + u*B
+        gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
+        force_td = force_td + gain*response
         idx = idx + 1
 
     if proportional:

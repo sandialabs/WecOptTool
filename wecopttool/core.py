@@ -48,6 +48,7 @@ TStateFunction = Callable[
     [TWEC, ndarray, ndarray, Dataset], ndarray]
 TForceDict = dict[str, TStateFunction]
 TIForceDict = Mapping[str, TStateFunction]
+FArrayLike = Union[float, ArrayLike]
 
 class WEC:
     """A wave energy converter (WEC) object for performing simulations
@@ -331,7 +332,8 @@ class WEC:
             inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
-        f1, nfreq = frequency_parameters(hydro_data.omega.values, False)
+        f1, nfreq = frequency_parameters(
+            hydro_data.omega.values/(2*np.pi), False)
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
@@ -494,6 +496,8 @@ class WEC:
             If :python:`impedance` does not have the correct size:
             :python:`ndof x ndof x nfreq`.
         """
+        # TODO: from_rao_transfer instead of impedance... becuase of the
+        #       hydrostatic stiffness needed at the zero-frequency.
         f1, nfreq = frequency_parameters(freqs, False)
 
         # impedance matrix shape
@@ -527,7 +531,7 @@ class WEC:
         x_wec_0: Optional[ndarray] = None,
         x_opt_0: Optional[ndarray] = None,
         scale_x_wec: Optional[list] = None,
-        scale_x_opt: Union[float, ArrayLike] = 1.0,
+        scale_x_opt: FArrayLike = 1.0,
         scale_obj: float = 1.0,
         optim_options: Mapping[str, Any] = {},
         use_grad: bool = True,
@@ -805,7 +809,7 @@ class WEC:
                 'pos': (['omega', 'influenced_dof'],
                         pos_fd,
                         {'long_name': 'Position',
-                         'units': 'm^2*s or rad^2*s'}),  # TODO: leave as /Hz for density functions. ()^2/Hz for variance.
+                         'units': 'm^2*s or rad^2*s'}),  # TODO: same units as time domain
                 'vel': (['omega', 'influenced_dof'],
                         vel_fd,
                         {'long_name': 'Velocity',
@@ -1284,7 +1288,7 @@ def derivative_mat(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
 
 
 def degrees_to_radians(
-    degrees: Union[float, ArrayLike],
+    degrees: FArrayLike,
     sort: bool = True,
 ) -> Union[float, ndarray]:
     """Convert a 1D array of angles in degrees to radians in the range
@@ -1349,7 +1353,10 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     return np.reshape(mat, -1, order='F')
 
 
-def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
+def mimo_transfer_mat(
+    transfer_mat: ArrayLike,
+    zero_freq: bool = True,
+) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
     The input is a complex transfer matrix that relates the complex
@@ -1371,6 +1378,8 @@ def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     ----------
     transfer_mat
         Complex transfer matrix.
+    zero_freq
+        Whether the first frequency should be zero.
     """
     ndof = transfer_mat.shape[0]
     assert transfer_mat.shape[1] == ndof
@@ -1378,16 +1387,18 @@ def mimo_transfer_mat(transfer_mat: ArrayLike) -> ndarray:
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
-            # Zp0 = transfer_mat[idof, jdof, 0]
-            # assert np.all(np.isreal(Zp0))
-            # Zp0 = np.real(Zp0)
-            # Zp = transfer_mat[idof, jdof, 1:]
-            Zp = transfer_mat[idof, jdof, :]
+            if zero_freq:
+                Zp0 = transfer_mat[idof, jdof, 0]
+                assert np.all(np.isreal(Zp0))
+                Zp0 = np.real(Zp0)
+                Zp = transfer_mat[idof, jdof, 1:]
+            else:
+                Zp0 = [0.0]
+                Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            # blocks =[Zp0] + blocks
-            blocks = [0.0] + blocks
+            blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
@@ -1705,6 +1716,7 @@ def check_linear_damping(
 
 def force_from_rao_transfer_function(
     rao_transfer_mat: ArrayLike,
+    zero_freq: bool = True,
 ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
 
@@ -1715,13 +1727,15 @@ def force_from_rao_transfer_function(
     ----------
     rao_transfer_mat
         Complex position transfer matrix.
+    zero_freq
+        Whether the first frequency should be zero.
 
     See Also
     --------
     force_from_impedance,
     """
     def force(wec, x_wec, x_opt, waves):
-        transfer_mat = mimo_transfer_mat(rao_transfer_mat)
+        transfer_mat = mimo_transfer_mat(rao_transfer_mat, zero_freq)
         force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
         return np.dot(wec.time_mat, force_fd)
     return force
@@ -1744,7 +1758,7 @@ def force_from_impedance(
     --------
     force_from_rao_transfer_function,
     """
-    return force_from_rao_transfer_function(impedance/(1j*omega))
+    return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 
 def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
@@ -1781,7 +1795,8 @@ def inertia(
     omega = np.reshape(frequency(f1, nfreq, False)*2*np.pi, [1,1,-1])
     inertia_matrix = np.expand_dims(inertia_matrix, -1)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
-    inertia_fun = force_from_rao_transfer_function(rao_transfer_function)
+    inertia_fun = force_from_rao_transfer_function(
+        rao_transfer_function, False)
     return inertia_fun
 
 
@@ -1808,17 +1823,22 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     Bf = hydro_data['friction']
 
     rao_transfer_functions = dict()
-    rao_transfer_functions['radiation'] = 1j*w*B + -1*w**2*A
-    rao_transfer_functions['hydrostatics'] = (
-        (K + 0j).expand_dims({"omega": B.omega}) )
-    rao_transfer_functions['friction'] = 1j*w*Bf
+    rao_transfer_functions['radiation'] = (1j*w*B + -1*w**2*A, False)
+    rao_transfer_functions['friction'] = (1j*w*Bf, False)
+
+    # include zero_freq in hydrostatics
+    hs = ((K + 0j).expand_dims({"omega": B.omega}))
+    tmp = hs.isel(omega=0).copy(deep=True)
+    tmp['omega'] = tmp['omega'] * 0
+    hs = xr.concat([tmp, hs], dim='omega') #, data_vars='minimal')
+    rao_transfer_functions['hydrostatics'] = (hs, True)
 
     linear_force_functions = dict()
-    for name, value in rao_transfer_functions.items():
+    for name, (value, zero_freq) in rao_transfer_functions.items():
         value = value.transpose("radiating_dof", "influenced_dof", "omega")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
-            force_from_rao_transfer_function(value))
+            force_from_rao_transfer_function(value, zero_freq))
 
     # wave excitation
     excitation_coefficients = {
@@ -1903,7 +1923,7 @@ def run_bem(
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     bem_data = solver.fill_dataset(
-        test_matrix, wec_im, njobs=njobs, **write_info)
+        test_matrix, wec_im, n_jobs=njobs, **write_info)
     return change_bem_convention(bem_data)
 
 
@@ -2020,8 +2040,8 @@ def atleast_2d(array: ArrayLike) -> ndarray:
 
 
 def subset_close(
-    set_a: Union[float, ArrayLike],
-    set_b: Union[float, ArrayLike],
+    set_a: FArrayLike,
+    set_b: FArrayLike,
     rtol: float = 1.e-5,
     atol: float = 1.e-8,
     equal_nan: bool = False,
