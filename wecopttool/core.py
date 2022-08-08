@@ -804,27 +804,21 @@ class WEC:
         acc = self.derivative_mat @ vel
         acc_fd = real_to_complex(acc)
 
+        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
+        dof_attr = {'long_name': 'Degree of freedom'}
+
         fd_state = xr.Dataset(
             data_vars={
-                'pos': (['omega', 'influenced_dof'],
-                        pos_fd,
-                        {'long_name': 'Position',
-                         'units': 'm^2*s or rad^2*s'}),  # TODO: same units as time domain
-                'vel': (['omega', 'influenced_dof'],
-                        vel_fd,
-                        {'long_name': 'Velocity',
-                         'units': 'm^2/s or rad^2/s'}),
-                'acc': (['omega', 'influenced_dof'],
-                        acc_fd,
-                        {'long_name': 'Velocity',
-                         'units': 'm^2/s^3 or rad^2/s^3'})},
+                'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
+                'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
+                'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
             coords={
-                'omega': ('omega',
-                          self.omega,
-                          {'long_name': 'Frequency', 'units': 'rad/s'}),
-                'influenced_dof': ('influenced_dof',
-                                   self.dof_names,
-                                   {'long_name': 'Degree of freedom'})},
+                'omega': ('omega', self.omega, omega_attr),
+                'influenced_dof': (
+                    'influenced_dof', self.dof_names, dof_attr)},
             attrs={} #TODO: add time stamp
             )
 
@@ -843,18 +837,13 @@ class WEC:
             return out
 
         t_dat = self.time_nsubsteps(nsubsteps)
-        time = xr.DataArray(data=t_dat,
-                            name='time', dims='time', coords=[t_dat])
+        time = xr.DataArray(
+            data=t_dat, name='time', dims='time', coords=[t_dat])
         results_td = results_fd.map(lambda x: time_results(x, time))
 
-        results_td['pos'].attrs['long_name'] = 'Position'
-        results_td['pos'].attrs['units'] = 'm or rad'
-
-        results_td['vel'].attrs['long_name'] = 'Velocity'
-        results_td['vel'].attrs['units'] = 'm/s or rad/s'
-
-        results_td['acc'].attrs['long_name'] = 'Acceleration'
-        results_td['acc'].attrs['units'] = 'm/s^2 or rad/s^2'
+        results_td['pos'].attrs = pos_attr
+        results_td['vel'].attrs = vel_attr
+        results_td['acc'].attrs = acc_attr
 
         results_td['force'].attrs['long_name'] = 'Force'
         results_td['force'].attrs['units'] = 'N or Nm'
