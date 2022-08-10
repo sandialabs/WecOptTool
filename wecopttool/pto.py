@@ -21,7 +21,7 @@ from scipy.linalg import block_diag
 from xarray import DataArray, Dataset
 
 from wecopttool.core import WEC, complex_to_real, td_to_fd, dofmat_to_vec, vec_to_dofmat
-from wecopttool.core import TWEC, TStateFunction, FArrayLike
+from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 
 
 # type aliases
@@ -103,7 +103,8 @@ class PTO:
         return self._impedance
 
     @property
-    def efficiency(self) -> Callable[[FArrayLike, FArrayLike], FArrayLike]:
+    def efficiency(self,
+    ) -> Callable[[FloatOrArray, FloatOrArray], FloatOrArray]:
         """Efficiency function.
         """
         return self._efficiency
