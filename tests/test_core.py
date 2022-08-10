@@ -561,3 +561,7 @@ def test_decompose_state():
 
 def test_frequency_parameters():
     pass  # TODO
+
+
+def test_time_results():
+    pass  # TODO

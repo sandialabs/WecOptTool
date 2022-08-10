@@ -826,16 +826,6 @@ class WEC:
         results_fd = results_fd.transpose('omega','influenced_dof','type')
 
         # time domain
-
-        def time_results(da: DataArray, time: DataArray) -> ndarray:
-            #TODO - maybe break this function out?
-            out = np.zeros((*da.isel(omega=0).shape, len(time)))
-            for w, mag in zip(da.omega, da):
-                out = out + \
-                    np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
-
-            return out
-
         t_dat = self.time_nsubsteps(nsubsteps)
         time = xr.DataArray(
             data=t_dat, name='time', dims='time', coords=[t_dat])
@@ -2203,3 +2193,22 @@ def frequency_parameters(
                          "the fundamental frequency " +
                          "(i.e.,`omega = [0, f1, 2*f1, ..., nfreq*f1])")
     return f1, nfreq
+
+
+def time_results(fd: DataArray, time: DataArray) -> ndarray:
+    """Create a DataArray of time-domain results from DataArray of
+    frequency-domain results.
+
+    Parameters
+    ----------
+    fd
+        Frequency domain response.
+    time
+        Time array.
+    """
+    out = np.zeros((*fd.isel(omega=0).shape, len(time)))
+    for w, mag in zip(fd.omega, fd):
+        out = out + \
+            np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
+
+    return out
