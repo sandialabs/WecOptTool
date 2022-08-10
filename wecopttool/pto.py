@@ -22,6 +22,7 @@ from xarray import DataArray, Dataset
 import xarray as xr
 from tests.test_waves import ndbc_omnidirectional
 from datetime import datetime
+from scipy.optimize import OptimizeResult
 
 from wecopttool.core import WEC, real_to_complex, complex_to_real
 from wecopttool.core import td_to_fd, dofmat_to_vec, vec_to_dofmat
@@ -64,7 +65,7 @@ class PTO:
                 return kinematics(pos_wec_td)
         else:
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
-                n = (wec.nt-1)*nsubsteps + 1
+                n = wec.nt*nsubsteps
                 return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
         self._kinematics = kinematics_fun
         # controller
@@ -72,7 +73,7 @@ class PTO:
             controller = controller_unstructured
 
         def force(wec, x_wec, x_opt, waves, nsubsteps=1):
-            return controller(self, wec, x_wec, x_opt, waves, nsubsteps=1)
+            return controller(self, wec, x_wec, x_opt, waves, nsubsteps)
 
         self._force = force
 
@@ -133,17 +134,18 @@ class PTO:
                      x_wec, 
                      x_opt: Optional[ndarray] = None, 
                      waves: Optional[Dataset] = None, 
-                     nsubsteps: Optional[int] = 1,):
+                     nsubsteps: Optional[int] = 1,
+                     ):
         """ Return time-domain values in the PTO frame.
         `f_wec`: Fourier coefficients of some quantity "f" in the WEC frame.
         TODO
         """
         time_mat = self._tmat(wec, nsubsteps)
         f_wec_td = np.dot(time_mat, f_wec)
-        assert f_wec_td.shape == (wec.nt, wec.ndof)
+        # assert f_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
         f_wec_td = np.expand_dims(np.transpose(f_wec_td), axis=0)
-        assert f_wec_td.shape == (1, wec.ndof, wec.nt)
-        kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves)
+        # assert f_wec_td.shape == (1, wec.ndof, wec.nt*nsubsteps)
+        kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
 
     def position(self, 
@@ -247,8 +249,8 @@ class PTO:
               ) -> ndarray:
         """TODO
         """
-        e1_td = self.force(wec, x_wec, x_opt, waves)
-        q1_td = self.velocity(wec, x_wec, x_opt, waves)
+        e1_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+        q1_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         # convert e1 (PTO force), q1 (PTO velocity) to e2,q2
         if self.impedance is not None:
             q1 = complex_to_real(td_to_fd(q1_td, False))
@@ -294,40 +296,39 @@ class PTO:
     
     def post_process(self, 
                      wec: TWEC, 
-                     x_wec: npt.ArrayLike, 
-                     x_opt: npt.ArrayLike,
+                     res: OptimizeResult,
+                     waves: xr.DataArray = None,
                      nsubsteps: Optional[int] = 1,
                      ) -> tuple[xr.Dataset, xr.Dataset]:
         """TODO
         """
         
+        x_wec, x_opt = wec.decompose_state(res.x)
+        
         # position
-        wec_pos = wec.vec_to_dofmat(x_wec)
-        pos = wec_pos @ self._kinematics_t
-        pos_fd = real_to_complex_amplitudes(pos)
-        pos_td = wec.time_mat @ pos
+        pos_td = self.position(wec, x_wec, x_opt, waves, nsubsteps)
+        pos_fd = wec.td_to_fd(pos_td[::nsubsteps])
 
         # velocity
-        vel = wec.derivative_mat @ pos
-        vel_fd = real_to_complex_amplitudes(vel)
-        vel_td = wec.time_mat @ vel
+        vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+        vel_fd = wec.td_to_fd(vel_td[::nsubsteps])
 
         # acceleration
-        acc = wec.derivative_mat @ vel
-        acc_fd = real_to_complex_amplitudes(acc)
-        acc_td = wec.time_mat @ acc
+        acc_td = self.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
+        acc_fd = wec.td_to_fd(acc_td[::nsubsteps])
 
         # force
-        force_td = self.force(wec, x_wec, x_opt)
-        force_fd = wec.td_to_fd(force_td)
+        force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+        force_fd = wec.td_to_fd(force_td[::nsubsteps])
 
         # power
-        power_td = self.power(wec, x_wec, x_opt)
-        power_fd = wec.td_to_fd(power_td)
+        power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
+        power_fd = wec.td_to_fd(power_td[::nsubsteps])
         
         # mechanical power
-        mech_power_td = self.mechanical_power(wec, x_wec, x_opt)
-        mech_power_fd = wec.td_to_fd(mech_power_td)
+        mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves, 
+                                              nsubsteps)
+        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
         
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
@@ -337,7 +338,7 @@ class PTO:
         power_attr = {'long_name': 'Power', 'units': 'W'}
         mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
         omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
-        dof_attr = {'long_name': 'Degree of freedom'}
+        dof_attr = {'long_name': 'PTO degree of freedom'}
         time_attr = {'long_name': 'Time', 'units': 's'}
         
         t_dat = wec.time_nsubsteps(nsubsteps)
@@ -350,25 +351,25 @@ class PTO:
                 'force': (['omega','dof'], force_fd, force_attr),
                 'power': (['omega','dof'], power_fd, power_attr),
                 'mech_power': (['omega','dof'], mech_power_fd, mech_power_attr)
-            }
+            },
             coords={
                 'omega':('omega', wec.omega, omega_attr),
-                'dof':('dof', self.names)},
+                'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
         
         results_td = xr.Dataset(
             data_vars={
-                'pos': (['time','dof'], pos_fd, pos_attr),
-                'vel': (['time','dof'], vel_fd, vel_attr),
-                'acc': (['time','dof'], acc_fd, acc_attr),
-                'force': (['time','dof'], force_fd, force_attr),
-                'power': (['time','dof'], power_fd, power_attr),
-                'mech_power': (['time','dof'], mech_power_fd, mech_power_attr)
-            }
+                'pos': (['time','dof'], pos_td, pos_attr),
+                'vel': (['time','dof'], vel_td, vel_attr),
+                'acc': (['time','dof'], acc_td, acc_attr),
+                'force': (['time','dof'], force_td, force_attr),
+                'power': (['time','dof'], power_td, power_attr),
+                'mech_power': (['time','dof'], mech_power_td, mech_power_attr)
+            },
             coords={
-                'time':('omega', t_dat, time_attr),
-                'dof':('dof', self.names)},
+                'time':('time', t_dat, time_attr),
+                'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
         
