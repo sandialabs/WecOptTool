@@ -1,6 +1,7 @@
-""" Unit tests for functions in the `core.py` module.
-Does not include the WEC class.
+""" Unit tests for functions in the :python:`core.py` module.
+Does not include the :python:`WEC` class.
 """
+
 import os
 import random
 
@@ -8,16 +9,15 @@ import pytest
 from pytest import approx
 import numpy as np
 import xarray as xr
-import capytaine as cpy
 
 import wecopttool as wot
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def f1(): return 0.12
 
 
-@pytest.fixture()
+@pytest.fixture(scope='module')
 def nfreq(): return 5
 
 
@@ -30,27 +30,28 @@ def ncomponents(nfreq): return wot.ncomponents(nfreq)
 
 
 @pytest.fixture(scope='module')
-def bem_data():
+def bem_data(f1, nfreq):
     coords = {
-        'omega': [2*np.pi*ifreq for ifreq in [0.0, 0.1, 0.2, 0.3, 0.4]],
+        'omega': [2*np.pi*(ifreq+1)*f1 for ifreq in range(nfreq)],
         'influenced_dof': ['DOF_1', 'DOF_2'],
         'radiating_dof': ['DOF_1', 'DOF_2'],
         'wave_direction': [0.0, 1.5, 2.1],
     }
 
-    ndof = 2; nfreq = 4; ndir = 3;
+    ndof = 2; ndir = 3;
     radiation_dims = ['radiating_dof', 'influenced_dof', 'omega']
     excitation_dims = ['influenced_dof', 'wave_direction', 'omega']
 
-    added_mass = np.ones([ndof, ndof, nfreq+1])
-    radiation_damping = np.ones([ndof, ndof, nfreq+1])
-    diffraction_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
-    Froude_Krylov_force = np.ones([ndof, ndir, nfreq+1], dtype=complex) + 1j
+    added_mass = np.ones([ndof, ndof, nfreq])
+    radiation_damping = np.ones([ndof, ndof, nfreq])
+    diffraction_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
+    Froude_Krylov_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
 
-    data_vars = {'added_mass': (radiation_dims, added_mass),
-                 'radiation_damping': (radiation_dims, radiation_damping),
-                 'diffraction_force': (excitation_dims, diffraction_force),
-                 'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
+    data_vars = {
+        'added_mass': (radiation_dims, added_mass),
+        'radiation_damping': (radiation_dims, radiation_damping),
+        'diffraction_force': (excitation_dims, diffraction_force),
+        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
     }
     return xr.Dataset(data_vars=data_vars, coords=coords)
 
@@ -58,10 +59,12 @@ def bem_data():
 @pytest.fixture(scope='module')
 def hydro_data(bem_data):
     ndof = len(bem_data.influenced_dof)
-    mass = np.ones([ndof, ndof])
+    inertia_matrix = np.ones([ndof, ndof])
     stiffness = np.ones([ndof, ndof])
     friction = np.ones([ndof, ndof])
-    return wot.linear_hydrodynamics(bem_data, mass, stiffness, friction)
+    data = wot.linear_hydrodynamics(
+        bem_data, inertia_matrix, stiffness, friction)
+    return data
 
 
 @pytest.fixture
@@ -78,31 +81,40 @@ def wave_regular(f1, nfreq):
 @pytest.fixture
 def waves_multi(f1, nfreq):
     n = np.random.randint(1, nfreq)
-    freq = n*f1  # Hz
     directions = [0.0, 30.0]
-    waves = wot.waves.wave_dataset(f1, nfreq, directions)
-    loc0 = {'omega': freq*2*np.pi, 'wave_direction': np.deg2rad(directions[0])}
-    loc1 = {'omega': freq*2*np.pi, 'wave_direction': np.deg2rad(directions[1])}
+    ndir = len(directions)
+
+    amplitudes = np.zeros([nfreq, ndir])
+    phases = np.zeros([nfreq, ndir])
     amp0, amp1 = 1.2, 2.1
     phase0, phase1 = 26, -13
-    waves['S'].loc[loc0] = 0.5 * amp0**2 / f1
-    waves['S'].loc[loc1] = 0.5 * amp1**2 / f1
-    waves['phase'].loc[loc0] = np.deg2rad(phase0)
-    waves['phase'].loc[loc1] = np.deg2rad(phase1)
+    amplitudes[n-1, :] = [amp0, amp1]
+    phases[n-1, :] = [phase0, phase1]
+
+    waves = wot.waves.elevation_fd(f1, nfreq, directions, amplitudes, phases)
+
     params = {'n': n, 'directions': directions, 'amp0': amp0, 'amp1': amp1,
               'phase0': phase0, 'phase1': phase1}
+
     return waves, params
 
 
 def test_ncomponents(ncomponents, nfreq):
-    assert ncomponents==2*nfreq+1
+    assert ncomponents == 2*nfreq + 1
+    assert wot.ncomponents(nfreq, False) == 2*nfreq
 
 
 def test_frequency(f1, nfreq):
     freqs = wot.frequency(f1, nfreq)
+    freqs_nm = wot.frequency(f1, nfreq, False)
+
     assert ((freqs.ndim==1) and (len(freqs)==nfreq+1))  # shape
     assert ((freqs[0]==0.0) and (freqs[-1]==approx(f1*nfreq))) # first & last
     assert np.diff(freqs)==approx(np.diff(freqs)[0])  # evenly spaced
+
+    assert ((freqs_nm.ndim==1) and (len(freqs_nm)==nfreq))
+    assert ((freqs_nm[0]==approx(f1)) and (freqs_nm[-1]==approx(f1*nfreq)))
+    assert np.diff(freqs_nm)==approx(np.diff(freqs)[0])
 
 
 def test_time(f1, nfreq, nsubsteps, ncomponents):
@@ -204,6 +216,7 @@ def test_degrees_to_radians():
         assert r==approx(wot.degrees_to_radians(d))  # special cases
 
 
+# test both `vec_to_dofmat` and `dofmat_to_vec`
 def test_vec_to_dofmat_to_vec():
     """Test both `vec_to_dofmat` and `dofmat_to_vec`."""
     vec = np.array([1,2,3,4,5,6])
@@ -228,28 +241,28 @@ def test_vec_to_dofmat_to_vec():
 def test_mimo_transfer_mat():
     ndof = 2
     nfreq = 2
-    imp = np.empty([ndof, ndof, nfreq+1], dtype=complex)
-    imp[0, 0, :] = [0+0j, 0+1j, 0+2j]
-    imp[1, 0, :] = [1+0j, 1+1j, 11+2j]
-    imp[0, 1, :] = [2+0j, 2+1j, 22+2j]
-    imp[1, 1, :] = [3+0j, 3+1j, 33+2j]
+    imp = np.empty([ndof, ndof, nfreq], dtype=complex)
+    imp[0, 0, :] = [0+1j, 0+2j]
+    imp[1, 0, :] = [1+1j, 11+2j]
+    imp[0, 1, :] = [2+1j, 22+2j]
+    imp[1, 1, :] = [3+1j, 33+2j]
     mimo = wot.mimo_transfer_mat(imp)
     expected_11 = np.array([[0,  0, 0,  0,  0],
                             [0,  0, -1,  0,  0],
                             [0, 1, 0,  0,  0],
                             [0,  0, 0,  0,  -2],
                             [0,  0, 0, 2,  0]])
-    expected_21 = np.array([[1,  0, 0,  0,  0],
+    expected_21 = np.array([[0,  0, 0,  0,  0],
                             [0,  1, -1,  0,  0],
                             [0, 1, 1,  0,  0],
                             [0,  0, 0, 11,  -2],
                             [0,  0, 0, 2, 11]])
-    expected_12 = np.array([[2,  0, 0,  0,  0],
+    expected_12 = np.array([[0,  0, 0,  0,  0],
                             [0,  2, -1,  0,  0],
                             [0, 1, 2,  0,  0],
                             [0,  0, 0, 22,  -2],
                             [0,  0, 0, 2, 22]])
-    expected_22 = np.array([[3,  0, 0,  0,  0],
+    expected_22 = np.array([[0,  0, 0,  0,  0],
                             [0,  3, -1,  0,  0],
                             [0, 1, 3,  0,  0],
                             [0,  0, 0, 33,  -2],
@@ -261,9 +274,6 @@ def test_mimo_transfer_mat():
     assert np.all(mimo[ncomponents:, :ncomponents] == expected_21)
     assert np.all(mimo[:ncomponents, ncomponents:] == expected_12)
     assert np.all(mimo[ncomponents:, ncomponents:] == expected_22)
-    with pytest.raises(AssertionError):
-        imp[0,0] += 1j
-        wot.mimo_transfer_mat(imp)  # error
 
     # test use/behavior
     x = 1.2+3.4j
@@ -271,10 +281,11 @@ def test_mimo_transfer_mat():
     z = 2.1+4.3j
     f = z*x
     F = np.reshape([0, np.real(f), np.imag(f)], [-1,1])
-    Z_mimo = wot.mimo_transfer_mat(np.reshape([0j, z], [1,1,-1]))
+    Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]))
     assert np.allclose(Z_mimo @ X, F)
 
 
+# test both `real_to_complex` and `complex_to_real`
 def test_real_to_complex_to_real():
     comp_amp = np.array([[1+0j, 11+0j],  # f0
                          [2+3j, 12+13j],  # f1
@@ -301,6 +312,7 @@ def test_real_to_complex_to_real():
     assert np.allclose(comp_1d, comp_1d_calc.squeeze())
 
 
+# test both `fd_to_td` and `td_to_fd`
 def test_fd_to_td_to_fd(f1, nfreq):
     fd = np.zeros([nfreq+1, 2], dtype=complex)
     freq = wot.frequency(f1, nfreq)
@@ -340,67 +352,27 @@ def test_fd_to_td_to_fd(f1, nfreq):
     assert np.allclose(td_1d_fft, td_1d)
 
 
-def test_wave_elevation(f1, nfreq, wave_regular, waves_multi):
-    wave_regular, params_reg = wave_regular
-    n = params_reg['n']
-    amp = params_reg['amp']
-    phase = params_reg['phase']
-    freq = n*f1
-    elev_fd = wot.wave_elevation(wave_regular)
-    elev_fd_exp = np.zeros([nfreq+1, 1], dtype=complex)
-    elev_fd_exp[n] = amp*np.exp(1j*np.deg2rad(phase))
-    elev_td = wot.fd_to_td(elev_fd, f1, nfreq)
-    time = wot.time(f1, nfreq)
-    elev_td_exp = amp * np.cos((2*np.pi*freq)*time + np.deg2rad(phase))
-
-    waves_multi, params_multi = waves_multi
-    n = params_multi['n']
-    freq = n*f1
-    amp0 = params_multi['amp0']
-    amp1 = params_multi['amp1']
-    phase0 = params_multi['phase0']
-    phase1 = params_multi['phase1']
-    elev_multi_fd = wot.wave_elevation(waves_multi)
-    elev_multi_td = wot.fd_to_td(elev_multi_fd, f1, nfreq)
-    elev_multi_fd_exp = np.zeros([nfreq+1, 2], dtype=complex)
-    elev_multi_fd_exp[n, 0] = amp0*np.exp(1j*np.deg2rad(phase0))
-    elev_multi_fd_exp[n, 1] = amp1*np.exp(1j*np.deg2rad(phase1))
-    elev_multi_td_exp = np.zeros([1+2*nfreq, 2])
-    elev_multi_td_exp[:, 0] = amp0 * np.cos(
-        (2*np.pi*freq)*time + np.deg2rad(phase0))
-    elev_multi_td_exp[:, 1] = amp1 * np.cos(
-        (2*np.pi*freq)*time + np.deg2rad(phase1))
-
-    assert elev_fd.shape==(nfreq+1, 1)  # shape, fd
-    assert np.allclose(elev_fd, elev_fd_exp)  # values, fd
-    assert elev_td.shape==(1+2*nfreq, 1)  # shape, td
-    assert np.allclose(elev_td.squeeze(), elev_td_exp)  # values
-    assert elev_multi_fd.shape==(nfreq+1, 2)  # multiple directions
-    assert np.allclose(elev_multi_fd, elev_multi_fd_exp)
-    assert elev_multi_td.shape==(1+2*nfreq, 2)
-    assert np.allclose(elev_multi_td, elev_multi_td_exp)
-
-
 def test_wave_excitation(f1, nfreq, wave_regular, waves_multi):
     wave_regular, params_reg = wave_regular
     waves_multi, params_multi = waves_multi
     directions = np.deg2rad(params_multi['directions'])
-    omega = 2*np.pi*wot.frequency(f1, nfreq)
+    omega = 2*np.pi*wot.frequency(f1, nfreq, False)
     ndir = len(directions); assert ndir==2; assert directions[0]==0.0
     ndof = 3
     n_m = params_multi['n']
     n_r = params_reg['n']
-    wave_elev_regular = \
-        params_reg['amp'] * np.exp(1j*np.deg2rad(params_reg['phase']))
+    wave_elev_regular = (
+        params_reg['amp'] *
+        np.exp(1j*wot.degrees_to_radians(params_reg['phase'])))
     waves_elev_multi = [
         params_multi['amp0'] * np.exp(1j*np.deg2rad(params_multi['phase0'])),
         params_multi['amp1'] * np.exp(1j*np.deg2rad(params_multi['phase1']))]
 
-    exc_coeff = np.zeros([nfreq+1, ndir, ndof], dtype=complex)
-    exc_coeff[n_m, 0, :] = [1+11j, 2+22j, 3+33j]
-    exc_coeff[n_m, 1, :] = [4+44j, 5+55j, 6+66j]
-    exc_coeff[n_r, 0, :] = [1+11j, 2+22j, 3+33j]
-    exc_coeff[n_r, 1, :] = [4+44j, 5+55j, 6+66j]
+    exc_coeff = np.zeros([nfreq, ndir, ndof], dtype=complex)
+    exc_coeff[n_m-1, 0, :] = [1+11j, 2+22j, 3+33j]
+    exc_coeff[n_m-1, 1, :] = [4+44j, 5+55j, 6+66j]
+    exc_coeff[n_r-1, 0, :] = [1+11j, 2+22j, 3+33j]
+    exc_coeff[n_r-1, 1, :] = [4+44j, 5+55j, 6+66j]
     coords = {
         'omega': (['omega'], omega, {'units': 'rad/s'}),
         'wave_direction': (['wave_direction'], directions, {'units': 'rad'}),
@@ -409,28 +381,30 @@ def test_wave_excitation(f1, nfreq, wave_regular, waves_multi):
     exc_coeff = xr.DataArray(exc_coeff, coords=coords, attrs={})
     fexc_reg = wot.wave_excitation(exc_coeff, wave_regular)
     fexc_multi = wot.wave_excitation(exc_coeff, waves_multi)
-    fexc_reg_exp = np.zeros([nfreq+1, ndof], dtype=complex)
+    fexc_reg_exp = np.zeros([nfreq, ndof], dtype=complex)
     for idof in range(ndof):
         idir = 0
-        fexc_reg_exp[n_r, idof] = exc_coeff[n_r, idir, idof] * wave_elev_regular
-    fexc_multi_exp = np.zeros([nfreq+1, ndof], dtype=complex)
+        fexc_reg_exp[n_r-1, idof] = (
+            exc_coeff[n_r-1, idir, idof] * wave_elev_regular)
+    fexc_multi_exp = np.zeros([nfreq, ndof], dtype=complex)
     for idof in range(ndof):
         for idir in range(ndir):
-            fexc_multi_exp[n_m, idof] += \
-                exc_coeff[n_m, idir, idof] * waves_elev_multi[idir]
+            fexc_multi_exp[n_m-1, idof] += \
+                exc_coeff[n_m-1, idir, idof] * waves_elev_multi[idir]
 
-    assert fexc_reg.shape==(nfreq+1, ndof)  # shape
-    assert fexc_multi.shape==(nfreq+1, ndof)
+    assert fexc_reg.shape==(nfreq, ndof)  # shape
+    assert fexc_multi.shape==(nfreq, ndof)
     assert np.allclose(fexc_reg, fexc_reg_exp)  # values
     assert np.allclose(fexc_multi, fexc_multi_exp)
     with pytest.raises(ValueError):  # directions not subset raises error
-        waves = wot.waves.wave_dataset(f1, nfreq, [0.0, 25])
+        waves = wot.waves.elevation_fd(f1, nfreq, [0.0, 25])
         wot.wave_excitation(exc_coeff, waves)
     with pytest.raises(ValueError):  # frequencies not same raises error
-        waves = wot.waves.wave_dataset(f1+0.01, nfreq, directions)
+        waves = wot.waves.elevation_fd(f1+0.01, nfreq, directions)
         wot.wave_excitation(exc_coeff, waves)
 
 
+# test both `read_netcdf` and `write_netcdf`
 def test_read_write_netcdf(hydro_data):
     cwd = os.path.dirname(__file__)
     bem_file_tmp = os.path.join(cwd, 'bem_tmp.nc')
@@ -450,17 +424,37 @@ def test_check_linear_damping(hydro_data):
     data_new = wot.check_linear_damping(data, tol)
     data_new_nofric = data_new.copy(deep=True).drop_vars('friction')
     data_org_nofric = data_org.copy(deep=True).drop_vars('friction')
-    nodiag = lambda x: x.friction.values - np.diag(np.diagonal(x.friction.values))
+
+    def nodiag(x):
+        return x.friction.values - np.diag(np.diagonal(x.friction.values))
+
     assert data.equals(data_org)  # no side effects
     assert np.allclose(np.diagonal(data_new.friction.values), tol)  # values
-    assert np.allclose(nodiag(data_new), nodiag(data_org))  # only diagonal changed
+    assert np.allclose(nodiag(data_new), nodiag(data_org))  # only diag changed
     assert data_new_nofric.equals(data_org_nofric) # only friction is changed
 
 
-def test_standard_forces_inertia(hydro_data):
+def test_force_from_rao_transfer_function():
+    pass  # TODO
+
+
+def test_force_from_impedance():
+    pass  # TODO
+
+
+def test_force_from_waves():
+    pass  # TODO
+
+
+def test_inertia():
+    pass  # TODO
+
+
+# test both `inertia` and `standard_forces`
+def test_inertia_standard_forces(hydro_data):
     data = hydro_data.copy(deep=True)
-    nfreq = len(data.omega) - 1
-    f1 = data.omega.values[1] / (2*np.pi)
+    nfreq = len(data.omega)
+    f1 = data.omega.values[0] / (2*np.pi)
     ndof = len(data.influenced_dof)
     ndir = len(data.wave_direction)
 
@@ -469,7 +463,7 @@ def test_standard_forces_inertia(hydro_data):
     amplitude = 1.3
     x_wec[(index_freq*2-1)*1] = amplitude
 
-    w = data.omega.values[index_freq]
+    w = data.omega.values[index_freq-1]
     t = wot.time(f1, nfreq)
     pos = amplitude * np.cos(w*t)
     vel = -1*w*amplitude * np.sin(w*t)
@@ -486,21 +480,26 @@ def test_standard_forces_inertia(hydro_data):
     wave_phase_deg = np.rad2deg(wave_phase)
     diff = 4 + 5j
     fk_coeff = -2 + 1.2j
-    data['mass'][:, :] = np.eye(ndof)*mass
+    data['inertia_matrix'][:, :] = np.eye(ndof)*mass
     data['hydrostatic_stiffness'][:, :] = np.eye(ndof)*hstiff
     data['friction'][:, :] = np.eye(ndof)*fric
-    data['radiation_damping'].values[:, :, index_freq] = np.eye(ndof)*rad
-    data['added_mass'].values[:, :, index_freq] = np.eye(ndof)*addmass
-    data['diffraction_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
-    data['diffraction_force'].values[0, 0, index_freq] = diff
-    data['Froude_Krylov_force'].values[:, :, index_freq] = np.zeros([ndof, ndir], dtype=complex)
-    data['Froude_Krylov_force'].values[0, 0, index_freq] = fk_coeff
+    data['radiation_damping'].values[:, :, index_freq-1] = np.eye(ndof)*rad
+    data['added_mass'].values[:, :, index_freq-1] = np.eye(ndof)*addmass
+    data['diffraction_force'].values[:, :, index_freq-1] = (
+        np.zeros([ndof, ndir], dtype=complex))
+    data['diffraction_force'].values[0, 0, index_freq-1] = diff
+    data['Froude_Krylov_force'].values[:, :, index_freq-1] = (
+        np.zeros([ndof, ndir], dtype=complex))
+    data['Froude_Krylov_force'].values[0, 0, index_freq-1] = fk_coeff
 
     forces = wot.standard_forces(data)
 
-    wec = wot.WEC(f1, nfreq, {}, mass=data['mass'].values)
-    waves = wot.waves.regular_wave(f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
-    inertia_func = wot.inertia(f1, nfreq, mass=data['mass'].values)
+    wec = wot.WEC(
+        f1, nfreq, {}, inertia_matrix=data['inertia_matrix'].values)
+    waves = wot.waves.regular_wave(
+        f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
+    inertia_func = wot.inertia(
+        f1, nfreq, inertia_matrix=data['inertia_matrix'].values)
     inertia = inertia_func(wec, x_wec, None, None)
     radiation = forces['radiation'](wec, x_wec, None, None)
     hydrostatics = forces['hydrostatics'](wec, x_wec, None, None)
@@ -509,24 +508,60 @@ def test_standard_forces_inertia(hydro_data):
     diffraction = forces['diffraction'](wec, None, None, waves)
 
     inertia_truth = mass * acc
-    radiation_truth = rad*vel + addmass*acc
-    hydrostatics_truth = hstiff*pos
-    friction_truth = fric*vel
+    radiation_truth = -(rad*vel + addmass*acc)
+    hydrostatics_truth = -hstiff*pos
+    friction_truth = -fric*vel
     diff_comp = wave_amp*np.exp(1j*wave_phase) * diff
     diffraction_truth =  (np.real(diff_comp) * np.cos(w*t) -
-                          np.imag(diff_comp) * np.sin(w*t))
+                            np.imag(diff_comp) * np.sin(w*t))
     fk_comp = wave_amp*np.exp(1j*wave_phase) * fk_coeff
     fk_truth =  np.real(fk_comp) * np.cos(w*t) - np.imag(fk_comp) * np.sin(w*t)
 
     forces = [
-        (inertia, inertia_truth),
-        (radiation, radiation_truth),
-        (hydrostatics, hydrostatics_truth),
-        (friction, friction_truth),
-        (diffraction, diffraction_truth),
-        (fk, fk_truth)
+        (inertia, inertia_truth, "inertia"),
+        (radiation, radiation_truth, "radiation"),
+        (hydrostatics, hydrostatics_truth, "hydrostatics"),
+        (friction, friction_truth, "friction"),
+        (diffraction, diffraction_truth, "diffraction"),
+        (fk, fk_truth, "")
     ]
 
-    for f_calc, f_truth in forces:
-        assert np.allclose(f_calc[:, 0], f_truth)
+    for f_calc, f_truth, name in forces:
+        assert np.allclose(f_calc[:, 0], f_truth), f"FAILED: {name}!"
         assert np.allclose(f_calc[:, 1], 0)
+
+
+def test_run_bem():
+    pass  # TODO
+
+
+def test_change_bem_convention():
+    pass  # TODO
+
+
+def test_linear_hydrodynamics():
+    pass  # TODO
+
+
+def test_atleast_2d():
+    pass  # TODO
+
+
+def test_subset_close():
+    pass  # TODO
+
+
+def test_scale_dofs():
+    pass  # TODO
+
+
+def test_decompose_state():
+    pass  # TODO
+
+
+def test_frequency_parameters():
+    pass  # TODO
+
+
+def test_time_results():
+    pass  # TODO
