@@ -291,6 +291,89 @@ class PTO:
                       ) -> float:
         energy = self.energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
+    
+    def post_process(self, 
+                     wec: TWEC, 
+                     x_wec: npt.ArrayLike, 
+                     x_opt: npt.ArrayLike,
+                     nsubsteps: Optional[int] = 1,
+                     ) -> tuple[xr.Dataset, xr.Dataset]:
+        """TODO
+        """
+        
+        # position
+        wec_pos = wec.vec_to_dofmat(x_wec)
+        pos = wec_pos @ self._kinematics_t
+        pos_fd = real_to_complex_amplitudes(pos)
+        pos_td = wec.time_mat @ pos
+
+        # velocity
+        vel = wec.derivative_mat @ pos
+        vel_fd = real_to_complex_amplitudes(vel)
+        vel_td = wec.time_mat @ vel
+
+        # acceleration
+        acc = wec.derivative_mat @ vel
+        acc_fd = real_to_complex_amplitudes(acc)
+        acc_td = wec.time_mat @ acc
+
+        # force
+        force_td = self.force(wec, x_wec, x_opt)
+        force_fd = wec.td_to_fd(force_td)
+
+        # power
+        power_td = self.power(wec, x_wec, x_opt)
+        power_fd = wec.td_to_fd(power_td)
+        
+        # mechanical power
+        mech_power_td = self.mechanical_power(wec, x_wec, x_opt)
+        mech_power_fd = wec.td_to_fd(mech_power_td)
+        
+        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        force_attr = {'long_name': 'Force or moment on WEC', 
+                      'units': 'N or Nm'}
+        power_attr = {'long_name': 'Power', 'units': 'W'}
+        mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
+        omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
+        dof_attr = {'long_name': 'Degree of freedom'}
+        time_attr = {'long_name': 'Time', 'units': 's'}
+        
+        t_dat = wec.time_nsubsteps(nsubsteps)
+        
+        results_fd = xr.Dataset(
+            data_vars={
+                'pos': (['omega','dof'], pos_fd, pos_attr),
+                'vel': (['omega','dof'], vel_fd, vel_attr),
+                'acc': (['omega','dof'], acc_fd, acc_attr),
+                'force': (['omega','dof'], force_fd, force_attr),
+                'power': (['omega','dof'], power_fd, power_attr),
+                'mech_power': (['omega','dof'], mech_power_fd, mech_power_attr)
+            }
+            coords={
+                'omega':('omega', wec.omega, omega_attr),
+                'dof':('dof', self.names)},
+            attrs={"time_created_utc": f"{datetime.utcnow()}"}
+            )
+        
+        results_td = xr.Dataset(
+            data_vars={
+                'pos': (['time','dof'], pos_fd, pos_attr),
+                'vel': (['time','dof'], vel_fd, vel_attr),
+                'acc': (['time','dof'], acc_fd, acc_attr),
+                'force': (['time','dof'], force_fd, force_attr),
+                'power': (['time','dof'], power_fd, power_attr),
+                'mech_power': (['time','dof'], mech_power_fd, mech_power_attr)
+            }
+            coords={
+                'time':('omega', t_dat, time_attr),
+                'dof':('dof', self.names)},
+            attrs={"time_created_utc": f"{datetime.utcnow()}"}
+            )
+        
+        return results_fd, results_td
+
 
 
 # power conversion chain

@@ -29,6 +29,7 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
+from datetime import datetime
 
 
 # logger
@@ -750,7 +751,7 @@ class WEC:
     def post_process(self,
         waves: Dataset,
         res: OptimizeResult,
-        nsubsteps: int,
+        nsubsteps: int, #TODO - should this default to 1?
     ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :python:`WEC.solve`.
 
@@ -819,7 +820,7 @@ class WEC:
                 'omega': ('omega', self.omega, omega_attr),
                 'influenced_dof': (
                     'influenced_dof', self.dof_names, dof_attr)},
-            attrs={} #TODO: add time stamp
+            attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
 
         results_fd = xr.merge([fd_state, fd_forces])
