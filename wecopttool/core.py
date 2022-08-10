@@ -445,19 +445,16 @@ class WEC:
         return wec
 
     @staticmethod
-    def from_rao_transfer_function(
+    def from_impedance(
         freqs: ArrayLike,
-        rao_transfer_function: ArrayLike,
+        impedance: ArrayLike,
         exc_coeff: ArrayLike,
+        hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
     ) -> TWEC:
-        """Create a WEC object from an RAO transfer function and
+        """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
-
-        This function uses the RAO transfer function rather than the
-        common intrinsic impedance.
-        The difference between these is described below.
 
         The intrinsic (mechanical) impedance :math:`Z(ω)` linearly
         relates excitation forces :math:`F(ω)` to WEC velocity
@@ -468,25 +465,20 @@ class WEC:
         The impedance can also be obtained experimentally.
         Note that the impedance is not defined at :math:`ω=0`.
 
-        The RAO tranfer function is the position equivalent quantity
-        such that :math:`GX=F` for position :math:`X(ω)`.
-        The RAO transfer function :math:`G` is given by :math:`G=Ziω`
-        for all non-zero frequency and :math:`G(0)=K`, the hydrostatic
-        restoring coefficient.
-        From BEM coefficients it is obtained as
-        :math:`G(ω) = -(m+A(ω))*ω^2 + B(ω)*iω + B_f*iω + K`.
 
         Parameters
         ----------
         freqs
             Frequency vector [Hz] not including the zero frequency,
             :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
-        rao_transfer_function
-            Complex rao_transfer_function of size
-            :python:`ndof x ndof x nfreq+1`.
+        impedance
+            Complex impedance of size :python:`ndof x ndof x nfreq`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`ndof x nfreq`.
+        hydrostatic_stiffness
+            Linear hydrostatic restoring coefficient of size
+            :python:`nodf x ndof`.
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
@@ -507,22 +499,25 @@ class WEC:
         Raises
         ------
         ValueError
-            If :python:`rao_transfer_function` does not have the correct
-            size: :python:`ndof x ndof x nfreq+1`.
+            If :python:`impedance` does not have the correct size:
+            :python:`ndof x ndof x nfreq`.
         """
         f1, nfreq = frequency_parameters(freqs, False)
 
-        # rao_transfer_function.ndim matrix shape
-        shape = rao_transfer_function.shape
-        ndim = rao_transfer_function.ndim
-        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq+1):
+        # impedance matrix shape
+        shape = impedance.shape
+        ndim = impedance.ndim
+        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
-                "`rao_transfer_function.ndim` must have shape " +
-                "`ndof x ndof x (nfreq+1)`.")
+                "`impedance` must have shape `ndof x ndof x (nfreq)`.")
 
         # impedance force
-        force_impedance = force_from_rao_transfer_function(
-            rao_transfer_function)
+        omega = freqs * 2*np.pi
+        transfer_func = impedance / (1j*omega)
+        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
+        transfer_func = np.concatenate([transfer_func0, transfer_func], 2)
+        transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
+        force_impedance = force_from_rao_transfer_function(transfer_func)
 
         # excitation force
         force_excitation = force_from_waves(exc_coeff)
