@@ -8,14 +8,14 @@ Created on Wed Dec 29 14:55:52 2021
 import numpy as np
 import matplotlib.pyplot as plt
 
-import imageio
+import imageio.v2 as imageio  # TODO change code to use v3 and simply do `import imageio`.
 import os
 import tempfile
 
 # get relative paths
 path_to_current_file = os.path.realpath(__file__)
 current_directory = os.path.dirname(path_to_current_file)
-odir = os.path.join(current_directory, "..", "_build", "html", "_static") 
+odir = os.path.join(current_directory, "..", "_build", "html", "_static")
 
 if not os.path.exists(odir):
     os.makedirs(odir)

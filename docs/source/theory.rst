@@ -98,7 +98,10 @@ Depending on your problem, it may also be helpful to use the :meth:`wecopttool.c
 Constraints
 ^^^^^^^^^^^
 Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
-This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
+
+..
+    This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
+
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.PseudoSpectralPTO.force`).
