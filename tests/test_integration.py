@@ -98,7 +98,7 @@ def test_same_wec_init(
     obj_fun = pto.average_power
     _, _, bem_res = wec_from_bem.solve(waves, obj_fun, 2*nfreq+1)
     _, _, fb_res = wec_from_floatingbody.solve(waves, obj_fun, 2*nfreq+1)
-    # _, _, imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1)
+    _, _, imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1)
 
     assert fb_res.fun == approx(bem_res.fun, rel=0.01)
-    # assert imp_res.fun == approx(bem_res.fun, rel=0.01)
+    assert imp_res.fun == approx(bem_res.fun, rel=0.01)
