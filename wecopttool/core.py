@@ -445,15 +445,19 @@ class WEC:
         return wec
 
     @staticmethod
-    def from_impedance(
-        freqs: ndarray,
-        impedance: ndarray,
-        exc_coeff: ndarray,
+    def from_rao_transfer_function(
+        freqs: ArrayLike,
+        rao_transfer_function: ArrayLike,
+        exc_coeff: ArrayLike,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
     ) -> TWEC:
-        """Create a WEC object from an impedance array and excitation
-        coefficients.
+        """Create a WEC object from an RAO transfer function and
+        excitation coefficients.
+
+        This function uses the RAO transfer function rather than the
+        common intrinsic impedance.
+        The difference between these is described below.
 
         The intrinsic (mechanical) impedance :math:`Z(ω)` linearly
         relates excitation forces :math:`F(ω)` to WEC velocity
@@ -462,14 +466,24 @@ class WEC:
         like Capytaine, the impedance is given as
         :math:`Z(ω) = (m+A(ω))*iω + B(ω) + B_f + K/(iω)`.
         The impedance can also be obtained experimentally.
+        Note that the impedance is not defined at :math:`ω=0`.
+
+        The RAO tranfer function is the position equivalent quantity
+        such that :math:`GX=F` for position :math:`X(ω)`.
+        The RAO transfer function :math:`G` is given by :math:`G=Ziω`
+        for all non-zero frequency and :math:`G(0)=K`, the hydrostatic
+        restoring coefficient.
+        From BEM coefficients it is obtained as
+        :math:`G(ω) = -(m+A(ω))*ω^2 + B(ω)*iω + B_f*iω + K`.
 
         Parameters
         ----------
         freqs
             Frequency vector [Hz] not including the zero frequency,
             :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
-        impedance
-            Complex impedance of size :python:`ndof x ndof x nfreq`.
+        rao_transfer_function
+            Complex rao_transfer_function of size
+            :python:`ndof x ndof x nfreq+1`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`ndof x nfreq`.
@@ -493,21 +507,20 @@ class WEC:
         Raises
         ------
         ValueError
-            If :python:`impedance` does not have the correct size:
-            :python:`ndof x ndof x nfreq`.
+            If :python:`rao_transfer_function` does not have the correct
+            size: :python:`ndof x ndof x nfreq+1`.
         """
-        # TODO: from_rao_transfer instead of impedance... becuase of the
-        #       hydrostatic stiffness needed at the zero-frequency.
         f1, nfreq = frequency_parameters(freqs, False)
 
-        # impedance matrix shape
-        shape = impedance.shape
-        if (impedance.ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
+        # rao_transfer_function.ndim matrix shape
+        shape = rao_transfer_function.shape
+        ndim = rao_transfer_function.ndim
+        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq+1):
             raise ValueError(
-                "`impedance` must have shape `ndof x ndof x (nfreq)`.")
+                "`rao_transfer_function.ndim` must have shape " +
+                "`ndof x ndof x (nfreq+1)`.")
 
         # impedance force
-        rao_transfer_function = impedance / (1j*impedance.omega)
         force_impedance = force_from_rao_transfer_function(
             rao_transfer_function)
 
@@ -516,11 +529,15 @@ class WEC:
 
         # all forces
         f_add = {} if (f_add is None) else f_add
-        forces =  force_impedance | force_excitation | f_add
+        forces =  {
+            'intrinsic_impedance': force_impedance,
+            'excitation': force_excitation
+        }
+        forces = forces | f_add
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=impedance.shape[0])
+                  inertia_in_forces=True, ndof=shape[0])
         return wec
 
     # solve
@@ -1564,7 +1581,7 @@ def td_to_fd(td: ArrayLike, fft: bool = True, zero_freq: bool=True) -> ndarray:
     return fd
 
 
-def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 
@@ -1740,7 +1757,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
+def force_from_waves(force_coeff: Dataset) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
     Parameters
@@ -2212,3 +2229,18 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
             np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
 
     return out
+
+
+def _add_zerofreq_to_xr(data):
+    """Add a zero-frequency component to an :python:`xarray.Dataset`.
+
+    Frequency variable must be called :python:`omega`.
+    """
+    if not np.isclose(data.coords['omega'][0].values, 0):
+        tmp = data.isel(omega=0).copy(deep=True)
+        tmp['omega'] = tmp['omega'] * 0
+        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
+        for var in vars:
+            tmp[var] = tmp[var] * 0
+        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
+    return data
