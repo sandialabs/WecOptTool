@@ -13,15 +13,7 @@ Other functionalities are implemented in additional modules, and can be accessed
           E.g., use :python:`wecopttool.WEC` instead of :python:`wecopttool.core.WEC`.
           For all other modules do include the module name, e.g., :python:`wecopttool.waves.regular_wave`.
 
-The main way to interact with *WecOptTool* is through the WEC class:
-
-.. autosummary::
-   :toctree: api_docs
-   :template: class-template-separate-files.rst
-   :recursive:
-   :nosignatures:
-
-   wecopttool.core.WEC
+The main way to interact with *WecOptTool* is through the :python:`WEC` class.
 
 Modules
 -------
@@ -30,12 +22,9 @@ Modules
    :toctree: api_docs
    :recursive:
    :nosignatures:
-   :template: module-template-functions-only.rst
-
-   wecopttool.core
-
    :template: module-template.rst
 
+   wecopttool.core
    wecopttool.pto
    wecopttool.waves
    wecopttool.hydrostatics

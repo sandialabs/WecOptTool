@@ -145,7 +145,7 @@ class PTO:
         return self._impedance
 
     @property
-    def efficiency(self) -> Callable[[FloatOrArray, FloatOrArray], FloatOrArray]:
+    def efficiency(self) -> TEFF:
         """Efficiency function."""
         return self._efficiency
 

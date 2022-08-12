@@ -447,14 +447,15 @@ class WEC:
 
     @staticmethod
     def from_impedance(
-        freqs: ndarray,
-        impedance: ndarray,
-        exc_coeff: ndarray,
+        freqs: ArrayLike,
+        impedance: ArrayLike,
+        exc_coeff: ArrayLike,
+        hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
     ) -> TWEC:
-        """Create a WEC object from an impedance array and excitation
-        coefficients.
+        """Create a WEC object from the intrinsic impedance and
+        excitation coefficients.
 
         The intrinsic (mechanical) impedance :math:`Z(ω)` linearly
         relates excitation forces :math:`F(ω)` to WEC velocity
@@ -463,6 +464,8 @@ class WEC:
         like Capytaine, the impedance is given as
         :math:`Z(ω) = (m+A(ω))*iω + B(ω) + B_f + K/(iω)`.
         The impedance can also be obtained experimentally.
+        Note that the impedance is not defined at :math:`ω=0`.
+
 
         Parameters
         ----------
@@ -474,6 +477,9 @@ class WEC:
         exc_coeff
             Complex excitation transfer function of size
             :python:`ndof x nfreq`.
+        hydrostatic_stiffness
+            Linear hydrostatic restoring coefficient of size
+            :python:`nodf x ndof`.
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
@@ -497,31 +503,37 @@ class WEC:
             If :python:`impedance` does not have the correct size:
             :python:`ndof x ndof x nfreq`.
         """
-        # TODO: from_rao_transfer instead of impedance... becuase of the
-        #       hydrostatic stiffness needed at the zero-frequency.
         f1, nfreq = frequency_parameters(freqs, False)
 
         # impedance matrix shape
         shape = impedance.shape
-        if (impedance.ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
+        ndim = impedance.ndim
+        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
                 "`impedance` must have shape `ndof x ndof x (nfreq)`.")
 
         # impedance force
-        rao_transfer_function = impedance / (1j*impedance.omega)
-        force_impedance = force_from_rao_transfer_function(
-            rao_transfer_function)
+        omega = freqs * 2*np.pi
+        transfer_func = impedance * (1j*omega)
+        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
+        transfer_func = np.concatenate([transfer_func0, transfer_func], 2)
+        transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
+        force_impedance = force_from_rao_transfer_function(transfer_func)
 
         # excitation force
         force_excitation = force_from_waves(exc_coeff)
 
         # all forces
         f_add = {} if (f_add is None) else f_add
-        forces =  force_impedance | force_excitation | f_add
+        forces =  {
+            'intrinsic_impedance': force_impedance,
+            'excitation': force_excitation
+        }
+        forces = forces | f_add
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=impedance.shape[0])
+                  inertia_in_forces=True, ndof=shape[0])
         return wec
 
     # solve
@@ -1565,7 +1577,7 @@ def td_to_fd(td: ArrayLike, fft: bool = True, zero_freq: bool=True) -> ndarray:
     return fd
 
 
-def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 
@@ -1741,7 +1753,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
+def force_from_waves(force_coeff: Dataset) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
     Parameters
@@ -1996,6 +2008,7 @@ def linear_hydrodynamics(
                     f'Variable "{name}" is not in BEM data and ' +
                     'was not provided.')
         elif new:
+            data = atleast_2d(data)
             hydro_data[name] = (dims, data)
 
     return hydro_data
@@ -2213,3 +2226,18 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
             np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
 
     return out
+
+
+def _add_zerofreq_to_xr(data):
+    """Add a zero-frequency component to an :python:`xarray.Dataset`.
+
+    Frequency variable must be called :python:`omega`.
+    """
+    if not np.isclose(data.coords['omega'][0].values, 0):
+        tmp = data.isel(omega=0).copy(deep=True)
+        tmp['omega'] = tmp['omega'] * 0
+        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
+        for var in vars:
+            tmp[var] = tmp[var] * 0
+        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
+    return data
