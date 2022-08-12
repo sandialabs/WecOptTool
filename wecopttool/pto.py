@@ -32,12 +32,12 @@ from scipy.optimize import OptimizeResult
 
 from wecopttool.core import WEC, real_to_complex, complex_to_real
 from wecopttool.core import td_to_fd, dofmat_to_vec, vec_to_dofmat
-from wecopttool.core import TWEC, TStateFunction, FArrayLike
+from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 
 
 # type aliases
 TPTO = TypeVar("TPTO", bound="PTO")
-
+TEFF = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 class PTO:
     """A power take-off (PTO) object to be used in conjunction with a 
@@ -49,7 +49,7 @@ class PTO:
                  kinematics: Union[TStateFunction, ndarray], 
                  controller: Optional[TStateFunction] = None, 
                  impedance: Optional[ndarray] = None,
-                 efficiency: Optional[Callable] = None, #TODO - type?
+                 efficiency: Optional[TEFF] = None,
                  names: Optional[list[str]] = None,
                  ) -> None:
         """Create a PTO object.
@@ -76,7 +76,8 @@ class PTO:
         impedance
             Matrix representing the PTO impedance.
         efficiency
-            TODO - what does efficiency arg look like?
+            Function that maps flow and effort variables to an 
+            efficiency. Outputs are between 0-1.
         names
             PTO names
         """
@@ -144,7 +145,7 @@ class PTO:
         return self._impedance
 
     @property
-    def efficiency(self) -> Callable[[FArrayLike, FArrayLike], FArrayLike]:
+    def efficiency(self) -> Callable[[FloatOrArray, FloatOrArray], FloatOrArray]:
         """Efficiency function."""
         return self._efficiency
 
