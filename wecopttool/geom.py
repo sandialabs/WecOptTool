@@ -92,7 +92,7 @@ class WaveBot:
             Existing axes. The default is None.
             If None, new axes will be created.
         **kwargs
-            Passed to pyplot.plot().
+            Passed to :func:`matplotlib.pyplot.plot`.
         """
         if ax is None:
             fig, ax = plt.subplots()

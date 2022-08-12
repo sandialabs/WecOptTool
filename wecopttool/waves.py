@@ -46,8 +46,9 @@ def elevation_fd(
     amplitudes: Optional[ArrayLike] = None,
     phases: Optional[ArrayLike] = None,
     attr: Optional[Mapping] = None
-) -> DataArray:
-    """Construct the complex wave elevation DataArray.
+) -> xr.DataArray:
+    """Construct the complex wave elevation 
+    :py:class:`xarray.DataArray`.
 
     This is the complex wave elevation (m) indexed by radial frequency
     (rad/s) and wave direction (rad).
@@ -67,7 +68,8 @@ def elevation_fd(
     phases:
         Wave phases in degrees.
     attr:
-        Additional attributes (metadata) to include in the DataArray.
+        Additional attributes (metadata) to include in the 
+        :py:class:`xarray.DataArray`.
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
@@ -104,7 +106,7 @@ def regular_wave(
     amplitude: float,
     phase: Optional[float] = None,
     direction: float = 0.0,
-) -> DataArray:
+) -> xr.DataArray:
     """Create the dataset for a regular wave.
 
     Parameters
@@ -164,7 +166,7 @@ def regular_wave(
 def long_crested_wave(
     efth: DataArray,
     direction: Optional[float] = 0.0,
-) -> DataArray:
+) -> xr.DataArray:
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
 
@@ -197,7 +199,7 @@ def long_crested_wave(
     return elevation_fd(f1, nfreq, direction, amplitudes, None, attr)
 
 
-def irregular_wave(efth: DataArray) -> DataArray:
+def irregular_wave(efth: DataArray) -> xr.DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
     The omnidirectional spectrum is in the :python:`wavespectra` format.
@@ -253,7 +255,7 @@ def omnidirectional_spectrum(
     nfreq: int,
     spectrum_func: Callable,
     spectrum_name: str = '',
-) -> Dataset:
+) -> xr.Dataset:
     """Create the dataset for a long-crested irregular wave in the
     :python:`wavespectra` format.
 
@@ -323,7 +325,7 @@ def spectrum(
     spread_func: Callable,
     spectrum_name: str = '',
     spread_name: str = '',
-) -> Dataset:
+) -> xr.Dataset:
     """Create the dataset for an irregular wave in the
     :python:`wavespectra` format.
 

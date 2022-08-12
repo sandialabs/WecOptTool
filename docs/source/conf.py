@@ -97,6 +97,8 @@ autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
     'TStateFunction': 'StateFunction',
     'TWEC': 'WEC',
+    'TPTO': 'WEC',
+    'TEFF': 'Callable[[ArrayLike, ArrayLike], ArrayLike]',
     'TForceDict': 'dict[str, StateFunction]',
     'TIForceDict': 'Mapping[str, StateFunction]',
     'DataArray': 'DataArray',

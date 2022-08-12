@@ -57,14 +57,13 @@ class WEC:
 
     To create the WEC use one of the initialization methods:
 
-    * :python:`WEC()`
-    * :python:`WEC.from_bem()`
-    * :python:`WEC.from_floating_body()`
-    * :python:`WEC.from_impedance()`.
+    * :meth:`wecopttool.core.WEC.__init__`
+    * :meth:`wecopttool.core.WEC.from_bem`
+    * :meth:`wecopttool.core.WEC.from_floating_body`
+    * :meth:`wecopttool.core.WEC.from_impedance`.
 
-    To solve the pseudo-spectral problem use
-
-    * :python:`WEC.solve()`.
+    To solve the pseudo-spectral problem use 
+    :meth:`wecopttool.core.WEC.solve`.
     """
     def __init__(self,
         f1:float,
@@ -74,12 +73,12 @@ class WEC:
         inertia_matrix: Optional[ndarray] = None,
         ndof: Optional[int] = None,
         inertia_in_forces: bool = False,
-        dof_names: Optional[Iterable[str]] = None
-    ) -> None:
+        dof_names: Optional[Iterable[str]] = None,
+        ) -> None:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 
-        The :python:`WEC` class describes a WEC's equation of motion as
+        The :py:class:`wecopttool.core.WEC` class describes a WEC's equation of motion as
         :math:`ma=Σf` where the :python:`inertia_matrix` matrix
         specifies the inertia :math:`m`, and the :python:`forces`
         dictionary specifies the different forces to be summed.
@@ -89,7 +88,7 @@ class WEC:
         using an intrinsic impedance through the
         :python:`WEC.from_impedance` initialization function.
 
-        .. note:: Direct initialization of a :python:`WEC` object as
+        .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC` object as
                   :python:`WEC(f1, nfrew, forces, ...)` is discouraged.
                   Instead use one of the other initialization methods
                   listed in the *See Also* section.
@@ -109,7 +108,7 @@ class WEC:
             :python:`2*nfreq + 1 x ndof`.
         constraints
             List of constraints, see documentation for
-            :python:`scipy.optimize.minimize` for description and
+            :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
         inertia_matrix
@@ -149,12 +148,12 @@ class WEC:
         See Also
         --------
         from_bem:
-            Initialize a :python:`WEC` object from BEM results.
+            Initialize a :py:class:`wecopttool.core.WEC` object from BEM results.
         from_floating_body:
-            Initialize a :python:`WEC` object from a
+            Initialize a :py:class:`wecopttool.core.WEC` object from a
             :python:`capitaine.FloatingBody` object.
         from_impedance:
-            Initialize a :python:`WEC` object from an intrinsic
+            Initialize a :py:class:`wecopttool.core.WEC` object from an intrinsic
             impedance array and excitation coefficients.
         """
         self._freq = frequency(f1, nfreq)
@@ -248,19 +247,19 @@ class WEC:
         The :python:`bem_data` can be a dataset or the name of a
         *NetCDF* file containing the dataset.
 
-        The returned :python:`WEC` object contains the inertia and the
+        The returned :py:class:`wecopttool.core.WEC` object contains the inertia and the
         default linear forces: radiation, diffraction, and Froude-Krylov.
         Additional forces can be specified through :python:`f_add`.
 
         Note that because Capytaine uses a different sign convention,
         the direct results from capytaine must be modified using
-        :python:`wecopttool.change_bem_convention` before calling this
+        :py:func:`wecopttool.core.change_bem_convention` before calling this
         initialization function.
         Instead, the recommended approach is to use
-        :python:`wecopttool.run_bem`,
+        :py:func:`wecopttool.core.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention.
-        The results can be saved using :python:`write_netcdf`.
+        The results can be saved using :py:func:`wecopttool.core.write_netcdf`.
 
         In addition to the Capytaine results, if the dataset contains
         the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
@@ -293,17 +292,12 @@ class WEC:
             :python:`2*nfreq + 1 x ndof`.
         constraints
             List of constraints, see documentation for
-            :python:`scipy.optimize.minimize` for description and
+            :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
             See `check_linear_damping` for more details.
-
-        Returns
-        -------
-        WEC
-            An instance of the :python:`wecopttool.WEC` class.
 
         Raises
         ------
@@ -377,8 +371,8 @@ class WEC:
         hours.
         Instead, if the hydrodynamic coefficients can be reused, it is
         recommended to run Capytaine first and save the results using
-        :python:`run_bem` and :python:`write_netcdf`, and then
-        initialize the :python:`WEC` object using :python:`from_bem`.
+        :python:`run_bem` and :py:func:`wecopttool.core.write_netcdf`, and then
+        initialize the :py:class:`wecopttool.core.WEC` object using :python:`from_bem`.
         This initialization method should be reserved for the cases
         where the hydrodynamic coefficients constantly change and are
         not reused, as for example for geometry optimization.
@@ -409,7 +403,7 @@ class WEC:
             :python:`2*nfreq + 1 x ndof`.
         constraints
             List of constraints, see documentation for
-            :python:`scipy.optimize.minimize` for description and
+            :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
         min_damping
@@ -427,7 +421,7 @@ class WEC:
         Returns
         -------
         WEC
-            An instance of the :python:`wecopttool.WEC` class.
+            An instance of the :py:class:`wecopttool.core.WEC` class.
 
         See Also
         --------
@@ -488,14 +482,9 @@ class WEC:
             :python:`2*nfreq + 1 x ndof`.
         constraints
             List of constraints, see documentation for
-            :python:`scipy.optimize.minimize` for description and
+            :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
-
-        Returns
-        -------
-        WEC
-            An instance of the :python:`wecopttool.WEC` class.
 
         Raises
         ------
@@ -538,7 +527,7 @@ class WEC:
 
     # solve
     def solve(self,
-        waves: Dataset,
+        waves: xr.Dataset,
         obj_fun: TStateFunction,
         nstate_opt: int,
         x_wec_0: Optional[ndarray] = None,
@@ -552,15 +541,15 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[Callable[[ndarray]]] = None,
-    ) -> tuple[Dataset, Dataset, OptimizeResult]:
+        ) -> tuple[xr.Dataset, xr.Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method.
 
         Parameters
         ----------
         waves
-            `:py:class:xr.Dataset` with the structure and elements shown by
-            :python:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements shown by
+            :py:mod:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
             must have signature :python:`fun(wec, x_wec, x_opt, waves)`
@@ -586,7 +575,7 @@ class WEC:
             convergence.
         optim_options
             Optimization options passed to the optimizer.
-            See :python:`scipy.optimize.minimize`.
+            See :py:func:`scipy.optimize.minimize`.
         use_grad
              If :python:`True`, optimization with utilize
              :python:`autograd` for gradients.
@@ -595,14 +584,14 @@ class WEC:
             The default is to minimize the objective function.
         bounds_wec
             Bounds on the WEC components of the decision variable.
-            See :python:`scipy.optimize.minimize`.
+            See :py:func:`scipy.optimize.minimize`.
         bounds_opt
             Bounds on the optimization (control) components of the
             decision variable.
-            See :python:`scipy.optimize.minimize`.
+            See :py:func:`scipy.optimize.minimize`.
         callback
             Function called after each iteration.
-            See :python:`scipy.optimize.minimize`.
+            See :py:func:`scipy.optimize.minimize`.
             The default is reported via logging at the INFO level.
 
         Returns
@@ -612,7 +601,7 @@ class WEC:
         res_td
             Dynamic responses in the time-domain.
         res
-            Results produced by :python:`scipy.optimize.minimize`.
+            Results produced by :py:func:`scipy.optimize.minimize`.
 
         Raises
         ------
@@ -622,7 +611,7 @@ class WEC:
         Exception
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
-            See :python:`scipy.optimize` for exit mode details.
+            See :py:mod:`scipy.optimize` for exit mode details.
 
         See Also
         --------
@@ -770,10 +759,10 @@ class WEC:
         Parameters
         ----------
         waves
-            `:py:class:xr.Dataset` with the structure and elements shown by
+            :py:class:`xarray.Dataset` with the structure and elements shown by
             :python:`wecopttool.waves`.
         res
-            Results produced by :python:`scipy.optimize.minimize`.
+            Results produced by :py:func:`scipy.optimize.minimize`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -1857,13 +1846,13 @@ def run_bem(
     """Run Capytaine for a range of frequencies and wave directions.
 
     This simplifies running *Capytaine* and ensures the output are in
-    the correct convention (see :python:`change_bem_convention`).
+    the correct convention (see :py:func:`wecopttool.core.change_bem_convention`).
 
     It creates the *test matrix*,
     calls :python:`capytaine.FloatingBody.keep_immersed_part`,
     calls :python:`capytaine.BEMSolver()fill_dataset`,
     and changes the sign convention using
-    :python:`change_bem_convention`.
+    :py:func:`wecopttool.core.change_bem_convention`.
 
     Parameters
     ----------
