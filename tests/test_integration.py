@@ -66,17 +66,17 @@ def regular_wave(f1, nfreq):
     return waves
 
 
-def test_ryan(wec_from_bem, regular_wave, pto, nfreq):
+def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
 
     res_fd, res_td, res = wec_from_bem.solve(waves=regular_wave,
                                              obj_fun=pto.average_power,
                                              nstate_opt=2*nfreq+1,
                                              )
     
-    results_fd, results_td = pto.post_process(wec_from_bem,res,
+    res_pto_fd, res_pto_td = pto.post_process(wec_from_bem,res,
                                               nsubsteps=4)
 
-    print(res_fd)
+    print(res_pto_fd)
 
     pass
 
