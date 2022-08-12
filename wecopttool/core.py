@@ -49,7 +49,7 @@ TStateFunction = Callable[
     [TWEC, ndarray, ndarray, Dataset], ndarray]
 TForceDict = dict[str, TStateFunction]
 TIForceDict = Mapping[str, TStateFunction]
-FArrayLike = Union[float, ArrayLike]
+FloatOrArray = Union[float, ArrayLike]
 
 class WEC:
     """A wave energy converter (WEC) object for performing simulations
@@ -532,7 +532,7 @@ class WEC:
         x_wec_0: Optional[ndarray] = None,
         x_opt_0: Optional[ndarray] = None,
         scale_x_wec: Optional[list] = None,
-        scale_x_opt: FArrayLike = 1.0,
+        scale_x_opt: FloatOrArray = 1.0,
         scale_obj: float = 1.0,
         optim_options: Mapping[str, Any] = {},
         use_grad: bool = True,
@@ -1268,7 +1268,7 @@ def derivative_mat(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
 
 
 def degrees_to_radians(
-    degrees: FArrayLike,
+    degrees: FloatOrArray,
     sort: bool = True,
 ) -> Union[float, ndarray]:
     """Convert a 1D array of angles in degrees to radians in the range
@@ -2020,8 +2020,8 @@ def atleast_2d(array: ArrayLike) -> ndarray:
 
 
 def subset_close(
-    set_a: FArrayLike,
-    set_b: FArrayLike,
+    set_a: FloatOrArray,
+    set_b: FloatOrArray,
     rtol: float = 1.e-5,
     atol: float = 1.e-8,
     equal_nan: bool = False,
