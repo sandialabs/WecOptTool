@@ -547,7 +547,7 @@ class WEC:
         Parameters
         ----------
         waves
-            xarray DataSet with the structure and elements shown by
+            `:py:class:xr.Dataset` with the structure and elements shown by
             :python:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
@@ -758,7 +758,7 @@ class WEC:
         Parameters
         ----------
         waves
-            xarray DataSet with the structure and elements shown by
+            `:py:class:xr.Dataset` with the structure and elements shown by
             :python:`wecopttool.waves`.
         res
             Results produced by :python:`scipy.optimize.minimize`.
@@ -1615,8 +1615,8 @@ def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
 
 
 def read_netcdf(fpath: Union[str, Path]) -> Dataset:
-    """Read a *NetCDF* file with possibly complex entries as an xarray
-    DataSet.
+    """Read a *NetCDF* file with possibly complex entries as a 
+    :py:class:`xarray.Dataset`.
 
     Can handle complex entries in the *NetCDF* by using
     :python:`capytaine.io.xarray` utilities.
@@ -1636,7 +1636,7 @@ def read_netcdf(fpath: Union[str, Path]) -> Dataset:
 
 
 def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
-    """Save an `xarray.Dataset` with possibly complex entries as a
+    """Save an :py:class:`xarray.Dataset` with possibly complex entries as a
     *NetCDF* file.
 
     Can handle complex entries in the *NetCDF* by using
@@ -2197,8 +2197,8 @@ def frequency_parameters(
 
 
 def time_results(fd: DataArray, time: DataArray) -> ndarray:
-    """Create a DataArray of time-domain results from DataArray of
-    frequency-domain results.
+    """Create a :py:class:`xarray.DataArray` of time-domain results from 
+    :py:class:`xarray.DataArray` of frequency-domain results.
 
     Parameters
     ----------
