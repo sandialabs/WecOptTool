@@ -5,6 +5,12 @@ The PTO produced energy can be used as the objective function for the
 control optimization.
 The PTO force can be included as an additional force in the WEC
 dynamics.
+
+Contains:
+
+* The *PTO* class
+* Controller functions
+
 """
 
 
@@ -36,15 +42,14 @@ TPTO = TypeVar("TPTO", bound="PTO")
 class PTO:
     """A power take-off (PTO) object to be used in conjunction with a 
     :python:`WEC` object.
-    TODO
     """
 
     def __init__(self, 
                  ndof: int, 
-                 kinematics: Union[Callable, npt.ArrayLike], 
-                 controller: Optional[Callable] = None, 
-                 impedance: Optional[npt.ArrayLike] = None,
-                 efficiency = None, #TODO - type?
+                 kinematics: Union[TStateFunction, ndarray], 
+                 controller: Optional[TStateFunction] = None, 
+                 impedance: Optional[ndarray] = None,
+                 efficiency: Optional[Callable] = None, #TODO - type?
                  names: Optional[list[str]] = None,
                  ) -> None:
         """Create a PTO object.
@@ -158,7 +163,7 @@ class PTO:
     def _fkinematics(self, 
                      f_wec, 
                      wec: TWEC, 
-                     x_wec: npt.ArrayLike, 
+                     x_wec: Optional[ndarray], 
                      x_opt: Optional[ndarray] = None, 
                      waves: Optional[Dataset] = None, 
                      nsubsteps: Optional[int] = 1,
@@ -191,8 +196,8 @@ class PTO:
 
     def position(self, 
                  wec: TWEC, 
-                 x_wec: npt.ArrayLike,
-                 x_opt: Optional[npt.ArrayLike],
+                 x_wec: Optional[ndarray],
+                 x_opt: Optional[ndarray],
                  waves: Optional[Dataset] = None,
                  nsubsteps: Optional[int] = 1,
                  ) -> ndarray:
@@ -219,8 +224,8 @@ class PTO:
 
     def velocity(self, 
                  wec: TWEC, 
-                 x_wec: npt.ArrayLike,
-                 x_opt: Optional[npt.ArrayLike],
+                 x_wec: Optional[ndarray],
+                 x_opt: Optional[ndarray],
                  waves: Optional[Dataset] = None,
                  nsubsteps: Optional[int] = 1,
                  ) -> ndarray:
@@ -248,8 +253,8 @@ class PTO:
 
     def acceleration(self, 
                      wec: TWEC, 
-                     x_wec: npt.ArrayLike,
-                     x_opt: Optional[npt.ArrayLike],
+                     x_wec: Optional[ndarray],
+                     x_opt: Optional[ndarray],
                      waves: Optional[Dataset] = None,
                      nsubsteps: Optional[int] = 1,
                      ) -> np.ndarray:
@@ -278,8 +283,8 @@ class PTO:
 
     def force_on_wec(self, 
                      wec: TWEC, 
-                     x_wec: npt.ArrayLike,
-                     x_opt: Optional[npt.ArrayLike],
+                     x_wec: Optional[ndarray],
+                     x_opt: Optional[ndarray],
                      waves: Optional[Dataset] = None, 
                      nsubsteps: Optional[int] = 1,
                      ) -> ndarray:
@@ -311,8 +316,8 @@ class PTO:
 
     def mechanical_power(self, 
                          wec: TWEC, 
-                         x_wec: npt.ArrayLike,
-                         x_opt: Optional[npt.ArrayLike],
+                         x_wec: Optional[ndarray],
+                         x_opt: Optional[ndarray],
                          waves: Optional[Dataset] = None, 
                          nsubsteps: Optional[int] = 1,
                          ) -> np.ndarray:
@@ -341,8 +346,8 @@ class PTO:
 
     def mechanical_energy(self, 
                           wec: TWEC, 
-                          x_wec: npt.ArrayLike,
-                          x_opt: Optional[npt.ArrayLike],
+                          x_wec: Optional[ndarray],
+                          x_opt: Optional[ndarray],
                           waves: Optional[Dataset] = None, 
                           nsubsteps: Optional[int] = 1,
                           ) -> float:
@@ -370,8 +375,8 @@ class PTO:
 
     def mechanical_average_power(self, 
                                  wec: TWEC, 
-                                 x_wec: npt.ArrayLike,
-                                 x_opt: Optional[npt.ArrayLike],
+                                 x_wec: Optional[ndarray],
+                                 x_opt: Optional[ndarray],
                                  waves: Optional[Dataset] = None, 
                                  nsubsteps: Optional[int] = 1,
                                  ) -> float:
@@ -399,8 +404,8 @@ class PTO:
 
     def power(self, 
               wec: TWEC, 
-              x_wec: npt.ArrayLike,
-              x_opt: Optional[npt.ArrayLike], 
+              x_wec: Optional[ndarray],
+              x_opt: Optional[ndarray], 
               waves: Optional[Dataset] = None, 
               nsubsteps: Optional[int] = 1,
               ) -> ndarray:
@@ -449,8 +454,8 @@ class PTO:
 
     def energy(self, 
                wec: TWEC, 
-               x_wec: npt.ArrayLike,
-               x_opt: Optional[npt.ArrayLike],
+               x_wec: Optional[ndarray],
+               x_opt: Optional[ndarray],
                waves: Optional[Dataset] = None, 
                nsubsteps: Optional[int] = 1,
                ) -> float:
@@ -478,8 +483,8 @@ class PTO:
 
     def average_power(self, 
                       wec: TWEC, 
-                      x_wec: npt.ArrayLike,
-                      x_opt: Optional[npt.ArrayLike],
+                      x_wec: Optional[ndarray],
+                      x_opt: Optional[ndarray],
                       waves: Optional[Dataset] = None, 
                       nsubsteps: Optional[int] = 1,
                       ) -> float:
@@ -611,7 +616,7 @@ class PTO:
 
 
 # power conversion chain
-def _make_abcd(impedance: npt.ArrayLike, ndof: int) -> ndarray:
+def _make_abcd(impedance: Optional[ndarray], ndof: int) -> ndarray:
     """Transform the impedance matrix into ABCD form from a MIMO 
     transfer function.
     
@@ -638,7 +643,7 @@ def _make_abcd(impedance: npt.ArrayLike, ndof: int) -> ndarray:
     return np.block([[[abcd_11], [abcd_12]], [[abcd_21], [abcd_22]]])
 
 
-def _make_mimo_transfer_mat(impedance_abcd: npt.ArrayLike, 
+def _make_mimo_transfer_mat(impedance_abcd: Optional[ndarray], 
                             ndof: int,
                             ) -> np.ndarray:
     """Create a block matrix of the MIMO transfer function.
@@ -668,8 +673,8 @@ def _make_mimo_transfer_mat(impedance_abcd: npt.ArrayLike,
 # controllers
 def controller_unstructured(pto, 
                             wec: TWEC, 
-                            x_wec: npt.ArrayLike, 
-                            x_opt: npt.ArrayLike, 
+                            x_wec: Optional[ndarray], 
+                            x_opt: Optional[ndarray], 
                             waves: Optional[Dataset] = None, 
                             nsubsteps=1) -> ndarray:
     """Unstructured numerical optimal controller that returns a time 
@@ -698,8 +703,8 @@ def controller_unstructured(pto,
 
 def controller_pid(pto, 
                    wec: TWEC, 
-                   x_wec: npt.ArrayLike, 
-                   x_opt: npt.ArrayLike,
+                   x_wec: Optional[ndarray], 
+                   x_opt: Optional[ndarray],
                    waves: Optional[Dataset] = None, 
                    nsubsteps: Optional[int] = 1,
                    proportional: Optional[bool] = True, 
@@ -757,8 +762,8 @@ def controller_pid(pto,
 
 def controller_pi(pto, 
                   wec: TWEC,
-                  x_wec: npt.ArrayLike, 
-                  x_opt: npt.ArrayLike, 
+                  x_wec: Optional[ndarray], 
+                  x_opt: Optional[ndarray], 
                   waves: Optional[Dataset] = None, 
                   nsubsteps: Optional[int] = 1,
                   ) -> ndarray:
@@ -790,8 +795,8 @@ def controller_pi(pto,
 
 def controller_p(pto, 
                  wec: TWEC, 
-                 x_wec: npt.ArrayLike, 
-                 x_opt: npt.ArrayLike, 
+                 x_wec: Optional[ndarray], 
+                 x_opt: Optional[ndarray], 
                  waves: Optional[Dataset] = None, 
                  nsubsteps: Optional[int] = 1,
                  ) -> ndarray:
