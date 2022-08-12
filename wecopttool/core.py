@@ -2007,6 +2007,7 @@ def linear_hydrodynamics(
                     f'Variable "{name}" is not in BEM data and ' +
                     'was not provided.')
         elif new:
+            data = atleast_2d(data)
             hydro_data[name] = (dims, data)
 
     return hydro_data
