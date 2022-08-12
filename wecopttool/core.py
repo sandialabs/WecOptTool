@@ -751,7 +751,7 @@ class WEC:
     def post_process(self,
         waves: Dataset,
         res: OptimizeResult,
-        nsubsteps: int, #TODO - should this default to 1?
+        nsubsteps: int = 1,
     ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :python:`WEC.solve`.
 
