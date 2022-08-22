@@ -85,20 +85,21 @@ class WEC:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 
-        The :py:class:`wecopttool.core.WEC` class describes a WEC's equation of motion as
-        :math:`ma=Σf` where the :python:`inertia_matrix` matrix
-        specifies the inertia :math:`m`, and the :python:`forces`
-        dictionary specifies the different forces to be summed.
-        The forces can be linear or nonlinear.
+        The :py:class:`wecopttool.core.WEC` class describes a WEC's 
+        equation of motion as :math:`ma=Σf` where the 
+        :python:`inertia_matrix` matrix specifies the inertia :math:`m`,
+        and the :python:`forces` dictionary specifies the different 
+        forces to be summed. The forces can be linear or nonlinear.
         If :python:`inertia_in_forces is True` the equation of motion is
         :math:`Σf=0`, which is included to allow for initialization
         using an intrinsic impedance through the
         :python:`WEC.from_impedance` initialization function.
 
-        .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC` object as
-                  :python:`WEC(f1, nfrew, forces, ...)` is discouraged.
-                  Instead use one of the other initialization methods
-                  listed in the *See Also* section.
+        .. note:: Direct initialization of a 
+            :py:class:`wecopttool.core.WEC` object as 
+            :python:`WEC(f1, nfrew, forces, ...)` is discouraged.
+            Instead use one of the other initialization methods listed 
+            in the *See Also* section.
 
         Parameters
         ----------
@@ -155,13 +156,14 @@ class WEC:
         See Also
         --------
         from_bem:
-            Initialize a :py:class:`wecopttool.core.WEC` object from BEM results.
+            Initialize a :py:class:`wecopttool.core.WEC` object from BEM 
+            results.
         from_floating_body:
             Initialize a :py:class:`wecopttool.core.WEC` object from a
             :python:`capitaine.FloatingBody` object.
         from_impedance:
-            Initialize a :py:class:`wecopttool.core.WEC` object from an intrinsic
-            impedance array and excitation coefficients.
+            Initialize a :py:class:`wecopttool.core.WEC` object from an 
+            intrinsic impedance array and excitation coefficients.
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
@@ -254,19 +256,20 @@ class WEC:
         The :python:`bem_data` can be a dataset or the name of a
         *NetCDF* file containing the dataset.
 
-        The returned :py:class:`wecopttool.core.WEC` object contains the inertia and the
-        default linear forces: radiation, diffraction, and Froude-Krylov.
-        Additional forces can be specified through :python:`f_add`.
+        The returned :py:class:`wecopttool.core.WEC` object contains the 
+        inertia and the default linear forces: radiation, diffraction, 
+        and Froude-Krylov. Additional forces can be specified through 
+        :python:`f_add`.
 
         Note that because Capytaine uses a different sign convention,
         the direct results from capytaine must be modified using
-        :py:func:`wecopttool.core.change_bem_convention` before calling this
-        initialization function.
+        :py:func:`wecopttool.core.change_bem_convention` before calling 
+        this initialization function.
         Instead, the recommended approach is to use
         :py:func:`wecopttool.core.run_bem`,
         rather than running Capytaine directly, which outputs the
-        results in the correct convention.
-        The results can be saved using :py:func:`wecopttool.core.write_netcdf`.
+        results in the correct convention. The results can be saved 
+        using :py:func:`wecopttool.core.write_netcdf`.
 
         In addition to the Capytaine results, if the dataset contains
         the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
@@ -378,11 +381,12 @@ class WEC:
         hours.
         Instead, if the hydrodynamic coefficients can be reused, it is
         recommended to run Capytaine first and save the results using
-        :python:`run_bem` and :py:func:`wecopttool.core.write_netcdf`, and then
-        initialize the :py:class:`wecopttool.core.WEC` object using :python:`from_bem`.
-        This initialization method should be reserved for the cases
-        where the hydrodynamic coefficients constantly change and are
-        not reused, as for example for geometry optimization.
+        :python:`run_bem` and :py:func:`wecopttool.core.write_netcdf`, 
+        and then initialize the :py:class:`wecopttool.core.WEC` object 
+        using :python:`from_bem`. This initialization method should be 
+        reserved for the cases where the hydrodynamic coefficients 
+        constantly change and are not reused, as for example for 
+        geometry optimization.
 
         Parameters
         ----------
@@ -555,8 +559,8 @@ class WEC:
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
             must have signature :python:`fun(wec, x_wec, x_opt, waves)`
@@ -766,8 +770,8 @@ class WEC:
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :python:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :python:`wecopttool.waves`.
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
         nsubsteps
@@ -991,8 +995,8 @@ class WEC:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
-        Calls :python:`wecopttool.decompose_state` with the appropriate
-        inputs for the WEC object.
+        Calls :meth:`wecopttool.core.decompose_state` with the 
+        appropriate inputs for the WEC object.
 
         Examples
         --------
@@ -1098,7 +1102,7 @@ class WEC:
     def fd_to_td(self, fd: ndarray) -> ndarray:
         """Convert a frequency-domain array to time-domain.
 
-        Opposite of :python:`WEC.td_to_fd`.
+        Opposite of :meth:`wecopttool.core.WEC.td_to_fd`.
 
         Calls :python:`wecopttool.fd_to_td` with the appropriate inputs
         for the WEC object.
@@ -1121,8 +1125,8 @@ class WEC:
         fft: Optional[bool] = True,
         ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
-
-        Opposite of :python:`WEC.fd_to_td`.
+        
+        Opposite of :meth:`wecopttool.core.WEC.fd_to_td`.
 
         Calls :python:`wecopttool.fd_to_td` with the appropriate inputs
         for the WEC object.
@@ -1530,7 +1534,7 @@ def fd_to_td(
     time matrix :python:`wecopttool.time_mat(f1, nfreq, nsubsteps=1)`,
     else it uses the inverse real FFT (:python:`numpy.fft.irfft`).
 
-    Opposite of :python:`td_to_fd`.
+    Opposite of :meth:`wecopttool.core.td_to_fd`.
 
     Parameters
     ----------
@@ -1576,7 +1580,7 @@ def td_to_fd(
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
-    Opposite of :python:`fd_to_td`.
+    Opposite of :meth:`wecopttool.core.fd_to_td`
 
     Parameters
     ----------
@@ -1589,7 +1593,7 @@ def td_to_fd(
 
     See Also
     --------
-    fd_to_td,
+    fd_to_td
     """
     td= atleast_2d(td)
     n = td.shape[0]
@@ -1883,7 +1887,8 @@ def run_bem(
     """Run Capytaine for a range of frequencies and wave directions.
 
     This simplifies running *Capytaine* and ensures the output are in
-    the correct convention (see :py:func:`wecopttool.core.change_bem_convention`).
+    the correct convention (see 
+    :py:func:`wecopttool.core.change_bem_convention`).
 
     It creates the *test matrix*,
     calls :python:`capytaine.FloatingBody.keep_immersed_part`,

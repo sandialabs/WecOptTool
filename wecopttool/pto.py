@@ -56,13 +56,15 @@ class PTO:
         ) -> None:
         """Create a PTO object.
         
-        The :py:class:`wecopttool.pto.PTO` class describes the kinematics, control logic, 
-        impedance and/or efficiency map of a power take-off system. The 
-        forces/moments applied by a :py:class:`wecopttool.pto.PTO` object can be applied 
-        to a :py:class:`wecopttool.core.WEC` object through the :python:`WEC.f_add` 
-        property. The power produced by a :py:class:`wecopttool.pto.PTO` object can be 
-        used for the :python:`obj_fun` of pseudo-spectral optimization 
-        problem when calling :python:`WEC.solve`.
+        The :py:class:`wecopttool.pto.PTO` class describes the 
+        kinematics, control logic, impedance and/or efficiency map of a 
+        power take-off system. The forces/moments applied by a 
+        :py:class:`wecopttool.pto.PTO` object can be applied to a 
+        :py:class:`wecopttool.core.WEC` object through the 
+        :python:`WEC.f_add` property. The power produced by a 
+        :py:class:`wecopttool.pto.PTO` object can be used for the 
+        :python:`obj_fun` of pseudo-spectral optimization problem when 
+        calling :python:`WEC.solve`.
 
         Parameters
         ----------
@@ -169,7 +171,7 @@ class PTO:
         self, 
         f_wec, 
         wec: TWEC, 
-        x_wec: Optional[ndarray], 
+        x_wec: ndarray, 
         x_opt: Optional[ndarray] = None, 
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
@@ -187,8 +189,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -203,8 +205,8 @@ class PTO:
     def position(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None,
         nsubsteps: Optional[int] = 1,
         ) -> ndarray:
@@ -219,8 +221,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -232,8 +234,8 @@ class PTO:
     def velocity(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None,
         nsubsteps: Optional[int] = 1,
         ) -> ndarray:
@@ -248,8 +250,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -262,8 +264,8 @@ class PTO:
     def acceleration(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None,
         nsubsteps: Optional[int] = 1,
         ) -> np.ndarray:
@@ -278,8 +280,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -293,8 +295,8 @@ class PTO:
     def force_on_wec(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> ndarray:
@@ -309,8 +311,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -327,8 +329,8 @@ class PTO:
     def mechanical_power(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> np.ndarray:
@@ -344,8 +346,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -358,8 +360,8 @@ class PTO:
     def mechanical_energy(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> float:
@@ -375,8 +377,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -388,8 +390,8 @@ class PTO:
     def mechanical_average_power(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> float:
@@ -405,8 +407,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -418,8 +420,8 @@ class PTO:
     def power(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray], 
+        x_wec: ndarray,
+        x_opt: ndarray, 
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> ndarray:
@@ -435,8 +437,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -469,8 +471,8 @@ class PTO:
     def energy(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> float:
@@ -486,8 +488,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -499,8 +501,8 @@ class PTO:
     def average_power(
         self, 
         wec: TWEC, 
-        x_wec: Optional[ndarray],
-        x_opt: Optional[ndarray],
+        x_wec: ndarray,
+        x_opt: ndarray,
         waves: Optional[xr.Dataset] = None, 
         nsubsteps: Optional[int] = 1,
         ) -> float:
@@ -516,8 +518,8 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -530,7 +532,7 @@ class PTO:
         self, 
         wec: TWEC, 
         res: OptimizeResult,
-        waves: xr.DataArray = None,
+        waves: Optional[xr.DataArray] = None,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[xr.Dataset, xr.Dataset]:
         """Transform the results from optimization solution to a form
@@ -538,15 +540,16 @@ class PTO:
         
         Examples
         --------
-        The :meth:`wecopttool.core.WEC.solve` method only returns the post-processed 
-        results for the :py:class:`wecopttool.core.WEC` object.
+        The :meth:`wecopttool.core.WEC.solve` method only returns the 
+        post-processed results for the :py:class:`wecopttool.core.WEC` 
+        object.
         
         >>> res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,
                                               obj_fun=pto.average_power,
                                               nstate_opt=2*nfreq+1)
                                             
-        To get the post-processed results for the :py:class:`wecopttool.pto.PTO`, you may 
-        call
+        To get the post-processed results for the 
+        :py:class:`wecopttool.pto.PTO`, you may call
         
         >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
                                             
@@ -564,8 +567,8 @@ class PTO:
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements shown by
-            :py:mod:`wecopttool.waves`.
+            :py:class:`xarray.Dataset` with the structure and elements 
+            shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step 
@@ -683,7 +686,7 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
 
 
 def _make_mimo_transfer_mat(
-    impedance_abcd: Optional[ndarray], 
+    impedance_abcd: ndarray, 
     ndof: int,
     ) -> np.ndarray:
     """Create a block matrix of the MIMO transfer function.
@@ -714,8 +717,8 @@ def _make_mimo_transfer_mat(
 def controller_unstructured(
     pto: TPTO, 
     wec: TWEC, 
-    x_wec: Optional[ndarray], 
-    x_opt: Optional[ndarray], 
+    x_wec: ndarray, 
+    x_opt: ndarray, 
     waves: Optional[xr.Dataset] = None, 
     nsubsteps: Optional[int] = 1,
     ) -> ndarray:
@@ -733,8 +736,8 @@ def controller_unstructured(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements shown by
-        :py:mod:`wecopttool.waves`.
+        :py:class:`xarray.Dataset` with the structure and elements 
+        shown by :py:mod:`wecopttool.waves`.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step 
@@ -748,8 +751,8 @@ def controller_unstructured(
 def controller_pid(
     pto: TPTO, 
     wec: TWEC, 
-    x_wec: Optional[ndarray], 
-    x_opt: Optional[ndarray],
+    x_wec: ndarray, 
+    x_opt: ndarray,
     waves: Optional[xr.Dataset] = None, 
     nsubsteps: Optional[int] = 1,
     proportional: Optional[bool] = True, 
@@ -770,8 +773,8 @@ def controller_pid(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements shown by
-        :py:mod:`wecopttool.waves`.
+        :py:class:`xarray.Dataset` with the structure and elements shown 
+        by :py:mod:`wecopttool.waves`.
     nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -808,8 +811,8 @@ def controller_pid(
 def controller_pi(
     pto: TPTO, 
     wec: TWEC,
-    x_wec: Optional[ndarray], 
-    x_opt: Optional[ndarray], 
+    x_wec: ndarray, 
+    x_opt: ndarray, 
     waves: Optional[xr.Dataset] = None, 
     nsubsteps: Optional[int] = 1,
     ) -> ndarray:
@@ -827,8 +830,8 @@ def controller_pi(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements shown by
-        :py:mod:`wecopttool.waves`.
+        :py:class:`xarray.Dataset` with the structure and elements shown
+        by :py:mod:`wecopttool.waves`.
     nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -842,8 +845,8 @@ def controller_pi(
 def controller_p(
     pto: TPTO, 
     wec: TWEC, 
-    x_wec: Optional[ndarray], 
-    x_opt: Optional[ndarray], 
+    x_wec: ndarray, 
+    x_opt: ndarray, 
     waves: Optional[xr.Dataset] = None, 
     nsubsteps: Optional[int] = 1,
     ) -> ndarray:
@@ -861,8 +864,8 @@ def controller_p(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements shown by
-        :py:mod:`wecopttool.waves`.
+        :py:class:`xarray.Dataset` with the structure and elements shown
+        by :py:mod:`wecopttool.waves`.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
