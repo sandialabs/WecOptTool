@@ -79,7 +79,7 @@ class WEC:
         constraints: Optional[Iterable[Mapping]] = None,
         inertia_matrix: Optional[ndarray] = None,
         ndof: Optional[int] = None,
-        inertia_in_forces: bool = False,
+        inertia_in_forces: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
         ) -> None:
         """Create a WEC object directly from its inertia matrix and
@@ -359,11 +359,11 @@ class WEC:
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
-        min_damping: float = _default_min_damping,
-        wave_directions: ArrayLike = np.array([0.0,]),
-        rho: float = _default_parameters['rho'],
-        g: float = _default_parameters['g'],
-        depth: float = _default_parameters['depth'],
+        min_damping: Optional[float] = _default_min_damping,
+        wave_directions: Optional[ArrayLike] = np.array([0.0,]),
+        rho: Optional[float] = _default_parameters['rho'],
+        g: Optional[float] = _default_parameters['g'],
+        depth: Optional[float] = _default_parameters['depth'],
     ) -> tuple[TWEC, Dataset]:
         """Create a WEC object from a Capytaine :python:`FloatingBody`.
 
@@ -540,11 +540,11 @@ class WEC:
         x_wec_0: Optional[ndarray] = None,
         x_opt_0: Optional[ndarray] = None,
         scale_x_wec: Optional[list] = None,
-        scale_x_opt: FloatOrArray = 1.0,
-        scale_obj: float = 1.0,
-        optim_options: Mapping[str, Any] = {},
-        use_grad: bool = True,
-        maximize: bool = False,
+        scale_x_opt: Optional[FloatOrArray] = 1.0,
+        scale_obj: Optional[float] = 1.0,
+        optim_options: Optional[Mapping[str, Any]] = {},
+        use_grad: Optional[bool] = True,
+        maximize: Optional[bool] = False,
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[Callable[[ndarray]]] = None,
@@ -759,7 +759,7 @@ class WEC:
     def post_process(self,
         waves: xr.Dataset,
         res: OptimizeResult,
-        nsubsteps: int = 1,
+        nsubsteps: Optional[int] = 1,
     ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :python:`WEC.solve`.
 
@@ -1115,7 +1115,11 @@ class WEC:
         """
         return fd_to_td(fd, self.f1, self.nfreq, True)
 
-    def td_to_fd(self, td: ndarray, fft: bool = True) -> ndarray:
+    def td_to_fd(
+        self, 
+        td: ndarray, 
+        fft: Optional[bool] = True,
+        ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
 
         Opposite of :python:`WEC.fd_to_td`.
@@ -1138,7 +1142,10 @@ class WEC:
         return td_to_fd(td, fft, True)
 
 
-def ncomponents(nfreq : int, zero_freq: bool = True) -> int:
+def ncomponents(
+    nfreq : int, 
+    zero_freq: Optional[bool] = True,
+    ) -> int:
     """Number of Fourier components (:python:`2*nfreq + 1`) for each
     DOF.
 
@@ -1155,7 +1162,11 @@ def ncomponents(nfreq : int, zero_freq: bool = True) -> int:
     return ncomp
 
 
-def frequency(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
+def frequency(
+    f1: float, 
+    nfreq: int, 
+    zero_freq: Optional[bool] = True,
+    ) -> ndarray:
     """Construct equally spaced frequency array.
 
     The array includes :python:`0` and has length of :python:`nfreq+1`.
@@ -1178,7 +1189,11 @@ def frequency(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
     return freq
 
 
-def time(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
+def time(
+    f1: float, 
+    nfreq: int, 
+    nsubsteps: Optional[int] = 1,
+    ) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
 
     Returns the 1D time vector, in seconds, starting at time
@@ -1206,8 +1221,8 @@ def time(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
 def time_mat(
     f1: float,
     nfreq: int,
-    nsubsteps: int = 1,
-    zero_freq: bool = True,
+    nsubsteps: Optional[int] = 1,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
@@ -1246,7 +1261,11 @@ def time_mat(
     return time_mat
 
 
-def derivative_mat(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
+def derivative_mat(
+    f1: float, 
+    nfreq: int, 
+    zero_freq: Optional[bool] = True,
+    ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
 
@@ -1277,7 +1296,7 @@ def derivative_mat(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
 
 def degrees_to_radians(
     degrees: FloatOrArray,
-    sort: bool = True,
+    sort: Optional[bool] = True,
 ) -> Union[float, ndarray]:
     """Convert a 1D array of angles in degrees to radians in the range
     :math:`(-π, π]` and optionally sort them.
@@ -1343,7 +1362,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 
 def mimo_transfer_mat(
     transfer_mat: ArrayLike,
-    zero_freq: bool = True,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
@@ -1391,7 +1410,10 @@ def mimo_transfer_mat(
     return np.block(elem)
 
 
-def real_to_complex(fd: ArrayLike, zero_freq: bool = True) -> ndarray:
+def real_to_complex(
+    fd: ArrayLike, 
+    zero_freq: Optional[bool] = True,
+    ) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
 
@@ -1432,7 +1454,10 @@ def real_to_complex(fd: ArrayLike, zero_freq: bool = True) -> ndarray:
     return fdc
 
 
-def complex_to_real(fd: ArrayLike, zero_freq: bool=True) -> ndarray:
+def complex_to_real(
+    fd: ArrayLike, 
+    zero_freq: Optional[bool] = True,
+    ) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
 
@@ -1483,9 +1508,9 @@ def complex_to_real(fd: ArrayLike, zero_freq: bool=True) -> ndarray:
 
 def fd_to_td(
     fd: ArrayLike,
-    f1=None,
-    nfreq=None,
-    zero_freq: bool=True,
+    f1: Optional[float] = None,
+    nfreq: Optional[int] = None,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
     of time-domain responses.
@@ -1543,7 +1568,11 @@ def fd_to_td(
     return td
 
 
-def td_to_fd(td: ArrayLike, fft: bool = True, zero_freq: bool=True) -> ndarray:
+def td_to_fd(
+    td: ArrayLike, 
+    fft: Optional[bool] = True, 
+    zero_freq: Optional[bool] = True,
+    ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
@@ -1666,7 +1695,7 @@ def write_netcdf(fpath: Union[str, Path], data: xr.Dataset) -> None:
 
 def check_linear_damping(
     hydro_data: xr.Dataset,
-    min_damping: float = 1e-6,
+    min_damping: Optional[float] = 1e-6,
 ) -> xr.Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
@@ -1680,7 +1709,7 @@ def check_linear_damping(
     hydro_data
         Linear hydrodynamic data.
     min_damping
-        Minimum threshold for damping.
+        Minimum threshold for damping. Default is 1e-6.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1704,7 +1733,7 @@ def check_linear_damping(
 
 def force_from_rao_transfer_function(
     rao_transfer_mat: ArrayLike,
-    zero_freq: bool = True,
+    zero_freq: Optional[bool] = True,
 ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
 
@@ -1716,7 +1745,8 @@ def force_from_rao_transfer_function(
     rao_transfer_mat
         Complex position transfer matrix.
     zero_freq
-        Whether the first frequency should be zero.
+        Whether the first frequency should be zero. Default is 
+        :python:`True`.
 
     See Also
     --------
@@ -1754,7 +1784,7 @@ def force_from_waves(force_coeff: xr.Dataset) -> TStateFunction:
 
     Parameters
     ----------
-    forec_coeff
+    force_coeff
         Complex excitation coefficients indexed by frequency and
         direction angle.
     """
