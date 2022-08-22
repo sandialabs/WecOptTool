@@ -61,11 +61,18 @@ class WEC:
     * :meth:`wecopttool.core.WEC.from_bem`
     * :meth:`wecopttool.core.WEC.from_floating_body`
     * :meth:`wecopttool.core.WEC.from_impedance`.
+    
+    .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC` 
+        object as :python:`WEC(f1, nfrew, forces, ...)` using  
+        :meth:`wecopttool.core.WEC.__init__` is discouraged. Instead 
+        use one of the other initialization methods listed in the 
+        *See Also* section.
 
     To solve the pseudo-spectral problem use 
     :meth:`wecopttool.core.WEC.solve`.
     """
-    def __init__(self,
+    def __init__(
+        self,
         f1:float,
         nfreq:int,
         forces: TIForceDict,
@@ -240,7 +247,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-    ) -> TWEC:
+        ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
         obtained using the boundary element method (BEM) code Capytaine.
 
@@ -750,7 +757,7 @@ class WEC:
         return res_fd, res_td, optim_res
 
     def post_process(self,
-        waves: Dataset,
+        waves: xr.Dataset,
         res: OptimizeResult,
         nsubsteps: int = 1,
     ) -> tuple[Dataset, Dataset]:
@@ -1566,7 +1573,7 @@ def td_to_fd(td: ArrayLike, fft: bool = True, zero_freq: bool=True) -> ndarray:
     return fd
 
 
-def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 
@@ -1615,7 +1622,7 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
-def read_netcdf(fpath: Union[str, Path]) -> Dataset:
+def read_netcdf(fpath: Union[str, Path]) -> xr.Dataset:
     """Read a *NetCDF* file with possibly complex entries as a 
     :py:class:`xarray.Dataset`.
 
@@ -1636,7 +1643,7 @@ def read_netcdf(fpath: Union[str, Path]) -> Dataset:
     return cpy.io.xarray.merge_complex_values(ds)
 
 
-def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
+def write_netcdf(fpath: Union[str, Path], data: xr.Dataset) -> None:
     """Save an :py:class:`xarray.Dataset` with possibly complex entries as a
     *NetCDF* file.
 
@@ -1658,9 +1665,9 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 
 
 def check_linear_damping(
-    hydro_data: Dataset,
+    hydro_data: xr.Dataset,
     min_damping: float = 1e-6,
-) -> Dataset:
+) -> xr.Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
@@ -1742,7 +1749,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 
-def force_from_waves(force_coeff: Dataset) -> TStateFunction:
+def force_from_waves(force_coeff: xr.Dataset) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
     Parameters
@@ -1781,7 +1788,7 @@ def inertia(
     return inertia_fun
 
 
-def standard_forces(hydro_data: Dataset) -> TForceDict:
+def standard_forces(hydro_data: xr.Dataset) -> TForceDict:
     """Create functions for linear hydrodynamic forces.
 
     Returns a dictionary with the standard linear forces:
@@ -1842,7 +1849,7 @@ def run_bem(
     depth: float = _default_parameters['depth'],
     write_info: Optional[Mapping[str, bool]] = None,
     njobs: int = 1,
-) -> Dataset:
+) -> xr.Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
 
     This simplifies running *Capytaine* and ensures the output are in
@@ -1908,7 +1915,7 @@ def run_bem(
     return change_bem_convention(bem_data)
 
 
-def change_bem_convention(bem_data: Dataset) -> Dataset:
+def change_bem_convention(bem_data: xr.Dataset) -> xr.Dataset:
     """Change the convention from `-iωt` to `+iωt`.
 
     Change the linear hydrodynamic coefficients from the Capytaine
@@ -1930,11 +1937,11 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
 
 
 def linear_hydrodynamics(
-    bem_data: Dataset,
+    bem_data: xr.Dataset,
     inertia_matrix: Optional[ArrayLike] = None,
     hydrostatic_stiffness: Optional[ArrayLike] = None,
     friction: Optional[ArrayLike] = None
-) -> Dataset:
+) -> xr.Dataset:
     """Add rigid body inertia_matrix, hydrostatic stiffness, and linear
     friction to BEM data.
 
@@ -2198,7 +2205,7 @@ def frequency_parameters(
     return f1, nfreq
 
 
-def time_results(fd: DataArray, time: DataArray) -> ndarray:
+def time_results(fd: xr.DataArray, time: xr.DataArray) -> ndarray:
     """Create a :py:class:`xarray.DataArray` of time-domain results from 
     :py:class:`xarray.DataArray` of frequency-domain results.
 

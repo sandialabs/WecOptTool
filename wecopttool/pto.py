@@ -39,19 +39,21 @@ from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 TPTO = TypeVar("TPTO", bound="PTO")
 TEFF = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
+
 class PTO:
     """A power take-off (PTO) object to be used in conjunction with a 
     :py:class:`wecopttool.core.WEC` object.
     """
 
-    def __init__(self, 
-                 ndof: int, 
-                 kinematics: Union[TStateFunction, ndarray], 
-                 controller: Optional[TStateFunction] = None, 
-                 impedance: Optional[ndarray] = None,
-                 efficiency: Optional[TEFF] = None,
-                 names: Optional[list[str]] = None,
-                 ) -> None:
+    def __init__(
+        self, 
+        ndof: int, 
+        kinematics: Union[TStateFunction, ndarray], 
+        controller: Optional[TStateFunction] = None, 
+        impedance: Optional[ndarray] = None,
+        efficiency: Optional[TEFF] = None,
+        names: Optional[list[str]] = None,
+        ) -> None:
         """Create a PTO object.
         
         The :py:class:`wecopttool.pto.PTO` class describes the kinematics, control logic, 
@@ -67,7 +69,9 @@ class PTO:
         ndof
             Number of degrees of freedom.
         kinematics
-            _description_
+            Transforms state from WEC to PTO frame. May be a matrix 
+            (for linear kinematics) or function (for nonlinear 
+            kinematics).
         controller
             Function with signature 
             :python:`def fun(wec, x_wec, x_opt, waves, nsubsteps):` 
@@ -79,7 +83,7 @@ class PTO:
             Function that maps flow and effort variables to an 
             efficiency. Outputs are between 0-1.
         names
-            PTO names
+            PTO names.
         """
         self._ndof = ndof
         # names
@@ -161,14 +165,15 @@ class PTO:
             tmat = wec.time_mat_nsubsteps(nsubsteps)
         return tmat
 
-    def _fkinematics(self, 
-                     f_wec, 
-                     wec: TWEC, 
-                     x_wec: Optional[ndarray], 
-                     x_opt: Optional[ndarray] = None, 
-                     waves: Optional[xr.Dataset] = None, 
-                     nsubsteps: Optional[int] = 1,
-                     ) -> ndarray:
+    def _fkinematics(
+        self, 
+        f_wec, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray], 
+        x_opt: Optional[ndarray] = None, 
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> ndarray:
         """Return time-domain values in the PTO frame.
 
         Parameters
@@ -195,13 +200,14 @@ class PTO:
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
 
-    def position(self, 
-                 wec: TWEC, 
-                 x_wec: Optional[ndarray],
-                 x_opt: Optional[ndarray],
-                 waves: Optional[xr.Dataset] = None,
-                 nsubsteps: Optional[int] = 1,
-                 ) -> ndarray:
+    def position(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+        ) -> ndarray:
         """Calculate the PTO position time-series.
 
         Parameters
@@ -223,13 +229,14 @@ class PTO:
         pos_wec = wec.vec_to_dofmat(x_wec)
         return self._fkinematics(pos_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def velocity(self, 
-                 wec: TWEC, 
-                 x_wec: Optional[ndarray],
-                 x_opt: Optional[ndarray],
-                 waves: Optional[xr.Dataset] = None,
-                 nsubsteps: Optional[int] = 1,
-                 ) -> ndarray:
+    def velocity(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+        ) -> ndarray:
         """Calculate the PTO velocity time-series.
         
         Parameters
@@ -252,13 +259,14 @@ class PTO:
         vel_wec = np.dot(wec.derivative_mat, pos_wec)
         return self._fkinematics(vel_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def acceleration(self, 
-                     wec: TWEC, 
-                     x_wec: Optional[ndarray],
-                     x_opt: Optional[ndarray],
-                     waves: Optional[xr.Dataset] = None,
-                     nsubsteps: Optional[int] = 1,
-                     ) -> np.ndarray:
+    def acceleration(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+        ) -> np.ndarray:
         """Calculate the PTO acceleration time-series.
         
         Parameters
@@ -282,13 +290,14 @@ class PTO:
         acc_wec = np.dot(wec.derivative_mat, vel_wec)
         return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def force_on_wec(self, 
-                     wec: TWEC, 
-                     x_wec: Optional[ndarray],
-                     x_opt: Optional[ndarray],
-                     waves: Optional[xr.Dataset] = None, 
-                     nsubsteps: Optional[int] = 1,
-                     ) -> ndarray:
+    def force_on_wec(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> ndarray:
         """Calculate the PTO force on WEC.
         
         Parameters
@@ -315,13 +324,14 @@ class PTO:
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
 
-    def mechanical_power(self, 
-                         wec: TWEC, 
-                         x_wec: Optional[ndarray],
-                         x_opt: Optional[ndarray],
-                         waves: Optional[xr.Dataset] = None, 
-                         nsubsteps: Optional[int] = 1,
-                         ) -> np.ndarray:
+    def mechanical_power(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> np.ndarray:
         """Calculate the mechanical power time-series in each PTO DOF
         for a given system state.
         
@@ -345,13 +355,14 @@ class PTO:
         vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         return vel_td * force_td
 
-    def mechanical_energy(self, 
-                          wec: TWEC, 
-                          x_wec: Optional[ndarray],
-                          x_opt: Optional[ndarray],
-                          waves: Optional[xr.Dataset] = None, 
-                          nsubsteps: Optional[int] = 1,
-                          ) -> float:
+    def mechanical_energy(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> float:
         """Calculate the mechanical energy in each PTO DOF for a given 
         system state.
         
@@ -374,13 +385,14 @@ class PTO:
         power_td = self.mechanical_power(wec, x_wec, x_opt, waves, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
 
-    def mechanical_average_power(self, 
-                                 wec: TWEC, 
-                                 x_wec: Optional[ndarray],
-                                 x_opt: Optional[ndarray],
-                                 waves: Optional[xr.Dataset] = None, 
-                                 nsubsteps: Optional[int] = 1,
-                                 ) -> float:
+    def mechanical_average_power(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> float:
         """Calculate average mechanical power in each PTO DOF for a 
         given system state.
         
@@ -403,13 +415,14 @@ class PTO:
         energy = self.mechanical_energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
 
-    def power(self, 
-              wec: TWEC, 
-              x_wec: Optional[ndarray],
-              x_opt: Optional[ndarray], 
-              waves: Optional[xr.Dataset] = None, 
-              nsubsteps: Optional[int] = 1,
-              ) -> ndarray:
+    def power(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray], 
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> ndarray:
         """Calculate the power time-series in each PTO DOF for a given 
         system state.
         
@@ -453,13 +466,14 @@ class PTO:
             power_out = power_out * self.efficiency(e2_td, q2_td)
         return power_out
 
-    def energy(self, 
-               wec: TWEC, 
-               x_wec: Optional[ndarray],
-               x_opt: Optional[ndarray],
-               waves: Optional[xr.Dataset] = None, 
-               nsubsteps: Optional[int] = 1,
-               ) -> float:
+    def energy(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> float:
         """Calculate the energy in each PTO DOF for a given system 
         state.
         
@@ -482,13 +496,14 @@ class PTO:
         power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
 
-    def average_power(self, 
-                      wec: TWEC, 
-                      x_wec: Optional[ndarray],
-                      x_opt: Optional[ndarray],
-                      waves: Optional[xr.Dataset] = None, 
-                      nsubsteps: Optional[int] = 1,
-                      ) -> float:
+    def average_power(
+        self, 
+        wec: TWEC, 
+        x_wec: Optional[ndarray],
+        x_opt: Optional[ndarray],
+        waves: Optional[xr.Dataset] = None, 
+        nsubsteps: Optional[int] = 1,
+        ) -> float:
         """Calculate the average power in each PTO DOF for a given 
         system state.
         
@@ -511,12 +526,13 @@ class PTO:
         energy = self.energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
     
-    def post_process(self, 
-                     wec: TWEC, 
-                     res: OptimizeResult,
-                     waves: xr.DataArray = None,
-                     nsubsteps: Optional[int] = 1,
-                     ) -> tuple[xr.Dataset, xr.Dataset]:
+    def post_process(
+        self, 
+        wec: TWEC, 
+        res: OptimizeResult,
+        waves: xr.DataArray = None,
+        nsubsteps: Optional[int] = 1,
+    ) -> tuple[xr.Dataset, xr.Dataset]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
         
@@ -638,7 +654,7 @@ class PTO:
 
 
 # power conversion chain
-def _make_abcd(impedance: Optional[ndarray], ndof: int) -> ndarray:
+def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
     """Transform the impedance matrix into ABCD form from a MIMO 
     transfer function.
     
@@ -666,9 +682,10 @@ def _make_abcd(impedance: Optional[ndarray], ndof: int) -> ndarray:
     return np.block([[[abcd_11], [abcd_12]], [[abcd_21], [abcd_22]]])
 
 
-def _make_mimo_transfer_mat(impedance_abcd: Optional[ndarray], 
-                            ndof: int,
-                            ) -> np.ndarray:
+def _make_mimo_transfer_mat(
+    impedance_abcd: Optional[ndarray], 
+    ndof: int,
+    ) -> np.ndarray:
     """Create a block matrix of the MIMO transfer function.
     
     Parameters
@@ -694,12 +711,14 @@ def _make_mimo_transfer_mat(impedance_abcd: Optional[ndarray],
 
 
 # controllers
-def controller_unstructured(pto: TPTO, 
-                            wec: TWEC, 
-                            x_wec: Optional[ndarray], 
-                            x_opt: Optional[ndarray], 
-                            waves: Optional[xr.Dataset] = None, 
-                            nsubsteps=1) -> ndarray:
+def controller_unstructured(
+    pto: TPTO, 
+    wec: TWEC, 
+    x_wec: Optional[ndarray], 
+    x_opt: Optional[ndarray], 
+    waves: Optional[xr.Dataset] = None, 
+    nsubsteps: Optional[int] = 1,
+    ) -> ndarray:
     """Unstructured numerical optimal controller that returns a time 
     history of PTO forces.
     
@@ -726,16 +745,17 @@ def controller_unstructured(pto: TPTO,
     return np.dot(tmat, x_opt)
 
 
-def controller_pid(pto: TPTO, 
-                   wec: TWEC, 
-                   x_wec: Optional[ndarray], 
-                   x_opt: Optional[ndarray],
-                   waves: Optional[xr.Dataset] = None, 
-                   nsubsteps: Optional[int] = 1,
-                   proportional: Optional[bool] = True, 
-                   integral: Optional[bool] = True, 
-                   derivative: Optional[bool] = True,
-                   ) -> ndarray:
+def controller_pid(
+    pto: TPTO, 
+    wec: TWEC, 
+    x_wec: Optional[ndarray], 
+    x_opt: Optional[ndarray],
+    waves: Optional[xr.Dataset] = None, 
+    nsubsteps: Optional[int] = 1,
+    proportional: Optional[bool] = True, 
+    integral: Optional[bool] = True, 
+    derivative: Optional[bool] = True,
+    ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns 
     a time history of PTO forces.
     
@@ -785,13 +805,14 @@ def controller_pid(pto: TPTO,
     return force_td
 
 
-def controller_pi(pto: TPTO, 
-                  wec: TWEC,
-                  x_wec: Optional[ndarray], 
-                  x_opt: Optional[ndarray], 
-                  waves: Optional[xr.Dataset] = None, 
-                  nsubsteps: Optional[int] = 1,
-                  ) -> ndarray:
+def controller_pi(
+    pto: TPTO, 
+    wec: TWEC,
+    x_wec: Optional[ndarray], 
+    x_opt: Optional[ndarray], 
+    waves: Optional[xr.Dataset] = None, 
+    nsubsteps: Optional[int] = 1,
+    ) -> ndarray:
     """Proportional-integral (PI) controller that returns a time 
     history of PTO forces.
     
@@ -818,13 +839,14 @@ def controller_pi(pto: TPTO,
     return force_td
 
 
-def controller_p(pto: TPTO, 
-                 wec: TWEC, 
-                 x_wec: Optional[ndarray], 
-                 x_opt: Optional[ndarray], 
-                 waves: Optional[xr.Dataset] = None, 
-                 nsubsteps: Optional[int] = 1,
-                 ) -> ndarray:
+def controller_p(
+    pto: TPTO, 
+    wec: TWEC, 
+    x_wec: Optional[ndarray], 
+    x_opt: Optional[ndarray], 
+    waves: Optional[xr.Dataset] = None, 
+    nsubsteps: Optional[int] = 1,
+    ) -> ndarray:
     """Proportional (P) controller that returns a time history of 
     PTO forces.
     
@@ -842,9 +864,8 @@ def controller_p(pto: TPTO,
         :py:class:`xarray.Dataset` with the structure and elements shown by
         :py:mod:`wecopttool.waves`.
     nsubsteps
-            Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step
-            length.
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step length.
     """
     force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
                                True, False, False)

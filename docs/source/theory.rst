@@ -104,7 +104,7 @@ Constraints, such as maximum PTO force, maximum piston force, or maintaining ten
 
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
-In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.pto.force`).
+In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.PTO.force_on_wec`).
 
 Buoyancy/gravity
 ^^^^^^^^^^^^^^^^

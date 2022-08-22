@@ -53,7 +53,7 @@ class WaveBot:
         self.freeboard = freeboard
         self.gear_ratio = 12.47
 
-    def mesh(self, mesh_size_factor: float = 0.1) -> Mesh:
+    def mesh(self, mesh_size_factor: Optional[float] = 0.1) -> Mesh:
         """Generate surface mesh of hull.
 
         Parameters

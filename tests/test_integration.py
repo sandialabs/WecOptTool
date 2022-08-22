@@ -106,9 +106,7 @@ def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
     res_pto_fd, res_pto_td = pto.post_process(wec_from_bem,res,
                                               nsubsteps=4)
 
-    print(res_pto_fd)
-
-    pass
+    pass #TODO
 
 
 def test_same_wec_init(
