@@ -764,14 +764,14 @@ class WEC:
         waves: xr.Dataset,
         res: OptimizeResult,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+    ) -> tuple[xr.Dataset, xr.Dataset]:
         """Post-process the results from :python:`WEC.solve`.
 
         Parameters
         ----------
         waves
             :py:class:`xarray.Dataset` with the structure and elements 
-            shown by :python:`wecopttool.waves`.
+            shown by :py:mod:`wecopttool.waves`.
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
         nsubsteps
@@ -995,7 +995,7 @@ class WEC:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
-        Calls :meth:`wecopttool.core.decompose_state` with the 
+        Calls :py:meth:`wecopttool.core.decompose_state` with the 
         appropriate inputs for the WEC object.
 
         Examples
@@ -1023,8 +1023,8 @@ class WEC:
     def time_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time vector with finer discretization.
 
-        Calls :python:`wecopttool.time` with the appropriate inputs for
-        the WEC object.
+        Calls :py:func:`wecopttool.core.time` with the appropriate 
+        inputs for the WEC object.
 
         Parameters
         ----------
@@ -1041,8 +1041,8 @@ class WEC:
         """Create a time matrix similar to :python:`WEC.time_mat` but
         with finer time-domain discretization.
 
-        Calls :python:`wecopttool.time_mat` with the appropriate inputs
-        for the WEC object.
+        Calls :py:func:`wecopttool.core.time_mat` with the appropriate 
+        inputs for the WEC object.
 
         Parameters
         ----------
@@ -1059,10 +1059,10 @@ class WEC:
         """Convert a vector to a matrix with one column per degree of
         freedom.
 
-        Opposite of :python:`WEC.dofmat_to_vec`.
+        Opposite of :py:meth:`wecopttool.core.WEC.dofmat_to_vec`.
 
-        Calls :python:`wecopttool.vec_to_dofmat` with the appropriate
-        inputs for the WEC object.
+        Calls :py:func:`wecopttool.core.vec_to_dofmat` with the 
+        appropriate inputs for the WEC object.
 
         Examples
         --------
@@ -1083,10 +1083,10 @@ class WEC:
     def dofmat_to_vec(self, mat: ndarray) -> ndarray:
         """Flatten a matrix to a vector.
 
-        Opposite of :python:`WEC.vec_to_dofmat`.
+        Opposite of :py:meth:`wecopttool.core.WEC.vec_to_dofmat`.
 
-        Calls :python:`dofmat_to_vec` with the appropriate inputs for
-        the WEC object.
+        Calls :py:func:`wecopttool.core.dofmat_to_vec` with the 
+        appropriate inputs for the WEC object.
 
         Parameters
         ----------
@@ -1328,7 +1328,7 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     Returns a matrix with :python:`ndof` columns.
     The number of rows is inferred from the size of the input vector.
 
-    Opposite of :python:`dofmat_to_vec`.
+    Opposite of :py:func:`wecopttool.core.dofmat_to_vec`.
 
     Parameters
     ----------
@@ -1350,7 +1350,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 
     Returns a 1D vector.
 
-    Opposite of :python:`vec_to_dofmat`.
+    Opposite of :py:func:`wecopttool.core.vec_to_dofmat`.
 
     Parameters
     ----------
@@ -1742,7 +1742,7 @@ def force_from_rao_transfer_function(
     """Create a force function from its position transfer matrix.
 
     This is the position equivalent to the velocity-based
-    :python:`force_from_impedance`.
+    :py:func:`wecopttool.core.force_from_impedance`.
 
     Parameters
     ----------
