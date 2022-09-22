@@ -246,7 +246,7 @@ def test_mimo_transfer_mat():
     imp[1, 0, :] = [1+1j, 11+2j]
     imp[0, 1, :] = [2+1j, 22+2j]
     imp[1, 1, :] = [3+1j, 33+2j]
-    mimo = wot.mimo_transfer_mat(imp)
+    mimo = wot.mimo_transfer_mat(imp, False)
     expected_11 = np.array([[0,  0, 0,  0,  0],
                             [0,  0, -1,  0,  0],
                             [0, 1, 0,  0,  0],
@@ -281,7 +281,7 @@ def test_mimo_transfer_mat():
     z = 2.1+4.3j
     f = z*x
     F = np.reshape([0, np.real(f), np.imag(f)], [-1,1])
-    Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]))
+    Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
     assert np.allclose(Z_mimo @ X, F)
 
 
