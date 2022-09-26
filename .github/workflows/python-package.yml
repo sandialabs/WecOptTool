@@ -30,7 +30,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install coveralls pytest
         conda install openblas=0.3.18
-        conda install capytaine
+        conda install capytaine=1.3
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
         fi
@@ -80,7 +80,7 @@ jobs:
       shell: bash -l {0}
       run: |
         python -m pip install --upgrade pip
-        conda install capytaine
+        conda install capytaine=1.3
         conda install pandoc
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
