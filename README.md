@@ -17,7 +17,7 @@ WecOptTool requires Python 3.9 (waiting on vtk -> 3.10).
 
 ```bash
 pip install git+https://github.com/LHEEA/meshmagick.git@3.3
-conda install -c conda-forge capytaine
+conda install -c conda-forge capytaine=1.3
 pip install wecopttool
 ```
 
