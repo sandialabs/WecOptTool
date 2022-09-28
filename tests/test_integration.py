@@ -6,7 +6,7 @@ from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 @pytest.fixture()
 def f1():
@@ -48,9 +48,9 @@ def bem(f1, nfreq, fb):
 
 @pytest.fixture
 def regular_wave(f1, nfreq):
-    wfreq = 0.3
+    wfreq = 0.1
     wamp = 0.0625 
-    wphase = 30
+    wphase = 0
     wdir = 0
     waves = wot.waves.regular_wave(f1, nfreq, wfreq, wamp, wphase, wdir)
     return waves
@@ -98,13 +98,33 @@ def wec_from_impedance(bem, pto, fb):
 
 def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
 
-    res_fd, res_td, res = wec_from_bem.solve(waves=regular_wave,
+    res_core_fd, res_core_td, res = wec_from_bem.solve(waves=regular_wave,
                                              obj_fun=pto.average_power,
                                              nstate_opt=2*nfreq+1,
                                              )
     
     res_pto_fd, res_pto_td = pto.post_process(wec_from_bem,res,
-                                              nsubsteps=4)
+                                            #   nsubsteps=4,
+                                              )
+
+    fig, ax = plt.subplots()
+    res_core_td.pos.plot(ax=ax,
+                        label='Core')
+    res_pto_td.pos.plot(ax=ax,
+                        label='PTO')
+    ax.plot(res_pto_td.time[1:],
+            np.flipud(res_pto_td.pos.data[1:]),
+            linestyle='none',
+            marker='o',
+            label='Flipped PTO')
+    ax.legend()
+
+    ax2 = ax.twinx()
+    res_core_td.wave_elev.squeeze().plot(ax=ax2, color='k')
+
+    fig.tight_layout()
+
+    print('hello')
 
     pass #TODO
 
