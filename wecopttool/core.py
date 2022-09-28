@@ -822,6 +822,7 @@ class WEC:
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
         omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
         dof_attr = {'long_name': 'Degree of freedom'}
+        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
 
         fd_state = xr.Dataset(
             data_vars={
@@ -835,8 +836,10 @@ class WEC:
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
 
-        results_fd = xr.merge([fd_state, fd_forces])
-        results_fd = results_fd.transpose('omega','influenced_dof','type')
+        results_fd = xr.merge([fd_state, fd_forces, waves])
+        results_fd = results_fd.transpose('omega','influenced_dof','type',
+                                          'wave_direction')
+        results_fd = results_fd.fillna(0)
 
         # time domain
         t_dat = self.time_nsubsteps(nsubsteps)
@@ -847,6 +850,7 @@ class WEC:
         results_td['pos'].attrs = pos_attr
         results_td['vel'].attrs = vel_attr
         results_td['acc'].attrs = acc_attr
+        results_td['wave_elev'].attrs = wave_elev_attr
 
         results_td['force'].attrs['long_name'] = 'Force'
         results_td['force'].attrs['units'] = 'N or Nm'

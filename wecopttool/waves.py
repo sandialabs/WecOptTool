@@ -77,8 +77,8 @@ def elevation_fd(
     omega = freq*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_attr = {'long_name': 'wave frequency', 'units': 'rad/s'}
-    dir_attr = {'long_name': 'wave direction', 'units': 'rad'}
+    freq_attr = {'long_name': 'Wave frequency', 'units': 'rad/s'}
+    dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
     coords = [(dims[0], omega, freq_attr), (dims[1], directions, dir_attr)]
 
     if amplitudes is None:
@@ -92,9 +92,10 @@ def elevation_fd(
     camplitude = amplitudes * np.exp(1j*phases)
 
     attr = {} if attr is None else attr
-    attrs = {'units': 'm', 'long_name': 'wave amplitude'} | attr
+    attrs = {'units': 'm', 'long_name': 'Wave elevation'} | attr
 
-    waves = xr.DataArray(camplitude, dims=dims, coords=coords, attrs=attrs)
+    waves = xr.DataArray(camplitude, dims=dims, coords=coords, 
+                         attrs=attrs, name='wave_elev')
 
     return waves.sortby(waves.wave_direction)
 
