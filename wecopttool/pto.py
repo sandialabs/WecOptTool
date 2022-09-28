@@ -137,7 +137,8 @@ class PTO:
 
     @property
     def kinematics(self) -> TStateFunction:
-        """Kinemtaics function."""
+        """Kinematics function.
+        """
         return self._kinematics
 
     @property
@@ -198,6 +199,7 @@ class PTO:
         """
         time_mat = self._tmat(wec, nsubsteps)
         f_wec_td = np.dot(time_mat, f_wec)
+        assert f_wec_td.shape == (wec.nt, wec.ndof)
         f_wec_td = np.expand_dims(np.transpose(f_wec_td), axis=0)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
@@ -496,7 +498,57 @@ class PTO:
             length.
         """
         power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
-        return np.sum(power_td) * wec.dt/nsubsteps
+        power_fd = wec.td_to_fd(power_td[::nsubsteps])
+        
+        # mechanical power
+        mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves, 
+                                              nsubsteps)
+        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
+        
+        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        force_attr = {'long_name': 'Force or moment on WEC', 
+                      'units': 'N or Nm'}
+        power_attr = {'long_name': 'Power', 'units': 'W'}
+        mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
+        omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
+        dof_attr = {'long_name': 'PTO degree of freedom'}
+        time_attr = {'long_name': 'Time', 'units': 's'}
+        
+        t_dat = wec.time_nsubsteps(nsubsteps)
+        
+        results_fd = xr.Dataset(
+            data_vars={
+                'pos': (['omega','dof'], pos_fd, pos_attr),
+                'vel': (['omega','dof'], vel_fd, vel_attr),
+                'acc': (['omega','dof'], acc_fd, acc_attr),
+                'force': (['omega','dof'], force_fd, force_attr),
+                'power': (['omega','dof'], power_fd, power_attr),
+                'mech_power': (['omega','dof'], mech_power_fd, mech_power_attr)
+            },
+            coords={
+                'omega':('omega', wec.omega, omega_attr),
+                'dof':('dof', self.names, dof_attr)},
+            attrs={"time_created_utc": f"{datetime.utcnow()}"}
+            )
+        
+        results_td = xr.Dataset(
+            data_vars={
+                'pos': (['time','dof'], pos_td, pos_attr),
+                'vel': (['time','dof'], vel_td, vel_attr),
+                'acc': (['time','dof'], acc_td, acc_attr),
+                'force': (['time','dof'], force_td, force_attr),
+                'power': (['time','dof'], power_td, power_attr),
+                'mech_power': (['time','dof'], mech_power_td, mech_power_attr)
+            },
+            coords={
+                'time':('time', t_dat, time_attr),
+                'dof':('dof', self.names, dof_attr)},
+            attrs={"time_created_utc": f"{datetime.utcnow()}"}
+            )
+        
+        return results_fd, results_td
 
     def average_power(
         self, 
