@@ -1263,7 +1263,7 @@ def time_mat(
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt)
+    time_mat[:, 2::2] = np.sin(wt)
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
