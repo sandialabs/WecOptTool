@@ -111,4 +111,8 @@ rst_prolog = """
 """
 autodoc_default_options = {
     'exclude-members': '__new__'
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> tutorials_update

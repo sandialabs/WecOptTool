@@ -1180,7 +1180,6 @@ def frequency(f1: float, nfreq: int, zero_freq: bool = True) -> ndarray:
     freq = freq[1:] if not zero_freq else freq
     return freq
 
-
 def time(f1: float, nfreq: int, nsubsteps: int = 1) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
 
@@ -1324,6 +1323,10 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     """
     return np.reshape(vec, (-1, ndof), order='F')
 
+    Parameters
+    ----------
+    mat
+        Matrix to be flattened.
 
 def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     """Flatten a matrix that has one column per DOF.
@@ -1751,6 +1754,8 @@ def force_from_impedance(
     """
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
+def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
+    """Create a force function from waves excitation coefficients.
 
 def force_from_waves(force_coeff: Dataset) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
@@ -1854,6 +1859,15 @@ def run_bem(
     njobs: int = 1,
 ) -> Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
+
+    This simplifies running *Capytaine* and ensures the output are in
+    the correct convention (see :python:`change_bem_convention`).
+
+    It creates the *test matrix*,
+    calls :python:`capytaine.FloatingBody.keep_immersed_part`,
+    calls :python:`capytaine.BEMSolver()fill_dataset`,
+    and changes the sign convention using
+    :python:`change_bem_convention`.
 
     This simplifies running *Capytaine* and ensures the output are in
     the correct convention (see :python:`change_bem_convention`).
