@@ -1323,10 +1323,6 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     """
     return np.reshape(vec, (-1, ndof), order='F')
 
-    Parameters
-    ----------
-    mat
-        Matrix to be flattened.
 
 def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     """Flatten a matrix that has one column per DOF.
@@ -1755,9 +1751,6 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
-    """Create a force function from waves excitation coefficients.
-
-def force_from_waves(force_coeff: Dataset) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
     Parameters

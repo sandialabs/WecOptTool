@@ -11,13 +11,15 @@ dynamics.
 from __future__ import annotations
 
 
-from typing import Optional, TypeVar, Callable, Iterable
+from typing import Optional, TypeVar, Callable, Iterable, Union
 
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
 import numpy.typing as npt
+import datetime
 from scipy.linalg import block_diag
+from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset
 
 from wecopttool.core import WEC, complex_to_real, td_to_fd, dofmat_to_vec, vec_to_dofmat
@@ -284,9 +286,9 @@ class PTO:
     def post_process(self, 
                      wec: TWEC, 
                      res: OptimizeResult,
-                     waves: xr.DataArray = None,
+                     waves: DataArray = None,
                      nsubsteps: Optional[int] = 1,
-                     ) -> tuple[xr.Dataset, xr.Dataset]:
+                     ) -> tuple[Dataset, Dataset]:
         """TODO
         """
         
@@ -330,7 +332,7 @@ class PTO:
         
         t_dat = wec.time_nsubsteps(nsubsteps)
         
-        results_fd = xr.Dataset(
+        results_fd = Dataset(
             data_vars={
                 'pos': (['omega','dof'], pos_fd, pos_attr),
                 'vel': (['omega','dof'], vel_fd, vel_attr),
@@ -345,7 +347,7 @@ class PTO:
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
         
-        results_td = xr.Dataset(
+        results_td = Dataset(
             data_vars={
                 'pos': (['time','dof'], pos_td, pos_attr),
                 'vel': (['time','dof'], vel_td, vel_attr),
