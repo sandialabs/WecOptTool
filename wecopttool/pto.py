@@ -17,21 +17,18 @@ Contains:
 from __future__ import annotations
 
 
-from typing import Optional, TypeVar, Callable, Iterable, Union
+from typing import Optional, TypeVar, Callable, Union
 
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
-import numpy.typing as npt
 from scipy.linalg import block_diag
 from xarray import DataArray, Dataset
-import xarray as xr
-from tests.test_waves import ndbc_omnidirectional
 from datetime import datetime
 from scipy.optimize import OptimizeResult
 
-from wecopttool.core import WEC, real_to_complex, complex_to_real
-from wecopttool.core import td_to_fd, dofmat_to_vec, vec_to_dofmat
+from wecopttool.core import complex_to_real, td_to_fd
+from wecopttool.core import dofmat_to_vec, vec_to_dofmat
 from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 
 
@@ -41,29 +38,28 @@ TEFF = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 
 class PTO:
-    """A power take-off (PTO) object to be used in conjunction with a 
+    """A power take-off (PTO) object to be used in conjunction with a
     :py:class:`wecopttool.core.WEC` object.
     """
 
-    def __init__(
-        self, 
-        ndof: int, 
-        kinematics: Union[TStateFunction, ndarray], 
-        controller: Optional[TStateFunction] = None, 
+    def __init__(self,
+        ndof: int,
+        kinematics: Union[TStateFunction, ndarray],
+        controller: Optional[TStateFunction] = None,
         impedance: Optional[ndarray] = None,
-        efficiency: Optional[TEFF] = None,
+        loss: Optional[TEFF] = None,
         names: Optional[list[str]] = None,
-        ) -> None:
+    ) -> None:
         """Create a PTO object.
-        
-        The :py:class:`wecopttool.pto.PTO` class describes the 
-        kinematics, control logic, impedance and/or efficiency map of a 
-        power take-off system. The forces/moments applied by a 
-        :py:class:`wecopttool.pto.PTO` object can be applied to a 
-        :py:class:`wecopttool.core.WEC` object through the 
-        :python:`WEC.f_add` property. The power produced by a 
-        :py:class:`wecopttool.pto.PTO` object can be used for the 
-        :python:`obj_fun` of pseudo-spectral optimization problem when 
+
+        The :py:class:`wecopttool.pto.PTO` class describes the
+        kinematics, control logic, impedance and/or non-=linear loss map
+        of a power take-off system. The forces/moments applied by a
+        :py:class:`wecopttool.pto.PTO` object can be applied to a
+        :py:class:`wecopttool.core.WEC` object through the
+        :python:`WEC.f_add` property. The power produced by a
+        :py:class:`wecopttool.pto.PTO` object can be used for the
+        :python:`obj_fun` of pseudo-spectral optimization problem when
         calling :python:`WEC.solve`.
 
         Parameters
@@ -71,30 +67,29 @@ class PTO:
         ndof
             Number of degrees of freedom.
         kinematics
-            Transforms state from WEC to PTO frame. May be a matrix 
-            (for linear kinematics) or function (for nonlinear 
+            Transforms state from WEC to PTO frame. May be a matrix
+            (for linear kinematics) or function (for nonlinear
             kinematics).
         controller
-            Function with signature 
-            :python:`def fun(wec, x_wec, x_opt, waves, nsubsteps):` 
-            or matrix with shape (PTO DOFs, WEC DOFs) that converts 
+            Function with signature
+            :python:`def fun(wec, x_wec, x_opt, waves, nsubsteps):`
+            or matrix with shape (PTO DOFs, WEC DOFs) that converts
             from the WEC DOFs to the PTO DOFs.
         impedance
             Matrix representing the PTO impedance.
-        efficiency
-            Function that maps flow and effort variables to an 
-            efficiency. Outputs are between 0-1.
+        loss
+            Function that maps flow and effort variables to a
+            non-linear loss. Outputs are between 0-1.
         names
             PTO names.
         """
         self._ndof = ndof
         # names
         if names is None:
-            self._names = [f'PTO_{i}' for i in range(ndof)]
-        else:
-            if ndof == 1 and isinstance(names, str): 
-                names = [names]
-            self._names = names
+            names = [f'PTO_{i}' for i in range(ndof)]
+        elif ndof == 1 and isinstance(names, str):
+            names = [names]
+        self._names = names
         # kinematics
         if callable(kinematics):
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
@@ -118,7 +113,7 @@ class PTO:
 
         # power
         self._impedance = impedance
-        self._efficiency = efficiency
+        self._loss = loss  # TODO: change to 'loss'
         if impedance is not None:
             impedance_abcd = _make_abcd(impedance, ndof)
             self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
@@ -152,9 +147,9 @@ class PTO:
         return self._impedance
 
     @property
-    def efficiency(self) -> TEFF:
-        """Efficiency function."""
-        return self._efficiency
+    def loss(self) -> TEFF:
+        """Nonlinear loss function."""
+        return self._loss
 
     @property
     def transfer_mat(self) -> ndarray:
@@ -168,15 +163,14 @@ class PTO:
             tmat = wec.time_mat_nsubsteps(nsubsteps)
         return tmat
 
-    def _fkinematics(
-        self, 
-        f_wec, 
-        wec: TWEC, 
-        x_wec: ndarray, 
-        x_opt: Optional[ndarray] = None, 
-        waves: Optional[xr.Dataset] = None, 
+    def _fkinematics(self,
+        f_wec,
+        wec: TWEC,
+        x_wec: ndarray,
+        x_opt: Optional[ndarray] = None,
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> ndarray:
+    ) -> ndarray:
         """Return time-domain values in the PTO frame.
 
         Parameters
@@ -190,7 +184,7 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
@@ -199,19 +193,18 @@ class PTO:
         """
         time_mat = self._tmat(wec, nsubsteps)
         f_wec_td = np.dot(time_mat, f_wec)
-        assert f_wec_td.shape == (wec.nt, wec.ndof)
+        assert f_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
         f_wec_td = np.expand_dims(np.transpose(f_wec_td), axis=0)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
 
-    def position(
-        self, 
-        wec: TWEC, 
+    def position(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None,
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> ndarray:
+    ) -> ndarray:
         """Calculate the PTO position time-series.
 
         Parameters
@@ -223,7 +216,7 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
@@ -233,16 +226,15 @@ class PTO:
         pos_wec = wec.vec_to_dofmat(x_wec)
         return self._fkinematics(pos_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def velocity(
-        self, 
-        wec: TWEC, 
+    def velocity(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None,
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> ndarray:
+    ) -> ndarray:
         """Calculate the PTO velocity time-series.
-        
+
         Parameters
         ----------
         wec
@@ -252,27 +244,26 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
         vel_wec = np.dot(wec.derivative_mat, pos_wec)
         return self._fkinematics(vel_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def acceleration(
-        self, 
-        wec: TWEC, 
+    def acceleration(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None,
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         """Calculate the PTO acceleration time-series.
-        
+
         Parameters
         ----------
         wec
@@ -282,11 +273,11 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
@@ -294,16 +285,15 @@ class PTO:
         acc_wec = np.dot(wec.derivative_mat, vel_wec)
         return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
-    def force_on_wec(
-        self, 
-        wec: TWEC, 
+    def force_on_wec(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> ndarray:
+    ) -> ndarray:
         """Calculate the PTO force on WEC.
-        
+
         Parameters
         ----------
         wec
@@ -313,11 +303,11 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
@@ -328,17 +318,16 @@ class PTO:
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
 
-    def mechanical_power(
-        self, 
-        wec: TWEC, 
+    def mechanical_power(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         """Calculate the mechanical power time-series in each PTO DOF
         for a given system state.
-        
+
         Parameters
         ----------
         wec
@@ -348,28 +337,27 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         return vel_td * force_td
 
-    def mechanical_energy(
-        self, 
-        wec: TWEC, 
+    def mechanical_energy(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> float:
-        """Calculate the mechanical energy in each PTO DOF for a given 
+    ) -> float:
+        """Calculate the mechanical energy in each PTO DOF for a given
         system state.
-        
+
         Parameters
         ----------
         wec
@@ -379,27 +367,26 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         power_td = self.mechanical_power(wec, x_wec, x_opt, waves, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
 
-    def mechanical_average_power(
-        self, 
-        wec: TWEC, 
+    def mechanical_average_power(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> float:
-        """Calculate average mechanical power in each PTO DOF for a 
+    ) -> float:
+        """Calculate average mechanical power in each PTO DOF for a
         given system state.
-        
+
         Parameters
         ----------
         wec
@@ -409,27 +396,26 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         energy = self.mechanical_energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
 
-    def power(
-        self, 
-        wec: TWEC, 
+    def power(self,
+        wec: TWEC,
         x_wec: ndarray,
-        x_opt: ndarray, 
-        waves: Optional[xr.Dataset] = None, 
+        x_opt: ndarray,
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> ndarray:
-        """Calculate the power time-series in each PTO DOF for a given 
+    ) -> ndarray:
+        """Calculate the power time-series in each PTO DOF for a given
         system state.
-        
+
         Parameters
         ----------
         wec
@@ -439,17 +425,17 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
-        e1_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
-        q1_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         # convert e1 (PTO force), q1 (PTO velocity) to e2,q2
         if self.impedance is not None:
+            e1_td = self.force(wec, x_wec, x_opt, waves)
+            q1_td = self.velocity(wec, x_wec, x_opt, waves)
             q1 = complex_to_real(td_to_fd(q1_td, False))
             e1 = complex_to_real(td_to_fd(e1_td, False))
             vars_1 = np.hstack([q1, e1])
@@ -462,25 +448,26 @@ class PTO:
             e2_td = np.dot(time_mat, e2)
             q2_td = np.dot(time_mat, q2)
         else:
-            e2_td = e1_td
-            q2_td = q1_td
+            # e1_td = self.force(wec, x_wec, x_opt, waves)
+            # q1_td = self.velocity(wec, x_wec, x_opt, waves)
+            e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+            q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         # power
         power_out = e2_td * q2_td
-        if self.efficiency is not None:
-            power_out = power_out * self.efficiency(e2_td, q2_td)
+        if self.loss is not None:
+            power_out = power_out * (1-self.loss(e2_td, q2_td))
         return power_out
 
-    def energy(
-        self, 
-        wec: TWEC, 
+    def energy(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> float:
-        """Calculate the energy in each PTO DOF for a given system 
+    ) -> float:
+        """Calculate the energy in each PTO DOF for a given system
         state.
-        
+
         Parameters
         ----------
         wec
@@ -490,27 +477,26 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
         return np.sum(power_td) * wec.dt/nsubsteps
 
-    def average_power(
-        self, 
-        wec: TWEC, 
+    def average_power(self,
+        wec: TWEC,
         x_wec: ndarray,
         x_opt: ndarray,
-        waves: Optional[xr.Dataset] = None, 
+        waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> float:
-        """Calculate the average power in each PTO DOF for a given 
+    ) -> float:
+        """Calculate the average power in each PTO DOF for a given
         system state.
-        
+
         Parameters
         ----------
         wec
@@ -520,48 +506,47 @@ class PTO:
         x_opt
             Optimization (control) state.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
         """
         energy = self.energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
-    
-    def post_process(
-        self, 
-        wec: TWEC, 
+
+    def post_process(self,
+        wec: TWEC,
         res: OptimizeResult,
-        waves: Optional[xr.DataArray] = None,
+        waves: Optional[DataArray] = None,
         nsubsteps: Optional[int] = 1,
-        ) -> tuple[xr.Dataset, xr.Dataset]:
+    ) -> tuple[Dataset, Dataset]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
-        
+
         Examples
         --------
-        The :meth:`wecopttool.core.WEC.solve` method only returns the 
-        post-processed results for the :py:class:`wecopttool.core.WEC` 
+        The :meth:`wecopttool.core.WEC.solve` method only returns the
+        post-processed results for the :py:class:`wecopttool.core.WEC`
         object.
-        
+
         >>> res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,
                                               obj_fun=pto.average_power,
                                               nstate_opt=2*nfreq+1)
-                                            
-        To get the post-processed results for the 
+
+        To get the post-processed results for the
         :py:class:`wecopttool.pto.PTO`, you may call
-        
+
         >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
-                                            
-        For smoother plots, you can set :python:`nsubsteps` to a value 
+
+        For smoother plots, you can set :python:`nsubsteps` to a value
         greater than 1.
-        
+
         >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,
                                                       nsubsteps=4)
         >>> res_pto_td.power.plot()
-        
+
         Parameters
         ----------
         wec
@@ -569,13 +554,13 @@ class PTO:
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step 
+            A value of :python:`1` corresponds to the default step
             length.
-            
+
         Returns
         -------
         results_fd
@@ -583,9 +568,9 @@ class PTO:
         results_td
             :py:class:`xarray.Dataset` with time domain results.
         """
-        
+
         x_wec, x_opt = wec.decompose_state(res.x)
-        
+
         # position
         pos_td = self.position(wec, x_wec, x_opt, waves, nsubsteps)
         pos_fd = wec.td_to_fd(pos_td[::nsubsteps])
@@ -605,26 +590,26 @@ class PTO:
         # power
         power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
         power_fd = wec.td_to_fd(power_td[::nsubsteps])
-        
+
         # mechanical power
-        mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves, 
+        mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
                                               nsubsteps)
         mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
-        
+
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
-        force_attr = {'long_name': 'Force or moment on WEC', 
+        force_attr = {'long_name': 'Force or moment on WEC',
                       'units': 'N or Nm'}
         power_attr = {'long_name': 'Power', 'units': 'W'}
         mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
         omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
         dof_attr = {'long_name': 'PTO degree of freedom'}
         time_attr = {'long_name': 'Time', 'units': 's'}
-        
+
         t_dat = wec.time_nsubsteps(nsubsteps)
-        
-        results_fd = xr.Dataset(
+
+        results_fd = Dataset(
             data_vars={
                 'pos': (['omega','dof'], pos_fd, pos_attr),
                 'vel': (['omega','dof'], vel_fd, vel_attr),
@@ -638,8 +623,8 @@ class PTO:
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
-        
-        results_td = xr.Dataset(
+
+        results_td = Dataset(
             data_vars={
                 'pos': (['time','dof'], pos_td, pos_attr),
                 'vel': (['time','dof'], vel_td, vel_attr),
@@ -653,24 +638,23 @@ class PTO:
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
             )
-        
-        return results_fd, results_td
 
+        return results_fd, results_td
 
 
 # power conversion chain
 def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
-    """Transform the impedance matrix into ABCD form from a MIMO 
+    """Transform the impedance matrix into ABCD form from a MIMO
     transfer function.
-    
+
     Parameters
     ----------
     impedance
-        Matrix representing the PTO impedance. 
-        TODO - size?
+        Matrix representing the PTO impedance.
+        Size 2*n_dof.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else 
+        Must be specified if :python:`inertia_in_forces is True`, else
         not used.
     """
     z_11 = impedance[:ndof, :ndof, :]  # Fu
@@ -688,18 +672,18 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
 
 
 def _make_mimo_transfer_mat(
-    impedance_abcd: ndarray, 
+    impedance_abcd: ndarray,
     ndof: int,
-    ) -> np.ndarray:
-    """Create a block matrix of the MIMO transfer function.
-    
+) -> np.ndarray:
+    """Create a block matrix of a MIMO transfer function.
+
     Parameters
     ----------
     impedance
         PTO impedance in ABCD form.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else 
+        Must be specified if :python:`inertia_in_forces is True`, else
         not used.
     """
     elem = [[None]*2*ndof for _ in range(2*ndof)]
@@ -717,16 +701,16 @@ def _make_mimo_transfer_mat(
 
 # controllers
 def controller_unstructured(
-    pto: TPTO, 
-    wec: TWEC, 
-    x_wec: ndarray, 
-    x_opt: ndarray, 
-    waves: Optional[xr.Dataset] = None, 
+    pto: TPTO,
+    wec: TWEC,
+    x_wec: ndarray,
+    x_opt: ndarray,
+    waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
-    ) -> ndarray:
-    """Unstructured numerical optimal controller that returns a time 
+) -> ndarray:
+    """Unstructured numerical optimal controller that returns a time
     history of PTO forces.
-    
+
     Parameters
     ----------
     pto
@@ -738,11 +722,11 @@ def controller_unstructured(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements 
+        :py:class:`xarray.Dataset` with the structure and elements
         shown by :py:mod:`wecopttool.waves`.
     nsubsteps
         Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step 
+        A value of :python:`1` corresponds to the default step
         length.
     """
     x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
@@ -751,19 +735,19 @@ def controller_unstructured(
 
 
 def controller_pid(
-    pto: TPTO, 
-    wec: TWEC, 
-    x_wec: ndarray, 
+    pto: TPTO,
+    wec: TWEC,
+    x_wec: ndarray,
     x_opt: ndarray,
-    waves: Optional[xr.Dataset] = None, 
+    waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
-    proportional: Optional[bool] = True, 
-    integral: Optional[bool] = True, 
+    proportional: Optional[bool] = True,
+    integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
-    ) -> ndarray:
-    """Proportional-integral-derivative (PID) controller that returns 
+) -> ndarray:
+    """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
-    
+
     Parameters
     ----------
     pto
@@ -775,7 +759,7 @@ def controller_pid(
     x_opt
         Optimization (control) state.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements shown 
+        :py:class:`xarray.Dataset` with the structure and elements shown
         by :py:mod:`wecopttool.waves`.
     nsubsteps
             Number of steps between the default (implied) time steps.
@@ -811,16 +795,16 @@ def controller_pid(
 
 
 def controller_pi(
-    pto: TPTO, 
+    pto: TPTO,
     wec: TWEC,
-    x_wec: ndarray, 
-    x_opt: ndarray, 
-    waves: Optional[xr.Dataset] = None, 
+    x_wec: ndarray,
+    x_opt: ndarray,
+    waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
-    ) -> ndarray:
-    """Proportional-integral (PI) controller that returns a time 
+) -> ndarray:
+    """Proportional-integral (PI) controller that returns a time
     history of PTO forces.
-    
+
     Parameters
     ----------
     pto
@@ -840,21 +824,21 @@ def controller_pi(
             length.
     """
     force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                               True, True, False)
+                              True, True, False)
     return force_td
 
 
 def controller_p(
-    pto: TPTO, 
-    wec: TWEC, 
-    x_wec: ndarray, 
-    x_opt: ndarray, 
-    waves: Optional[xr.Dataset] = None, 
+    pto: TPTO,
+    wec: TWEC,
+    x_wec: ndarray,
+    x_opt: ndarray,
+    waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
-    ) -> ndarray:
-    """Proportional (P) controller that returns a time history of 
+) -> ndarray:
+    """Proportional (P) controller that returns a time history of
     PTO forces.
-    
+
     Parameters
     ----------
     pto

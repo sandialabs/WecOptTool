@@ -11,7 +11,7 @@ import logging
 
 import numpy as np
 from capytaine import FloatingBody
-import xarray as xr
+from xarray import DataArray
 
 from wecopttool.core import _default_parameters
 
@@ -24,7 +24,7 @@ def stiffness_matrix(
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
     center_of_mass: Optional[Iterable[float]] = None,
-) -> xr.DataArray:
+) -> DataArray:
     """Compute the hydrostatic stiffness of a Capytaine floating body.
 
     .. note:: Only works for rigid body DOFs which must be named
@@ -62,7 +62,7 @@ def inertia_matrix(
     rho: Optional[float] = _default_parameters['rho'],
     center_of_mass: Optional[Iterable[float]] = None,
     mass: Optional[float] = None,
-) -> xr.DataArray:
+) -> DataArray:
     """Compute the inertia (mass) matrix assuming a constant density for
     the WEC.
 

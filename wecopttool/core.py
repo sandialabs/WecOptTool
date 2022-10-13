@@ -18,6 +18,7 @@ import logging
 from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
 import warnings
+from datetime import datetime
 
 from numpy.typing import ArrayLike
 import autograd.numpy as np
@@ -29,7 +30,6 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
-from datetime import datetime
 
 
 # logger
@@ -51,6 +51,7 @@ TForceDict = dict[str, TStateFunction]
 TIForceDict = Mapping[str, TStateFunction]
 FloatOrArray = Union[float, ArrayLike]
 
+
 class WEC:
     """A wave energy converter (WEC) object for performing simulations
     using the pseudo-spectral solution method.
@@ -61,14 +62,14 @@ class WEC:
     * :meth:`wecopttool.core.WEC.from_bem`
     * :meth:`wecopttool.core.WEC.from_floating_body`
     * :meth:`wecopttool.core.WEC.from_impedance`.
-    
-    .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC` 
-        object as :python:`WEC(f1, nfrew, forces, ...)` using  
-        :meth:`wecopttool.core.WEC.__init__` is discouraged. Instead 
-        use one of the other initialization methods listed in the 
+
+    .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC`
+        object as :python:`WEC(f1, nfrew, forces, ...)` using
+        :meth:`wecopttool.core.WEC.__init__` is discouraged. Instead
+        use one of the other initialization methods listed in the
         *See Also* section.
 
-    To solve the pseudo-spectral problem use 
+    To solve the pseudo-spectral problem use
     :meth:`wecopttool.core.WEC.solve`.
     """
     def __init__(
@@ -85,20 +86,20 @@ class WEC:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 
-        The :py:class:`wecopttool.core.WEC` class describes a WEC's 
-        equation of motion as :math:`ma=Σf` where the 
+        The :py:class:`wecopttool.core.WEC` class describes a WEC's
+        equation of motion as :math:`ma=Σf` where the
         :python:`inertia_matrix` matrix specifies the inertia :math:`m`,
-        and the :python:`forces` dictionary specifies the different 
+        and the :python:`forces` dictionary specifies the different
         forces to be summed. The forces can be linear or nonlinear.
         If :python:`inertia_in_forces is True` the equation of motion is
         :math:`Σf=0`, which is included to allow for initialization
         using an intrinsic impedance through the
         :python:`WEC.from_impedance` initialization function.
 
-        .. note:: Direct initialization of a 
-            :py:class:`wecopttool.core.WEC` object as 
+        .. note:: Direct initialization of a
+            :py:class:`wecopttool.core.WEC` object as
             :python:`WEC(f1, nfrew, forces, ...)` is discouraged.
-            Instead use one of the other initialization methods listed 
+            Instead use one of the other initialization methods listed
             in the *See Also* section.
 
         Parameters
@@ -156,13 +157,13 @@ class WEC:
         See Also
         --------
         from_bem:
-            Initialize a :py:class:`wecopttool.core.WEC` object from BEM 
+            Initialize a :py:class:`wecopttool.core.WEC` object from BEM
             results.
         from_floating_body:
             Initialize a :py:class:`wecopttool.core.WEC` object from a
             :python:`capitaine.FloatingBody` object.
         from_impedance:
-            Initialize a :py:class:`wecopttool.core.WEC` object from an 
+            Initialize a :py:class:`wecopttool.core.WEC` object from an
             intrinsic impedance array and excitation coefficients.
         """
         self._freq = frequency(f1, nfreq)
@@ -256,19 +257,19 @@ class WEC:
         The :python:`bem_data` can be a dataset or the name of a
         *NetCDF* file containing the dataset.
 
-        The returned :py:class:`wecopttool.core.WEC` object contains the 
-        inertia and the default linear forces: radiation, diffraction, 
-        and Froude-Krylov. Additional forces can be specified through 
+        The returned :py:class:`wecopttool.core.WEC` object contains the
+        inertia and the default linear forces: radiation, diffraction,
+        and Froude-Krylov. Additional forces can be specified through
         :python:`f_add`.
 
         Note that because Capytaine uses a different sign convention,
         the direct results from capytaine must be modified using
-        :py:func:`wecopttool.core.change_bem_convention` before calling 
+        :py:func:`wecopttool.core.change_bem_convention` before calling
         this initialization function.
         Instead, the recommended approach is to use
         :py:func:`wecopttool.core.run_bem`,
         rather than running Capytaine directly, which outputs the
-        results in the correct convention. The results can be saved 
+        results in the correct convention. The results can be saved
         using :py:func:`wecopttool.core.write_netcdf`.
 
         In addition to the Capytaine results, if the dataset contains
@@ -381,11 +382,11 @@ class WEC:
         hours.
         Instead, if the hydrodynamic coefficients can be reused, it is
         recommended to run Capytaine first and save the results using
-        :python:`run_bem` and :py:func:`wecopttool.core.write_netcdf`, 
-        and then initialize the :py:class:`wecopttool.core.WEC` object 
-        using :python:`from_bem`. This initialization method should be 
-        reserved for the cases where the hydrodynamic coefficients 
-        constantly change and are not reused, as for example for 
+        :python:`run_bem` and :py:func:`wecopttool.core.write_netcdf`,
+        and then initialize the :py:class:`wecopttool.core.WEC` object
+        using :python:`from_bem`. This initialization method should be
+        reserved for the cases where the hydrodynamic coefficients
+        constantly change and are not reused, as for example for
         geometry optimization.
 
         Parameters
@@ -538,7 +539,7 @@ class WEC:
 
     # solve
     def solve(self,
-        waves: xr.Dataset,
+        waves: Dataset,
         obj_fun: TStateFunction,
         nstate_opt: int,
         x_wec_0: Optional[ndarray] = None,
@@ -552,14 +553,14 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[Callable[[ndarray]]] = None,
-        ) -> tuple[xr.Dataset, xr.Dataset, OptimizeResult]:
+        ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method.
 
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
@@ -754,23 +755,22 @@ class WEC:
         # unscale
         optim_res.x = optim_res.x / scale
         optim_res.fun = optim_res.fun / scale_obj
+        # TODO: unscale all the other fields in the results, e.g. 'jac'
 
-        # post-process
-        res_fd, res_td = self.post_process(waves, optim_res, nsubsteps=1)
+        return optim_res
 
-        return res_fd, res_td, optim_res
 
     def post_process(self,
-        waves: xr.Dataset,
         res: OptimizeResult,
+        waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[xr.Dataset, xr.Dataset]:
+    ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :python:`WEC.solve`.
 
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements 
+            :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
@@ -792,8 +792,8 @@ class WEC:
         force_da_list = []
         for name, force in self.forces.items():
             force_td_tmp = force(self, x_wec, x_opt, waves)
-            force_fd = self.td_to_fd(force_td_tmp)
-            force_da = xr.DataArray(data=force_fd,
+            force_fd = self.td_to_fd(force_td_tmp, fft=True)
+            force_da = DataArray(data=force_fd,
                         coords={'omega':self.omega,  # TODO: use both omega & frequency
                                 'influenced_dof':self.dof_names},
                         attrs={'units':'N*s or Nm*s'}
@@ -824,7 +824,7 @@ class WEC:
         dof_attr = {'long_name': 'Degree of freedom'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
 
-        fd_state = xr.Dataset(
+        fd_state = Dataset(
             data_vars={
                 'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
                 'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
@@ -843,7 +843,7 @@ class WEC:
 
         # time domain
         t_dat = self.time_nsubsteps(nsubsteps)
-        time = xr.DataArray(
+        time = DataArray(
             data=t_dat, name='time', dims='time', coords=[t_dat])
         results_td = results_fd.map(lambda x: time_results(x, time))
 
@@ -999,7 +999,7 @@ class WEC:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
-        Calls :py:meth:`wecopttool.core.decompose_state` with the 
+        Calls :py:meth:`wecopttool.core.decompose_state` with the
         appropriate inputs for the WEC object.
 
         Examples
@@ -1027,7 +1027,7 @@ class WEC:
     def time_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time vector with finer discretization.
 
-        Calls :py:func:`wecopttool.core.time` with the appropriate 
+        Calls :py:func:`wecopttool.core.time` with the appropriate
         inputs for the WEC object.
 
         Parameters
@@ -1045,7 +1045,7 @@ class WEC:
         """Create a time matrix similar to :python:`WEC.time_mat` but
         with finer time-domain discretization.
 
-        Calls :py:func:`wecopttool.core.time_mat` with the appropriate 
+        Calls :py:func:`wecopttool.core.time_mat` with the appropriate
         inputs for the WEC object.
 
         Parameters
@@ -1065,7 +1065,7 @@ class WEC:
 
         Opposite of :py:meth:`wecopttool.core.WEC.dofmat_to_vec`.
 
-        Calls :py:func:`wecopttool.core.vec_to_dofmat` with the 
+        Calls :py:func:`wecopttool.core.vec_to_dofmat` with the
         appropriate inputs for the WEC object.
 
         Examples
@@ -1089,7 +1089,7 @@ class WEC:
 
         Opposite of :py:meth:`wecopttool.core.WEC.vec_to_dofmat`.
 
-        Calls :py:func:`wecopttool.core.dofmat_to_vec` with the 
+        Calls :py:func:`wecopttool.core.dofmat_to_vec` with the
         appropriate inputs for the WEC object.
 
         Parameters
@@ -1124,12 +1124,12 @@ class WEC:
         return fd_to_td(fd, self.f1, self.nfreq, True)
 
     def td_to_fd(
-        self, 
-        td: ndarray, 
+        self,
+        td: ndarray,
         fft: Optional[bool] = True,
         ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
-        
+
         Opposite of :meth:`wecopttool.core.WEC.fd_to_td`.
 
         Calls :python:`wecopttool.fd_to_td` with the appropriate inputs
@@ -1151,9 +1151,9 @@ class WEC:
 
 
 def ncomponents(
-    nfreq : int, 
+    nfreq : int,
     zero_freq: Optional[bool] = True,
-    ) -> int:
+) -> int:
     """Number of Fourier components (:python:`2*nfreq + 1`) for each
     DOF.
 
@@ -1171,10 +1171,10 @@ def ncomponents(
 
 
 def frequency(
-    f1: float, 
-    nfreq: int, 
+    f1: float,
+    nfreq: int,
     zero_freq: Optional[bool] = True,
-    ) -> ndarray:
+) -> ndarray:
     """Construct equally spaced frequency array.
 
     The array includes :python:`0` and has length of :python:`nfreq+1`.
@@ -1198,10 +1198,10 @@ def frequency(
 
 
 def time(
-    f1: float, 
-    nfreq: int, 
+    f1: float,
+    nfreq: int,
     nsubsteps: Optional[int] = 1,
-    ) -> ndarray:
+) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
 
     Returns the 1D time vector, in seconds, starting at time
@@ -1263,17 +1263,17 @@ def time_mat(
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = np.sin(wt)
+    time_mat[:, 2::2] = -np.sin(wt)
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
 
 
 def derivative_mat(
-    f1: float, 
-    nfreq: int, 
+    f1: float,
+    nfreq: int,
     zero_freq: Optional[bool] = True,
-    ) -> ndarray:
+) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
 
@@ -1419,9 +1419,9 @@ def mimo_transfer_mat(
 
 
 def real_to_complex(
-    fd: ArrayLike, 
+    fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-    ) -> ndarray:
+) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
 
@@ -1463,9 +1463,9 @@ def real_to_complex(
 
 
 def complex_to_real(
-    fd: ArrayLike, 
+    fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-    ) -> ndarray:
+) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
 
@@ -1577,10 +1577,10 @@ def fd_to_td(
 
 
 def td_to_fd(
-    td: ArrayLike, 
-    fft: Optional[bool] = True, 
+    td: ArrayLike,
+    fft: Optional[bool] = True,
     zero_freq: Optional[bool] = True,
-    ) -> ndarray:
+) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
@@ -1610,7 +1610,7 @@ def td_to_fd(
     return fd
 
 
-def wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset) -> ndarray:
+def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 
@@ -1659,8 +1659,8 @@ def wave_excitation(exc_coeff: xr.Dataset, waves: xr.Dataset) -> ndarray:
     return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
-def read_netcdf(fpath: Union[str, Path]) -> xr.Dataset:
-    """Read a *NetCDF* file with possibly complex entries as a 
+def read_netcdf(fpath: Union[str, Path]) -> Dataset:
+    """Read a *NetCDF* file with possibly complex entries as a
     :py:class:`xarray.Dataset`.
 
     Can handle complex entries in the *NetCDF* by using
@@ -1680,7 +1680,7 @@ def read_netcdf(fpath: Union[str, Path]) -> xr.Dataset:
     return cpy.io.xarray.merge_complex_values(ds)
 
 
-def write_netcdf(fpath: Union[str, Path], data: xr.Dataset) -> None:
+def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
     """Save an :py:class:`xarray.Dataset` with possibly complex entries as a
     *NetCDF* file.
 
@@ -1702,9 +1702,9 @@ def write_netcdf(fpath: Union[str, Path], data: xr.Dataset) -> None:
 
 
 def check_linear_damping(
-    hydro_data: xr.Dataset,
+    hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
-) -> xr.Dataset:
+) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
@@ -1753,7 +1753,7 @@ def force_from_rao_transfer_function(
     rao_transfer_mat
         Complex position transfer matrix.
     zero_freq
-        Whether the first frequency should be zero. Default is 
+        Whether the first frequency should be zero. Default is
         :python:`True`.
 
     See Also
@@ -1785,6 +1785,7 @@ def force_from_impedance(
     force_from_rao_transfer_function,
     """
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
+
 
 def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
@@ -1825,12 +1826,13 @@ def inertia(
     return inertia_fun
 
 
-def standard_forces(hydro_data: xr.Dataset) -> TForceDict:
+def standard_forces(hydro_data: Dataset) -> TForceDict:
     """Create functions for linear hydrodynamic forces.
 
     Returns a dictionary with the standard linear forces:
     radiation, hydrostatic, friction, Froude—Krylov, and diffraction.
-    The functions are type 'StateFunction <https://snl-waterpower.github.io/WecOptTool/source_code.html#type-aliases>'_.
+    The functions are type
+    'StateFunction <https://snl-waterpower.github.io/WecOptTool/source_code.html#type-aliases>'_.
 
     Parameters
     ----------
@@ -1886,11 +1888,11 @@ def run_bem(
     depth: float = _default_parameters['depth'],
     write_info: Optional[Mapping[str, bool]] = None,
     njobs: int = 1,
-) -> xr.Dataset:
+) -> Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
 
     This simplifies running *Capytaine* and ensures the output are in
-    the correct convention (see 
+    the correct convention (see
     :py:func:`wecopttool.core.change_bem_convention`).
 
     It creates the *test matrix*,
@@ -1930,7 +1932,7 @@ def run_bem(
     if wave_dirs is not None:
         wave_dirs = np.atleast_1d(degrees_to_radians(wave_dirs))
     solver = cpy.BEMSolver()
-    test_matrix = xr.Dataset(coords={
+    test_matrix = Dataset(coords={
         'rho': [rho],
         'water_depth': [depth],
         'omega': [ifreq*2*np.pi for ifreq in freq],
@@ -1953,7 +1955,7 @@ def run_bem(
     return change_bem_convention(bem_data)
 
 
-def change_bem_convention(bem_data: xr.Dataset) -> xr.Dataset:
+def change_bem_convention(bem_data: Dataset) -> Dataset:
     """Change the convention from `-iωt` to `+iωt`.
 
     Change the linear hydrodynamic coefficients from the Capytaine
@@ -1975,11 +1977,11 @@ def change_bem_convention(bem_data: xr.Dataset) -> xr.Dataset:
 
 
 def linear_hydrodynamics(
-    bem_data: xr.Dataset,
+    bem_data: Dataset,
     inertia_matrix: Optional[ArrayLike] = None,
     hydrostatic_stiffness: Optional[ArrayLike] = None,
     friction: Optional[ArrayLike] = None
-) -> xr.Dataset:
+) -> Dataset:
     """Add rigid body inertia_matrix, hydrostatic stiffness, and linear
     friction to BEM data.
 
@@ -2243,8 +2245,8 @@ def frequency_parameters(
     return f1, nfreq
 
 
-def time_results(fd: xr.DataArray, time: xr.DataArray) -> ndarray:
-    """Create a :py:class:`xarray.DataArray` of time-domain results from 
+def time_results(fd: DataArray, time: DataArray) -> ndarray:
+    """Create a :py:class:`xarray.DataArray` of time-domain results from
     :py:class:`xarray.DataArray` of frequency-domain results.
 
     Parameters
@@ -2257,12 +2259,11 @@ def time_results(fd: xr.DataArray, time: xr.DataArray) -> ndarray:
     out = np.zeros((*fd.isel(omega=0).shape, len(time)))
     for w, mag in zip(fd.omega, fd):
         out = out + \
-            np.real(mag)*np.cos(w*time) + np.imag(mag)*np.sin(w*time)
-
+            np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
 
 
-def _add_zerofreq_to_xr(data):
+def add_zerofreq_to_xr(data):
     """Add a zero-frequency component to an :python:`xarray.Dataset`.
 
     Frequency variable must be called :python:`omega`.

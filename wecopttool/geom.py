@@ -2,7 +2,7 @@
 """
 
 
-from __future__ import annotations  # TODO: delete after python 3.10
+from __future__ import annotations
 
 
 from typing import Optional
@@ -15,7 +15,8 @@ from meshio._mesh import Mesh
 
 
 class WaveBot:
-    """Class representing the Sandia WaveBot. See, e.g.,
+    """Class representing the Sandia WaveBot.
+    See, e.g.,
 
         - https://doi.org/10.3390/en10040472
         - https://doi.org/10.2172/1330189
