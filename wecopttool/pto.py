@@ -23,6 +23,7 @@ import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
 from scipy.linalg import block_diag
+from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset
 from datetime import datetime
 from scipy.optimize import OptimizeResult
@@ -568,7 +569,6 @@ class PTO:
         results_td
             :py:class:`xarray.Dataset` with time domain results.
         """
-
         x_wec, x_opt = wec.decompose_state(res.x)
 
         # position
@@ -608,6 +608,7 @@ class PTO:
         time_attr = {'long_name': 'Time', 'units': 's'}
 
         t_dat = wec.time_nsubsteps(nsubsteps)
+
 
         results_fd = Dataset(
             data_vars={
