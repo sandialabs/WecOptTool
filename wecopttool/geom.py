@@ -2,7 +2,7 @@
 """
 
 
-from __future__ import annotations  # TODO: delete after python 3.10
+from __future__ import annotations
 
 
 from typing import Optional
@@ -15,7 +15,8 @@ from meshio._mesh import Mesh
 
 
 class WaveBot:
-    """Class representing the Sandia WaveBot. See, e.g.,
+    """Class representing the Sandia WaveBot.
+    See, e.g.,
 
         - https://doi.org/10.3390/en10040472
         - https://doi.org/10.2172/1330189
@@ -53,7 +54,7 @@ class WaveBot:
         self.freeboard = freeboard
         self.gear_ratio = 12.47
 
-    def mesh(self, mesh_size_factor: float = 0.1) -> Mesh:
+    def mesh(self, mesh_size_factor: Optional[float] = 0.1) -> Mesh:
         """Generate surface mesh of hull.
 
         Parameters
@@ -92,7 +93,7 @@ class WaveBot:
             Existing axes. The default is None.
             If None, new axes will be created.
         **kwargs
-            Passed to pyplot.plot().
+            Passed to :func:`matplotlib.pyplot.plot`.
         """
         if ax is None:
             fig, ax = plt.subplots()

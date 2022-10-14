@@ -80,6 +80,8 @@ def inertia_matrix(
         Water density in :math:`kg/m^3`.
     center_of_mass
         Center of gravity/mass.
+    mass
+        Rigid body mass.
 
     Raises
     ------

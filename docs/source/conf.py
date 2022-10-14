@@ -39,6 +39,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'nbsphinx',
     'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
 ]
 
 templates_path = ['_templates']
@@ -94,8 +95,11 @@ html_show_sourcelink = False
 autodoc_typehints = "description"
 autodoc_type_aliases = {
     'ArrayLike': 'ArrayLike',
+    'FloatOrArray': 'FloatOrArray',
     'TStateFunction': 'StateFunction',
     'TWEC': 'WEC',
+    'TPTO': 'PTO',
+    'TEFF': 'Callable[[ArrayLike, ArrayLike], ArrayLike]',
     'TForceDict': 'dict[str, StateFunction]',
     'TIForceDict': 'Mapping[str, StateFunction]',
     'DataArray': 'DataArray',
@@ -111,8 +115,15 @@ rst_prolog = """
 """
 autodoc_default_options = {
     'exclude-members': '__new__'
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> tutorials_update
+
+# Intersphinx
+intersphinx_mapping = {
+    'python': ('http://docs.python.org/2', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
+    'matplotlib': ('http://matplotlib.org/stable', None),
+    'xarray': ('https://docs.xarray.dev/en/stable', None),
+    # 'capytaine': ('https://ancell.in/capytaine/latest/developer_manual/api', None),
+    }

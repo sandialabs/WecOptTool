@@ -9,10 +9,10 @@ The dataset structure is an xarray.Dataset containing the following two
 2D xarray.DataArrray: (1) the amplitude :python:`amplitude` (m^2) and
 (2) the phase :python:`phase` (rad).
 The 2D coordinates are: wave angular frequency :python:`omega` (rad/s)
-direction direction :python:`wave_direction` (rad).
+and direction :python:`wave_direction` (rad).
 
-Two wave omni-directional spectrum and one spread function are included.
-These serve as examples for creating your own omni-directional spectrum
+Two omni-directional spectra and one spread function are included.
+These serve as examples for creating your own omni-directional spectra
 and spread functions, possibly leveraging other libraries (e.g., MHKiT).
 """
 
@@ -21,16 +21,13 @@ from __future__ import annotations
 
 
 import logging
-from multiprocessing.dummy import Array
 from typing import Callable, Mapping, Union, Optional, Iterable
 
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy import ndarray
-import xarray as xr
 from xarray import DataArray, Dataset
 from scipy.special import gamma
-import wavespectra as ws
 
 from wecopttool.core import frequency, degrees_to_radians, frequency_parameters
 
@@ -47,7 +44,8 @@ def elevation_fd(
     phases: Optional[ArrayLike] = None,
     attr: Optional[Mapping] = None
 ) -> DataArray:
-    """Construct the complex wave elevation DataArray.
+    """Construct the complex wave elevation
+    :py:class:`xarray.DataArray`.
 
     This is the complex wave elevation (m) indexed by radial frequency
     (rad/s) and wave direction (rad).
@@ -67,7 +65,8 @@ def elevation_fd(
     phases:
         Wave phases in degrees.
     attr:
-        Additional attributes (metadata) to include in the DataArray.
+        Additional attributes (metadata) to include in the
+        :py:class:`xarray.DataArray`.
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
@@ -75,8 +74,8 @@ def elevation_fd(
     omega = freq*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_attr = {'long_name': 'wave frequency', 'units': 'rad/s'}
-    dir_attr = {'long_name': 'wave direction', 'units': 'rad'}
+    freq_attr = {'long_name': 'Wave frequency', 'units': 'rad/s'}
+    dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
     coords = [(dims[0], omega, freq_attr), (dims[1], directions, dir_attr)]
 
     if amplitudes is None:
@@ -90,9 +89,10 @@ def elevation_fd(
     camplitude = amplitudes * np.exp(1j*phases)
 
     attr = {} if attr is None else attr
-    attrs = {'units': 'm', 'long_name': 'wave amplitude'} | attr
+    attrs = {'units': 'm', 'long_name': 'Wave elevation'} | attr
 
-    waves = xr.DataArray(camplitude, dims=dims, coords=coords, attrs=attrs)
+    waves = DataArray(camplitude, dims=dims, coords=coords,
+                         attrs=attrs, name='wave_elev')
 
     return waves.sortby(waves.wave_direction)
 
@@ -238,7 +238,7 @@ def random_phase(
     shape
         Shape of the output array of random phases.
     seed
-        Seed for random number generator. Used for reporducibility.
+        Seed for random number generator. Used for reproducibility.
         Generally should not be used except for testing.
     """
     rng = np.random.default_rng(seed)
@@ -254,7 +254,7 @@ def omnidirectional_spectrum(
     spectrum_func: Callable,
     spectrum_name: str = '',
 ) -> Dataset:
-    """Create the dataset for a long-crested irregular wave in the
+    """Create the dataset for an omnidirectional wave spectrum in the
     :python:`wavespectra` format.
 
     Examples
@@ -312,7 +312,7 @@ def omnidirectional_spectrum(
         'Omnidirectional Spectrum': spectrum_name,
     }
 
-    return xr.DataArray(efth, dims=dims, coords=coords, attrs=efth_attr)
+    return DataArray(efth, dims=dims, coords=coords, attrs=efth_attr)
 
 
 def spectrum(
@@ -410,7 +410,7 @@ def spectrum(
         'Spreading function': spread_name,
     }
 
-    return xr.DataArray(efth, dims=dims, coords=coords, attrs=efth_attr)
+    return DataArray(efth, dims=dims, coords=coords, attrs=efth_attr)
 
 
 def pierson_moskowitz_spectrum(
@@ -467,7 +467,7 @@ def jonswap_spectrum(
         Peakedness factor.
     """
     # Pierson-Moskowitz parameters
-    a_param, b_param = pierson_moskowitz_params(fp, hs)
+    a_param_pm, b_param = pierson_moskowitz_params(fp, hs)
 
     # JONSWAP parameters
     sigma_a = 0.07
@@ -477,7 +477,7 @@ def jonswap_spectrum(
                          funclist=[sigma_a, sigma_b])
     alpha = np.exp(-1*((freq/fp - 1)/(np.sqrt(2)*sigma))**2)
     c_param = 1-0.287*np.log(gamma)
-    a_param = a_param * c_param * gamma**alpha
+    a_param = a_param_pm * c_param * gamma**alpha
 
     return general_spectrum(a_param, b_param, freq)
 
