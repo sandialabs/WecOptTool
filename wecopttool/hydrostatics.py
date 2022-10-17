@@ -1,85 +1,147 @@
-"""Provide functions for calculating hydrostatic and mass
-properties for floating bodies.
+"""Functions for calculating hydrostatic and mass properties for
+floating bodies.
 """
 
 
-from __future__ import annotations  # TODO: delete after python 3.10
-from typing import Any
+from __future__ import annotations
+
+
+from typing import Iterable, Optional
+import logging
 
 import numpy as np
-import numpy.typing as npt
-from scipy.linalg import block_diag
-from meshmagick.hydrostatics import compute_hydrostatics
-import capytaine as cpy
+from capytaine import FloatingBody
+from xarray import DataArray
+
+from wecopttool.core import _default_parameters
 
 
-def hydrostatics(wec: cpy.FloatingBody, rho: float = 1025, g: float = 9.81,
-                 cog: npt.ArrayLike = [0.0, 0.0, 0.0]) -> dict[str, Any]:
-    """Compute the hydrostatic properties of a Capytaine floating body
-    using MeshMagick
+# logger
+_log = logging.getLogger(__name__)
 
-    Parameters
-    ----------
-        wec: capytaine.FloatingBody
-            The WEC as a capytaine floating body (mesh + DOFs).
-        rho: float, optional
-            Water density in :math:`kg/m^3`.
-        g: float, optional
-            Gravitational acceleration in :math:`m/s^2`.
-        cog: list, optional
-            WEC's center of gravity: :math:`[C_x, C_y, C_z]`
+def stiffness_matrix(
+    fb: FloatingBody,
+    rho: float = _default_parameters['rho'],
+    g: float = _default_parameters['g'],
+    center_of_mass: Optional[Iterable[float]] = None,
+) -> DataArray:
+    """Compute the hydrostatic stiffness of a Capytaine floating body.
 
-    Returns
-    -------
-        dict
-            MeshMagick hydrostatic data
-    """
-    mesh = wec.mesh.merged().to_meshmagick()
-    return compute_hydrostatics(mesh, cog, rho, g, at_cog=True)
+    .. note:: Only works for rigid body DOFs which must be named
+              according to the Capytaine convention (e.g.,
+              :python:`"Heave"`).
 
-
-def stiffness_matrix(hs_data: dict[str, Any]) -> np.ndarray:
-    """Get 6x6 hydrostatic stiffness matrix from MeshMagick
-    hydrostatic data.
+    Uses :python:`capytaine.FloatingBody.compute_hydrostatic_stiffness`
+    on the immersed part of the mesh.
 
     Parameters
     ----------
-        hs_data: dict
-            MeshMagick hydrostatic data
+    fb
+        A capytaine floating body (mesh + DOFs, and optionally center of
+        mass).
+    rho
+        Water density in :math:`kg/m^3`.
+    g
+        Gravitational acceleration in :math:`m/s^2`.
+    center_of_mass
+        Center of gravity/mass :python:`(cx, cy, cz)`.
 
-    Returns
-    -------
-    np.ndarray
-        Hydrostatic stiffness matrix. Shape: 6x6.
+    Raises
+    ------
+    ValueError
+        If :python:`fb.center_of_mass is not None` and
+        :python:`center_of_mass` is provided with a different value.
     """
-    return block_diag(0, 0, hs_data['stiffness_matrix'], 0)
+    fb = _set_center_of_mass(fb, center_of_mass)
+    fb_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    return fb_im.compute_hydrostatic_stiffness(rho=rho, g=g)
 
 
-def mass_matrix_constant_density(hs_data: dict[str, Any],
-                                 mass: float | None = None
-                                 ) -> np.ndarray:
-    """Create the 6x6 mass matrix assuming a constant density for the
-    WEC.
+def inertia_matrix(
+    fb: FloatingBody,
+    rho: Optional[float] = _default_parameters['rho'],
+    center_of_mass: Optional[Iterable[float]] = None,
+    mass: Optional[float] = None,
+) -> DataArray:
+    """Compute the inertia (mass) matrix assuming a constant density for
+    the WEC.
+
+    .. note:: This function assumes a constant density WEC.
+
+    Uses :python:`capytaine.FloatingBody.compute_rigid_body_inertia` on
+    the full mesh.
 
     Parameters
     ----------
-    hs_data: dict
-        Hydrostatic data from MeshMagick
-    mass: float, optional
-        Mass of the floating object, if ``None`` use displaced mass
+    fb
+        A capytaine floating body (mesh + DOFs, and optionally center of
+        mass and mass).
+    rho
+        Water density in :math:`kg/m^3`.
+    center_of_mass
+        Center of gravity/mass.
+    mass
+        Rigid body mass.
 
-    Returns
-    -------
-     np.array
-        The mass matrix. Shape: (6, 6).
+    Raises
+    ------
+    ValueError
+        If :python:`fb.center_of_mass is not None` and
+        :python:`center_of_mass` is provided with a different value.
+    ValueError
+        If :python:`fb.mass is not None` and :python:`mass` is provided
+        with a different value.
     """
-    if mass is None:
-        mass = hs_data['disp_mass']
-    rho_wec = mass / hs_data['mesh'].volume
-    rho_ratio = rho_wec / hs_data['rho_water']
-    mom_inertia = np.array([
-        [hs_data['Ixx'], -1*hs_data['Ixy'], -1*hs_data['Ixz']],
-        [-1*hs_data['Ixy'], hs_data['Iyy'], -1*hs_data['Iyz']],
-        [-1*hs_data['Ixz'], -1*hs_data['Iyz'], hs_data['Izz']]])
-    mom_inertia *= rho_ratio
-    return block_diag(mass, mass, mass, mom_inertia)
+    fb = _set_center_of_mass(fb, center_of_mass)
+    fb = _set_mass(fb, mass, rho)
+    return fb.compute_rigid_body_inertia(rho=rho)
+
+
+def _set_center_of_mass(
+    fb: FloatingBody,
+    center_of_mass: Optional[Iterable[float]],
+) -> FloatingBody:
+    """If COG not provided, set to geometric centroid."""
+    cog_org = fb.center_of_mass is not None
+    cog_new = center_of_mass is not None
+
+    if not cog_org and not cog_new:
+        fb.center_of_mass = fb.center_of_buoyancy
+        _log.info(
+            "Using the geometric centroid as the center of gravity (COG).")
+    elif cog_org and cog_new:
+        if not np.allclose(fb.center_of_mass, center_of_mass):
+            raise ValueError(
+                "Both :python:`fb.center_of_mass` and " +
+                ":python:`center_of_mass` where provided but have " +
+                "different values."
+            )
+    elif cog_new:
+        fb.center_of_mass = center_of_mass
+
+    return fb
+
+
+def _set_mass(
+    fb: FloatingBody,
+    mass: Optional[float]=None,
+    rho: float = _default_parameters["rho"],
+) -> FloatingBody:
+    """If mass is not provided, set to displaced mass."""
+    mass_org = fb.mass is not None
+    mass_new = mass is not None
+
+    if not mass_org and not mass_new:
+        vol = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part().volume
+        fb.mass = rho * vol
+        _log.info("Setting the mass to the displaced mass.")
+    elif mass_org and mass_new:
+        if not np.isclose(fb.mass, mass):
+            raise ValueError(
+                "Both :python:`fb.mass` and :python:`mass` where provided " +
+                "but have different values."
+            )
+    elif mass_new:
+        fb.mass = mass
+
+    return fb
