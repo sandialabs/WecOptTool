@@ -25,12 +25,6 @@ conda install -c conda-forge pandoc
 ```
 
 ### Install
-Install MeshMagick (not packaged in PyPI or Conda)
-
-```bash
-pip install git+https://github.com/LHEEA/meshmagick.git@3.3
-```
-
 Fork WecOptTool, then install WecOptTool in editable mode:
 
 ```bash
@@ -41,6 +35,12 @@ pip install -e .[dev]
 
 **Note:** on a ZSH shell (Mac) do `pip install -e .\[dev]` instead.
 
+Finally, install `wavespectrA`:
+
+```bash
+pip install wavespectra
+```
+
 
 ## Style guide
 * Style guide: [pep8](https://www.python.org/dev/peps/pep-0008/).
@@ -50,7 +50,7 @@ pip install -e .[dev]
 ## Autograd
 This project uses [`autograd`](https://github.com/HIPS/autograd) for automatic differentiation.
 Autograd does not support all NumPy and SciPy functionalities, see [autograd documentation](https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy).
-*NOTE:* using unsupported functionalities results in the gradient calculation failing silently
+*NOTE:* using unsupported functionalities results in the gradient calculation failing silently.
 
 ## Pull Requests
   1. Create a fork of WecOptTool
@@ -59,7 +59,7 @@ Autograd does not support all NumPy and SciPy functionalities, see [autograd doc
   4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags.
 
 ## Tests
-There are a series of unit tests defined in the `tests` directory.
+There are a series of unit and integration tests defined in the `tests` directory.
 These can be run by calling [`pytest`](https://pytest.org) from the root directory of the repository.
 
 ```bash
@@ -88,13 +88,13 @@ The built documentation will be in `./docs/_build` and the homepage is `./docs/_
 To delete do `make clean`.
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
-When building the documentation locally you will need have installed [pandoc](https://pandoc.org/installing.html).
+When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html).
 
 ### Editing the tutorials
 The tutorials are used as part of the Documentation.
-Before pushing any changes make sure that the saved version of the notebooks have the results in them, and the cells were run in order starting with `1`.
-To achieve this click `clear outputs`, `restart`, `run all`, and `save` in that order.
-For tutorials that have the option to read saved BEM results make sure that the saved version ran the BEM (didn't read them) by deleting the results folder before running.
+Before pushing any changes make sure that the saved version of the notebooks are clear (no cells run and no results).
+To achieve this click `clear outputs` and `save` in that order.
+Alternatively create a pre-commit hook that strips the results.
 
 ## Issue tracking
 To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
