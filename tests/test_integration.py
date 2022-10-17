@@ -1,6 +1,5 @@
 """ Integration tests spanning WecOptTool.
 """
-import wave
 import pytest
 from pytest import approx
 import wecopttool as wot

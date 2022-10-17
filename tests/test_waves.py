@@ -4,12 +4,10 @@
 import os
 
 import pytest
-import capytaine as cpy
 import numpy as np
 import wavespectra as ws
 
 import wecopttool as wot
-from wecopttool.core import _default_parameters
 
 
 @pytest.fixture()

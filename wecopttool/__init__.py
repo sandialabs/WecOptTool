@@ -6,11 +6,7 @@ from wecopttool.core import *
 from wecopttool import waves
 from wecopttool import hydrostatics
 from wecopttool import pto
-<<<<<<< HEAD
-# from wecopttool import geom
-=======
 from wecopttool import geom
->>>>>>> v2.0.0-dev
 
 
 # metadata
