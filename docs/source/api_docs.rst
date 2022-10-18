@@ -1,5 +1,6 @@
 API Documentation
 =================
+NEW.
 The main functionality of *WecOptTool* is implemented in the *core* module.
 Functions and classes in the *core* module can be accessed directly from *WecOptTool* as :python:`wecopttool.<function>` instead of :python:`wecopttool.core.<function>`.
 The *core* module contains:
