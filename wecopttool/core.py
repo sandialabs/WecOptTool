@@ -368,7 +368,7 @@ class WEC:
         rho: Optional[float] = _default_parameters['rho'],
         g: Optional[float] = _default_parameters['g'],
         depth: Optional[float] = _default_parameters['depth'],
-    ) -> tuple[TWEC, Dataset]:
+    ) -> TWEC:
         """Create a WEC object from a Capytaine :python:`FloatingBody`.
 
         Capytaine :python:`FloatingBody` objects contain information on

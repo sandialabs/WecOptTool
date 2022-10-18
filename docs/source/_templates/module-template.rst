@@ -37,7 +37,7 @@
 
    .. autosummary::
       :toctree:
-      :template: class-template-separate-files.rst
+      :template: class-template.rst
       :nosignatures:
    {% for item in classes %}
       {{ item }}
