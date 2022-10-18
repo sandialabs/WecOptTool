@@ -34,7 +34,6 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
         fi
-        pip install git+https://github.com/LHEEA/meshmagick.git@3.3
         pip install .[dev]
 
     - name: Run Test
@@ -85,8 +84,7 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
         fi
-        pip install git+https://github.com/LHEEA/meshmagick.git@3.3
-        pip install .[doc]
+        pip install .[dev]
 
     - name: Build documentation
       shell: bash -l {0}
