@@ -1,3 +1,5 @@
+# Check: package builds, tests pass, documentation builds.
+# Report: test coverage
 name: Build
 
 on:
@@ -13,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest",]
+        os: ["ubuntu-latest", "macos-latest"]
         python-version: ["3.9", "3.10"]
 
     steps:
@@ -29,7 +31,7 @@ jobs:
 
     - name: Install GNU Fortran
       # for capytaine and wavespectra
-      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      if: matrix.os == 'macos-latest'
       uses: modflowpy/install-gfortran-action@v1
 
     - name: Install WecOptTool
