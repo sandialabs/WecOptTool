@@ -4,10 +4,12 @@
 import os
 
 import pytest
+import capytaine as cpy
 import numpy as np
 import wavespectra as ws
 
 import wecopttool as wot
+from wecopttool.core import _default_parameters
 
 
 @pytest.fixture()
@@ -226,6 +228,7 @@ def test_spread_cos2s(f1, nfreq, fp, ndir):
                                     fp = fp,
                                     s_max = s_max)
     ddir = directions[1]-directions[0]
+<<<<<<< HEAD
     dfreq = freqs[1] - freqs[0]
     integral_d = np.sum(spread, axis=1)*ddir
     integral_f = np.sum(spread, axis=0)*dfreq
@@ -262,3 +265,26 @@ def test_pierson_moskowitz_params(fp, hs):
     assert len(params) == 2  # returns two floats
     for iparam in params:
         assert isinstance(iparam, float)
+=======
+
+    rtol = 0.01
+    assert np.allclose(np.sum(spread, axis = 1)*ddir,
+                       np.ones((1, nfreq)),
+                       rtol
+                       )
+
+
+def test_spectrum_energy(irregular_wave, long_crested_wave):
+    """Confirm that energy is spread correctly accross wave directions.
+
+    Integral (sum) over all directions of the long crested irregular
+    wave (2D) spectrum gives the omni-direction spectrum (vector).
+    """
+    wdir_step = (irregular_wave.wave_direction[1]
+                - irregular_wave.wave_direction[0])
+    # TODO: make units consistent in the wave xarray
+    rtol= 0.01
+    w1 = wdir_step.values * irregular_wave.S.sum(dim = 'wave_direction').values
+    w2 = (long_crested_wave.S.values).T
+    assert np.allclose(w1, w2, rtol)
+>>>>>>> main
