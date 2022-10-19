@@ -1831,8 +1831,8 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     Returns a dictionary with the standard linear forces:
     radiation, hydrostatic, friction, Froude—Krylov, and diffraction.
-    The functions are type
-    'StateFunction <https://snl-waterpower.github.io/WecOptTool/source_code.html#type-aliases>'_.
+    The functions are type :python:'StateFunction` (see Type Aliases in
+    API Documentation).
 
     Parameters
     ----------
