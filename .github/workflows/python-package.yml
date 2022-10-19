@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest",]
+        os: ["ubuntu-latest"] #, "macos-latest", "windows-latest",]
         python-version: ["3.9",]
 
     steps:
@@ -34,6 +34,7 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
         fi
+        pip install wavespectra
         pip install .[dev]
 
     - name: Run Test
@@ -84,6 +85,7 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then
           conda install libglu
         fi
+        pip install wavespectra
         pip install .[dev]
 
     - name: Build documentation
