@@ -368,7 +368,7 @@ class WEC:
         rho: Optional[float] = _default_parameters['rho'],
         g: Optional[float] = _default_parameters['g'],
         depth: Optional[float] = _default_parameters['depth'],
-    ) -> tuple[TWEC, Dataset]:
+    ) -> TWEC:
         """Create a WEC object from a Capytaine :python:`FloatingBody`.
 
         Capytaine :python:`FloatingBody` objects contain information on
@@ -1831,8 +1831,8 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     Returns a dictionary with the standard linear forces:
     radiation, hydrostatic, friction, Froude—Krylov, and diffraction.
-    The functions are type
-    'StateFunction <https://snl-waterpower.github.io/WecOptTool/source_code.html#type-aliases>'_.
+    The functions are type :python:'StateFunction` (see Type Aliases in
+    API Documentation).
 
     Parameters
     ----------

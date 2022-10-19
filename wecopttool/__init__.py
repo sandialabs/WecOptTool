@@ -16,7 +16,7 @@ __version_info__ = tuple(__version__.split('.'))
 __title__ = _metadata['Name']
 __description__ = _metadata['Summary']
 __author__ = _metadata['Author']
-__uri__ = _metadata['Home-page']
+__uri__ = _metadata['Project-URL'].split(',')[1].strip()
 __license__ = _metadata['License']
 __doc__ = (f"{__description__} ({__title__}) developed by {__author__}." +
            f" See: {__uri__}.")

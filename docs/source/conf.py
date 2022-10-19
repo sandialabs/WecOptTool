@@ -125,5 +125,5 @@ intersphinx_mapping = {
     'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('http://matplotlib.org/stable', None),
     'xarray': ('https://docs.xarray.dev/en/stable', None),
-    # 'capytaine': ('https://ancell.in/capytaine/latest/developer_manual/api', None),
+    # TODO: capytaine, wavespectra
     }

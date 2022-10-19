@@ -24,6 +24,7 @@ def stiffness_matrix(
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
     center_of_mass: Optional[Iterable[float]] = None,
+    rotation_center: Optional[Iterable[float]] = None
 ) -> DataArray:
     """Compute the hydrostatic stiffness of a Capytaine floating body.
 
@@ -45,6 +46,9 @@ def stiffness_matrix(
         Gravitational acceleration in :math:`m/s^2`.
     center_of_mass
         Center of gravity/mass :python:`(cx, cy, cz)`.
+    rotation_center
+        Center of rotation :python:`(rx, ry, rz)` for hydrostatics
+        calculations.
 
     Raises
     ------
@@ -53,6 +57,7 @@ def stiffness_matrix(
         :python:`center_of_mass` is provided with a different value.
     """
     fb = _set_center_of_mass(fb, center_of_mass)
+    fb = _set_rotation_center(fb, rotation_center)
     fb_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     return fb_im.compute_hydrostatic_stiffness(rho=rho, g=g)
 
@@ -62,6 +67,7 @@ def inertia_matrix(
     rho: Optional[float] = _default_parameters['rho'],
     center_of_mass: Optional[Iterable[float]] = None,
     mass: Optional[float] = None,
+    rotation_center: Optional[Iterable[float]] = None,
 ) -> DataArray:
     """Compute the inertia (mass) matrix assuming a constant density for
     the WEC.
@@ -82,6 +88,9 @@ def inertia_matrix(
         Center of gravity/mass.
     mass
         Rigid body mass.
+    rotation_center
+        Center of rotation :python:`(rx, ry, rz)` for hydrostatics
+        calculations.
 
     Raises
     ------
@@ -93,10 +102,12 @@ def inertia_matrix(
         with a different value.
     """
     fb = _set_center_of_mass(fb, center_of_mass)
+    fb = _set_rotation_center(fb, rotation_center)
     fb = _set_mass(fb, mass, rho)
     return fb.compute_rigid_body_inertia(rho=rho)
 
 
+# TODO: combine the three hidden methods below into a single "_set_property" method
 def _set_center_of_mass(
     fb: FloatingBody,
     center_of_mass: Optional[Iterable[float]],
@@ -143,5 +154,32 @@ def _set_mass(
             )
     elif mass_new:
         fb.mass = mass
+
+    return fb
+
+
+def _set_rotation_center(
+    fb: FloatingBody,
+    rotation_center: Optional[Iterable[float]],
+) -> FloatingBody:
+    """If rotation center not provided, set to center of mass."""
+    if not hasattr(fb, 'rotation_center'):
+        setattr(fb, 'rotation_center', None)
+    rc_org = fb.rotation_center is not None
+    rc_new = rotation_center is not None
+
+    if not rc_org and not rc_new:
+        fb.rotation_center = fb.center_of_mass
+        _log.info(
+            "Using the center of gravity (COG) as the rotation center for hydrostatics.")
+    elif rc_org and rc_new:
+        if not np.allclose(fb.rotation_center, rotation_center):
+            raise ValueError(
+                "Both :python:`fb.rotation_center` and " +
+                ":python:`rotation_center` where provided but have " +
+                "different values."
+            )
+    elif rc_new:
+        fb.rotation_center = rotation_center
 
     return fb

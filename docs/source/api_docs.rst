@@ -13,19 +13,8 @@ Other functionalities are implemented in additional modules, and can be accessed
           E.g., use :python:`wecopttool.WEC` instead of :python:`wecopttool.core.WEC`.
           For all other modules do include the module name, e.g., :python:`wecopttool.waves.regular_wave`.
 
-<<<<<<< HEAD
 The main way to interact with *WecOptTool* is through the :python:`WEC` class.
-=======
-The main way to interact with *WecOptTool* is through the WEC class:
 
-.. autosummary::
-   :toctree: api_docs
-   :template: class-template-separate-files.rst
-   :recursive:
-   :nosignatures:
-
-   wecopttool.core.WEC
->>>>>>> tutorials_update
 
 Modules
 -------
@@ -34,22 +23,14 @@ Modules
    :toctree: api_docs
    :recursive:
    :nosignatures:
-<<<<<<< HEAD
    :template: module-template.rst
 
    wecopttool.core
-=======
-   :template: module-template-functions-only.rst
-
-   wecopttool.core
-
-   :template: module-template.rst
-
->>>>>>> tutorials_update
    wecopttool.pto
    wecopttool.waves
    wecopttool.hydrostatics
    wecopttool.geom
+
 
 Type Aliases
 ------------
@@ -57,5 +38,5 @@ Type Aliases
 +-------------------------+----------------------------------------------------------------------------+
 | Alias                   | Type                                                                       |
 +=========================+============================================================================+
-| :python:`StateFunction` | :python:`Callable[[TWEC, np.ndarray, np.ndarray, xr.Dataset], np.ndarray]` |
+| :python:`StateFunction` | :python:`Callable[[WEC, np.ndarray, np.ndarray, xr.Dataset], np.ndarray]`  |
 +-------------------------+----------------------------------------------------------------------------+
