@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
+        os: ["ubuntu-latest", "macos-latest"] # , "windows-latest"
         python-version: ["3.9", "3.10"]
 
     steps:
@@ -31,8 +31,9 @@ jobs:
 
     - name: Install GNU Fortran
       # for capytaine and wavespectra
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
       uses: modflowpy/install-gfortran-action@v1
+      # TODO: figure out Fortran compilers on Windows.
 
     - name: Install WecOptTool
       shell: bash -l {0}
