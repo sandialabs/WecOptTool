@@ -26,7 +26,7 @@ jobs:
       shell: bash -l {0}
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
-          apt-get install libglu1
+          sudo apt-get install libglu1
         fi
         python -m pip install --upgrade pip
         pip install coveralls pytest
