@@ -4,7 +4,7 @@ This section is for developers.
 Before a release make sure to:
 
 * update the CHANGES.md (add new version number, release date and list of changes)
-* change [version number](https://semver.org/) in `setup.cfg`
+* change [version number](https://semver.org/) in `pyproject.toml`
 
 ## GitHub
 In the GitHub repository, click on *Releases*, click on *Draft new release*.
@@ -17,7 +17,7 @@ In the GitHub repository, click on *Releases*, click on *Draft new release*.
 This will trigger the PyPI build and deploy.
 
 ### Pre-releases:
-For pre-releases make sure to use correct [semantic versioning](https://semver.org/) for the version number in `setup.cfg`.
+For pre-releases make sure to use correct [semantic versioning](https://semver.org/) for the version number in `pyproject.toml`.
 In the Github release, for the *title* and *tag* name append the pre-release version after the version name, e.g., `v1.2.0-alpha` or `v1.2.1-beta.3`, and select the *pre-release* checkmark. Do not select the *Create a discussion* checkmark.
 
 ## PyPI package

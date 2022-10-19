@@ -5,6 +5,7 @@ SPHINXBUILD   = sphinx-build
 SOURCEDIR     = source
 BUILDDIR      = _build
 EXAMPLEDIR    = source/_examples
+APIDIR        = source/api_docs
 
 # Put it first so that "make" is equivalent to "make help".
 help:
@@ -13,7 +14,7 @@ help:
 .PHONY: help Makefile clean
 
 clean:
-	@-rm -rf $(BUILDDIR) $(EXAMPLEDIR)
+	@-rm -rf $(BUILDDIR) $(EXAMPLEDIR) $(APIDIR)
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
