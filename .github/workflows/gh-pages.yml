@@ -29,6 +29,8 @@ jobs:
         pip3 install wavespectra
       # TODO: wavespectra fix pip package
 
+    - uses: docker://pandoc/core:2.9 
+    
     - name: Build documentation
       shell: bash -l {0}
       run: |
