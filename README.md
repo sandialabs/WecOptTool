@@ -1,7 +1,5 @@
-[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/python-package.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/python-package.yml)
+[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/build-test-doc.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/python-package.yml)
 [![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
-<!-- [![Version](https://img.shields.io/github/v/release/SNL-WaterPower/WecOptTool?style=social)](https://github.com/SNL-WaterPower/WecOptTool/releases/latest) -->
-<!-- [![Downloads](https://static.pepy.tech/personalized-badge/wecopttool?period=total&units=none&left_color=grey&right_color=lightgrey&left_text=Downloads%20to-date)](https://pepy.tech/project/wecopttool) -->
 
 # WecOptTool
 The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies with constrained optimal control.
