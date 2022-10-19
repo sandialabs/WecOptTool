@@ -35,7 +35,7 @@ pip install -e .[dev]
 
 **Note:** on a ZSH shell (Mac) do `pip install -e .\[dev]` instead.
 
-Finally, install `wavespectrA`:
+Finally, install `wavespectra`:
 
 ```bash
 pip install wavespectra

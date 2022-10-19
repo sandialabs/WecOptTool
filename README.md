@@ -12,7 +12,7 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
-WecOptTool requires Python 3.9.
+WecOptTool requires Python 3.9 or 3.10.
 
 **Option 1** - using `Conda` for [Capytaine](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
 
