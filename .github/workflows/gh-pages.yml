@@ -20,6 +20,9 @@ jobs:
     - name: Install libglu
       run: sudo apt-get install libglu1
       # TODO: Why is this needed? Fix upstream package?
+      
+    - name: Install pandoc
+      run: sudo apt-get install pandoc
 
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
@@ -28,8 +31,6 @@ jobs:
         pip3 install .[dev]
         pip3 install wavespectra
       # TODO: wavespectra fix pip package
-
-    - uses: docker://pandoc/core:2.9 
     
     - name: Build documentation
       shell: bash -l {0}
