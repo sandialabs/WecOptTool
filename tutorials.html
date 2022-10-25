@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorials &mdash; WecOptTool 1.1.0 documentation</title>
+  <title>Tutorials &mdash; WecOptTool 2.0.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -17,12 +17,13 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Tutorial 1 - WaveBot" href="_examples/tutorial_1_wavebot.html" />
-    <link rel="prev" title="Theory &amp; Practice" href="theory.html" /> 
+    <link rel="prev" title="Implementation" href="implementation.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -33,7 +34,7 @@
             <a href="index.html" class="icon icon-home"> WecOptTool
           </a>
               <div class="version">
-                1.1
+                2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -45,13 +46,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_1_wavebot.html">Tutorial 1 - WaveBot</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_2_wavebot_optimization.html">Tutorial 2 - WaveBot Optimization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="source_code.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_docs.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -70,7 +73,6 @@
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Tutorials</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/tutorials.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -104,32 +106,35 @@
 </style>
 <section id="tutorials">
 <h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading"></a></h1>
-<p>This section presents two tutorials illustrating the application of WecOptTool.
-The tutorials are written as Jupyter Notebooks which are available in the <a class="reference external" href="https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples">GitHub repository</a>.
-The two tutorials use the <a class="reference external" href="https://doi.org/10.3390/en10040472">WaveBot</a> WEC, which is a single-body WEC developed at Sandia.
-The tutorials are meant to be sequential.
-The first tutorial solves only the inner optimization loop, and serves as an introduction to WecOptTool.
-The second tutorial builds on the first to solve a design optimization problem, using both the inner and outer optimization loops, and is more reflective of the optimization problems WecOptTool is designed to solve.</p>
-<ul class="simple">
-<li><p><a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>: Simple example of the <em>inner loop</em> using a single-body WEC moving in one degree of freedom in regular waves. The example finds the optimal control strategy for a fixed WEC design. See <span id="id1">[<a class="reference internal" href="references.html#id4" title="Ryan G. Coe, Giorgio Bacelli, Sterling Olson, Vincent S. Neary, and Mathew B. R. Topper. Initial conceptual demonstration of control co-design for WEC optimization. Journal of Ocean Engineering and Marine Energy, 6(4):441–449, 2020. doi:10.1007/s40722-020-00181-9.">3</a>]</span> for further discussion of this example.</p></li>
-<li><p><a class="reference internal" href="_examples/tutorial_2_wavebot_optimization.html"><span class="doc">Tutorial 2 - WaveBot Optimization</span></a>: Simple example of a design optimization problem (<em>outer</em> and <em>inner</em> optimization loops). The example optimizes the WEC geometry (outer loop) while finding the optimal control strategy for each design considered (inner loop).</p></li>
+<p>This section presents a tutorial illustrating the application of WecOptTool.
+The tutorial is written as Jupyter Notebooks and is available in the <a class="reference external" href="https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples">GitHub repository</a>.
+The tutorial uses the <a class="reference external" href="https://doi.org/10.3390/en10040472">WaveBot</a> WEC, which is a single-body WEC developed at Sandia.
+The tutorial has three sequential parts of increased complexity.
+The first and second parts solve only the inner optimization loop for optimal mechanical and electricla power, respectively.
+The third part builds on the second to solve a design optimization problem, using both the inner and outer optimization loops, and is more reflective of the optimization problems WecOptTool is designed to solve.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>: Three part example of using the inner and outer optimization loops for a simple control co-design study.</p></li>
 </ul>
-<div class="toctree-wrapper compound">
+</div></blockquote>
+<blockquote>
+<div><div class="toctree-wrapper compound">
 </div>
+</div></blockquote>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="theory.html" class="btn btn-neutral float-left" title="Theory &amp; Practice" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="implementation.html" class="btn btn-neutral float-left" title="Implementation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="_examples/tutorial_1_wavebot.html" class="btn btn-neutral float-right" title="Tutorial 1 - WaveBot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

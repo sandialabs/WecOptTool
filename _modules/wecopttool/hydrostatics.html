@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.hydrostatics &mdash; WecOptTool 1.1.0 documentation</title>
+  <title>wecopttool.hydrostatics &mdash; WecOptTool 2.0.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -16,6 +16,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -30,7 +31,7 @@
             <a href="../../index.html" class="icon icon-home"> WecOptTool
           </a>
               <div class="version">
-                1.1
+                2.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -42,9 +43,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../implementation.html">Implementation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../source_code.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_docs.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -72,91 +76,191 @@
            <div itemprop="articleBody">
              
   <h1>Source code for wecopttool.hydrostatics</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Provide functions for calculating hydrostatic and mass</span>
-<span class="sd">properties for floating bodies.</span>
+<span></span><span class="sd">&quot;&quot;&quot;Functions for calculating hydrostatic and mass properties for</span>
+<span class="sd">floating bodies.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>  <span class="c1"># TODO: delete after python 3.10</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span>
-<span class="kn">from</span> <span class="nn">meshmagick.hydrostatics</span> <span class="kn">import</span> <span class="n">compute_hydrostatics</span>
-<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">from</span> <span class="nn">capytaine</span> <span class="kn">import</span> <span class="n">FloatingBody</span>
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span>
+
+<span class="kn">from</span> <span class="nn">wecopttool.core</span> <span class="kn">import</span> <span class="n">_default_parameters</span>
 
 
-<div class="viewcode-block" id="hydrostatics"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.hydrostatics">[docs]</a><span class="k">def</span> <span class="nf">hydrostatics</span><span class="p">(</span><span class="n">wec</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span> <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1025</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">9.81</span><span class="p">,</span>
-                 <span class="n">cog</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Compute the hydrostatic properties of a Capytaine floating body</span>
-<span class="sd">    using MeshMagick</span>
+<span class="c1"># logger</span>
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">        wec: capytaine.FloatingBody</span>
-<span class="sd">            The WEC as a capytaine floating body (mesh + DOFs).</span>
-<span class="sd">        rho: float, optional</span>
-<span class="sd">            Water density in :math:`kg/m^3`.</span>
-<span class="sd">        g: float, optional</span>
-<span class="sd">            Gravitational acceleration in :math:`m/s^2`.</span>
-<span class="sd">        cog: list, optional</span>
-<span class="sd">            WEC&#39;s center of gravity: :math:`[C_x, C_y, C_z]`</span>
+<div class="viewcode-block" id="stiffness_matrix"><a class="viewcode-back" href="../../api_docs/wecopttool.hydrostatics.stiffness_matrix.html#wecopttool.hydrostatics.stiffness_matrix">[docs]</a><span class="k">def</span> <span class="nf">stiffness_matrix</span><span class="p">(</span>
+    <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
+    <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
+    <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span>
+    <span class="n">center_of_mass</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rotation_center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the hydrostatic stiffness of a Capytaine floating body.</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">        dict</span>
-<span class="sd">            MeshMagick hydrostatic data</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">mesh</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">merged</span><span class="p">()</span><span class="o">.</span><span class="n">to_meshmagick</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">compute_hydrostatics</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">cog</span><span class="p">,</span> <span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">at_cog</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+<span class="sd">    .. note:: Only works for rigid body DOFs which must be named</span>
+<span class="sd">              according to the Capytaine convention (e.g.,</span>
+<span class="sd">              :python:`&quot;Heave&quot;`).</span>
 
-
-<div class="viewcode-block" id="stiffness_matrix"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.stiffness_matrix">[docs]</a><span class="k">def</span> <span class="nf">stiffness_matrix</span><span class="p">(</span><span class="n">hs_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get 6x6 hydrostatic stiffness matrix from MeshMagick</span>
-<span class="sd">    hydrostatic data.</span>
+<span class="sd">    Uses :python:`capytaine.FloatingBody.compute_hydrostatic_stiffness`</span>
+<span class="sd">    on the immersed part of the mesh.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">        hs_data: dict</span>
-<span class="sd">            MeshMagick hydrostatic data</span>
+<span class="sd">    fb</span>
+<span class="sd">        A capytaine floating body (mesh + DOFs, and optionally center of</span>
+<span class="sd">        mass).</span>
+<span class="sd">    rho</span>
+<span class="sd">        Water density in :math:`kg/m^3`.</span>
+<span class="sd">    g</span>
+<span class="sd">        Gravitational acceleration in :math:`m/s^2`.</span>
+<span class="sd">    center_of_mass</span>
+<span class="sd">        Center of gravity/mass :python:`(cx, cy, cz)`.</span>
+<span class="sd">    rotation_center</span>
+<span class="sd">        Center of rotation :python:`(rx, ry, rz)` for hydrostatics</span>
+<span class="sd">        calculations.</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    np.ndarray</span>
-<span class="sd">        Hydrostatic stiffness matrix. Shape: 6x6.</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If :python:`fb.center_of_mass is not None` and</span>
+<span class="sd">        :python:`center_of_mass` is provided with a different value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">block_diag</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;stiffness_matrix&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span></div>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">_set_center_of_mass</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">center_of_mass</span><span class="p">)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">_set_rotation_center</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">rotation_center</span><span class="p">)</span>
+    <span class="n">fb_im</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_immersed&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fb_im</span><span class="o">.</span><span class="n">compute_hydrostatic_stiffness</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="n">g</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="mass_matrix_constant_density"><a class="viewcode-back" href="../../source_code_hydrostatics.html#wecopttool.hydrostatics.mass_matrix_constant_density">[docs]</a><span class="k">def</span> <span class="nf">mass_matrix_constant_density</span><span class="p">(</span><span class="n">hs_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-                                 <span class="n">mass</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-                                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create the 6x6 mass matrix assuming a constant density for the</span>
-<span class="sd">    WEC.</span>
+<div class="viewcode-block" id="inertia_matrix"><a class="viewcode-back" href="../../api_docs/wecopttool.hydrostatics.inertia_matrix.html#wecopttool.hydrostatics.inertia_matrix">[docs]</a><span class="k">def</span> <span class="nf">inertia_matrix</span><span class="p">(</span>
+    <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
+    <span class="n">rho</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
+    <span class="n">center_of_mass</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mass</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rotation_center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Compute the inertia (mass) matrix assuming a constant density for</span>
+<span class="sd">    the WEC.</span>
+
+<span class="sd">    .. note:: This function assumes a constant density WEC.</span>
+
+<span class="sd">    Uses :python:`capytaine.FloatingBody.compute_rigid_body_inertia` on</span>
+<span class="sd">    the full mesh.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    hs_data: dict</span>
-<span class="sd">        Hydrostatic data from MeshMagick</span>
-<span class="sd">    mass: float, optional</span>
-<span class="sd">        Mass of the floating object, if ``None`` use displaced mass</span>
+<span class="sd">    fb</span>
+<span class="sd">        A capytaine floating body (mesh + DOFs, and optionally center of</span>
+<span class="sd">        mass and mass).</span>
+<span class="sd">    rho</span>
+<span class="sd">        Water density in :math:`kg/m^3`.</span>
+<span class="sd">    center_of_mass</span>
+<span class="sd">        Center of gravity/mass.</span>
+<span class="sd">    mass</span>
+<span class="sd">        Rigid body mass.</span>
+<span class="sd">    rotation_center</span>
+<span class="sd">        Center of rotation :python:`(rx, ry, rz)` for hydrostatics</span>
+<span class="sd">        calculations.</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">     np.array</span>
-<span class="sd">        The mass matrix. Shape: (6, 6).</span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If :python:`fb.center_of_mass is not None` and</span>
+<span class="sd">        :python:`center_of_mass` is provided with a different value.</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If :python:`fb.mass is not None` and :python:`mass` is provided</span>
+<span class="sd">        with a different value.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">mass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mass</span> <span class="o">=</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;disp_mass&#39;</span><span class="p">]</span>
-    <span class="n">rho_wec</span> <span class="o">=</span> <span class="n">mass</span> <span class="o">/</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;mesh&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">volume</span>
-    <span class="n">rho_ratio</span> <span class="o">=</span> <span class="n">rho_wec</span> <span class="o">/</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;rho_water&#39;</span><span class="p">]</span>
-    <span class="n">mom_inertia</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-        <span class="p">[</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixx&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixy&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixz&#39;</span><span class="p">]],</span>
-        <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixy&#39;</span><span class="p">],</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyy&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyz&#39;</span><span class="p">]],</span>
-        <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Ixz&#39;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Iyz&#39;</span><span class="p">],</span> <span class="n">hs_data</span><span class="p">[</span><span class="s1">&#39;Izz&#39;</span><span class="p">]]])</span>
-    <span class="n">mom_inertia</span> <span class="o">*=</span> <span class="n">rho_ratio</span>
-    <span class="k">return</span> <span class="n">block_diag</span><span class="p">(</span><span class="n">mass</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">mom_inertia</span><span class="p">)</span></div>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">_set_center_of_mass</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">center_of_mass</span><span class="p">)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">_set_rotation_center</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">rotation_center</span><span class="p">)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">_set_mass</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">rho</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fb</span><span class="o">.</span><span class="n">compute_rigid_body_inertia</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span></div>
+
+
+<span class="c1"># TODO: combine the three hidden methods below into a single &quot;_set_property&quot; method</span>
+<span class="k">def</span> <span class="nf">_set_center_of_mass</span><span class="p">(</span>
+    <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
+    <span class="n">center_of_mass</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FloatingBody</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;If COG not provided, set to geometric centroid.&quot;&quot;&quot;</span>
+    <span class="n">cog_org</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">cog_new</span> <span class="o">=</span> <span class="n">center_of_mass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">cog_org</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">cog_new</span><span class="p">:</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">center_of_buoyancy</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Using the geometric centroid as the center of gravity (COG).&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cog_org</span> <span class="ow">and</span> <span class="n">cog_new</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span><span class="p">,</span> <span class="n">center_of_mass</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Both :python:`fb.center_of_mass` and &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;:python:`center_of_mass` where provided but have &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;different values.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cog_new</span><span class="p">:</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="n">center_of_mass</span>
+
+    <span class="k">return</span> <span class="n">fb</span>
+
+
+<span class="k">def</span> <span class="nf">_set_mass</span><span class="p">(</span>
+    <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
+    <span class="n">mass</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s2">&quot;rho&quot;</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FloatingBody</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;If mass is not provided, set to displaced mass.&quot;&quot;&quot;</span>
+    <span class="n">mass_org</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">mass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">mass_new</span> <span class="o">=</span> <span class="n">mass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mass_org</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">mass_new</span><span class="p">:</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_immersed&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span><span class="o">.</span><span class="n">volume</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">rho</span> <span class="o">*</span> <span class="n">vol</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Setting the mass to the displaced mass.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mass_org</span> <span class="ow">and</span> <span class="n">mass_new</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">mass</span><span class="p">,</span> <span class="n">mass</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Both :python:`fb.mass` and :python:`mass` where provided &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;but have different values.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mass_new</span><span class="p">:</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">mass</span>
+
+    <span class="k">return</span> <span class="n">fb</span>
+
+
+<span class="k">def</span> <span class="nf">_set_rotation_center</span><span class="p">(</span>
+    <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
+    <span class="n">rotation_center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FloatingBody</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;If rotation center not provided, set to center of mass.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="s1">&#39;rotation_center&#39;</span><span class="p">):</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="s1">&#39;rotation_center&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">rc_org</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">rotation_center</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">rc_new</span> <span class="o">=</span> <span class="n">rotation_center</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rc_org</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rc_new</span><span class="p">:</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">rotation_center</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span>
+        <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Using the center of gravity (COG) as the rotation center for hydrostatics.&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rc_org</span> <span class="ow">and</span> <span class="n">rc_new</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">fb</span><span class="o">.</span><span class="n">rotation_center</span><span class="p">,</span> <span class="n">rotation_center</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Both :python:`fb.rotation_center` and &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;:python:`rotation_center` where provided but have &quot;</span> <span class="o">+</span>
+                <span class="s2">&quot;different values.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">rc_new</span><span class="p">:</span>
+        <span class="n">fb</span><span class="o">.</span><span class="n">rotation_center</span> <span class="o">=</span> <span class="n">rotation_center</span>
+
+    <span class="k">return</span> <span class="n">fb</span>
 </pre></div>
 
            </div>
@@ -166,7 +270,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wecopttool.pto.controller_unstructured &mdash; WecOptTool 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="wecopttool.pto.PTO" href="wecopttool.pto.PTO.html" />
+    <link rel="prev" title="wecopttool.pto.controller_pid" href="wecopttool.pto.controller_pid.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> WecOptTool
+          </a>
+              <div class="version">
+                2.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api_docs.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.core.html">wecopttool.core</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.pto.controller_p.html">wecopttool.pto.controller_p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.pto.controller_pi.html">wecopttool.pto.controller_pi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.pto.controller_pid.html">wecopttool.pto.controller_pid</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">wecopttool.pto.controller_unstructured</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.pto.PTO.html">wecopttool.pto.PTO</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../api_docs.html">API Documentation</a> &raquo;</li>
+          <li><a href="wecopttool.pto.html">wecopttool.pto</a> &raquo;</li>
+      <li>wecopttool.pto.controller_unstructured</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="wecopttool-pto-controller-unstructured">
+<h1>wecopttool.pto.controller_unstructured<a class="headerlink" href="#wecopttool-pto-controller-unstructured" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.pto.controller_unstructured">
+<span class="sig-name descname"><span class="pre">controller_unstructured</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pto</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_wec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsubsteps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/pto.html#controller_unstructured"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.pto.controller_unstructured" title="Permalink to this definition"></a></dt>
+<dd><p>Unstructured numerical optimal controller that returns a time
+history of PTO forces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pto</strong> (<a class="reference internal" href="wecopttool.pto.PTO.html#wecopttool.pto.PTO" title="wecopttool.pto.PTO"><em>PTO</em></a>) – <a class="reference internal" href="wecopttool.pto.PTO.html#wecopttool.pto.PTO" title="wecopttool.pto.PTO"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.pto.PTO</span></code></a> object.</p></li>
+<li><p><strong>wec</strong> (<a class="reference internal" href="wecopttool.core.WEC.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><em>WEC</em></a>) – <a class="reference internal" href="wecopttool.core.WEC.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a> object.</p></li>
+<li><p><strong>x_wec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>ndarray</em></a>) – WEC dynamic state.</p></li>
+<li><p><strong>x_opt</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>ndarray</em></a>) – Optimization (control) state.</p></li>
+<li><p><strong>waves</strong> (<em>Optional</em><em>[</em><em>Dataset</em><em>]</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.10.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> with the structure and elements
+shown by <a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a>.</p></li>
+<li><p><strong>nsubsteps</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a><em>]</em>) – Number of steps between the default (implied) time steps.
+A value of <code class="code highlight python docutils literal highlight-python"><span class="mi">1</span></code> corresponds to the default step
+length.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wecopttool.pto.controller_pid.html" class="btn btn-neutral float-left" title="wecopttool.pto.controller_pid" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.pto.PTO.html" class="btn btn-neutral float-right" title="wecopttool.pto.PTO" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
