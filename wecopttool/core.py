@@ -552,7 +552,7 @@ class WEC:
         maximize: Optional[bool] = False,
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
-        callback: Optional[Callable[[ndarray]]] = None,
+        callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method.
@@ -602,9 +602,10 @@ class WEC:
             decision variable.
             See :py:func:`scipy.optimize.minimize`.
         callback
-            Function called after each iteration.
-            See :py:func:`scipy.optimize.minimize`.
-            The default is reported via logging at the INFO level.
+            Function called after each iteration, must have signature 
+            :python:`fun(wec, x_wec, x_opt, waves)`. The default 
+            provides status reports at each iteration via logging at the
+            INFO level.
 
         Returns
         -------
@@ -721,12 +722,16 @@ class WEC:
 
         # callback
         if callback is None:
-            def callback(x):
+            def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
                 _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
                           + f"{np.max(np.abs(x_opt)):.2e}, "
                           + f"{np.max(obj_fun_scaled(x)):.2e}]")
+        else:
+            def callback_scipy(x):
+                x_wec, x_opt = self.decompose_state(x)
+                return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
         optim_options['disp'] = optim_options.get('disp', True)
@@ -736,7 +741,7 @@ class WEC:
                     'constraints': constraints,
                     'options': optim_options,
                     'bounds': bounds,
-                    'callback':callback,  # TODO: allow callback functions to take (wec, x_wec, x_opt, waves) as arguments not x
+                    'callback': callback_scipy,
                     }
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)

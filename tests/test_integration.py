@@ -94,6 +94,26 @@ def wec_from_impedance(bem, pto, fb):
     wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add)
     return wec
 
+#TODO - probably fold this into another test
+def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
+
+    cbstring = 'hello world!'
+    
+    def my_callback(my_wec, x_wec, x_opt, wave):
+        print(cbstring)
+
+    _ = wec_from_bem.solve(regular_wave,
+                  obj_fun=pto.average_power,
+                  nstate_opt=2*nfreq+1,
+                  scale_x_wec=1.0,
+                  scale_x_opt=0.01,
+                  scale_obj=1e-1,
+                  callback=my_callback,
+                  optim_options={'maxiter': 1})
+
+    out, err = capfd.readouterr()
+
+    assert out.split('\n')[0] == cbstring
 
 def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
 
@@ -1048,22 +1068,7 @@ def test_same_wec_init(
 #     assert pytest.approx(kplim, 1e-10) == x_opt.item()
 
 
-# def test_solve_callback(wec, regular_wave, pto, capfd):
 
-#     cbstring = 'hello world!'
-
-#     _ = wec.solve(regular_wave,
-#                   obj_fun=pto.average_power,
-#                   nstate_opt=pto.nstate,
-#                   scale_x_wec=1.0,
-#                   scale_x_opt=0.01,
-#                   scale_obj=1e-1,
-#                   callback=lambda x: print(cbstring),
-#                   optim_options={'maxiter': 1})
-
-#     out, err = capfd.readouterr()
-
-#     assert out.split('\n')[0] == cbstring
 
 
 # def test_regular_wave_power(wec, regular_wave, pto):
