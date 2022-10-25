@@ -1,6 +1,22 @@
 
 # Changelog
 
+## Version 2.0.0
+
+**New features**
+
+* Restructured `core.py`: now allows for multiple workflows including initializing the `WEC` class from transfer functions without requiring meshing or BEM solution.
+* Restructured `pto.py` to accomplish all different `PTO` realizations with a single class.
+* Added non-linear kinematics to the `PTO` class.
+* Added non-linear power-chain conversion to the `PTO` class.
+* The waves module is now based on the `wavespectra` package.
+* Restructered the tests and separated into unit tests and integration tests.
+* Updated tutorial.
+* Updated post-processing and plotting for WEC and PTO dynamic responses.
+* API Autodocumentation now uses typehint information.
+* Use latest Capytaine version, v1.4.2.
+* Updated API documentation, website, and CI workflows.
+
 ## Version 1.1.1
 
 **New features**

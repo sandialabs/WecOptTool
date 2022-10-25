@@ -1,356 +1,266 @@
+""" Unit tests for functions in the :python:`waves.py` module.
+"""
+
 import os
-from random import random
 
 import pytest
-import autograd.numpy as np
-from autograd.builtins import isinstance, tuple, list, dict
 import capytaine as cpy
-import meshio
-from scipy.optimize import Bounds
+import numpy as np
+import wavespectra as ws
 
 import wecopttool as wot
-from wecopttool.core import freq_array
-from wecopttool.waves import pierson_moskowitz_spectrum as pm
-
-import gmsh
-import pygmsh
+from wecopttool.core import _default_parameters
 
 
 @pytest.fixture()
-def wec_wavebot():
-    # water properties
-    rho = 1000.0
-
-    # frequencies
-    f0 = 0.05
-    nfreq = 18
-
-    # wave directions
-    wave_dirs = [0, 10, 20]
-
-    #  mesh
-    meshfile = os.path.join(os.path.dirname(__file__), 'data', 'wavebot.stl')
-
-    # capytaine floating body
-    fb = cpy.FloatingBody.from_file(meshfile, name="WaveBot")
-    fb.add_translation_dof(name="HEAVE")
-
-    # mass and hydrostativ stiffness
-    hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
-    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-    mass = np.atleast_2d(mass_33)
-    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-    stiffness = np.atleast_2d(stiffness_33)
-
-    # WEC
-    wec_wavebot = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho)
-
-    # BEM
-    wec_wavebot.run_bem(wave_dirs)
-
-    return wec_wavebot
+def f1(): return 0.12
 
 
 @pytest.fixture()
-def wec_box():
-    # water properties
-    rho = 1000.0
-
-    # frequencies
-    f0 = 0.05
-    nfreq = 18
-
-    # wave directions
-    wave_dirs = [0, 10, 20]
-
-    # create mesh
-    length = 1.2
-    width = 0.7
-    height = 0.4
-    mesh_size_factor = 0.5  # 1.0 for default, smaller to refine mesh
-
-    with pygmsh.occ.Geometry() as geom:
-        gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
-
-        geom.add_box(x0=[-length/2, -width/2, -height/2],
-                     extents=[length, width, height])
-        mesh = geom.generate_mesh()
-
-    fb = cpy.FloatingBody.from_meshio(mesh, name="Box_WEC")
-    fb.add_translation_dof(name="HEAVE")
-
-    # mass and hydrostativ stiffness
-    hs_data = wot.hydrostatics.hydrostatics(fb, rho=rho)
-    mass_33 = wot.hydrostatics.mass_matrix_constant_density(hs_data)[2, 2]
-    mass = np.atleast_2d(mass_33)
-    stiffness_33 = wot.hydrostatics.stiffness_matrix(hs_data)[2, 2]
-    stiffness = np.atleast_2d(stiffness_33)
-
-    # WEC
-    wec_box = wot.WEC(fb, mass, stiffness, f0, nfreq, rho=rho)
-
-    # BEM
-    wec_box.run_bem(wave_dirs)
-
-    return wec_box
+def nfreq(): return 5
 
 
 @pytest.fixture()
-def regular_wave(wec_wavebot):
-    wec = wec_wavebot
-    freq = 0.5
-    amplitude = 0.25
-    phase = 0.0
-    wave = wot.waves.regular_wave(wec.f0, wec.nfreq, freq, amplitude, phase)
-    return wave
+def fp(): return 0.25
 
 
 @pytest.fixture()
-def three_regular_waves(wec_wavebot):
-    freq = 0.5
-    amplitude = 0.25
-    phase = 0.6
-    wave_dirs_deg =  wec_wavebot.hydro.wave_direction.values * 180 /np.pi
-
-    wave = wot.waves.wave_dataset(wec_wavebot.f0, wec_wavebot.nfreq,
-                                  wave_dirs_deg)
-
-    wave.S.loc[dict(omega = freq*2*np.pi)] = amplitude**2 / freq*2*np.pi
-    wave.phase.loc[dict(omega = freq*2*np.pi)] = phase
-    return wave
+def hs(): return 0.1
 
 
 @pytest.fixture()
-def irreg_wave_par():
-    """ Return the irregular wave parameters to pass on to
-    irregular wave and longcrested wave """
-    Hs = 0.1
-    Tp = 5
-    fp = 1/Tp
+def ndir(): return 90
+
+
+@pytest.fixture()
+def ndbc_spectrum():
+    f1 = 0.02
+    nfreq = 24
+    time = '2020-01-01T01:40:00.000000000'
+    freq = wot.frequency(f1, nfreq, False)
+    markers = ('w', 'd', 'i', 'j', 'k')
+    dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
+    files = [f'41013{i}2020.txt' for i in markers]
+    spec = ws.read_ndbc([os.path.join(dir, file) for file in files])
+    return spec.sel(time=time).interp(freq=freq)
+
+
+@pytest.fixture()
+def ndbc_omnidirectional():
+    f1 = 0.02
+    nfreq = 24
+    time = '2020-01-01T01:40:00.000000000'
+    freq = wot.frequency(f1, nfreq, False)
+    dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
+    spec = ws.read_ndbc(os.path.join(dir, '41013w2020.txt'))
+    return spec.sel(time=time).interp(freq=freq)
+
+
+def test_elevation_fd(f1, nfreq):
+    ndir = 90
+    directions = np.linspace(0, 360, ndir, endpoint=False)
+    elev = wot.waves.elevation_fd(f1, nfreq, directions)
+
+    assert 'wave_direction' in elev.coords
+    assert 'omega' in elev.coords
+    assert np.squeeze(elev.values).shape == (nfreq, ndir)
+    assert np.iscomplexobj(elev)
+    assert np.allclose(np.abs(elev), 0.0)
+
+
+def test_regular_wave(f1, nfreq):
+    freq = f1*np.random.randint(1, nfreq)
+    amp = 2.5 * np.random.random()
+    phase = np.random.random() * 360
+    dir = np.random.random() * 360
+    elev = wot.waves.regular_wave(f1, nfreq, freq, amp, phase, dir)
+
+    elev0 = elev.copy()
+    idx = np.where(
+        elev.omega.values==elev.sel(omega=2*np.pi*freq).omega.values)
+    elev0.values[idx] = 0
+
+    assert 'wave_direction' in elev.coords
+    assert 'omega' in elev.coords
+    assert np.squeeze(elev.values).shape == (nfreq,)
+    assert np.iscomplexobj(elev)
+    assert np.isclose(
+        elev.wave_direction.values.item(), wot.degrees_to_radians(dir))
+    assert np.isclose(
+        elev.sel(omega=freq*2*np.pi).values,
+        amp*np.exp(1j*wot.degrees_to_radians(phase)))
+    assert np.allclose(elev0.values, 0.0+0.0j)
+
+
+def test_long_crested_wave(ndbc_omnidirectional):
+    nfreq = len(ndbc_omnidirectional.freq)
+    ndir= len(ndbc_omnidirectional.dir)
+
+    direction = ndbc_omnidirectional.dir.values[np.random.randint(0, ndir)]
+    elev = wot.waves.long_crested_wave(ndbc_omnidirectional.efth, direction)
+
+    assert 'wave_direction' in elev.coords
+    assert 'omega' in elev.coords
+    assert np.squeeze(elev.values).shape == (nfreq,)
+    assert np.iscomplexobj(elev)
+    assert len(elev.wave_direction) == 1
+    assert elev.wave_direction.values.item() == direction
+
+
+def test_irregular_wave(ndbc_spectrum):
+    nfreq = len(ndbc_spectrum.freq)
+    ndir= len(ndbc_spectrum.dir)
+
+    elev = wot.waves.irregular_wave(ndbc_spectrum.efth)
+
+    assert 'wave_direction' in elev.coords
+    assert 'omega' in elev.coords
+    assert np.squeeze(elev.values).shape == (nfreq, ndir)
+    assert np.iscomplexobj(elev)
+
+
+def test_random_phase():
+    shape = (np.random.randint(10, 100), np.random.randint(10, 100))
+    phase = wot.waves.random_phase(shape)
+    phase1 = wot.waves.random_phase()
+
+    assert phase.shape == shape
+    assert np.max(phase) < np.pi
+    assert np.min(phase) >= -np.pi
+    assert (phase1 < np.pi) and (phase1 >= -np.pi)
+    assert isinstance(phase1, float)
+
+
+def test_omnidirectional_spectrum(f1, nfreq, fp, hs):
+    spectrum_func = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
+    wave_spec = wot.waves.omnidirectional_spectrum(
+        f1, nfreq, spectrum_func, "Pierson-Moskowitz")
+
+    # the values should be the same as calling the spectrum function
+    freq = wot.frequency(f1, nfreq, False)
+    spec_test = spectrum_func(freq)
+
+    assert np.allclose(spec_test, wave_spec.values.flatten())
+
+
+def test_spectrum(f1, nfreq, fp, hs, ndir):
     s_max = 10
-    # wave directions
-    wdir_mean = 30 # mean direction
-    wdir_step = 5   #direction degree step
-    wave_directions = np.concatenate(
-                    [np.arange(wdir_mean-180, wdir_mean, wdir_step),
-                        np.arange(wdir_mean, wdir_mean+180, wdir_step)]
-                    )
-    seed = 7
-    spectrum_func = lambda f: pm(freq=f, fp=fp, hs=Hs)
-    irreg_wave_par = {
-        "Hs": Hs,
-        "fp": fp,
-        "s_max": s_max,
-        "wdir_mean": wdir_mean,
-        "wdir_step": wdir_step,
-        "wave_directions": wave_directions,
-        "seed":seed,
-        "spectrum_func":spectrum_func
-        }
-    return irreg_wave_par
+    directions = np.linspace(0, 360, ndir, endpoint=False)
+    dm = directions[np.random.randint(0, ndir)]
+
+    spectrum_func = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
+    spread_func = lambda f,d: wot.waves.spread_cos2s(f, d, dm, fp, s_max)
+    spectrum_name, spread_name = "Pierson-Moskowitz", "Cos2s"
+    wave_spec = wot.waves.spectrum(
+        f1, nfreq, directions, spectrum_func, spread_func,
+        spectrum_name, spread_name)
+
+    # integral over all angles should be equal to omnidirectional
+    spec_omni = wot.waves.omnidirectional_spectrum(
+        f1, nfreq, spectrum_func, spectrum_name)
+    spec_omni = spec_omni.values.flatten()
+    ddir = (wave_spec.dir[1] - wave_spec.dir[0]).values
+    integral_d = wave_spec.sum(dim = 'dir').values * ddir
+
+    # mean direction
+    dfreq = (wave_spec.freq[1] - wave_spec.freq[0]).values
+    integral_f = wave_spec.sum(dim = 'freq').values * dfreq
+
+    assert wave_spec.shape == (nfreq, ndir)  # shape
+    assert np.allclose(integral_d, spec_omni, rtol=0.01)
+    assert directions[np.argmax(integral_f)] == dm
 
 
-@pytest.fixture()
-def irregular_wave(wec_wavebot, irreg_wave_par):
+def test_pierson_moskowitz_spectrum(f1, nfreq, fp, hs):
+    spectrum = wot.waves.pierson_moskowitz_spectrum
 
-    wave_directions = irreg_wave_par.get('wave_directions')
-    spectrum_func = irreg_wave_par.get('spectrum_func')
-    seed = irreg_wave_par.get('seed')
-    wdir_mean = irreg_wave_par.get('wdir_mean')
-    fp = irreg_wave_par.get('fp')
-    s_max = irreg_wave_par.get('s_max')
+    # scalar
+    freq_1 = 0.4
+    spec1 = spectrum(freq_1, fp, hs)
 
-    def spread_func(f,d):
-        return wot.waves.spread_cos2s(freq = f, directions = d,
-                                        dm = wdir_mean, fp = fp, s_max= s_max)
+    # vector
+    freqs = wot.frequency(f1, nfreq, False)
+    spec = spectrum(freqs, fp, hs)
 
-    irreg_wave = wot.waves.irregular_wave(wec_wavebot.f0, wec_wavebot.nfreq,
-                            wave_directions, spectrum_func, spread_func, seed)
-    return irreg_wave
+    # total elevation variance
+    freqs_int = np.linspace(0, 10, 1000)[1:]
+    total_variance_calc = np.trapz(spectrum(freqs_int, fp, hs), freqs_int)
+    a_param, b_param = wot.waves.pierson_moskowitz_params(fp, hs)
+    total_variance_theory = a_param/(4*b_param)
 
-
-@pytest.fixture()
-def long_crested_wave(wec_wavebot, irreg_wave_par):
-    spectrum_func = irreg_wave_par.get('spectrum_func')
-    wdir_mean = irreg_wave_par.get('wdir_mean')
-    seed = irreg_wave_par.get('seed')
-
-    long_crested_wave = wot.waves.long_crested_wave(
-                            wec_wavebot.f0, wec_wavebot.nfreq,
-                            spectrum_func, wdir_mean, "PM-spec", seed)
-    return long_crested_wave
+    assert isinstance(spec1, float)  # scalar
+    assert spec.shape == freqs.shape  # vector shape
+    assert np.isclose(total_variance_calc, total_variance_theory)  # integral
 
 
-def test_regular_waves_symmetric_wec(wec_wavebot, three_regular_waves):
-    """Confirm that power from multiple (N) regular waves that have the
-    same phase and frequency, but different directions matches the
-    superposition of the waves.
-    * The three individual waves all give the same results.
-    * Those results match CC.
-    * Combined wave gives N times the motions and forces, and N^2 times
-    the power.
-    """
-    #PTO
-    kinematics = np.eye(wec_wavebot.ndof)
-    pto = wot.pto.PseudoSpectralPTO(wec_wavebot.nfreq, kinematics)
-    obj_fun = pto.average_power
-    wec_wavebot.f_add = {'PTO': pto.force_on_wec}
+def test_jonswap_spectrum(f1, nfreq, fp, hs):
+    spectrum = wot.waves.jonswap_spectrum
 
-    #combined wave
-    _, wec_fdom, _, _, power_combined, _ = wec_wavebot.solve(
-        three_regular_waves, obj_fun, nstate_opt = pto.nstate,
-        scale_x_wec = 1.0, scale_x_opt = 0.01, scale_obj = 1e-1,
-        optim_options={})
-    sol_analytic_com = -1*np.sum(
-        np.abs(wec_fdom['excitation_force'][1:, :])**2  /
-        (8*np.real(wec_wavebot.hydro.Zi[:, 0, 0]))
-        )
-    #individual waves
-    sol_analytic_ind = np.zeros(three_regular_waves['wave_direction'].size)
-    power_individual = np.zeros(three_regular_waves['wave_direction'].size)
-    for nr_wave_dir in range(three_regular_waves['wave_direction'].size) :
-        _, wec_fdom, _, _, obj, _ = wec_wavebot.solve(
-                    three_regular_waves.isel(wave_direction = [nr_wave_dir]),
-                    obj_fun,
-                    nstate_opt = pto.nstate,
-                    scale_x_wec = 1.0,
-                    scale_x_opt = 0.01,
-                    scale_obj = 1e-1,
-                    optim_options={})
-        power_individual[nr_wave_dir] = obj
-        sol_analytic_ind[nr_wave_dir] = \
-            -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2  /
-            (8*np.real(wec_wavebot.hydro.Zi[:, 0, 0]))
-                     )
+    # scalar
+    freq_1 = 0.4
+    spec1 = spectrum(freq_1, fp, hs)
 
-    rtol = 0.005
-    #check if individual waves yield same result
-    assert np.all(np.isclose(power_individual, power_individual[0], rtol))
-    #check if combined wave yields expected power as function of
-    # the individual waves
-    assert np.isclose(power_combined,
-                  np.sum(power_individual)*power_individual.size,
-                  rtol)
-    #check if results match the theoretical solution for maximum power
-    assert np.isclose(power_combined, sol_analytic_com, rtol)
-    assert np.all(np.isclose(power_individual, sol_analytic_ind, rtol))
+    # vector
+    freqs = wot.frequency(f1, nfreq, False)
+    spec = spectrum(freqs, fp, hs)
+
+    # reduces to PM
+    spec_gamma1 = spectrum(freqs, fp, hs, gamma=1.0)
+    spec_pm = wot.waves.pierson_moskowitz_spectrum(freqs, fp, hs)
+
+    assert isinstance(spec1, float)  # scalar
+    assert spec.shape == freqs.shape  # vector shape
+    assert np.allclose(spec_gamma1, spec_pm)  # reduces to PM
 
 
-def test_regular_waves_asymmetric_wec(wec_box, three_regular_waves):
-    """Confirm that power from different directions is unequal for an
-    asymmetric wec"""
-    #PTO
-    kinematics = np.eye(wec_box.ndof)
-    pto = wot.pto.PseudoSpectralPTO(wec_box.nfreq, kinematics)
-    obj_fun = pto.average_power
-    wec_box.f_add = {'PTO': pto.force_on_wec}
-
-    #solve for combined wave
-    _, wec_fdom, _, _, power_combined, _ = wec_box.solve(
-                                        three_regular_waves,
-                                        obj_fun,
-                                        nstate_opt = pto.nstate,
-                                        scale_x_wec = 1.0,
-                                        scale_x_opt = 0.01,
-                                        scale_obj = 1e-1,
-                                        optim_options={})
-    sol_analytic_com = -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2
-                            / (8*np.real(wec_box.hydro.Zi[:, 0, 0])))
-
-    #individual waves
-    sol_analytic_ind = np.zeros(three_regular_waves['wave_direction'].size)
-    power_individual = np.zeros(three_regular_waves['wave_direction'].size)
-    for nr_wave_dir in range(three_regular_waves['wave_direction'].size) :
-        _, wec_fdom, _, _, obj, _ = wec_box.solve(
-                    three_regular_waves.isel(wave_direction = [nr_wave_dir]),
-                    obj_fun,
-                    nstate_opt = pto.nstate,
-                    scale_x_wec = 1.0,
-                    scale_x_opt = 0.01,
-                    scale_obj = 1e-1,
-                    optim_options={})
-        power_individual[nr_wave_dir] = obj
-        sol_analytic_ind[nr_wave_dir] = \
-            -1*np.sum(np.abs(wec_fdom['excitation_force'][1:, :])**2  /
-            (8*np.real(wec_box.hydro.Zi[:, 0, 0]))
-                     )
-
-    #relative tolerance for assertion
-    rtol = 0.005
-    #check that analytic power for the combined waves matches
-    assert np.isclose(sol_analytic_com, power_combined, rtol)
-    #check that not all power results are the same
-    assert not np.all(np.isclose(power_individual, power_individual[0], rtol))
-    #check if combined wave yields expected power as function of
-    # the individual waves
-    assert np.isclose(power_combined,
-                  np.sum(power_individual)*power_individual.size,
-                  rtol)
-
-
-def test_directional_regular_wave_decomposed(wec_wavebot):
-    """Confirm that power from an arbitrary direction matches the power
-    when decomposed into x- and y- direction"""
-    # TODO
-    assert 1 == 1
-
-
-def test_longcrested_wave_power(wec_wavebot):
-    """Confirm power results for long crested wave are as expected"""
-    # wec = wec_wavebot
-    # spectrum =
-    # wave_long_crested = wot.waves.long_crested_wave(
-    #                         wec.f0, wec.nfreq, spectrum, wec.wave_dir)
-    # power_theory = wot.power_limit()  # Correct?
-    # TODO
-    assert 1 == 1
-
-
-def test_irregular_wave_power(wec_wavebot, irregular_wave):
-    """Confirm power results for irregular wave are as expected. """
-    # TBD how to get this theoretically?
-    # wec_wavebot.run_bem(irregular_wave.wave_directions)
-    # TODO
-    assert 1 == 1
-
-
-def test_cos2s_spread(wec_wavebot):
+def test_spread_cos2s(f1, nfreq, fp, ndir):
     """Confirm that energy is spread correctly accross wave directions.
-
-    Integral (sum) over all directions of the spread function gives
-    (vector) 1.
+    Integral over all directions of the spread function gives (vector)
+    1.
     """
-    f0 = wec_wavebot.f0
-    nfreq = wec_wavebot.nfreq
-    directions = np.linspace(0, 360, 75, endpoint=False)
-    wdir_mean = random()*360
-    freqs = freq_array(f0, nfreq)
-    s_max = round(random()*10)
-    fp = f0* (1 + random()*nfreq/2)
+    directions = np.linspace(0, 360, ndir, endpoint=False)
+    wdir_mean = directions[np.random.randint(0, ndir)]
+    freqs = wot.frequency(f1, nfreq, False)
+    s_max = round(np.random.random()*10)
     spread = wot.waves.spread_cos2s(freq = freqs,
                                     directions = directions,
                                     dm = wdir_mean,
                                     fp = fp,
                                     s_max = s_max)
     ddir = directions[1]-directions[0]
+    dfreq = freqs[1] - freqs[0]
+    integral_d = np.sum(spread, axis=1)*ddir
+    integral_f = np.sum(spread, axis=0)*dfreq
 
-    rtol = 0.01
-    assert np.allclose(np.sum(spread, axis = 1)*ddir,
-                       np.ones((1, nfreq)),
-                       rtol
-                       )
+    assert directions[np.argmax(integral_f)] == wdir_mean  # mean dir
+    assert np.allclose(integral_d, np.ones((1, nfreq)), rtol=0.01) # omnidir
 
 
-def test_spectrum_energy(irregular_wave, long_crested_wave):
-    """Confirm that energy is spread correctly accross wave directions.
+def test_general_spectrum(f1, nfreq):
+    freq = wot.frequency(f1, nfreq, False)
+    a_param = np.random.random()*10
+    b_param = np.random.random()*10
+    spec_f1 = wot.waves.general_spectrum(a_param, b_param, 1.0)
+    spec_a0 = wot.waves.general_spectrum(0, b_param, freq)
+    spec_b0 = wot.waves.general_spectrum(a_param, 0, freq)
 
-    Integral (sum) over all directions of the long crested irregular
-    wave (2D) spectrum gives the omni-direction spectrum (vector).
-    """
-    wdir_step = (irregular_wave.wave_direction[1]
-                - irregular_wave.wave_direction[0])
-    # TODO: make units consistent in the wave xarray
-    rtol= 0.01
-    w1 = wdir_step.values * irregular_wave.S.sum(dim = 'wave_direction').values
-    w2 = (long_crested_wave.S.values).T
-    assert np.allclose(w1, w2, rtol) 
+    a_vec = np.random.random(freq.shape)*10
+    b_vec = np.random.random(freq.shape)*10
+    spec_vec = wot.waves.general_spectrum(a_vec, b_vec, freq)
+
+    # types and shapes
+    assert isinstance(spec_f1, float)
+    assert spec_a0.shape == spec_b0.shape == freq.shape
+    assert spec_vec.shape == freq.shape
+    # values
+    assert np.isclose(spec_f1, a_param * np.exp(-b_param))
+    assert np.allclose(spec_a0, 0.0)
+    assert np.allclose(spec_b0, a_param * freq**(-5))
+
+
+def test_pierson_moskowitz_params(fp, hs):
+    params = wot.waves.pierson_moskowitz_params(fp, hs)
+
+    assert len(params) == 2  # returns two floats
+    for iparam in params:
+        assert isinstance(iparam, float)
