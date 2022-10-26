@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest"] # TODO: , "windows-latest"
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"] # TODO: , "windows-latest"
         python-version: ["3.9", "3.10"]  # when updated change lines marked with "# PyVer"
 
     steps:
@@ -41,6 +41,7 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install coveralls pytest
         pip3 install .
+        pip3 install wavespectra # TODO
 
     - name: Run Test
       shell: bash -l {0}
