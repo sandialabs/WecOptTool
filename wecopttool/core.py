@@ -804,7 +804,7 @@ class WEC:
         
         omega_coord = ("omega", self.omega, omega_attr)
         freq_coord = ("omega", freq, freq_attr)
-        period_coord = ("omega", period, period_attr) #TODO
+        period_coord = ("omega", period, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
         
         # frequency domain
