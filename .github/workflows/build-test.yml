@@ -24,16 +24,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install MinGW on Windows
+    - name: Install MinGW on Windows (1/2)
       uses: egor-tensin/setup-mingw@v2
       with:
         platform: x86
+
+    - name: Install MinGW on Windows (2/2)
       run: |
         echo [build]
         echo compiler=mingw32
 
     - name: Install WecOptTool
-      shell: bash -l {0}
       run: |
         python3 -m pip install --upgrade pip
         pip3 install coveralls pytest
