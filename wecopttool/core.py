@@ -794,6 +794,7 @@ class WEC:
         omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
         freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
         period_attr = {'long_name': 'Period', 'units': 's'}
+        time_attr = {'long_name': 'Time', 'units': 's'}
         dof_attr = {'long_name': 'Degree of freedom'}
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
@@ -866,6 +867,7 @@ class WEC:
         results_td['acc'].attrs = acc_attr
         results_td['wave_elev'].attrs = wave_elev_attr
         results_td['force'].attrs = force_attr
+        results_td['time'].attrs = time_attr
         results_td.attrs['time_created_utc'] = create_time
 
         return results_fd, results_td
