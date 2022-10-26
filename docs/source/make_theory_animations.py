@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Dec 29 14:55:52 2021
 
-@author: rcoe
-"""
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 import imageio.v3 as iio
+from pygifsicle import optimize
 import os
 import tempfile
 
@@ -65,7 +62,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
 
     plt.close(fig)
 
-
     ps_fnames = []
 
     for ind in range(N):
@@ -108,3 +104,4 @@ with tempfile.TemporaryDirectory() as tmpdirname:
                           axis=0)
         gif_path = os.path.join(odir, f"{gif_name}_{key}.gif")
         iio.imwrite(gif_path, frames)
+        optimize(gif_path)
