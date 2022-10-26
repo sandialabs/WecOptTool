@@ -44,9 +44,12 @@ jobs:
     #     echo [build]
     #     echo compiler=mingw32
 
-    - name: Use Conda on Windows for Capytaine instead of Fortran compilation
+    - name: Use Conda on Windows for Capytaine instead of Fortran compilation (1/2)
       if: matrix.os == 'windows-latest'
       uses: conda-incubator/setup-miniconda@v2
+
+    - name: Use Conda on Windows for Capytaine instead of Fortran compilation (2/2)
+      if: matrix.os == 'windows-latest'
       run: conda install capytaine
 
     - name: Install WecOptTool
