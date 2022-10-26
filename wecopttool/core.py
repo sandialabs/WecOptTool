@@ -793,11 +793,20 @@ class WEC:
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
         omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
         freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+        period_attr = {'long_name': 'Period', 'units': 's'}
         dof_attr = {'long_name': 'Degree of freedom'}
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
-
+        
+        freq = self.omega/2/np.pi
+        period = 1/freq
+        
+        omega_coord = ("omega", self.omega, omega_attr)
+        freq_coord = ("omega", freq, freq_attr)
+        period_coord = ("omega", period, period_attr) #TODO
+        dof_coord = ("influenced_dof", self.dof_names, dof_attr)
+        
         # frequency domain
         force_da_list = []
         for name, force in self.forces.items():
@@ -805,14 +814,11 @@ class WEC:
             force_fd = self.td_to_fd(force_td_tmp, fft=True)
             force_da = DataArray(data=force_fd,
                                  dims=["omega", "influenced_dof"],
-                                 coords={'omega':
-                                     ("omega", self.omega, omega_attr),
-                                     'freq': 
-                                         ("omega", self.omega/2/np.pi, 
-                                          freq_attr),
-                                     'influenced_dof':
-                                         ("influenced_dof", self.dof_names,
-                                          dof_attr)},
+                                 coords={
+                                     'omega': omega_coord,
+                                     'freq': freq_coord, 
+                                     'period': period_coord,
+                                     'influenced_dof': dof_coord},
                                  attrs=force_attr
                                  ).expand_dims({'type': [name]})
             force_da_list.append(force_da)
@@ -837,10 +843,10 @@ class WEC:
                 'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
                 'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
             coords={
-                'omega': ('omega', self.omega, omega_attr),
-                'freq': ('omega', self.omega/2/np.pi, freq_attr),
-                'influenced_dof': ('influenced_dof', self.dof_names, dof_attr)
-                },
+                'omega': omega_coord,
+                'freq': freq_coord,
+                'period': period_coord,
+                'influenced_dof': dof_coord},
             attrs={"time_created_utc": create_time}
         )
 

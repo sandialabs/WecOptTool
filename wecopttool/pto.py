@@ -607,10 +607,14 @@ class PTO:
         mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
         omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
         freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+        period_attr = {'long_name': 'Period', 'units': 's'}
         dof_attr = {'long_name': 'PTO degree of freedom'}
         time_attr = {'long_name': 'Time', 'units': 's'}
 
         t_dat = wec.time_nsubsteps(nsubsteps)
+        
+        freq = wec.omega/2/np.pi
+        period = 1/freq
 
         results_fd = Dataset(
             data_vars={
@@ -623,7 +627,8 @@ class PTO:
             },
             coords={
                 'omega':('omega', wec.omega, omega_attr),
-                'freq':('omega', wec.omega/2/np.pi, freq_attr),
+                'freq':('omega', freq, freq_attr),
+                'period':('omega', period, period_attr),
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": create_time}
             )
