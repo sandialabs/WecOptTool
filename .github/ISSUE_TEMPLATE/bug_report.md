@@ -26,8 +26,8 @@ Wrong solution or errors. Include error logs or screenshots if applicable.
 **System:**
  - OS: [e.g. Ubuntu 20.04]
  - Python version: [e.g. 3.9.7]
- - WecOptTool version: [e.g. 1.0.0]
- - Any other relevant package version: [e.g. Capytaine 1.3.0]
+ - WecOptTool version: [e.g. 2.1.0]
+ - Any other relevant package version: [e.g. Capytaine 1.4.2]
 
 **Additional information**
 Add any other context about the problem here.

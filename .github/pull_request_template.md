@@ -4,6 +4,7 @@ Concise description of the pull request with references to any [issues](https://
 ## Type of PR
 - [ ] Bug fix
 - [ ] Major change
+- [ ] Minor change
 - [ ] New feature
 - [ ] Other
 
@@ -12,7 +13,6 @@ Concise description of the pull request with references to any [issues](https://
 - [ ] The pull request is from an issue branch (not main) on your fork to the [main branch in WecOptTool](https://github.com/SNL-WaterPower/WecOptTool).
 - [ ] The authors have given the admins edit access
 - [ ] All changes adhere to the style guide including PEP8, Docstrings, and Type Hints.
-- [ ] Added note in [Changelog](https://github.com/SNL-WaterPower/WecOptTool/blob/main/CHANGES.md)
 - [ ] Modified the documentation if applicable
 - [ ] Modified or added a new test
 - [ ] All tests pass
