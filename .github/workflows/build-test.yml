@@ -38,16 +38,16 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: egor-tensin/setup-mingw@v2
 
-    - name: Install MinGW on Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        echo [build]
-        echo compiler=mingw32
-
-    # - name: Use Conda on Windows for Capytaine instead of Fortran compilation
+    # - name: Install MinGW on Windows
     #   if: matrix.os == 'windows-latest'
-    #   uses: conda-incubator/setup-miniconda@v2
-    #   run: conda install capytaine
+    #   run: |
+    #     echo [build]
+    #     echo compiler=mingw32
+
+    - name: Use Conda on Windows for Capytaine instead of Fortran compilation
+      if: matrix.os == 'windows-latest'
+      uses: conda-incubator/setup-miniconda@v2
+      run: conda install capytaine
 
     - name: Install WecOptTool
       shell: bash -l {0}
