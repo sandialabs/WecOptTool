@@ -3,8 +3,8 @@
 name: GitHub Pages
 
 on:
-  push:
-    branches: [ main ]
+  release:
+    types: [published]
 
 jobs:
   deploy:
@@ -20,7 +20,7 @@ jobs:
     - name: Install libglu
       run: sudo apt-get install libglu1
       # TODO: Why is this needed? Fix upstream package?
-      
+
     - name: Install pandoc
       run: sudo apt-get install pandoc
 
@@ -29,9 +29,7 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         pip3 install .[dev]
-        pip3 install wavespectra
-      # TODO: wavespectra fix pip package
-    
+
     - name: Build documentation
       shell: bash -l {0}
       run: |

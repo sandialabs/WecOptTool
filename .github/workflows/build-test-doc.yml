@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"] # TODO: , "windows-latest"
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.9", "3.10"]  # when updated change lines marked with "# PyVer"
 
     steps:
     - uses: actions/checkout@v3
@@ -41,8 +41,6 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install coveralls pytest
         pip3 install .
-        pip3 install wavespectra
-      # TODO: wavespectra fix pip package
 
     - name: Run Test
       shell: bash -l {0}
@@ -50,7 +48,7 @@ jobs:
         coverage run -m pytest
 
     - name: Upload coverage data to coveralls.io
-      if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}
+      if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}  # PyVer
       shell: bash -l {0}
       run: |
         coveralls --service=github
@@ -79,15 +77,13 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.10'  # PyVer
 
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
         python3 -m pip install --upgrade pip
         pip3 install .[dev]
-        pip3 install wavespectra
-      # TODO: wavespectra fix pip package
 
     - name: Build documentation
       shell: bash -l {0}
