@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"] # TODO: , "windows-latest"
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.9", "3.10"]  # when updated change lines marked with "# PyVer"
 
     steps:
@@ -29,11 +29,19 @@ jobs:
       run: sudo apt-get install libglu1
       # TODO: Why is this needed? Fix upstream package?
 
-    - name: Install GNU Fortran
+    - name: Install GNU Fortran on MacOS
       # for capytaine and wavespectra
-      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      if: matrix.os == 'macos-latest'
       uses: modflowpy/install-gfortran-action@v1
-      # TODO: figure out Fortran compilers on Windows.
+
+    - name: Install MinGW on Windows
+      if: matrix.os == 'windows-latest'
+      uses: egor-tensin/setup-mingw@v2
+
+    # - name: Use Conda on Windows for Capytaine instead of Fortran compilation
+    #   if: matrix.os == 'windows-latest'
+    #   uses: conda-incubator/setup-miniconda@v2
+    #   run: conda install capytaine
 
     - name: Install WecOptTool
       shell: bash -l {0}
