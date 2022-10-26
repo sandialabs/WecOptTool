@@ -50,7 +50,7 @@ jobs:
 
     - name: Use Conda on Windows for Capytaine instead of Fortran compilation (2/2)
       if: matrix.os == 'windows-latest'
-      run: conda install capytaine
+      run: conda install -c conda-forge capytaine wavespectra
 
     - name: Install WecOptTool
       shell: bash -l {0}
