@@ -9,13 +9,13 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  build_test:
     name: Build (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["windows-latest",] # "ubuntu-latest", "macos-latest",
         python-version: ["3.9", "3.10"]  # when updated change lines marked with "# PyVer"
 
     steps:
@@ -37,6 +37,11 @@ jobs:
     - name: Install MinGW on Windows
       if: matrix.os == 'windows-latest'
       uses: egor-tensin/setup-mingw@v2
+      with:
+        platform: x86
+      run: |
+        echo [build]
+        echo compiler=mingw32
 
     # - name: Use Conda on Windows for Capytaine instead of Fortran compilation
     #   if: matrix.os == 'windows-latest'
@@ -65,40 +70,40 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_PARALLEL: true
 
-  coveralls:
-    name: Indicate completion to coveralls.io
-    needs: build
-    runs-on: ubuntu-latest
-    container: python:3-slim
-    steps:
-    - name: Finished
-      run: |
-        python3 -m pip install --upgrade coveralls
-        coveralls --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # coveralls:
+  #   name: Indicate completion to coveralls.io
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   container: python:3-slim
+  #   steps:
+  #   - name: Finished
+  #     run: |
+  #       python3 -m pip install --upgrade coveralls
+  #       coveralls --finish
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  documentation:
-    name: Build documentation
-    runs-on: ubuntu-latest
+  # documentation:
+  #   name: Build documentation
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'  # PyVer
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: actions/setup-python@v4
+  #     with:
+  #       python-version: '3.10'  # PyVer
 
-    - name: Install WecOptTool for documentation
-      shell: bash -l {0}
-      run: |
-        python3 -m pip install --upgrade pip
-        pip3 install .[dev]
+  #   - name: Install WecOptTool for documentation
+  #     shell: bash -l {0}
+  #     run: |
+  #       python3 -m pip install --upgrade pip
+  #       pip3 install .[dev]
 
-    - name: Build documentation
-      shell: bash -l {0}
-      run: |
-        cd docs
-        make clean
-        make linkcheck
-        make html
-        cd ../
+  #   - name: Build documentation
+  #     shell: bash -l {0}
+  #     run: |
+  #       cd docs
+  #       make clean
+  #       make linkcheck
+  #       make html
+  #       cd ../
