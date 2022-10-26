@@ -786,6 +786,14 @@ class WEC:
         results_td
             Dynamic responses in the time-domain.
         """
+
+        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+        dof_attr = {'long_name': 'Degree of freedom'}
+        force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
+        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
 
         # frequency domain
@@ -794,16 +802,19 @@ class WEC:
             force_td_tmp = force(self, x_wec, x_opt, waves)
             force_fd = self.td_to_fd(force_td_tmp, fft=True)
             force_da = DataArray(data=force_fd,
-                        coords={'omega':self.omega,  # TODO: use both omega & frequency
-                                'influenced_dof':self.dof_names},
-                        attrs={'units':'N*s or Nm*s'}
-                        ).expand_dims({'type':[name]})
+                                 dims=["omega", "influenced_dof"],
+                                 coords={
+                                     'omega':
+                                         # TODO: use both omega & frequency
+                                         ("omega", self.omega, omega_attr),
+                                     'influenced_dof':
+                                         ("influenced_dof", self.dof_names, 
+                                          dof_attr)},
+                                 attrs=force_attr
+                                 ).expand_dims({'type': [name]})
             force_da_list.append(force_da)
 
         fd_forces = xr.concat(force_da_list, dim='type')
-        fd_forces.omega.attrs['units'] = 'rad/s'
-        fd_forces.omega.attrs['long_name'] = 'Frequency'
-        fd_forces.influenced_dof.attrs['long_name'] = 'Degree of freedom'
         fd_forces.type.attrs['long_name'] = 'Type'
         fd_forces.name = 'force'
         fd_forces.attrs['long_name'] = 'Force'
@@ -817,13 +828,6 @@ class WEC:
         acc = self.derivative_mat @ vel
         acc_fd = real_to_complex(acc)
 
-        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
-        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
-        omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
-        dof_attr = {'long_name': 'Degree of freedom'}
-        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
-
         fd_state = Dataset(
             data_vars={
                 'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
@@ -834,10 +838,10 @@ class WEC:
                 'influenced_dof': (
                     'influenced_dof', self.dof_names, dof_attr)},
             attrs={"time_created_utc": f"{datetime.utcnow()}"}
-            )
+        )
 
         results_fd = xr.merge([fd_state, fd_forces, waves])
-        results_fd = results_fd.transpose('omega','influenced_dof','type',
+        results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                           'wave_direction')
         results_fd = results_fd.fillna(0)
 
@@ -851,9 +855,7 @@ class WEC:
         results_td['vel'].attrs = vel_attr
         results_td['acc'].attrs = acc_attr
         results_td['wave_elev'].attrs = wave_elev_attr
-
-        results_td['force'].attrs['long_name'] = 'Force'
-        results_td['force'].attrs['units'] = 'N or Nm'
+        results_td['force'].attrs = force_attr
 
         return results_fd, results_td
 
