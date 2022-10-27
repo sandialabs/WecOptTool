@@ -53,7 +53,7 @@ jobs:
       id: cache
 
     - name: Update environment
-      run: mamba env update -n my-env -f environment.yml
+      run: mamba env update -n test-env -f environment.yml
       if: steps.cache.outputs.cache-hit != 'true'
 
     # - uses: conda-incubator/setup-miniconda@v2
@@ -69,7 +69,7 @@ jobs:
     - name: Install WecOptTool
       shell: bash -l {0}
       run: |
-        # conda install -c conda-forge capytaine=1.4.2 wavespectra  # TODO: Hardcoded for Windows. Why needed?
+        conda activate test-env
         python3 -m pip install --upgrade pip
         pip3 install coveralls pytest
         pip3 install .
