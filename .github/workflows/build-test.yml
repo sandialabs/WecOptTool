@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.9", "3.10"]  # PyVer
+        python-version: ["3.9", "3.10"]  # CHANGE: Python version
 
     steps:
     # Checkout the WecOptTool repo
@@ -44,6 +44,8 @@ jobs:
       shell: bash
 
     # create a conda yaml file
+    # for some reason Windows installs capytaine 1.4 instead of latest.
+    # CHANGE: Capytaine version
     - name: Create environment.yml file
       run: |
         echo "name: test-env" >> environment.yml;
@@ -69,7 +71,7 @@ jobs:
       if: steps.cache.outputs.cache-hit != 'true'
     # <<< Cache the conda environment
 
-    # install libglu on ubuntu. # TODO: Why is this needed? Fix upstream package?
+    # install libglu on ubuntu.
     - name: Install libglu
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install libglu1
@@ -90,7 +92,7 @@ jobs:
 
     # if ubuntu & latest python, upload coverage data to coveralls
     - name: Upload coverage data to coveralls.io
-      if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}  # PyVer
+      if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}  # CHANGE: Python version
       shell: bash -l {0}
       run: coveralls --service=github
       env:
@@ -118,7 +120,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.10'  # PyVer
+        python-version: '3.10'  # CHANGE: Python version
 
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
