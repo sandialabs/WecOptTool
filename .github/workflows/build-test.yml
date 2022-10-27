@@ -29,16 +29,18 @@ jobs:
           activate-environment: test-env
           use-mamba: true
 
-    - name: Set cache date
-      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+    - name: Get Date
+      id: get-date
+      run: echo "::set-output name=today::$(/bin/date -u '+%Y%m%d')"
+      shell: bash
 
     - name: Create environment.yml file
       run: |
         echo "name: test-env" >> environment.yml
         echo "" >> environment.yml
         echo "dependencies:" >> environment.yml
-        echo "capytaine=1.4.2" >> environment.yml
-        echo "wavespectra" >> environment.yml
+        echo "  - capytaine=1.4.2" >> environment.yml
+        echo "  - wavespectra" >> environment.yml
 
     - uses: actions/cache@v3
       env:
@@ -46,6 +48,7 @@ jobs:
       with:
         path: ~/conda-cache
         key: ${{ matrix.os }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        key: conda-${{ runner.os }}--${{ runner.arch }}--${{ steps.get-date.outputs.today }}-${{ hashFiles('environment.yml') }}-${{ env.CACHE_NUMBER }}
       id: cache
 
     - name: Update environment
