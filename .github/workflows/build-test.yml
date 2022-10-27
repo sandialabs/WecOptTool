@@ -40,7 +40,7 @@ jobs:
         echo "capytaine=1.4.2" >> environment.yml
         echo "wavespectra" >> environment.yml
 
-    - uses: actions/cache@v2
+    - uses: actions/cache@v3
       with:
         path: ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
