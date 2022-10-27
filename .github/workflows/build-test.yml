@@ -45,7 +45,7 @@ jobs:
         CACHE_NUMBER: 0  # increase to reset cache manually
       with:
         path: ~/conda-cache
-        key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        key: ${{ matrix.os }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
       id: cache
 
     - name: Update environment
