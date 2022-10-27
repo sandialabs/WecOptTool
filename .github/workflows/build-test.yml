@@ -20,10 +20,40 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: conda-incubator/setup-miniconda@v2
+
+    - name: Setup Mambaforge
+      uses: conda-incubator/setup-miniconda@v2
       with:
-        auto-update-conda: true
-        python-version: ${{ matrix.python-version }}
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: test-env
+          use-mamba: true
+
+    - name: Set cache date
+      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+    - name: Create environment.yml file
+      run: |
+        echo "name: test-env" >> environment.yml
+        echo "" >> environment.yml
+        echo "dependencies:" >> environment.yml
+        echo "capytaine=1.4.2" >> environment.yml
+        echo "wavespectra" >> environment.yml
+
+    - uses: actions/cache@v2
+      with:
+        path: ${{ matrix.prefix }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+      id: cache
+
+    - name: Update environment
+      run: mamba env update -n my-env -f environment.yml
+      if: steps.cache.outputs.cache-hit != 'true'
+
+    # - uses: conda-incubator/setup-miniconda@v2
+    #   with:
+    #     auto-update-conda: true
+    #     python-version: ${{ matrix.python-version }}
 
     - name: Install libglu
       if: matrix.os == 'ubuntu-latest'
@@ -33,7 +63,7 @@ jobs:
     - name: Install WecOptTool
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge capytaine=1.4.2 wavespectra
+        # conda install -c conda-forge capytaine=1.4.2 wavespectra  # TODO: Hardcoded for Windows. Why needed?
         python3 -m pip install --upgrade pip
         pip3 install coveralls pytest
         pip3 install .

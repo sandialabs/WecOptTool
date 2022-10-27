@@ -3,10 +3,9 @@ Concise description of the pull request with references to any [issues](https://
 
 ## Type of PR
 - [ ] Bug fix
-- [ ] Major change
-- [ ] Minor change
 - [ ] New feature
-- [ ] Other
+- [ ] Documentation
+- [ ] Other: <specify>
 
 ## Checklist for PR
 - [ ] Authors read the [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md)
