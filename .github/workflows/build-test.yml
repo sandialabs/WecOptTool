@@ -17,8 +17,6 @@ jobs:
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python-version: ["3.9", "3.10"]  # PyVer
-    env:
-      CACHE_NUMBER: 0  # increase to reset cache manually
 
     steps:
     - uses: actions/checkout@v3
@@ -43,6 +41,8 @@ jobs:
         echo "wavespectra" >> environment.yml
 
     - uses: actions/cache@v3
+      env:
+        CACHE_NUMBER: 0  # increase to reset cache manually
       with:
         path: ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('environment.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
