@@ -39,16 +39,17 @@ jobs:
         echo "name: test-env" >> environment.yml
         echo "" >> environment.yml
         echo "dependencies:" >> environment.yml
-        echo "  - python=${{ matrix.python-version }}"
+        echo "  - python=${matrix.python-version}"
         echo "  - capytaine=1.4.2" >> environment.yml
         echo "  - wavespectra" >> environment.yml
+        cat environment.yml
 
     - uses: actions/cache@v3
       env:
         CACHE_NUMBER: 0  # increase to reset cache manually
       with:
         path: ~/conda-cache
-        key: conda-${{ runner.os }}--${{ runner.arch }}--${{ steps.get-date.outputs.today }}-${{ hashFiles('environment.yml') }}-${{ env.CACHE_NUMBER }}
+        key: conda-${{ runner.os }}--${{ runner.arch }}--${{ steps.get-date.outputs.today }}-${{ hashFiles('pyproject.toml') }}-${{ env.CACHE_NUMBER }}
       id: cache
 
     - name: Update environment
