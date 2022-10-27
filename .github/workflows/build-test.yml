@@ -48,7 +48,7 @@ jobs:
       env:
         CACHE_NUMBER: 0  # increase to reset cache manually
       with:
-        path: ~/conda-cache
+        path: ${{ env.CONDA }}/envs
         key: conda-${{ runner.os }}--${{ runner.arch }}--${{ steps.get-date.outputs.today }}-${{ hashFiles('pyproject.toml') }}-${{ env.CACHE_NUMBER }}
       id: cache
 
