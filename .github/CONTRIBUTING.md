@@ -5,8 +5,8 @@ Community contributions are welcomed! 🎊
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
 * If you want to build the documentation locally you will also need to [install pandoc](https://pandoc.org/installing.html).
-* If you do not have compilers properly setup in your system, install `capytaine` and `wavesspectra` using `conda`. In this case you will need to have a `conda` virtual environment.
-* On a ZSH shell (MacOS) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
+* If you do not have Fortran compilers properly setup in your system, install `capytaine` and `wavesspectra` using `conda`. In this case you will need to have a `conda` virtual environment. This is recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+* On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
 Using `conda` this looks like:
 ```bash
@@ -42,7 +42,7 @@ Autograd does not support all NumPy and SciPy functionalities, see [autograd doc
   1. Create a fork of WecOptTool
   2. Create a branch for the specific issue
   3. Add desired code modifications. For enhancements add to documentation. Add or modify a test. Make sure all tests pass and documentation builds. Follow style guide above.
-  4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/SNL-WaterPower/WecOptTool/releases) for the next version.
+  4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/SNL-WaterPower/WecOptTool/releases) for the next version. Start the PR title with an all caps label followed by a colon, e.g., "BUG FIX: ...", "NEW FEATURE: ...", "DOCUMENTATION: ...", etc.
 
 ## Tests
 There are a series of unit and integration tests defined in the `tests` directory.

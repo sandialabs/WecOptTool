@@ -10,8 +10,8 @@ In the GitHub repository, click on *Releases*, click on *Draft new release*.
 
 * Title the release with the [version number](https://semver.org/) preceded by a `v`, e.g., `v1.0.0`. Nothing else should go in the title.
 * Tag the release using the same name as the *Title*.
-* Click on *Generate release notes*. This adds the PR messages and contributers. Ideally nothing more is needed, but might require minor editing/formatting.
-* Select the *Create a discussion* checkmark and mark as *Announcement*. Add anouncement message.
+* Click on *Generate release notes*. This adds the PR messages and contributors. Ideally nothing more is needed, but might require minor editing/formatting.
+* Select the *Create a discussion* checkmark and mark as *Announcement*.
 
 This will trigger the PyPI, Conda, and GH-Pages build and deploy.
 
@@ -29,3 +29,4 @@ See the [GitHub workflow](https://github.com/SNL-WaterPower/WecOptTool/blob/main
 **NOTE:** While GitHub lets you delete a release and then create a new one with the same name, PyPI does not. You can delete releases but you cannot upload a package with the same version as a previous one (even a deleted one).
 
 ## Conda package
+TODO

@@ -1,4 +1,4 @@
-[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/build-test-doc.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/python-package.yml)
+[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml)
 [![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
 
 # WecOptTool
@@ -10,22 +10,21 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
-WecOptTool requires Python 3.9 or 3.10.
+WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
 
-**Option 1** - using `Conda` for [Capytaine](https://github.com/mancellin/capytaine) (requires the [Conda package manager](https://docs.conda.io/en/latest/)):
+**Option 1** - using `Conda`:
 
 ```bash
-conda install -c conda-forge capytaine
-pip install wecopttool
-pip install wavespectra
+conda install -c conda-forge wecopttool
 ```
 
 **Option 2** - using `pip` for [Capytaine](https://github.com/mancellin/capytaine) (requires Fortran compilers):
 
 ```bash
 pip install wecopttool
-pip install wavespectra
 ```
+
+This approach is not recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
 
 ## Tutorials
 The tutorials can be found in the `examples` directory and are written as [Jupyter Notebooks](https://jupyter.org/).
@@ -43,4 +42,4 @@ To report bugs, use WecOptTool's [issues page](https://github.com/SNL-WaterPower
 For general discussion, use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
 
 ## Contributing
-If your interersted in contributing to WecOptTool see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).
+If your interested in contributing to WecOptTool see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).

@@ -1,6 +1,9 @@
-# Check: package builds, tests pass, documentation builds.
-# Report: test coverage
 name: Build and Test
+# 1. Build and test WecOptTool
+#   - check that WecOptTool builds on a matrix of OS + Python versions
+#   - check that all tests pass on the same matrix
+#   - report the test code coverage
+# 2. Check that the documentation builds correctly
 
 on:
   push:
@@ -9,7 +12,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build_test:
+  wecopttool_test:
     name: Build (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,9 +27,9 @@ jobs:
 
     # Cache the conda environment >>>
     # The cache key includes the OS, the date, the hash of the pyproject.toml file, and the cache number.
-    # A new chache is created if:
-    #   - this is the first time today that this file is run (date cahnges)
-    #   - the ocntent of pyproject.toml changes
+    # A new cache is created if:
+    #   - this is the first time today that this file is run (date changes)
+    #   - the content of pyproject.toml changes
     #   - you manually change the value of the CACHE_NUMBER below
     # Else the existing cache is used.
     - name: Setup Mambaforge
@@ -37,7 +40,7 @@ jobs:
           activate-environment: test-env
           use-mamba: true
 
-    # save the date to include in the cashe key
+    # save the date to include in the cache key
     - name: Get Date
       id: get-date
       run: echo "DATE=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_ENV
@@ -94,25 +97,15 @@ jobs:
     - name: Upload coverage data to coveralls.io
       if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}  # CHANGE: Python version
       shell: bash -l {0}
-      run: coveralls --service=github
+      run: |
+        coveralls --service=github
+        coveralls --finish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         COVERALLS_PARALLEL: true
 
-  coveralls:
-    name: Indicate completion to coveralls.io
-    needs: build_test
-    runs-on: ubuntu-latest
-    container: python:3-slim
-    steps:
-    - name: Finished
-      run: |
-        python3 -m pip install --upgrade coveralls
-        coveralls --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  documentation:
+  documentation_test:
     name: Build documentation
     runs-on: ubuntu-latest
 
