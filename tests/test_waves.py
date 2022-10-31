@@ -221,7 +221,7 @@ def test_spread_cos2s(f1, nfreq, fp, ndir):
     directions = np.linspace(0, 360, ndir, endpoint=False)
     wdir_mean = directions[np.random.randint(0, ndir)]
     freqs = wot.frequency(f1, nfreq, False)
-    s_max = round(np.random.random()*10)
+    s_max = 10
     spread = wot.waves.spread_cos2s(freq = freqs,
                                     directions = directions,
                                     dm = wdir_mean,

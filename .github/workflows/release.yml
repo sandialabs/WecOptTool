@@ -1,0 +1,76 @@
+name: Release new version
+# 1. Publish to TestPyPi and PyPi, sequentially
+# 2. Publish to conda-forge
+# 3. Deploy documentation website
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  PyPi:
+    name: Build and publish Python distributions to TestPyPI and PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Build a binary wheel and a source tarball
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install build --user
+        python3 -m build --sdist --wheel --outdir dist/ .
+
+    - name: Publish distribution to Test PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
+
+
+# TODO: conda-forge
+
+
+  GitHub_Pages:
+    name: Build and deploy website
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: sudo apt-get install libglu1 pandoc
+
+    - name: Install WecOptTool for documentation
+      shell: bash -l {0}
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install .[dev]
+
+    - name: Build documentation
+      shell: bash -l {0}
+      run: |
+        cd docs
+        make linkcheck
+        make html
+        cd ../
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./docs/_build/html
