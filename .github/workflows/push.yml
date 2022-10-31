@@ -96,13 +96,14 @@ jobs:
     # if ubuntu & latest python, upload coverage data to coveralls
     - name: Upload coverage data to coveralls.io
       if: ${{ matrix.python-version == 3.10  &&  matrix.os == 'ubuntu-latest' }}  # CHANGE: Python version
-      shell: bash -l {0}
-      run: |
-        coveralls --service=github
-        coveralls --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        COVERALLS_PARALLEL: true
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      # run: |
+      #   coveralls --service=github
+      #   coveralls --finish
+      # env:
+      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
   documentation_test:
