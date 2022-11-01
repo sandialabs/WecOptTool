@@ -11,6 +11,7 @@ Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/
 
 ## Getting started
 WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
+It is strongly recommended you create a dedicated virtual environment (e.g., using `conda`, `venv`, etc.) before installing `wecopttool`.
 
 **Option 1** - using `Conda`:
 
@@ -18,7 +19,7 @@ WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
 conda install -c conda-forge wecopttool
 ```
 
-**Option 2** - using `pip` for [Capytaine](https://github.com/mancellin/capytaine) (requires Fortran compilers):
+**Option 2** - using `pip` (requires Fortran compilers on your system):
 
 ```bash
 pip install wecopttool
