@@ -1,0 +1,143 @@
+name: Build and Test
+# 1. Build and test WecOptTool
+#   - check that WecOptTool builds on a matrix of OS + Python versions
+#   - check that all tests pass on the same matrix
+#   - report the test code coverage
+# 2. Check that the documentation builds correctly
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  wecopttool_test:
+    name: Build (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        python-version: ["3.9", "3.10"]  # CHANGE: Python version
+
+    steps:
+    # Checkout the WecOptTool repo
+    - uses: actions/checkout@v3
+
+    # Cache the conda environment >>>
+    # The cache key includes the OS, the date, the hash of the pyproject.toml file, and the cache number.
+    # A new cache is created if:
+    #   - this is the first time today that this file is run (date changes)
+    #   - the content of pyproject.toml changes
+    #   - you manually change the value of the CACHE_NUMBER below
+    # Else the existing cache is used.
+    - name: Setup Mambaforge
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          activate-environment: test-env
+          use-mamba: true
+
+    # save the date to include in the cache key
+    - name: Get Date
+      id: get-date
+      run: echo "DATE=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_ENV
+      shell: bash
+
+    # create a conda yaml file
+    # for some reason Windows installs capytaine 1.4 instead of latest.
+    # CHANGE: Capytaine version
+    - name: Create environment.yml file
+      run: |
+        echo "name: test-env" >> environment.yml;
+        echo " " >> environment.yml
+        echo "dependencies:" >> environment.yml
+        echo "  - python=${{ matrix.python-version }}" >> environment.yml
+        echo "  - capytaine=1.4.2" >> environment.yml
+        echo "  - wavespectra" >> environment.yml
+        cat environment.yml
+
+    # use the cache if it exists
+    - uses: actions/cache@v3
+      env:
+        CACHE_NUMBER: 0  # increase to reset cache manually
+      with:
+        path: ${{ env.CONDA }}/envs
+        key: conda-${{ runner.os }}--${{ runner.arch }}--${{ env.DATE }}-${{ hashFiles('pyproject.toml') }}-${{ env.CACHE_NUMBER }}
+      id: cache
+
+    # if cache key has changed, create new cache
+    - name: Update environment
+      run: mamba env update -n test-env -f environment.yml
+      if: steps.cache.outputs.cache-hit != 'true'
+    # <<< Cache the conda environment
+
+    # install libglu on ubuntu.
+    - name: Install libglu
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install libglu1
+
+    # install WecOptTool and pytest/coveralls
+    - name: Install WecOptTool
+      shell: bash -l {0}
+      run: |
+        conda activate test-env
+        python3 -m pip install --upgrade pip
+        pip3 install coveralls pytest
+        pip3 install .
+
+    # run all tests & coverage
+    - name: Run Test
+      shell: bash -l {0}
+      run: coverage run -m pytest
+
+    # upload coverage data
+    - name: Upload coverage data to coveralls.io
+      shell: bash -l {0}
+      run: coveralls --service=github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_FLAG_NAME: ${{ matrix.os }}-${{ matrix.python-version }}
+        COVERALLS_PARALLEL: true
+
+
+  coveralls:
+    name: Indicate completion to coveralls.io
+    needs: wecopttool_test
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip3 install --upgrade coveralls
+        coveralls --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  documentation_test:
+    name: Build documentation
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'  # CHANGE: Python version
+
+    - name: Install WecOptTool for documentation
+      shell: bash -l {0}
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install .[dev]
+
+    - name: Build documentation
+      shell: bash -l {0}
+      run: |
+        cd docs
+        make clean
+        make linkcheck
+        make html
+        cd ../
