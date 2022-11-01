@@ -800,12 +800,9 @@ class WEC:
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
         
-        freq = self.omega/2/np.pi
-        period = 1/freq
-        
         omega_coord = ("omega", self.omega, omega_attr)
-        freq_coord = ("omega", freq, freq_attr)
-        period_coord = ("omega", period, period_attr)
+        freq_coord = ("omega", self.frequency, freq_attr)
+        period_coord = ("omega", self.period, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
         
         # frequency domain
@@ -941,6 +938,11 @@ class WEC:
     def omega(self) -> ndarray:
         """Radial frequency vector [rad/s]."""
         return self._freq * (2*np.pi)
+    
+    @property
+    def period(self) -> ndarray:
+        """Period vector [s]."""
+        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
 
     @property
     def w1(self) -> float:
