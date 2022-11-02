@@ -704,8 +704,11 @@ class WEC:
         if (bounds_wec is None) and (bounds_opt is None):
             bounds = None
         else:
-            # TODO: allow for all options of Bounds.
             bounds_in = [bounds_wec, bounds_opt]
+            for idx, bii in enumerate(bounds_in):
+                if isinstance(bii, tuple):
+                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii], 
+                                            ub=[xibs[1] for xibs in bii])
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
