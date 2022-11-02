@@ -7,9 +7,9 @@ The *core* module contains:
 * The *WEC* class
 * Functions for basic functionality
 
-Other functionalities are implemented in additional modules, and can be accessed as :python:`wecoptool.<module>.<function>`.
+Other functionalities are implemented in the submodules, and can be accessed as :python:`wecoptool.<module>.<function>`.
 
-.. note:: The :python:`.core` should be ommitted when accessing functions and classes in the *core* submodule.
+.. note:: The :python:`.core` should be omitted when accessing functions and classes in the *core* submodule.
           E.g., use :python:`wecopttool.WEC` instead of :python:`wecopttool.core.WEC`.
           For all other modules do include the module name, e.g., :python:`wecopttool.waves.regular_wave`.
 

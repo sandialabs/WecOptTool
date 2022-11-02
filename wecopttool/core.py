@@ -64,7 +64,7 @@ class WEC:
     * :meth:`wecopttool.core.WEC.from_impedance`.
 
     .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC`
-        object as :python:`WEC(f1, nfrew, forces, ...)` using
+        object as :python:`WEC(f1, nfreq, forces, ...)` using
         :meth:`wecopttool.core.WEC.__init__` is discouraged. Instead
         use one of the other initialization methods listed in the
         *See Also* section.
@@ -98,7 +98,7 @@ class WEC:
 
         .. note:: Direct initialization of a
             :py:class:`wecopttool.core.WEC` object as
-            :python:`WEC(f1, nfrew, forces, ...)` is discouraged.
+            :python:`WEC(f1, nfreq, forces, ...)` is discouraged.
             Instead use one of the other initialization methods listed
             in the *See Also* section.
 
@@ -799,15 +799,15 @@ class WEC:
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
-        
+
         freq = self.omega/2/np.pi
         period = 1/freq
-        
+
         omega_coord = ("omega", self.omega, omega_attr)
         freq_coord = ("omega", freq, freq_attr)
         period_coord = ("omega", period, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
-        
+
         # frequency domain
         force_da_list = []
         for name, force in self.forces.items():
@@ -817,7 +817,7 @@ class WEC:
                                  dims=["omega", "influenced_dof"],
                                  coords={
                                      'omega': omega_coord,
-                                     'freq': freq_coord, 
+                                     'freq': freq_coord,
                                      'period': period_coord,
                                      'influenced_dof': dof_coord},
                                  attrs=force_attr
