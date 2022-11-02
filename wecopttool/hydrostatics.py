@@ -32,7 +32,8 @@ def stiffness_matrix(
               according to the Capytaine convention (e.g.,
               :python:`"Heave"`).
 
-    Uses :python:`capytaine.FloatingBody.compute_hydrostatic_stiffness`
+    Uses
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.compute_hydrostatic_stiffness`
     on the immersed part of the mesh.
 
     Parameters
@@ -74,8 +75,9 @@ def inertia_matrix(
 
     .. note:: This function assumes a constant density WEC.
 
-    Uses :python:`capytaine.FloatingBody.compute_rigid_body_inertia` on
-    the full mesh.
+    Uses
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.compute_rigid_body_inertia`
+    on the full mesh.
 
     Parameters
     ----------

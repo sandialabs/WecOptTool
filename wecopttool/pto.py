@@ -58,10 +58,10 @@ class PTO:
         of a power take-off system. The forces/moments applied by a
         :py:class:`wecopttool.pto.PTO` object can be applied to a
         :py:class:`wecopttool.core.WEC` object through the
-        :python:`WEC.f_add` property. The power produced by a
+        :py:attr:`wecopttool.core.WEC.f_add` property. The power produced by a
         :py:class:`wecopttool.pto.PTO` object can be used for the
         :python:`obj_fun` of pseudo-spectral optimization problem when
-        calling :python:`WEC.solve`.
+        calling :py:meth:`wecopttool.core.WEC.solve`.
 
         Parameters
         ----------
@@ -528,7 +528,7 @@ class PTO:
 
         Examples
         --------
-        The :meth:`wecopttool.core.WEC.solve` method only returns the
+        The :py:meth:`wecopttool.core.WEC.solve` method only returns the
         post-processed results for the :py:class:`wecopttool.core.WEC`
         object.
 
@@ -570,7 +570,7 @@ class PTO:
             :py:class:`xarray.Dataset` with time domain results.
         """
         create_time = f"{datetime.utcnow()}"
-        
+
         x_wec, x_opt = wec.decompose_state(res.x)
 
         # position
@@ -612,7 +612,7 @@ class PTO:
         time_attr = {'long_name': 'Time', 'units': 's'}
 
         t_dat = wec.time_nsubsteps(nsubsteps)
-        
+
         freq = wec.omega/2/np.pi
         period = 1/freq
 
