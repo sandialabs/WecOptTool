@@ -612,9 +612,6 @@ class PTO:
         time_attr = {'long_name': 'Time', 'units': 's'}
 
         t_dat = wec.time_nsubsteps(nsubsteps)
-        
-        freq = wec.omega/2/np.pi
-        period = 1/freq
 
         results_fd = Dataset(
             data_vars={
@@ -627,8 +624,8 @@ class PTO:
             },
             coords={
                 'omega':('omega', wec.omega, omega_attr),
-                'freq':('omega', freq, freq_attr),
-                'period':('omega', period, period_attr),
+                'freq':('omega', wec.frequency, freq_attr),
+                'period':('omega', wec.period, period_attr),
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": create_time}
             )
