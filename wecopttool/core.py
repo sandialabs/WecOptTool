@@ -760,7 +760,7 @@ class WEC:
         # unscale
         optim_res.x = optim_res.x / scale
         optim_res.fun = optim_res.fun / scale_obj
-        # TODO: unscale all the other fields in the results, e.g. 'jac'
+        optim_res.jac = optim_res.jac / scale_obj * scale
 
         return optim_res
 
