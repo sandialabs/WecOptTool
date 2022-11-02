@@ -791,24 +791,42 @@ class WEC:
         results_td
             Dynamic responses in the time-domain.
         """
-        x_wec, x_opt = self.decompose_state(res.x)
+        create_time = f"{datetime.utcnow()}"
 
+        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+        freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+        period_attr = {'long_name': 'Period', 'units': 's'}
+        time_attr = {'long_name': 'Time', 'units': 's'}
+        dof_attr = {'long_name': 'Degree of freedom'}
+        force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
+        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
+        x_wec, x_opt = self.decompose_state(res.x)
+        
+        omega_coord = ("omega", self.omega, omega_attr)
+        freq_coord = ("omega", self.frequency, freq_attr)
+        period_coord = ("omega", self.period, period_attr)
+        dof_coord = ("influenced_dof", self.dof_names, dof_attr)
+        
         # frequency domain
         force_da_list = []
         for name, force in self.forces.items():
             force_td_tmp = force(self, x_wec, x_opt, waves)
             force_fd = self.td_to_fd(force_td_tmp, fft=True)
             force_da = DataArray(data=force_fd,
-                        coords={'omega':self.omega,  # TODO: use both omega & frequency
-                                'influenced_dof':self.dof_names},
-                        attrs={'units':'N*s or Nm*s'}
-                        ).expand_dims({'type':[name]})
+                                 dims=["omega", "influenced_dof"],
+                                 coords={
+                                     'omega': omega_coord,
+                                     'freq': freq_coord, 
+                                     'period': period_coord,
+                                     'influenced_dof': dof_coord},
+                                 attrs=force_attr
+                                 ).expand_dims({'type': [name]})
             force_da_list.append(force_da)
 
         fd_forces = xr.concat(force_da_list, dim='type')
-        fd_forces.omega.attrs['units'] = 'rad/s'
-        fd_forces.omega.attrs['long_name'] = 'Frequency'
-        fd_forces.influenced_dof.attrs['long_name'] = 'Degree of freedom'
         fd_forces.type.attrs['long_name'] = 'Type'
         fd_forces.name = 'force'
         fd_forces.attrs['long_name'] = 'Force'
@@ -822,27 +840,21 @@ class WEC:
         acc = self.derivative_mat @ vel
         acc_fd = real_to_complex(acc)
 
-        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
-        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
-        omega_attr = {'long_name': 'Frequency', 'units': 'rad/s'}
-        dof_attr = {'long_name': 'Degree of freedom'}
-        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
-
         fd_state = Dataset(
             data_vars={
                 'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
                 'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
                 'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
             coords={
-                'omega': ('omega', self.omega, omega_attr),
-                'influenced_dof': (
-                    'influenced_dof', self.dof_names, dof_attr)},
-            attrs={"time_created_utc": f"{datetime.utcnow()}"}
-            )
+                'omega': omega_coord,
+                'freq': freq_coord,
+                'period': period_coord,
+                'influenced_dof': dof_coord},
+            attrs={"time_created_utc": create_time}
+        )
 
         results_fd = xr.merge([fd_state, fd_forces, waves])
-        results_fd = results_fd.transpose('omega','influenced_dof','type',
+        results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                           'wave_direction')
         results_fd = results_fd.fillna(0)
 
@@ -856,9 +868,9 @@ class WEC:
         results_td['vel'].attrs = vel_attr
         results_td['acc'].attrs = acc_attr
         results_td['wave_elev'].attrs = wave_elev_attr
-
-        results_td['force'].attrs['long_name'] = 'Force'
-        results_td['force'].attrs['units'] = 'N or Nm'
+        results_td['force'].attrs = force_attr
+        results_td['time'].attrs = time_attr
+        results_td.attrs['time_created_utc'] = create_time
 
         return results_fd, results_td
 
@@ -931,6 +943,11 @@ class WEC:
     def omega(self) -> ndarray:
         """Radial frequency vector [rad/s]."""
         return self._freq * (2*np.pi)
+    
+    @property
+    def period(self) -> ndarray:
+        """Period vector [s]."""
+        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
 
     @property
     def w1(self) -> float:

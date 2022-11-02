@@ -104,7 +104,6 @@ def test_inertia_matrix(fb, lx, ly, lz, rho, g):
     truth[5, 5] = mass/12 * (lx**2 + ly**2)
 
 
-    # TODO: Capytaine>=1.4.1
     assert np.allclose(truth, calc_default, rtol=0.01) # infer mass
     assert np.allclose(truth, calc, rtol=0.01) # given mass
     assert np.allclose(truth, calc_redundant, rtol=0.01) # mass given twice
