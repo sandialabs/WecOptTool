@@ -1,5 +1,7 @@
-{% set name = "wecopttool" %}
-{% set version = "v2.0.0" %}
+{% set pyproject = load_file_data('pyproject.toml') %}
+{% set poetry = pyproject.get('tool', {}).get('poetry') %}
+{% set name = poetry.get('name') %}
+{% set version = poetry.get('version') %}
 
 package:
   name: {{ name|lower }}
@@ -9,6 +11,9 @@ source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   sha256: 3cde0669695e951a3dd6b0a2b2afbcb486e4717466b55eac92e842eb36bde419
 
+build:
+  script: "{{ PYTHON }} -m pip install . -vv"
+
 requirements:
   host:
     - python
@@ -17,7 +22,7 @@ requirements:
     - python>=3.8
     - numpy>=1.20
     - scipy
-    - matplotlib
+    - matplotlib-base
     - xarray
     - autograd
     - meshio
@@ -30,23 +35,19 @@ requirements:
 test:
   imports:
     - wecopttool
-    - wecopttool.tests
   requires:
     - pytest
-    - pip
   commands:
     - pip
     - pytest
 
 about:
-  home: https://github.com/SNL-WaterPower/WecOptTool
-  license: GNU General Public License v3 (GPLv3)
+  home: {{ poetry.get('urls') }}
+  license: {{ poetry.get('license') }}
   license_file: LICENSE
-  summary: WEC Design Optimization Toolbox
+  summary: {{ poetry.get('description') }}
 
 extra:
   recipe-maintainers:
     - cmichelenstrofer
-    - dtgaebe
     - michaelcdevin
-    - ryancoe
