@@ -126,7 +126,7 @@ def _set_property(
         )
     if not hasattr(fb, property):
         setattr(fb, property, None)
-    prop_org = fb[property] is not None
+    prop_org = getattr(fb, property) is not None
     prop_new = value is not None
 
     if not prop_org and not prop_new:
@@ -134,25 +134,28 @@ def _set_property(
             vol = fb.copy(
                 name=f"{fb.name}_immersed"
                 ).keep_immersed_part().volume
-            fb[property] = rho * vol
-            _log.info("Setting the mass to the displaced mass.")
+            def_val = rho * vol
+            log_str = (
+                "Setting the mass to the displaced mass.")
         elif property == 'center_of_mass':
-            fb[property] = fb.center_of_buoyancy
-            _log.info(
+            def_val = fb.center_of_buoyancy
+            log_str = (
                 "Using the geometric centroid as the center of gravity (COG).")
         elif property == 'rotation_center':
-            fb[property] = fb.center_of_mass
-            _log.info(
+            def_val = fb.center_of_mass
+            log_str = (
                 "Using the center of gravity (COG) as the rotation center " +
                 "for hydrostatics.")
+        setattr(fb, property, def_val)
+        _log.info(log_str)
     elif prop_org and prop_new:
-        if not np.allclose(fb[property], value):
+        if not np.allclose(getattr(fb, property), value):
             raise ValueError(
                f"Both :python:`fb.{property}` and " +
                f":python:`{property}` were provided but have " +
                 "different values."
             )
     elif prop_new:
-        fb[property] = value
+        setattr(fb, property, value)
 
     return fb
