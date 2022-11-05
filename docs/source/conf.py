@@ -122,7 +122,7 @@ intersphinx_mapping = {
     'python': ('http://docs.python.org/2', None),
     'numpy': ('https://numpy.org/doc/stable/', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
+#     'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),  # TODO: SciPy documentation broken
     'matplotlib': ('http://matplotlib.org/stable', None),
     'xarray': ('https://docs.xarray.dev/en/stable', None),
     # TODO: capytaine, wavespectra
