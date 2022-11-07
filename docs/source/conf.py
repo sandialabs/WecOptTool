@@ -1,8 +1,3 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# For a full list of options see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
-
 import os
 import sys
 import shutil
@@ -16,6 +11,10 @@ from wecopttool import __version__, __version_info__
 project_root = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../.."))
 sys.path.insert(0, project_root)
+
+code_root = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../wecopttool"))
+sys.path.insert(0, code_root)
 
 # -- Project information -----------------------------------------------------
 project = 'WecOptTool'
@@ -44,7 +43,6 @@ extensions = [
 
 templates_path = ['_templates']
 
-# -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
 html_theme_options = {
     'navigation_depth': 5,
@@ -54,23 +52,20 @@ html_static_path = ['_static']
 def setup(app):
     app.add_css_file('css/custom.css')
 
-# nbsphinx and austosectionlabel do not play well together
-suppress_warnings = ["autosectionlabel.*"]
+suppress_warnings = ["autosectionlabel.*"] # nbsphinx and austosectionlabel do not play well together
 
-# linkcheck ignore
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
 ]
 
-# -- Extension configuration -------------------------------------------------
-# BibTeX settings
+# -- References (BibTex) -----------------------------------------------------
 bibtex_bibfiles = ['wecopttool_refs.bib']
 bibtex_encoding = 'utf-8-sig'
 bibtex_default_style = 'alpha'
 bibtex_reference_style = 'label'
 bibtex_foot_reference_style = 'foot'
 
-# Jupyter Notebooks
+# -- Tutorials (Jupyter) -----------------------------------------------------
 print("Copy example notebooks into docs/_examples")
 
 def all_but_ipynb(dir, contents):
@@ -86,8 +81,7 @@ shutil.copytree(os.path.join(project_root,  "examples"),
                 os.path.join(project_root,  "docs/source/_examples"),
                 ignore=all_but_ipynb)
 
-# autodoc, autosummary, etc
-napoleon_google_docstring = False
+# -- API documentation -------------------------------------------------------
 napoleon_numpy_docstring = True
 napoleon_include_init_with_doc = True
 add_module_names = False
@@ -116,15 +110,16 @@ rst_prolog = """
 autodoc_default_options = {
     'exclude-members': '__new__'
 }
+autosummary_ignore_module_all = False
+autosummary_imported_members = True
 
-# Intersphinx
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'numpy': ('https://numpy.org/doc/stable', None),
     'pandas': ('https://pandas.pydata.org/docs', None),
-    'scipy': ('http://docs.scipy.org/doc/scipy/reference', None),
-    'matplotlib': ('http://matplotlib.org/stable', None),
+    'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
+    'matplotlib': ('https://matplotlib.org/stable', None),
     'xarray': ('https://docs.xarray.dev/en/stable', None),
     'capytaine': ('https://ancell.in/capytaine/latest', None),
     'wavespectra': ('https://wavespectra.readthedocs.io/en/latest', None),
-    }
+}

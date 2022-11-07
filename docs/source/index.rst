@@ -10,13 +10,6 @@ WecOptTool
     tutorials.rst
     references.rst
 
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-    :titlesonly:
-
-    api_docs.rst
-
 The Wave Energy Converter Design Optimization Toolbox (WecOptTool) is an open-source software for conducting optimization studies of wave energy converters (WEC) and their control strategies.
 The software uses a co-design (WEC & controls) approach where for each WEC design considered in the optimization, the optimal control strategy for that design is found.
 Practically, this is implemented as two nested optimization loops.
@@ -47,3 +40,14 @@ Sandia National Laboratories is a multi-mission laboratory managed and operated 
 .. _Oregon State University Design Engineering Lab: https://design.engr.oregonstate.edu
 .. _Sandia National Laboratories: https://www.sandia.gov
 .. _WecOptTool-MATLAB: https://github.com/SNL-WaterPower/WecOptTool-MATLAB
+
+
+Package
+=======
+.. autosummary::
+    :toctree: api_docs
+    :recursive:
+    :nosignatures:
+    :template: package.rst
+
+    wecopttool

@@ -26,11 +26,11 @@ This expression can be rewritten in residual form as
 The decision variable, :math:`x`, includes states of the body motion as well as other external states, e.g., related to controllers, PTO systems, mooring systems, etc.
 
 .. math::
-    x = 
-	\begin{bmatrix}
-		x_{pos}\\
-		x_{ext}
-	\end{bmatrix}
+    x =
+    \begin{bmatrix}
+        x_{pos}\\
+        x_{ext}
+    \end{bmatrix}
     :label: decision_variable_top
 
 Here, :math:`x_{pos} \in \mathbb{R}^{m(2n + 1)}`, where :math:`m` is the number of body modes of motion and :math:`n` is the number of frequency components.
@@ -39,13 +39,13 @@ Body modes could include multiple degrees-of-freedom for a single body (e.g., he
 The frequency vector :math:`\omega \in \mathbb{R}^n` should span the relevant frequencies of the device operation, and also super harmonics to capture nonlinearities.
 
 .. math::
-    x_{pos} = 
-	\begin{bmatrix}
-		x_{pos,1} \\
-		x_{pos,2} \\
-		\vdots \\
-		x_{pos,m}
-	\end{bmatrix}
+    x_{pos} =
+    \begin{bmatrix}
+        x_{pos,1} \\
+        x_{pos,2} \\
+        \vdots \\
+        x_{pos,m}
+    \end{bmatrix}
     :label: decision_variable_position
 
 For each mode, :math:`x_{pos}` has :math:`2n + 1` elements (:math:`x_{pos,k} \in \mathbb{R}^{2n + 1}`).
@@ -54,15 +54,15 @@ The additional element in the first position is used to capture a mean ("DC") di
 Thus, the portion of :math:`x_{pos}` describing the :math:`k`-th mode would be.
 
 .. math::
-	x_{pos,k} = 
-	\begin{bmatrix}
-		\bar{x}_{pos,k} \\
-		a_{k,1} \\
-		b_{k,1} \\
-		\vdots \\
-		a_{k,n} \\
-		b_{k,n}
-	\end{bmatrix}
+    x_{pos,k} =
+    \begin{bmatrix}
+        \bar{x}_{pos,k} \\
+        a_{k,1} \\
+        b_{k,1} \\
+        \vdots \\
+        a_{k,n} \\
+        b_{k,n}
+    \end{bmatrix}
     :label: decision_variable_position_detail
 
 The external state vector (:math:`x_{ext}`) has an analogous composition.
@@ -71,4 +71,3 @@ The mean components in :math:`x_{ext}` can be used to capture, for example, pret
 .. TODO: MIMO transfer function block matrices
 .. TODO: dynamics evaluated in terms of position (not velocity)
 .. TODO: time vector
-

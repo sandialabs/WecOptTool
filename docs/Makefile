@@ -21,3 +21,4 @@ clean:
 %: Makefile
 	python3 $(SOURCEDIR)/make_theory_animations.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@sed '/<section id="package">/,/<\/section>/d' _build/html/index.html > tmp; mv tmp _build/html/index.html

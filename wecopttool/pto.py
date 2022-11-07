@@ -17,6 +17,15 @@ Contains:
 from __future__ import annotations
 
 
+__all__ = [
+    "PTO",
+    "controller_unstructured",
+    "controller_pid",
+    "controller_pi",
+    "controller_p",
+]
+
+
 from typing import Optional, TypeVar, Callable, Union
 
 import autograd.numpy as np
@@ -40,7 +49,7 @@ TEFF = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 class PTO:
     """A power take-off (PTO) object to be used in conjunction with a
-    :py:class:`wecopttool.core.WEC` object.
+    :py:class:`wecopttool.WEC` object.
     """
 
     def __init__(self,
@@ -57,11 +66,11 @@ class PTO:
         kinematics, control logic, impedance and/or non-=linear loss map
         of a power take-off system. The forces/moments applied by a
         :py:class:`wecopttool.pto.PTO` object can be applied to a
-        :py:class:`wecopttool.core.WEC` object through the
-        :py:attr:`wecopttool.core.WEC.f_add` property. The power produced by a
+        :py:class:`wecopttool.WEC` object through the
+        :py:attr:`wecopttool.WEC.f_add` property. The power produced by a
         :py:class:`wecopttool.pto.PTO` object can be used for the
         :python:`obj_fun` of pseudo-spectral optimization problem when
-        calling :py:meth:`wecopttool.core.WEC.solve`.
+        calling :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
         ----------
@@ -157,7 +166,7 @@ class PTO:
         """Transfer matrix."""
         return self._transfer_mat
 
-    def _tmat(self, wec: TWEC, nsubsteps: Optional[int] = 1):
+    def _tmat(self, wec, nsubsteps: Optional[int] = 1):
         if nsubsteps==1:
             tmat = wec.time_mat
         else:
@@ -165,7 +174,7 @@ class PTO:
         return tmat
 
     def _fkinematics(self,
-        f_wec,
+        f_wec: ndarray,
         wec: TWEC,
         x_wec: ndarray,
         x_opt: Optional[ndarray] = None,
@@ -179,7 +188,7 @@ class PTO:
         f_wec
             Fourier coefficients of some quantity "f" in the WEC frame.
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -211,7 +220,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -239,7 +248,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -268,7 +277,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -298,7 +307,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -332,7 +341,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -362,7 +371,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -391,7 +400,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -420,7 +429,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -449,8 +458,6 @@ class PTO:
             e2_td = np.dot(time_mat, e2)
             q2_td = np.dot(time_mat, q2)
         else:
-            # e1_td = self.force(wec, x_wec, x_opt, waves)
-            # q1_td = self.velocity(wec, x_wec, x_opt, waves)
             e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
             q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
         # power
@@ -472,7 +479,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -501,7 +508,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         x_wec
             WEC dynamic state.
         x_opt
@@ -528,8 +535,8 @@ class PTO:
 
         Examples
         --------
-        The :py:meth:`wecopttool.core.WEC.solve` method only returns the
-        post-processed results for the :py:class:`wecopttool.core.WEC`
+        The :py:meth:`wecopttool.WEC.solve` method only returns the
+        post-processed results for the :py:class:`wecopttool.WEC`
         object.
 
         >>> res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,
@@ -551,7 +558,7 @@ class PTO:
         Parameters
         ----------
         wec
-            :py:class:`wecopttool.core.WEC` object.
+            :py:class:`wecopttool.WEC` object.
         res
             Results produced by :py:func:`scipy.optimize.minimize`.
         waves
@@ -725,7 +732,7 @@ def controller_unstructured(
     pto
         :py:class:`wecopttool.pto.PTO` object.
     wec
-        :py:class:`wecopttool.core.WEC` object.
+        :py:class:`wecopttool.WEC` object.
     x_wec
         WEC dynamic state.
     x_opt
@@ -762,7 +769,7 @@ def controller_pid(
     pto
         :py:class:`wecopttool.pto.PTO` object.
     wec
-        :py:class:`wecopttool.core.WEC` object.
+        :py:class:`wecopttool.WEC` object.
     x_wec
         WEC dynamic state.
     x_opt
@@ -819,7 +826,7 @@ def controller_pi(
     pto
         :py:class:`wecopttool.pto.PTO` object.
     wec
-        :py:class:`wecopttool.core.WEC` object.
+        :py:class:`wecopttool.WEC` object.
     x_wec
         WEC dynamic state.
     x_opt
@@ -853,7 +860,7 @@ def controller_p(
     pto
         :py:class:`wecopttool.pto.PTO` object.
     wec
-        :py:class:`wecopttool.core.WEC` object.
+        :py:class:`wecopttool.WEC` object.
     x_wec
         WEC dynamic state.
     x_opt

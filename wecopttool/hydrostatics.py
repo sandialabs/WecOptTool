@@ -6,6 +6,12 @@ floating bodies.
 from __future__ import annotations
 
 
+__all__ = [
+    "stiffness_matrix",
+    "inertia_matrix"
+]
+
+
 from typing import Iterable, Optional
 import logging
 

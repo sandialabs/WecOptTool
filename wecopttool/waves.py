@@ -18,6 +18,22 @@ This module uses wave spectrum data in the
 from __future__ import annotations
 
 
+__all__ = [
+    "elevation_fd",
+    "regular_wave",
+    "long_crested_wave",
+    "irregular_wave",
+    "random_phase",
+    "omnidirectional_spectrum",
+    "spectrum",
+    "pierson_moskowitz_spectrum",  # TODO: Remove all below after wavespectra
+    "jonswap_spectrum",
+    "spread_cos2s",
+    "general_spectrum",
+    "pierson_moskowitz_params",
+]
+
+
 import logging
 from typing import Callable, Mapping, Union, Optional, Iterable
 

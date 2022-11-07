@@ -5,6 +5,11 @@
 from __future__ import annotations
 
 
+__all__ = [
+    "WaveBot",
+]
+
+
 from typing import Optional
 
 import matplotlib.pyplot as plt

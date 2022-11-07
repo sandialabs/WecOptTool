@@ -14,6 +14,43 @@ Contains:
 from __future__ import annotations
 
 
+__all__ = [
+    "WEC",
+    "ncomponents",
+    "frequency",
+    "time",
+    "time_mat",
+    "derivative_mat",
+    "degrees_to_radians",
+    "vec_to_dofmat",
+    "dofmat_to_vec",
+    "mimo_transfer_mat",
+    "real_to_complex",
+    "complex_to_real",
+    "fd_to_td",
+    "td_to_fd",
+    "wave_excitation",
+    "read_netcdf",
+    "write_netcdf",
+    "check_linear_damping",
+    "force_from_rao_transfer_function",
+    "force_from_impedance",
+    "force_from_waves",
+    "inertia",
+    "standard_forces",
+    "run_bem",
+    "change_bem_convention",
+    "linear_hydrodynamics",
+    "atleast_2d",
+    "subset_close",
+    "scale_dofs",
+    "decompose_state",
+    "frequency_parameters",
+    "time_results",
+    "add_zerofreq_to_xr",
+]
+
+
 import logging
 from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
@@ -58,19 +95,19 @@ class WEC:
 
     To create the WEC use one of the initialization methods:
 
-    * :py:meth:`wecopttool.core.WEC.__init__`
-    * :py:meth:`wecopttool.core.WEC.from_bem`
-    * :py:meth:`wecopttool.core.WEC.from_floating_body`
-    * :py:meth:`wecopttool.core.WEC.from_impedance`.
+    * :py:meth:`wecopttool.WEC.__init__`
+    * :py:meth:`wecopttool.WEC.from_bem`
+    * :py:meth:`wecopttool.WEC.from_floating_body`
+    * :py:meth:`wecopttool.WEC.from_impedance`.
 
-    .. note:: Direct initialization of a :py:class:`wecopttool.core.WEC`
+    .. note:: Direct initialization of a :py:class:`wecopttool.WEC`
         object as :python:`WEC(f1, nfreq, forces, ...)` using
-        :py:meth:`wecopttool.core.WEC.__init__` is discouraged. Instead
+        :py:meth:`wecopttool.WEC.__init__` is discouraged. Instead
         use one of the other initialization methods listed in the
         *See Also* section.
 
     To solve the pseudo-spectral problem use
-    :py:meth:`wecopttool.core.WEC.solve`.
+    :py:meth:`wecopttool.WEC.solve`.
     """
     def __init__(
         self,
@@ -86,7 +123,7 @@ class WEC:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
 
-        The :py:class:`wecopttool.core.WEC` class describes a WEC's
+        The :py:class:`wecopttool.WEC` class describes a WEC's
         equation of motion as :math:`ma=Σf` where the
         :python:`inertia_matrix` matrix specifies the inertia :math:`m`,
         and the :python:`forces` dictionary specifies the different
@@ -97,7 +134,7 @@ class WEC:
         :python:`WEC.from_impedance` initialization function.
 
         .. note:: Direct initialization of a
-            :py:class:`wecopttool.core.WEC` object as
+            :py:class:`wecopttool.WEC` object as
             :python:`WEC(f1, nfreq, forces, ...)` is discouraged.
             Instead use one of the other initialization methods listed
             in the *See Also* section.
@@ -157,13 +194,13 @@ class WEC:
         See Also
         --------
         from_bem:
-            Initialize a :py:class:`wecopttool.core.WEC` object from BEM
+            Initialize a :py:class:`wecopttool.WEC` object from BEM
             results.
         from_floating_body:
-            Initialize a :py:class:`wecopttool.core.WEC` object from a
+            Initialize a :py:class:`wecopttool.WEC` object from a
             :py:class:`capytaine.bodies.bodies.FloatingBody` object.
         from_impedance:
-            Initialize a :py:class:`wecopttool.core.WEC` object from an
+            Initialize a :py:class:`wecopttool.WEC` object from an
             intrinsic impedance array and excitation coefficients.
         """
         self._freq = frequency(f1, nfreq)
@@ -257,20 +294,20 @@ class WEC:
         The :python:`bem_data` can be a dataset or the name of a
         *NetCDF* file containing the dataset.
 
-        The returned :py:class:`wecopttool.core.WEC` object contains the
+        The returned :py:class:`wecopttool.WEC` object contains the
         inertia and the default linear forces: radiation, diffraction,
         and Froude-Krylov. Additional forces can be specified through
         :python:`f_add`.
 
         Note that because Capytaine uses a different sign convention,
         the direct results from capytaine must be modified using
-        :py:func:`wecopttool.core.change_bem_convention` before calling
+        :py:func:`wecopttool.change_bem_convention` before calling
         this initialization function.
         Instead, the recommended approach is to use
-        :py:func:`wecopttool.core.run_bem`,
+        :py:func:`wecopttool.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
-        using :py:func:`wecopttool.core.write_netcdf`.
+        using :py:func:`wecopttool.write_netcdf`.
 
         In addition to the Capytaine results, if the dataset contains
         the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
@@ -308,7 +345,7 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.core.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_linear_damping` for more details.
 
         Raises
         ------
@@ -316,13 +353,13 @@ class WEC:
             If either :python:`inertia_matrix` or
             :python:`hydrostatic_stiffness` are :python:`None` and is
             not included in :python:`bem_data`.
-            See :py:func:`wecopttool.core.linear_hydrodynamics`.
+            See :py:func:`wecopttool.linear_hydrodynamics`.
         ValueError
             If any of :python:`inertia_matrix`,
             :python:`hydrostatic_stiffness`, or :python:`stiffness` are
             both provided and included in :python:`bem_data` but have
             different values.
-            See :py:func:`wecopttool.core.linear_hydrodynamics`.
+            See :py:func:`wecopttool.linear_hydrodynamics`.
 
         See Also
         --------
@@ -375,18 +412,18 @@ class WEC:
         A :py:class:capytaine.bodies.bodies.FloatingBody object contains
         information on the mesh and degrees of freedom.
 
-        This initialization method calls :py:func:`wecopttool.core.run_bem`
-        followed by :py:meth:`wecopttool.core.WEC.from_bem`.
+        This initialization method calls :py:func:`wecopttool.run_bem`
+        followed by :py:meth:`wecopttool.WEC.from_bem`.
 
         This will run Capytaine to obtain the linear hydrodynamic
         coefficients, which can take from a few minutes to several
         hours.
         Instead, if the hydrodynamic coefficients can be reused, it is
         recommended to run Capytaine first and save the results using
-        :py:func:`wecopttool.core.run_bem` and
-        :py:func:`wecopttool.core.write_netcdf`,
-        and then initialize the :py:class:`wecopttool.core.WEC` object
-        using :py:meth:`wecopttool.core.WEC.from_bem`.
+        :py:func:`wecopttool.run_bem` and
+        :py:func:`wecopttool.write_netcdf`,
+        and then initialize the :py:class:`wecopttool.WEC` object
+        using :py:meth:`wecopttool.WEC.from_bem`.
         This initialization method should be
         reserved for the cases where the hydrodynamic coefficients
         constantly change and are not reused, as for example for
@@ -423,7 +460,7 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.core.check_linear_damping` for
+            See :py:func:`wecopttool.check_linear_damping` for
             more details.
         wave_directions
             List of wave directions [degrees] to evaluate BEM at.
@@ -437,7 +474,7 @@ class WEC:
         Returns
         -------
         WEC
-            An instance of the :py:class:`wecopttool.core.WEC` class.
+            An instance of the :py:class:`wecopttool.WEC` class.
 
         See Also
         --------
@@ -771,7 +808,7 @@ class WEC:
         nsubsteps: Optional[int] = 1,
     ) -> tuple[Dataset, Dataset]:
         """Post-process the results from
-        :py:meth:`wecopttool.core.WEC.solve`.
+        :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
         ----------
@@ -1020,7 +1057,7 @@ class WEC:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
-        Calls :py:func:`wecopttool.core.decompose_state` with the
+        Calls :py:func:`wecopttool.decompose_state` with the
         appropriate inputs for the WEC object.
 
         Examples
@@ -1048,7 +1085,7 @@ class WEC:
     def time_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time vector with finer discretization.
 
-        Calls :py:func:`wecopttool.core.time` with the appropriate
+        Calls :py:func:`wecopttool.time` with the appropriate
         inputs for the WEC object.
 
         Parameters
@@ -1064,10 +1101,10 @@ class WEC:
 
     def time_mat_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time matrix similar to
-        :py:meth:`wecopttool.core.WEC.time_mat` but with finer
+        :py:meth:`wecopttool.WEC.time_mat` but with finer
         time-domain discretization.
 
-        Calls :py:func:`wecopttool.core.time_mat` with the appropriate
+        Calls :py:func:`wecopttool.time_mat` with the appropriate
         inputs for the WEC object.
 
         Parameters
@@ -1085,9 +1122,9 @@ class WEC:
         """Convert a vector to a matrix with one column per degree of
         freedom.
 
-        Opposite of :py:meth:`wecopttool.core.WEC.dofmat_to_vec`.
+        Opposite of :py:meth:`wecopttool.WEC.dofmat_to_vec`.
 
-        Calls :py:func:`wecopttool.core.vec_to_dofmat` with the
+        Calls :py:func:`wecopttool.vec_to_dofmat` with the
         appropriate inputs for the WEC object.
 
         Examples
@@ -1109,9 +1146,9 @@ class WEC:
     def dofmat_to_vec(self, mat: ndarray) -> ndarray:
         """Flatten a matrix to a vector.
 
-        Opposite of :py:meth:`wecopttool.core.WEC.vec_to_dofmat`.
+        Opposite of :py:meth:`wecopttool.WEC.vec_to_dofmat`.
 
-        Calls :py:func:`wecopttool.core.dofmat_to_vec` with the
+        Calls :py:func:`wecopttool.dofmat_to_vec` with the
         appropriate inputs for the WEC object.
 
         Parameters
@@ -1128,9 +1165,9 @@ class WEC:
     def fd_to_td(self, fd: ndarray) -> ndarray:
         """Convert a frequency-domain array to time-domain.
 
-        Opposite of :py:meth:`wecopttool.core.WEC.td_to_fd`.
+        Opposite of :py:meth:`wecopttool.WEC.td_to_fd`.
 
-        Calls :py:func:`wecopttool.core.fd_to_td` with the appropriate inputs
+        Calls :py:func:`wecopttool.fd_to_td` with the appropriate inputs
         for the WEC object.
 
         Parameters
@@ -1152,9 +1189,9 @@ class WEC:
         ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
 
-        Opposite of :py:meth:`wecopttool.core.WEC.fd_to_td`.
+        Opposite of :py:meth:`wecopttool.WEC.fd_to_td`.
 
-        Calls :py:func:`wecopttool.core.fd_to_td` with the appropriate
+        Calls :py:func:`wecopttool.fd_to_td` with the appropriate
         inputs for the WEC object.
 
         Parameters
@@ -1354,7 +1391,7 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     Returns a matrix with :python:`ndof` columns.
     The number of rows is inferred from the size of the input vector.
 
-    Opposite of :py:func:`wecopttool.core.dofmat_to_vec`.
+    Opposite of :py:func:`wecopttool.dofmat_to_vec`.
 
     Parameters
     ----------
@@ -1376,7 +1413,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 
     Returns a 1D vector.
 
-    Opposite of :py:func:`wecopttool.core.vec_to_dofmat`.
+    Opposite of :py:func:`wecopttool.vec_to_dofmat`.
 
     Parameters
     ----------
@@ -1560,7 +1597,7 @@ def fd_to_td(
     time matrix :python:`wecopttool.time_mat(f1, nfreq, nsubsteps=1)`,
     else it uses the inverse real FFT (:py:func:`numpy.fft.irfft`).
 
-    Opposite of :py:meth:`wecopttool.core.td_to_fd`.
+    Opposite of :py:meth:`wecopttool.td_to_fd`.
 
     Parameters
     ----------
@@ -1606,7 +1643,7 @@ def td_to_fd(
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
-    Opposite of :py:func:`wecopttool.core.fd_to_td`
+    Opposite of :py:func:`wecopttool.fd_to_td`
 
     Parameters
     ----------
@@ -1768,7 +1805,7 @@ def force_from_rao_transfer_function(
     """Create a force function from its position transfer matrix.
 
     This is the position equivalent to the velocity-based
-    :py:func:`wecopttool.core.force_from_impedance`.
+    :py:func:`wecopttool.force_from_impedance`.
 
     Parameters
     ----------
@@ -1915,13 +1952,13 @@ def run_bem(
 
     This simplifies running *Capytaine* and ensures the output are in
     the correct convention (see
-    :py:func:`wecopttool.core.change_bem_convention`).
+    :py:func:`wecopttool.change_bem_convention`).
 
     It creates the *test matrix*, calls
     :py:meth:`capytaine.bodies.bodies.FloatingBody.keep_immersed_part`,
     calls :py:meth:`capytaine.bem.solver.BEMSolver.fill_dataset`,
     and changes the sign convention using
-    :py:func:`wecopttool.core.change_bem_convention`.
+    :py:func:`wecopttool.change_bem_convention`.
 
     Parameters
     ----------
@@ -2287,10 +2324,15 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     return out
 
 
-def add_zerofreq_to_xr(data):
+def add_zerofreq_to_xr(data: Dataset) -> Dataset:
     """Add a zero-frequency component to an :py:class:`xarray.Dataset`.
 
     Frequency variable must be called :python:`omega`.
+
+    Parameters
+    ----------
+    data
+        Dataset with no zero-frequency component.
     """
     if not np.isclose(data.coords['omega'][0].values, 0):
         tmp = data.isel(omega=0).copy(deep=True)
