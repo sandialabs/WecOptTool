@@ -1,0 +1,51 @@
+{% set name = 'wecopttool' %}
+{% set version = '2.0.0' %}
+package:
+  name: 'wecopttool'
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: 3cde0669695e951a3dd6b0a2b2afbcb486e4717466b55eac92e842eb36bde419
+
+build:
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - python>=3.8,<3.11
+    - pip
+    - numpy>=1.20
+  run:
+    - python>=3.8,<3.11
+    - numpy>=1.20
+    - scipy
+    - capytaine==1.4.0
+    - wavespectra
+    - meshio
+    - matplotlib-base
+    - xarray
+    - autograd
+    - netCDF4
+    - jupyter
+    - joblib
+    
+test:
+  requires:
+    - pip
+  commands:
+    - pip install gmsh pygmsh
+    - pip check
+  imports:
+    - wecopttool
+
+about:
+  home: https://snl-waterpower.github.io/WecOptTool/
+  license: GNU General Public License v3 (GPLv3)
+  license_file: LICENSE
+  summary: WEC Design Optimization Toolbox
+
+extra:
+  recipe-maintainers:
+    - cmichelenstrofer
+    - michaelcdevin
