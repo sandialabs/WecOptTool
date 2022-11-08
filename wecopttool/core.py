@@ -801,7 +801,6 @@ class WEC:
 
         return optim_res
 
-
     def post_process(self,
         res: OptimizeResult,
         waves: Dataset,
@@ -1294,12 +1293,12 @@ def time_mat(
     """Assemble the time matrix that converts the state to a
     time-series.
 
-    For a state :python:`x` consisting of the mean (DC) component
+    For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
     coefficients as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
+    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
     the response vector in the time-domain (:math:`x(t)`) is given as
-    :python:`Mx`, where :python:`M` is the time matrix.
+    :math:`Mx`, where :math:`M` is the time matrix.
 
     The time matrix has size :python:`(nfreq*2+1, nfreq*2+1)`.
 
@@ -1336,12 +1335,12 @@ def derivative_mat(
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
 
-    For a state :python:`x` consisting of the mean (DC) component
+    For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
     coefficients as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
-    the state of its derivative is given as :python:`Dx`, where
-    :python:`D` is the derivative matrix.
+    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
+    the state of its derivative is given as :math:`Dx`, where
+    :math:`D` is the derivative matrix.
 
     The derivative matrix has size :python:`(nfreq*2+1, nfreq*2+1)`.
 
