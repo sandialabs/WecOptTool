@@ -6,6 +6,7 @@ import wecopttool as wot
 import capytaine as cpy
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import Bounds
 
 @pytest.fixture()
 def f1():
@@ -23,6 +24,15 @@ def pto():
     ndof = 1
     kinematics = np.eye(ndof)
     pto = wot.pto.PTO(ndof, kinematics)
+    return pto
+
+
+@pytest.fixture()
+def p_controller_pto():
+    ndof = 1
+    pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof), 
+                      controller=wot.pto.controller_p,
+                      names=["P controller PTO"])
     return pto
 
 
@@ -94,6 +104,26 @@ def wec_from_impedance(bem, pto, fb):
     wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add)
     return wec
 
+#TODO - probably fold this into another test
+def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
+
+    cbstring = 'hello world!'
+    
+    def my_callback(my_wec, x_wec, x_opt, wave):
+        print(cbstring)
+
+    _ = wec_from_bem.solve(regular_wave,
+                  obj_fun=pto.average_power,
+                  nstate_opt=2*nfreq+1,
+                  scale_x_wec=1.0,
+                  scale_x_opt=0.01,
+                  scale_obj=1e-1,
+                  callback=my_callback,
+                  optim_options={'maxiter': 1})
+
+    out, err = capfd.readouterr()
+
+    assert out.split('\n')[0] == cbstring
 
 def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
 
@@ -1015,55 +1045,27 @@ def test_same_wec_init(
 
 #     assert res['nit'] < 10  # takes ~23 w/o initial guess
 
+kplim = -1e1
+@pytest.mark.parametrize("bounds_opt", [Bounds(lb=kplim, ub=0), ((kplim, 0),)])
+def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave, p_controller_pto):
+    """Confirm that bounds are not violated and scale correctly"""
 
-# def test_solve_bounds(wec, resonant_wave):
-#     """Confirm that bounds are not violated and scale correctly"""
+    # replace unstructured controller with propotional controller
+    wec_from_bem.forces['PTO'] = p_controller_pto.force_on_wec
+    
+    res = wec_from_bem.solve(waves=regular_wave,
+                             obj_fun=p_controller_pto.average_power,
+                             nstate_opt=1,
+                             x_opt_0=[kplim*0.1],
+                             optim_options={'maxiter': 2e1,
+                                               'ftol': 1e-8},
+                             bounds_opt=bounds_opt,
+                             )
 
-#     # remove constraints
-#     wec.constraints = []
-
-#     # update PTO
-#     kinematics = np.eye(wec.ndof)
-#     pto = wot.pto.ProportionalPTO(kinematics)
-#     wec.f_add = {'PTO': pto.force_on_wec}
-
-#     # set bounds such that optimal will equal bound
-#     kplim = -1e3
-#     bounds_opt = Bounds(lb=kplim,
-#                         ub=0)
-
-#     # poor guess (optimal / 10)
-#     kp_guess = [-1 *
-#                 wec.hydro.Zi[np.where(resonant_wave.S > 0)[0]].real.item()/10]
-
-#     *_, x_opt, _, _ = wec.solve(resonant_wave,
-#                                 obj_fun=pto.average_power,
-#                                 nstate_opt=pto.nstate,
-#                                 optim_options={'maxiter': 5e1,
-#                                                'ftol': 1e-8},
-#                                 scale_x_opt=1e3,
-#                                 x_opt_0=kp_guess,
-#                                 bounds_opt=bounds_opt)
-
-#     assert pytest.approx(kplim, 1e-10) == x_opt.item()
+    assert pytest.approx(kplim, 1e-10) == res['x'][-1]
 
 
-# def test_solve_callback(wec, regular_wave, pto, capfd):
 
-#     cbstring = 'hello world!'
-
-#     _ = wec.solve(regular_wave,
-#                   obj_fun=pto.average_power,
-#                   nstate_opt=pto.nstate,
-#                   scale_x_wec=1.0,
-#                   scale_x_opt=0.01,
-#                   scale_obj=1e-1,
-#                   callback=lambda x: print(cbstring),
-#                   optim_options={'maxiter': 1})
-
-#     out, err = capfd.readouterr()
-
-#     assert out.split('\n')[0] == cbstring
 
 
 # def test_regular_wave_power(wec, regular_wave, pto):

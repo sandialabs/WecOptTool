@@ -593,7 +593,7 @@ class WEC:
         maximize: Optional[bool] = False,
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
-        callback: Optional[Callable[[ndarray]]] = None,
+        callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method.
@@ -644,9 +644,10 @@ class WEC:
             decision variable.
             See :py:func:`scipy.optimize.minimize`.
         callback
-            Function called after each iteration.
-            See :py:func:`scipy.optimize.minimize`.
-            The default is reported via logging at the INFO level.
+            Function called after each iteration, must have signature 
+            :python:`fun(wec, x_wec, x_opt, waves)`. The default 
+            provides status reports at each iteration via logging at the
+            INFO level.
 
         Returns
         -------
@@ -745,8 +746,11 @@ class WEC:
         if (bounds_wec is None) and (bounds_opt is None):
             bounds = None
         else:
-            # TODO: allow for all options of Bounds.
             bounds_in = [bounds_wec, bounds_opt]
+            for idx, bii in enumerate(bounds_in):
+                if isinstance(bii, tuple):
+                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii], 
+                                            ub=[xibs[1] for xibs in bii])
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
@@ -763,12 +767,16 @@ class WEC:
 
         # callback
         if callback is None:
-            def callback(x):
+            def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
                 _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
                           + f"{np.max(np.abs(x_opt)):.2e}, "
                           + f"{np.max(obj_fun_scaled(x)):.2e}]")
+        else:
+            def callback_scipy(x):
+                x_wec, x_opt = self.decompose_state(x)
+                return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
         optim_options['disp'] = optim_options.get('disp', True)
@@ -778,7 +786,7 @@ class WEC:
                     'constraints': constraints,
                     'options': optim_options,
                     'bounds': bounds,
-                    'callback':callback,  # TODO: allow callback functions to take (wec, x_wec, x_opt, waves) as arguments not x
+                    'callback': callback_scipy,
                     }
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
@@ -797,7 +805,7 @@ class WEC:
         # unscale
         optim_res.x = optim_res.x / scale
         optim_res.fun = optim_res.fun / scale_obj
-        # TODO: unscale all the other fields in the results, e.g. 'jac'
+        optim_res.jac = optim_res.jac / scale_obj * scale
 
         return optim_res
 
