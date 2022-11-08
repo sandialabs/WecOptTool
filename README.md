@@ -16,6 +16,7 @@ WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
 
 ```bash
 conda install -c conda-forge wecopttool
+pip install gmsh pygmsh
 ```
 
 **Option 2** - using `pip` for [Capytaine](https://github.com/mancellin/capytaine) (requires Fortran compilers):
