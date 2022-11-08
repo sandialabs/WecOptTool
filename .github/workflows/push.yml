@@ -79,12 +79,13 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install libglu1
 
-    # install WecOptTool and pytest/coveralls
+    # install WecOptTool, pytest/coveralls, and gmsh/pygmsh
     - name: Install WecOptTool
       shell: bash -l {0}
       run: |
         conda activate test-env
         python3 -m pip install --upgrade pip
+        pip3 install gmsh pygmsh
         pip3 install coveralls pytest
         pip3 install .
 
