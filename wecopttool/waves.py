@@ -1,23 +1,37 @@
 """Provide the wave definition structure and provide
 functions for creating different common types of waves.
 
-This module provides the (empty) dataset structure for waves in
+This module provides the (empty) data structure for waves in
 :python:`wecopttool`.
 It also provides functions for creating common types of waves such as
 regular waves and irregular waves.
-The dataset structure is an xarray.Dataset containing the following two
-2D xarray.DataArrray: (1) the amplitude :python:`amplitude` (m^2) and
-(2) the phase :python:`phase` (rad).
+The data structure is a 2D complex :py:module:xarray.DataArray
+containing the complex amplitude.
 The 2D coordinates are: wave angular frequency :python:`omega` (rad/s)
 and direction :python:`wave_direction` (rad).
 
-Two omni-directional spectra and one spread function are included.
-These serve as examples for creating your own omni-directional spectra
-and spread functions, possibly leveraging other libraries (e.g., MHKiT).
+This module uses wave spectrum data in the
+:py:class:`wavespectra.SpecArray` format.
 """
 
 
 from __future__ import annotations
+
+
+__all__ = [
+    "elevation_fd",
+    "regular_wave",
+    "long_crested_wave",
+    "irregular_wave",
+    "random_phase",
+    "omnidirectional_spectrum",
+    "spectrum",
+    "pierson_moskowitz_spectrum",  # TODO: Remove all below after wavespectra
+    "jonswap_spectrum",
+    "spread_cos2s",
+    "general_spectrum",
+    "pierson_moskowitz_params",
+]
 
 
 import logging
@@ -26,7 +40,7 @@ from typing import Callable, Mapping, Union, Optional, Iterable
 import numpy as np
 from numpy.typing import ArrayLike
 from numpy import ndarray
-from xarray import DataArray, Dataset
+from xarray import DataArray
 from scipy.special import gamma
 
 from wecopttool.core import frequency, degrees_to_radians, frequency_parameters
@@ -168,7 +182,8 @@ def long_crested_wave(
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
 
-    The omnidirectional spectrum is in the :python:`wavespectra` format.
+    The omnidirectional spectrum is in the
+    :py:class:`wavespectra.SpecArray` format.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
@@ -179,7 +194,7 @@ def long_crested_wave(
     ----------
     efth
         Omnidirection wave spectrum in units of m^2/Hz, in the format
-        used by :python:`wavespectra`.
+        used by :py:class:`wavespectra.SpecArray`.
     direction
         Direction (in degrees) of the long-crested wave.
 
@@ -200,7 +215,8 @@ def long_crested_wave(
 def irregular_wave(efth: DataArray) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
-    The omnidirectional spectrum is in the :python:`wavespectra` format.
+    The omnidirectional spectrum is in the
+    :py:class:`wavespectra.SpecArray` format.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
@@ -213,7 +229,7 @@ def irregular_wave(efth: DataArray) -> DataArray:
     ----------
     efth
         Wave spectrum in units of m^2/Hz/deg, in the format used by
-        :python:`wavespectra`.
+        :py:class:`wavespectra.SpecArray`.
     """
     f1, nfreq = frequency_parameters(efth.freq.values, False)
     directions = efth.dir.values
@@ -253,9 +269,9 @@ def omnidirectional_spectrum(
     nfreq: int,
     spectrum_func: Callable,
     spectrum_name: str = '',
-) -> Dataset:
+) -> DataArray:
     """Create the dataset for an omnidirectional wave spectrum in the
-    :python:`wavespectra` format.
+    :py:class:`wavespectra.SpecArray` format.
 
     Examples
     --------
@@ -323,9 +339,9 @@ def spectrum(
     spread_func: Callable,
     spectrum_name: str = '',
     spread_name: str = '',
-) -> Dataset:
+) -> DataArray:
     """Create the dataset for an irregular wave in the
-    :python:`wavespectra` format.
+    :py:class:`wavespectra.SpecArray` format.
 
     Examples
     --------

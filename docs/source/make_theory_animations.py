@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import numpy as np
@@ -56,7 +55,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         ydata.append(yd)
         ln.set_data(xdata, ydata)
         fname = os.path.join(tmpdirname, f"{gif_name}_td_{ind}.png")
-        # print(f"\t{fname}")
         fig.savefig(fname)
         td_fnames.append(fname)
 
@@ -99,7 +97,7 @@ with tempfile.TemporaryDirectory() as tmpdirname:
     for key in fnames:
         # repeat last frame M times
         fnames[key] = fnames[key] + [fnames[key][-1]]*M
-        
+
         frames = np.stack([iio.imread(filename) for filename in fnames[key]],
                           axis=0)
         gif_path = os.path.join(odir, f"{gif_name}_{key}.gif")

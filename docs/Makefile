@@ -19,5 +19,6 @@ clean:
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
-	python "$(SOURCEDIR)"/make_theory_animations.py
+	python3 $(SOURCEDIR)/make_theory_animations.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@sed '/<section id="package">/,/<\/section>/d' _build/html/index.html > tmp; mv tmp _build/html/index.html

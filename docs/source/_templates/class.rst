@@ -13,11 +13,10 @@
    {% block attributes %}
    {% if attributes %}
    .. rubric:: {{ _('Attributes') }}
-
    .. autosummary::
       :toctree:
    {% for item in attributes %}
-      ~{{ name }}.{{ item }}
+      {{ name }}.{{ item }}
    {%- endfor %}
    {% endif %}
    {% endblock %}
@@ -25,7 +24,6 @@
    {% block methods %}
    {% if methods %}
    .. rubric:: {{ _('Methods') }}
-
    .. autosummary::
       :toctree:
       :nosignatures:

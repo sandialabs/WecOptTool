@@ -4,7 +4,7 @@ Community contributions are welcomed! 🎊
 ## Installation for developers
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
-* If you want to build the documentation locally you will also need to [install pandoc](https://pandoc.org/installing.html).
+* If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
 * If you do not have Fortran compilers properly setup in your system, install `capytaine` and `wavesspectra` using `conda`. In this case you will need to have a `conda` virtual environment. This is recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
 * On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
@@ -74,7 +74,7 @@ The built documentation will be in `./docs/_build` and the homepage is `./docs/_
 To delete do `make clean`.
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
-When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html).
+When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
 
 ### Editing the tutorials
 The tutorials are used as part of the Documentation.
