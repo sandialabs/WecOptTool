@@ -17,6 +17,7 @@ It is strongly recommended you create a dedicated virtual environment (e.g., usi
 
 ```bash
 conda install -c conda-forge wecopttool
+pip install gmsh pygmsh
 ```
 
 **Option 2** - using `pip` (requires Fortran compilers on your system):
