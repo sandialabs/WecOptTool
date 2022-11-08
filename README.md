@@ -24,6 +24,7 @@ pip install gmsh pygmsh
 
 ```bash
 pip install wecopttool
+pip install gmsh pygmsh
 ```
 
 This approach is not recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).

@@ -111,8 +111,8 @@ class WEC:
     """
     def __init__(
         self,
-        f1:float,
-        nfreq:int,
+        f1: float,
+        nfreq: int,
         forces: TIForceDict,
         constraints: Optional[Iterable[Mapping]] = None,
         inertia_matrix: Optional[ndarray] = None,
@@ -644,8 +644,8 @@ class WEC:
             decision variable.
             See :py:func:`scipy.optimize.minimize`.
         callback
-            Function called after each iteration, must have signature 
-            :python:`fun(wec, x_wec, x_opt, waves)`. The default 
+            Function called after each iteration, must have signature
+            :python:`fun(wec, x_wec, x_opt, waves)`. The default
             provides status reports at each iteration via logging at the
             INFO level.
 
@@ -749,7 +749,7 @@ class WEC:
             bounds_in = [bounds_wec, bounds_opt]
             for idx, bii in enumerate(bounds_in):
                 if isinstance(bii, tuple):
-                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii], 
+                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
                                             ub=[xibs[1] for xibs in bii])
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
@@ -987,7 +987,7 @@ class WEC:
     def omega(self) -> ndarray:
         """Radial frequency vector [rad/s]."""
         return self._freq * (2*np.pi)
-    
+
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
