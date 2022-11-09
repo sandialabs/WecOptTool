@@ -1,7 +1,7 @@
-{% set name = 'wecopttool' %}
-{% set version = '2.0.1a1' %}
+{% set name = "wecopttool" %}
+{% set version = "2.0.1a1" %}
 package:
-  name: 'wecopttool'
+  name: {{ name|lower }}
   version: {{ version }}
 
 source:
@@ -9,18 +9,20 @@ source:
   sha256: 7b6a7e86d1d89cab056670f8c330d6bd13815b76004c40915e27e43d376a294d
 
 build:
-  script: "{{ PYTHON }} -m pip install . -vv"
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+  number: 0
 
 requirements:
   host:
-    - python>=3.8,<3.11
+    - python >=3.8,<3.11
     - pip
-    - numpy>=1.20
+    - numpy >=1.20
   run:
-    - python>=3.8,<3.11
-    - numpy>=1.20
+    - python >=3.8,<3.11
+    - numpy >=1.20
     - scipy
-    - capytaine==1.4.0
+    - capytaine ==1.4.0
     - wavespectra
     - meshio
     - matplotlib-base
@@ -31,18 +33,24 @@ requirements:
     - joblib
     
 test:
+  imports:
+    - wecopttool
   requires:
     - pip
   commands:
     - pip check
-  imports:
-    - wecopttool
 
 about:
-  home: https://snl-waterpower.github.io/WecOptTool/
-  license: GNU General Public License v3 (GPLv3)
-  license_file: LICENSE
+  home: https://github.com/SNL-WaterPower/WecOptTool
   summary: WEC Design Optimization Toolbox
+  description: |
+    The Wave Energy Converter Design Optimization Toolbox (WecOptTool)
+    allows users to perform wave energy converter (WEC) device design
+    optimization studies with constrained optimal control.
+  license: GPL-3.0-only
+  license_family: GPL
+  license_file: LICENSE
+  doc_url: https://snl-waterpower.github.io/WecOptTool
 
 extra:
   recipe-maintainers:
