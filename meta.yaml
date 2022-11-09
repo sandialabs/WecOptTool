@@ -1,12 +1,12 @@
 {% set name = 'wecopttool' %}
-{% set version = '2.0.0' %}
+{% set version = '2.0.1a1' %}
 package:
   name: 'wecopttool'
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
-  sha256: 3cde0669695e951a3dd6b0a2b2afbcb486e4717466b55eac92e842eb36bde419
+  url: https://files.pythonhosted.org/packages/15/7d/b41cfbc33cee3938eeb8a5a309f5e6295c851123251ed8fb1787cc3a1e31/wecopttool-2.0.1a1.tar.gz
+  sha256: 7b6a7e86d1d89cab056670f8c330d6bd13815b76004c40915e27e43d376a294d
 
 build:
   script: "{{ PYTHON }} -m pip install . -vv"
@@ -34,7 +34,6 @@ test:
   requires:
     - pip
   commands:
-    - pip install gmsh pygmsh
     - pip check
   imports:
     - wecopttool
