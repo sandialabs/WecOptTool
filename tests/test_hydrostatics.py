@@ -9,103 +9,194 @@ import wecopttool as wot
 from wecopttool.core import _default_parameters
 
 
+# setup simple constant density rectangular barge
 @pytest.fixture()
-def rho(): return _default_parameters['rho']
-
-
-@pytest.fixture()
-def g(): return _default_parameters['g']
-
-
-@pytest.fixture()
-def lx(): return 4.0
+def rho():
+    """Water density [kg/m^3]."""
+    return _default_parameters['rho']
 
 
 @pytest.fixture()
-def ly(): return 5.0
+def g():
+    """Gravitational acceleration [m/s^2]."""
+    return _default_parameters['g']
 
 
 @pytest.fixture()
-def lz(): return 2.0
+def lx():
+    """Barge length [m]."""
+    return 4.0
+
+
+@pytest.fixture()
+def ly():
+    """Barge width [m]."""
+    return 5.0
+
+
+@pytest.fixture()
+def lz():
+    """Barge height [m]."""
+    return 2.0
+
+
+@pytest.fixture()
+def cog():
+    """Center of gravity of the barge."""
+    return (0.0, 0.0, 0.0)
+
+
+@pytest.fixture()
+def mass(lx, ly, lz, rho):
+    """Mass of the barge."""
+    return lx*ly*lz/2 * rho
 
 
 @pytest.fixture()
 def fb(lx, ly, lz):
-    """Simple constant density recatangular barge."""
+    """Simple constant density rectangular barge."""
     rect = cpy.RectangularParallelepiped(
         (lx, ly, lz), resolution=(100, 100, 10), center=(0.0, 0.0, 0.0,))
     rect.add_all_rigid_body_dofs()
+    rect.center_of_mass = None
+    fb.mass = None
     return rect
 
 
-def test_stiffness_matrix(fb, lx, ly, lz, rho, g):
-    cog = (0.0, 0.0, 0.0)
-
-    fbd = fb.copy()
-    fbd.center_of_mass = None
-    calc_default = wot.hydrostatics.stiffness_matrix(fbd, rho, g)
-
-    fbc = fb.copy()
-    fbc.center_of_mass = cog
-    calc = wot.hydrostatics.stiffness_matrix(fbc, rho, g)
-    calc_redundant = wot.hydrostatics.stiffness_matrix(fbc, rho, g, cog)
-
-    truth = np.zeros([6, 6])
-
-    truth[2, 2] = rho*g * lx*ly
-    truth[2, 3] = 0.0
-    truth[2, 4] = 0.0
-    truth[3, 3] = (rho*g * lx*ly**3 /12) + rho*g*(lx*ly*lz/2)*(-lz/4)
-    truth[3, 4] = 0.0
-    truth[3, 5] = 0.0
-    truth[4, 4] = (rho*g * ly*lx**3 /12) + rho*g*(lx*ly*lz/2)*(-lz/4)
-    truth[4, 5] = 0.0
-
-    truth[3, 2] = truth[2, 3]
-    truth[4, 2] = truth[2, 4]
-    truth[4, 3] = truth[3, 4]
-
-    assert np.allclose(truth, calc_default, rtol=0.01) # infer COG
-    assert np.allclose(truth, calc, rtol=0.01) # given COG
-    assert np.allclose(truth, calc_redundant, rtol=0.01) # COG given twice
-    with pytest.raises(ValueError):
-        wot.hydrostatics.stiffness_matrix(fbc, rho, g, (0, 0, -0.1))  # error
-
-
-def test_inertia_matrix(fb, lx, ly, lz, rho, g):
-    mass = lx*ly*lz/2 * rho
-    cog = (0.0, 0.0, 0.0)
-
-    fbd = fb.copy()
-    fbd.center_of_mass = None
-    fbd.mass = None
-    calc_default = wot.hydrostatics.inertia_matrix(fbd, rho)
-
+@pytest.fixture()
+def fb_mass(fb, cog, mass):
+    """Simple constant density rectangular barge with the mass
+    properties specified.
+    """
     fbc = fb.copy()
     fbc.center_of_mass = cog
     fbc.mass = mass
-    calc = wot.hydrostatics.inertia_matrix(fbc, rho)
-    calc_redundant = wot.hydrostatics.inertia_matrix(fbc, rho, cog, mass)
-
-    truth = np.zeros([6, 6])
-
-    truth[0, 0] = mass
-    truth[1, 1] = mass
-    truth[2, 2] = mass
-
-    truth[3, 3] = mass/12 * (ly**2 + lz**2)
-    truth[3, 4] = 0.0
-    truth[3, 5] = 0.0
-    truth[4, 3] = 0.0
-    truth[4, 4] = mass/12 * (lx**2 + lz**2)
-    truth[4, 5] = 0.0
-    truth[5, 3] = 0.0
-    truth[5, 4] = 0.0
-    truth[5, 5] = mass/12 * (lx**2 + ly**2)
+    return fbc
 
 
-    assert np.allclose(truth, calc_default, rtol=0.01) # infer mass
-    assert np.allclose(truth, calc, rtol=0.01) # given mass
-    assert np.allclose(truth, calc_redundant, rtol=0.01) # mass given twice
+@pytest.fixture()
+def stiffness(lx, ly, lz, rho, g):
+    """True (theoretical/calculated) value of the stiffness matrix for
+    the barge.
+    """
+    stiffness = np.zeros([6, 6])
+    stiffness[2, 2] = rho*g * lx*ly
+    stiffness[2, 3] = 0.0
+    stiffness[2, 4] = 0.0
+    stiffness[3, 3] = (rho*g * lx*ly**3 /12) + rho*g*(lx*ly*lz/2)*(-lz/4)
+    stiffness[3, 4] = 0.0
+    stiffness[3, 5] = 0.0
+    stiffness[4, 4] = (rho*g * ly*lx**3 /12) + rho*g*(lx*ly*lz/2)*(-lz/4)
+    stiffness[4, 5] = 0.0
+    stiffness[3, 2] = stiffness[2, 3]
+    stiffness[4, 2] = stiffness[2, 4]
+    stiffness[4, 3] = stiffness[3, 4]
+    return stiffness
+
+
+@pytest.fixture()
+def inertia(lx, ly, lz, mass):
+    inertia = np.zeros([6, 6])
+    inertia[0, 0] = mass
+    inertia[1, 1] = mass
+    inertia[2, 2] = mass
+    inertia[3, 3] = mass/12 * (ly**2 + lz**2)
+    inertia[3, 4] = 0.0
+    inertia[3, 5] = 0.0
+    inertia[4, 3] = 0.0
+    inertia[4, 4] = mass/12 * (lx**2 + lz**2)
+    inertia[4, 5] = 0.0
+    inertia[5, 3] = 0.0
+    inertia[5, 4] = 0.0
+    inertia[5, 5] = mass/12 * (lx**2 + ly**2)
+    return inertia
+
+
+# test_stiffness_matrix
+def test_stiffness_matrix__inferred_cog(fb, rho, g, stiffness):
+    """Test the `stiffness_matrix` function with the center of gravity
+    not provided.
+
+    This tests the inference of COG and the stiffness calculation.
+    """
+    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g)
+    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+
+
+def test_stiffness_matrix__given_cog(fb, rho, g, cog, stiffness):
+    """Test the `stiffness_matrix` function with the center of gravity
+    provided as a function input and not in the floating body.
+    """
+    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g, cog)
+    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+
+
+def test_stiffness_matrix__given_cog_fb(fb_mass, rho, g, stiffness):
+    """Test the `stiffness_matrix` function with the center of gravity
+    provided in the floating body and not as a function input.
+    """
+    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g)
+    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+
+
+def test_stiffness_matrix__given_cog_redundant(
+        fb_mass, rho, g, cog, stiffness):
+    """Test the `stiffness_matrix` function with the center of gravity
+    provided in both the floating body and the function inputs.
+    """
+    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog)
+    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+
+
+def test_stiffness_matrix__cog_mismatch(fb_mass, rho, g):
+    """Test that the function fails if the center of gravity is provided
+    in both the floating body and the function inputs but have different
+    values.
+    """
+    cog_wrong = (0, 0, -0.1)
     with pytest.raises(ValueError):
-        wot.hydrostatics.inertia_matrix(fbc, rho, mass=0.9*mass)  # error
+        wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog_wrong)
+
+
+# test_inertia_matrix
+def test_inertia_matrix__inferred_mass(fb, rho, inertia):
+    """Test the `inertia_matrix` function with the mass not provided.
+
+    This tests the inference of mass and the inertia calculation.
+    """
+    inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho)
+    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+def test_inertia_matrix__given_mass(fb, rho, cog, mass, inertia):
+    """Test the `inertia_matrix` function with the mass provided as a
+    function input and not in the floating body.
+    """
+    inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho, cog, mass)
+    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+def test_inertia_matrix__given_mass_fb(fb_mass, rho, cog, mass, inertia):
+    """Test the `inertia_matrix` function with the mass provided in the
+    floating body and not as a function input.
+    """
+    inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho)
+    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+def test_inertia_matrix__given_mass_redundant(
+        fb_mass, rho, cog, mass, inertia):
+    """Test the `inertia_matrix` function with the mass provided in both
+    the floating body and the function inputs.
+    """
+    inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass)
+    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+def test_inertia_matrix__given_mass_redundant(fb_mass, rho, cog, mass):
+    """Test that the function fails if the mass is provided in both the
+    floating body and the function inputs but have different values.
+    """
+    mass_wrong = 0.9*mass
+    with pytest.raises(ValueError):
+        wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass_wrong)
