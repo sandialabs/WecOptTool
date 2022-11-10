@@ -119,18 +119,31 @@ def test_irregular_wave(ndbc_spectrum):
     assert np.iscomplexobj(elev)
 
 
-def test_random_phase():
-    shape = (np.random.randint(10, 100), np.random.randint(10, 100))
-    phase = wot.waves.random_phase(shape)
-    phase1 = wot.waves.random_phase()
+@pytest.fixture()
+def shape():
+    return (np.random.randint(10, 100), np.random.randint(10, 100))
 
+
+@pytest.fixture
+def phase_vec(shape,):
+    return wot.waves.random_phase(shape)
+
+
+def test_random_phase__vec_shape(phase_vec):
+    """"""
     assert phase.shape == shape
-    assert np.max(phase) < np.pi
-    assert np.min(phase) >= -np.pi
-    assert (phase1 < np.pi) and (phase1 >= -np.pi)
-    assert isinstance(phase1, float)
 
 
+def test_random_phase__vec_values(phase_vec):
+    assert (np.max(phase_vec) < np.pi) and (np.min(phase_vec) >= -np.pi)
+
+
+def test_random_phase__float(phase_float):
+    assert (phase_float < np.pi) and (phase_float >= -np.pi)
+
+
+
+# TODO: Move everything below to wavespectra.construct
 def test_omnidirectional_spectrum(f1, nfreq, fp, hs):
     spectrum_func = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
     wave_spec = wot.waves.omnidirectional_spectrum(

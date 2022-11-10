@@ -112,91 +112,96 @@ def inertia(lx, ly, lz, mass):
     return inertia
 
 
-# test_stiffness_matrix
-def test_stiffness_matrix__inferred_cog(fb, rho, g, stiffness):
-    """Test the `stiffness_matrix` function with the center of gravity
-    not provided.
+class TestStiffnessMatrix:
+    """Test function hydrostatics.stiffness_matrix."""
 
-    This tests the inference of COG and the stiffness calculation.
-    """
-    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g)
-    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+    def test_stiffness_matrix__inferred_cog(self, fb, rho, g, stiffness):
+        """Test the `stiffness_matrix` function with the center of gravity
+        not provided.
 
-
-def test_stiffness_matrix__given_cog(fb, rho, g, cog, stiffness):
-    """Test the `stiffness_matrix` function with the center of gravity
-    provided as a function input and not in the floating body.
-    """
-    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g, cog)
-    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+        This tests the inference of COG and the stiffness calculation.
+        """
+        stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g)
+        assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
 
 
-def test_stiffness_matrix__given_cog_fb(fb_mass, rho, g, stiffness):
-    """Test the `stiffness_matrix` function with the center of gravity
-    provided in the floating body and not as a function input.
-    """
-    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g)
-    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+    def test_stiffness_matrix__given_cog(self, fb, rho, g, cog, stiffness):
+        """Test the `stiffness_matrix` function with the center of gravity
+        provided as a function input and not in the floating body.
+        """
+        stiffness_calc = wot.hydrostatics.stiffness_matrix(fb, rho, g, cog)
+        assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
 
 
-def test_stiffness_matrix__given_cog_redundant(
-        fb_mass, rho, g, cog, stiffness):
-    """Test the `stiffness_matrix` function with the center of gravity
-    provided in both the floating body and the function inputs.
-    """
-    stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog)
-    assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
+    def test_stiffness_matrix__given_cog_fb(self, fb_mass, rho, g, stiffness):
+        """Test the `stiffness_matrix` function with the center of gravity
+        provided in the floating body and not as a function input.
+        """
+        stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g)
+        assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
 
 
-def test_stiffness_matrix__cog_mismatch(fb_mass, rho, g):
-    """Test that the function fails if the center of gravity is provided
-    in both the floating body and the function inputs but have different
-    values.
-    """
-    cog_wrong = (0, 0, -0.1)
-    with pytest.raises(ValueError):
-        wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog_wrong)
+    def test_stiffness_matrix__given_cog_redundant(
+            self, fb_mass, rho, g, cog, stiffness):
+        """Test the `stiffness_matrix` function with the center of gravity
+        provided in both the floating body and the function inputs.
+        """
+        stiffness_calc = wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog)
+        assert np.allclose(stiffness, stiffness_calc, rtol=0.01)
 
 
-# test_inertia_matrix
-def test_inertia_matrix__inferred_mass(fb, rho, inertia):
-    """Test the `inertia_matrix` function with the mass not provided.
-
-    This tests the inference of mass and the inertia calculation.
-    """
-    inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho)
-    assert np.allclose(inertia, inertia_calc, rtol=0.01)
-
-
-def test_inertia_matrix__given_mass(fb, rho, cog, mass, inertia):
-    """Test the `inertia_matrix` function with the mass provided as a
-    function input and not in the floating body.
-    """
-    inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho, cog, mass)
-    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+    def test_stiffness_matrix__cog_mismatch(self, fb_mass, rho, g):
+        """Test that the function fails if the center of gravity is provided
+        in both the floating body and the function inputs but have different
+        values.
+        """
+        cog_wrong = (0, 0, -0.1)
+        with pytest.raises(ValueError):
+            wot.hydrostatics.stiffness_matrix(fb_mass, rho, g, cog_wrong)
 
 
-def test_inertia_matrix__given_mass_fb(fb_mass, rho, cog, mass, inertia):
-    """Test the `inertia_matrix` function with the mass provided in the
-    floating body and not as a function input.
-    """
-    inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho)
-    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+class TestInertiaMatrix:
+    """Test function :python:`hydrostatics.test_inertia_matrix`."""
+
+    def test_inertia_matrix__inferred_mass(self, fb, rho, inertia):
+        """Test the `inertia_matrix` function with the mass not provided.
+
+        This tests the inference of mass and the inertia calculation.
+        """
+        inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho)
+        assert np.allclose(inertia, inertia_calc, rtol=0.01)
 
 
-def test_inertia_matrix__given_mass_redundant(
-        fb_mass, rho, cog, mass, inertia):
-    """Test the `inertia_matrix` function with the mass provided in both
-    the floating body and the function inputs.
-    """
-    inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass)
-    assert np.allclose(inertia, inertia_calc, rtol=0.01)
+    def test_inertia_matrix__given_mass(self, fb, rho, cog, mass, inertia):
+        """Test the `inertia_matrix` function with the mass provided as a
+        function input and not in the floating body.
+        """
+        inertia_calc = wot.hydrostatics.inertia_matrix(fb, rho, cog, mass)
+        assert np.allclose(inertia, inertia_calc, rtol=0.01)
 
 
-def test_inertia_matrix__given_mass_redundant(fb_mass, rho, cog, mass):
-    """Test that the function fails if the mass is provided in both the
-    floating body and the function inputs but have different values.
-    """
-    mass_wrong = 0.9*mass
-    with pytest.raises(ValueError):
-        wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass_wrong)
+    def test_inertia_matrix__given_mass_fb(self, fb_mass, rho, cog, mass, inertia):
+        """Test the `inertia_matrix` function with the mass provided in the
+        floating body and not as a function input.
+        """
+        inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho)
+        assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+    def test_inertia_matrix__given_mass_redundant(
+            self, fb_mass, rho, cog, mass, inertia):
+        """Test the `inertia_matrix` function with the mass provided in both
+        the floating body and the function inputs.
+        """
+        inertia_calc = wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass)
+        assert np.allclose(inertia, inertia_calc, rtol=0.01)
+
+
+    def test_inertia_matrix__given_mass_redundant(
+            self, fb_mass, rho, cog, mass):
+        """Test that the function fails if the mass is provided in both the
+        floating body and the function inputs but have different values.
+        """
+        mass_wrong = 0.9*mass
+        with pytest.raises(ValueError):
+            wot.hydrostatics.inertia_matrix(fb_mass, rho, cog, mass_wrong)
