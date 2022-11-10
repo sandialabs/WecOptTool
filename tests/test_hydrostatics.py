@@ -96,6 +96,9 @@ def stiffness(lx, ly, lz, rho, g):
 
 @pytest.fixture()
 def inertia(lx, ly, lz, mass):
+    """True (theoretical/calculated) value of the inertia matrix for
+    the barge.
+    """
     inertia = np.zeros([6, 6])
     inertia[0, 0] = mass
     inertia[1, 1] = mass
