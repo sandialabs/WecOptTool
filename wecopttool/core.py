@@ -21,15 +21,13 @@ __all__ = [
     "time",
     "time_mat",
     "derivative_mat",
-    "degrees_to_radians",
+    "mimo_transfer_mat",
     "vec_to_dofmat",
     "dofmat_to_vec",
-    "mimo_transfer_mat",
     "real_to_complex",
     "complex_to_real",
     "fd_to_td",
     "td_to_fd",
-    "wave_excitation",
     "read_netcdf",
     "write_netcdf",
     "check_linear_damping",
@@ -41,7 +39,9 @@ __all__ = [
     "run_bem",
     "change_bem_convention",
     "linear_hydrodynamics",
+    "wave_excitation",
     "atleast_2d",
+    "degrees_to_radians",
     "subset_close",
     "scale_dofs",
     "decompose_state",
@@ -1369,72 +1369,6 @@ def derivative_mat(
     return block_diag(*blocks)
 
 
-def degrees_to_radians(
-    degrees: FloatOrArray,
-    sort: Optional[bool] = True,
-) -> Union[float, ndarray]:
-    """Convert a 1D array of angles in degrees to radians in the range
-    :math:`(-π, π]` and optionally sort them.
-
-    Parameters
-    ----------
-    degrees
-        1D array of angles in degrees.
-    sort
-        Whether to sort the angles from smallest to largest in
-        :math:`(-π, π]`.
-    """
-    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
-    if radians.size == 1:
-        radians = radians.item()
-    elif sort:
-        radians = np.sort(radians)
-    return radians
-
-
-def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
-    """Convert a vector back to a matrix with one column per DOF.
-
-    Returns a matrix with :python:`ndof` columns.
-    The number of rows is inferred from the size of the input vector.
-
-    Opposite of :py:func:`wecopttool.dofmat_to_vec`.
-
-    Parameters
-    ----------
-    vec
-        1D array consisting of concatenated arrays of several DOFs, as
-        :python:`vec = [vec_1, vec_2, ..., vec_ndof]`.
-    ndof
-        Number of degrees of freedom.
-
-    See Also
-    --------
-    dofmat_to_vec,
-    """
-    return np.reshape(vec, (-1, ndof), order='F')
-
-
-def dofmat_to_vec(mat: ArrayLike) -> ndarray:
-    """Flatten a matrix that has one column per DOF.
-
-    Returns a 1D vector.
-
-    Opposite of :py:func:`wecopttool.vec_to_dofmat`.
-
-    Parameters
-    ----------
-    mat
-        Matrix to be flattened.
-
-    See Also
-    --------
-    vec_to_dofmat,
-    """
-    return np.reshape(mat, -1, order='F')
-
-
 def mimo_transfer_mat(
     transfer_mat: ArrayLike,
     zero_freq: Optional[bool] = True,
@@ -1483,6 +1417,48 @@ def mimo_transfer_mat(
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
+
+
+def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
+    """Convert a vector back to a matrix with one column per DOF.
+
+    Returns a matrix with :python:`ndof` columns.
+    The number of rows is inferred from the size of the input vector.
+
+    Opposite of :py:func:`wecopttool.dofmat_to_vec`.
+
+    Parameters
+    ----------
+    vec
+        1D array consisting of concatenated arrays of several DOFs, as
+        :python:`vec = [vec_1, vec_2, ..., vec_ndof]`.
+    ndof
+        Number of degrees of freedom.
+
+    See Also
+    --------
+    dofmat_to_vec,
+    """
+    return np.reshape(vec, (-1, ndof), order='F')
+
+
+def dofmat_to_vec(mat: ArrayLike) -> ndarray:
+    """Flatten a matrix that has one column per DOF.
+
+    Returns a 1D vector.
+
+    Opposite of :py:func:`wecopttool.vec_to_dofmat`.
+
+    Parameters
+    ----------
+    mat
+        Matrix to be flattened.
+
+    See Also
+    --------
+    vec_to_dofmat,
+    """
+    return np.reshape(mat, -1, order='F')
 
 
 def real_to_complex(
@@ -1675,55 +1651,6 @@ def td_to_fd(
     if not zero_freq:
         fd = fd[1:, :]
     return fd
-
-
-def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
-    """Calculate the complex, frequency-domain, excitation force due to
-    waves.
-
-    The resulting force is indexed only by frequency and not direction
-    angle.
-    The input :python:`waves` frequencies must be same as
-    :python:`exc_coeff`, but the directions can be a subset.
-
-    Parameters
-    ----------
-    exc_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle.
-    waves
-        Complex frequency-domain wave elevation.
-
-    Raises
-    ------
-    ValueError
-        If the frequency vectors of :python:`exc_coeff` and
-        :python:`waves` are different.
-    ValueError
-        If any of the directions in :python:`waves` is not in
-        :python:`exc_coeff`.
-    """
-    omega_w = waves['omega'].values
-    omega_e = exc_coeff['omega'].values
-    dir_w = waves['wave_direction'].values
-    dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
-
-    wave_elev_fd = np.expand_dims(waves.values, -1)
-
-    if not np.allclose(omega_w, omega_e):
-        raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
-
-    subset, sub_ind = subset_close(dir_w, dir_e)
-
-    if not subset:
-        raise ValueError(
-            "Some wave directions are not in excitation coefficients " +
-            f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
-            f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
-
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
 def read_netcdf(fpath: Union[str, Path]) -> Dataset:
@@ -2118,6 +2045,55 @@ def linear_hydrodynamics(
     return hydro_data
 
 
+def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
+    """Calculate the complex, frequency-domain, excitation force due to
+    waves.
+
+    The resulting force is indexed only by frequency and not direction
+    angle.
+    The input :python:`waves` frequencies must be same as
+    :python:`exc_coeff`, but the directions can be a subset.
+
+    Parameters
+    ----------
+    exc_coeff
+        Complex excitation coefficients indexed by frequency and
+        direction angle.
+    waves
+        Complex frequency-domain wave elevation.
+
+    Raises
+    ------
+    ValueError
+        If the frequency vectors of :python:`exc_coeff` and
+        :python:`waves` are different.
+    ValueError
+        If any of the directions in :python:`waves` is not in
+        :python:`exc_coeff`.
+    """
+    omega_w = waves['omega'].values
+    omega_e = exc_coeff['omega'].values
+    dir_w = waves['wave_direction'].values
+    dir_e = exc_coeff['wave_direction'].values
+    exc_coeff = exc_coeff.transpose(
+        'omega', 'wave_direction', 'influenced_dof').values
+
+    wave_elev_fd = np.expand_dims(waves.values, -1)
+
+    if not np.allclose(omega_w, omega_e):
+        raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
+
+    subset, sub_ind = subset_close(dir_w, dir_e)
+
+    if not subset:
+        raise ValueError(
+            "Some wave directions are not in excitation coefficients " +
+            f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
+            f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
+
+    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+
+
 def atleast_2d(array: ArrayLike) -> ndarray:
     """Ensure an array is at least 2D, otherwise add trailing dimensions
     to make it 2D.
@@ -2135,6 +2111,30 @@ def atleast_2d(array: ArrayLike) -> ndarray:
     """
     array = np.atleast_1d(array)
     return np.expand_dims(array, -1) if len(array.shape)==1 else array
+
+
+def degrees_to_radians(
+    degrees: FloatOrArray,
+    sort: Optional[bool] = True,
+) -> Union[float, ndarray]:
+    """Convert a 1D array of angles in degrees to radians in the range
+    :math:`[-π, π)` and optionally sort them.
+
+    Parameters
+    ----------
+    degrees
+        1D array of angles in degrees.
+    sort
+        Whether to sort the angles from smallest to largest in
+        :math:`[-π, π)`.
+    """
+    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
+    radians[radians > np.pi] -= 2*np.pi
+    if radians.size == 1:
+        radians = radians.item()
+    elif sort:
+        radians = np.sort(radians)
+    return radians
 
 
 def subset_close(
