@@ -965,7 +965,21 @@ class TestWaveExcitation:
 
 class TestAtleast2D:
     """Test function :python:`atleast_2d`."""
-    # TODO
+
+    def test_1d(self,):
+        """Test function creates extra trailing dimension when a 1D array
+        is passed.
+        """
+        a = np.array([1.1, 2.2, 3.3])
+        b = wot.atleast_2d(a)
+        assert a.shape!=b.shape and b.shape==(len(a), 1)
+
+    def test_2d(self,):
+        """Test function is identity when a 2D array is passed.
+        """
+        a = np.array([[1.1, 2.2, 3.3]])
+        b = wot.atleast_2d(a)
+        assert b.shape==a.shape and np.allclose(b, a)
 
 
 class TestDegreesToRadians:
@@ -1029,22 +1043,129 @@ class TestDegreesToRadians:
 
 class TestSubsetClose:
     """Test function :python:`subset_close`."""
-    # TODO
+
+    @pytest.fixture(scope="class")
+    def array_a(self,):
+        """An array of numbers."""
+        return np.array([1, 2.35, 0.3])
+
+    @pytest.fixture(scope="class")
+    def array_b(self, array_a):
+        """A second array that is longer and contains all elements of
+        the first array.
+        """
+        n = 10 - len(array_a)
+        b = np.concatenate([array_a, np.random.random(n)])
+        np.random.shuffle(b)
+        return b
+
+    def test_subset(self, array_a, array_b):
+        """Test subset identified correctly."""
+        subset, _ = wot.subset_close(array_a, array_b)
+        assert subset
+
+    def test_not_subset(self, array_a, array_b):
+        """Test `False` when it is not a subset."""
+        subset, _ = wot.subset_close(array_b, array_a)
+        assert not subset
+
+    def test_atol(self, array_a, array_b):
+        """Test the tolerance is used correctly."""
+        tol = 0.001
+        subset_t, _ = wot.subset_close(array_a, array_b+0.9*tol, atol=tol)
+        subset_f, _ = wot.subset_close(array_a, array_b+1.1*tol, atol=tol)
+        assert subset_t and not subset_f
+
+    def test_indices(self,):
+        """Test the correct indices are returned."""
+        a = np.array([1.1, 2.2, 3.3])
+        b = np.arange(10, dtype=float)
+        idx = [1, 4, 6]
+        for i,id in enumerate(idx):
+            b[id] = a[i]
+        subset, idx_calculated = wot.subset_close(a, b)
+        assert subset and idx_calculated==idx
+
+    def test_scalar(self,):
+        """Test function when array_a is a scalar."""
+        a = 2.2
+        b = np.array([1.1, a, 3.3])
+        subset, _ = wot.subset_close(a, b)
+        subset_a, _ = wot.subset_close(a, a)
+        assert subset and subset_a
+
 
 
 class TestScaleDOFs:
     """Test function :python:`scale_dofs`."""
-    # TODO
+
+    def test_function(self,):
+        """Test that the function returns expected results."""
+        scales = [1.1, 2.2, 3.3]
+        ncomponents = 3
+        scale_vec_calculated = wot.scale_dofs(scales, ncomponents)
+        scale_vec = [1.1, 1.1, 1.1, 2.2, 2.2, 2.2, 3.3, 3.3, 3.3]
+        assert np.allclose(scale_vec_calculated, scale_vec)
 
 
 class TestDecomposeState:
     """Test function :python:`decompose_state`."""
-    # TODO
+
+    def test_function(self,):
+        """Test that the function returns expected results."""
+        ndof, nfreq = 1, 2  # ncomponents = ndof*(2*nfreq+1) = 5
+        state = [1, 1, 1, 1, 1, 3.4, 3.5]
+        x_wec = [1, 1, 1, 1, 1]
+        x_opt = [3.4, 3.5]
+        x_w_calc, x_o_calc = wot.decompose_state(state, ndof, nfreq)
+        assert np.allclose(x_w_calc, x_wec) and np.allclose(x_o_calc, x_opt)
 
 
 class TestFrequencyParameters:
     """Test function :python:`frequency_parameters`."""
-    # TODO
+
+    def test_default(self,):
+        """Test that the function returns the same parameters used to
+        create the frequency array.
+        """
+        f1 = np.random.random()
+        nfreq = np.random.randint(2,10)
+        freq = wot.frequency(f1, nfreq)
+        f1_calc, nfreq_calc = wot.frequency_parameters(freq)
+        assert f1_calc==approx(f1) and nfreq_calc==nfreq
+
+    def test_zero_freq(self,):
+        """Test with a frequency array not containing the zero frequency.
+        """
+        f1 = 0.1
+        nfreq = 3
+        freq = [0.1, 0.2, 0.3]
+        f1_calc, nfreq_calc = wot.frequency_parameters(freq, False)
+        assert f1_calc==approx(f1) and nfreq_calc==nfreq
+
+    def test_error_spacing(self,):
+        """Test that it throws an error if the frequency array is not
+        evenly-spaced.
+        """
+        with pytest.raises(ValueError):
+            freq = [0, 0.1, 0.2, 0.4]
+            wot.frequency_parameters(freq)
+
+    def test_error_zero(self,):
+        """Test that it throws an error if the frequency array does not
+        contain the zero-frequency.
+        """
+        with pytest.raises(ValueError):
+            freq = [0.1, 0.2, 0.3]
+            wot.frequency_parameters(freq)
+
+    def test_error_zero_false(self,):
+        """Test that it throws an error if the frequency array contains
+        the zero-frequency but :python:`zero_freq` is :python:`False`.
+        """
+        with pytest.raises(ValueError):
+            freq = [0, 0.1, 0.2, 0.3]
+            wot.frequency_parameters(freq, False)
 
 
 class TestTimeResults:

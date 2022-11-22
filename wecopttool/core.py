@@ -2177,6 +2177,9 @@ def subset_close(
     ValueError
         If either of the two arrays contains repeated elements.
     """
+    set_a = np.atleast_1d(set_a)
+    set_b = np.atleast_1d(set_b)
+
     if len(np.unique(set_a.round(decimals = 6))) != len(set_a):
         raise ValueError("Elements in set_a not unique")
     if len(np.unique(set_b.round(decimals = 6))) != len(set_b):
