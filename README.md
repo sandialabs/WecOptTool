@@ -16,9 +16,15 @@ It is strongly recommended you create a dedicated virtual environment (e.g., usi
 **Option 1** - using `Conda`:
 
 ```bash
-conda install -c conda-forge wecopttool
-pip install gmsh pygmsh
+conda install -c conda-forge capytaine wavespectra
+pip install gmsh pygmsh wecopttool
 ```
+
+<!---
+```bash
+conda install -c conda-forge wecopttool
+```
+-->
 
 **Option 2** - using `pip` (requires Fortran compilers on your system):
 
