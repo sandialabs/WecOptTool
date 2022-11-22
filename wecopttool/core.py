@@ -47,7 +47,6 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
-    "add_zerofreq_to_xr",
 ]
 
 
