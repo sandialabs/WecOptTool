@@ -6,6 +6,12 @@ floating bodies.
 from __future__ import annotations
 
 
+__all__ = [
+    "stiffness_matrix",
+    "inertia_matrix"
+]
+
+
 from typing import Iterable, Optional
 import logging
 
@@ -32,7 +38,8 @@ def stiffness_matrix(
               according to the Capytaine convention (e.g.,
               :python:`"Heave"`).
 
-    Uses :python:`capytaine.FloatingBody.compute_hydrostatic_stiffness`
+    Uses
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.compute_hydrostatic_stiffness`
     on the immersed part of the mesh.
 
     Parameters
@@ -56,8 +63,8 @@ def stiffness_matrix(
         If :python:`fb.center_of_mass is not None` and
         :python:`center_of_mass` is provided with a different value.
     """
-    fb = _set_center_of_mass(fb, center_of_mass)
-    fb = _set_rotation_center(fb, rotation_center)
+    fb = _set_property(fb, 'center_of_mass', center_of_mass)
+    fb = _set_property(fb, 'rotation_center', rotation_center)
     fb_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     return fb_im.compute_hydrostatic_stiffness(rho=rho, g=g)
 
@@ -74,8 +81,9 @@ def inertia_matrix(
 
     .. note:: This function assumes a constant density WEC.
 
-    Uses :python:`capytaine.FloatingBody.compute_rigid_body_inertia` on
-    the full mesh.
+    Uses
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.compute_rigid_body_inertia`
+    on the full mesh.
 
     Parameters
     ----------
@@ -101,85 +109,61 @@ def inertia_matrix(
         If :python:`fb.mass is not None` and :python:`mass` is provided
         with a different value.
     """
-    fb = _set_center_of_mass(fb, center_of_mass)
-    fb = _set_rotation_center(fb, rotation_center)
-    fb = _set_mass(fb, mass, rho)
+    fb = _set_property(fb, 'center_of_mass', center_of_mass)
+    fb = _set_property(fb, 'rotation_center', rotation_center)
+    fb = _set_property(fb, 'mass', mass, rho)
     return fb.compute_rigid_body_inertia(rho=rho)
 
 
-# TODO: combine the three hidden methods below into a single "_set_property" method
-def _set_center_of_mass(
+def _set_property(
     fb: FloatingBody,
-    center_of_mass: Optional[Iterable[float]],
-) -> FloatingBody:
-    """If COG not provided, set to geometric centroid."""
-    cog_org = fb.center_of_mass is not None
-    cog_new = center_of_mass is not None
-
-    if not cog_org and not cog_new:
-        fb.center_of_mass = fb.center_of_buoyancy
-        _log.info(
-            "Using the geometric centroid as the center of gravity (COG).")
-    elif cog_org and cog_new:
-        if not np.allclose(fb.center_of_mass, center_of_mass):
-            raise ValueError(
-                "Both :python:`fb.center_of_mass` and " +
-                ":python:`center_of_mass` where provided but have " +
-                "different values."
-            )
-    elif cog_new:
-        fb.center_of_mass = center_of_mass
-
-    return fb
-
-
-def _set_mass(
-    fb: FloatingBody,
-    mass: Optional[float]=None,
+    property: str,
+    value: Optional[Iterable[float]],
     rho: float = _default_parameters["rho"],
 ) -> FloatingBody:
-    """If mass is not provided, set to displaced mass."""
-    mass_org = fb.mass is not None
-    mass_new = mass is not None
+    """Sets default properties if not provided by the user:
+        - `center_of_mass` is set to the geometric centroid
+        - `mass` is set to the displaced mass
+        - `rotation_center` is set to the center of mass
+    """
+    valid_properties = ['mass', 'center_of_mass', 'rotation_center']
+    if property not in valid_properties:
+        raise ValueError(
+            "`property` is not a recognized property. Valid properties are " +
+           f"{valid_properties}."
+        )
+    if not hasattr(fb, property):
+        setattr(fb, property, None)
+    prop_org = getattr(fb, property) is not None
+    prop_new = value is not None
 
-    if not mass_org and not mass_new:
-        vol = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part().volume
-        fb.mass = rho * vol
-        _log.info("Setting the mass to the displaced mass.")
-    elif mass_org and mass_new:
-        if not np.isclose(fb.mass, mass):
+    if not prop_org and not prop_new:
+        if property == 'mass':
+            vol = fb.copy(
+                name=f"{fb.name}_immersed"
+                ).keep_immersed_part().volume
+            def_val = rho * vol
+            log_str = (
+                "Setting the mass to the displaced mass.")
+        elif property == 'center_of_mass':
+            def_val = fb.center_of_buoyancy
+            log_str = (
+                "Using the geometric centroid as the center of gravity (COG).")
+        elif property == 'rotation_center':
+            def_val = fb.center_of_mass
+            log_str = (
+                "Using the center of gravity (COG) as the rotation center " +
+                "for hydrostatics.")
+        setattr(fb, property, def_val)
+        _log.info(log_str)
+    elif prop_org and prop_new:
+        if not np.allclose(getattr(fb, property), value):
             raise ValueError(
-                "Both :python:`fb.mass` and :python:`mass` where provided " +
-                "but have different values."
-            )
-    elif mass_new:
-        fb.mass = mass
-
-    return fb
-
-
-def _set_rotation_center(
-    fb: FloatingBody,
-    rotation_center: Optional[Iterable[float]],
-) -> FloatingBody:
-    """If rotation center not provided, set to center of mass."""
-    if not hasattr(fb, 'rotation_center'):
-        setattr(fb, 'rotation_center', None)
-    rc_org = fb.rotation_center is not None
-    rc_new = rotation_center is not None
-
-    if not rc_org and not rc_new:
-        fb.rotation_center = fb.center_of_mass
-        _log.info(
-            "Using the center of gravity (COG) as the rotation center for hydrostatics.")
-    elif rc_org and rc_new:
-        if not np.allclose(fb.rotation_center, rotation_center):
-            raise ValueError(
-                "Both :python:`fb.rotation_center` and " +
-                ":python:`rotation_center` where provided but have " +
+               f"Both :python:`fb.{property}` and " +
+               f":python:`{property}` were provided but have " +
                 "different values."
             )
-    elif rc_new:
-        fb.rotation_center = rotation_center
+    elif prop_new:
+        setattr(fb, property, value)
 
     return fb
