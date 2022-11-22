@@ -1095,7 +1095,6 @@ class TestSubsetClose:
         assert subset and subset_a
 
 
-
 class TestScaleDOFs:
     """Test function :python:`scale_dofs`."""
 
@@ -1170,9 +1169,54 @@ class TestFrequencyParameters:
 
 class TestTimeResults:
     """Test function :python:`time_results`."""
-    # TODO
 
+    @pytest.fixture(scope="class")
+    def f1(self,):
+        """Fundamental frequency [Hz]."""
+        return 0.1
 
-class TestAddZeroFreqToXR:
-    """Test function :python:`add_zerofreq_to_xr`."""
-    # TODO
+    @pytest.fixture(scope="class")
+    def nfreq(self,):
+        """Number of frequencies."""
+        return 2
+
+    @pytest.fixture(scope="class")
+    def time(self, f1, nfreq):
+        """Time vector [s]."""
+        time = wot.time(f1, nfreq)
+        return xr.DataArray(data=time, name='time', dims='time', coords=[time])
+
+    @pytest.fixture(scope="class")
+    def components(self,):
+        """Real and imaginary components of the complex response."""
+        return {'re1': 1.3, 'im1': -2.1, 're2': 0.5, 'im2': 0.4}
+
+    @pytest.fixture(scope="class")
+    def fd(self, f1, nfreq, components):
+        """Frequency domain response."""
+        omega = wot.frequency(f1, nfreq) * 2*np.pi
+        re1 = components['re1']
+        im1 = components['im1']
+        re2 = components['re2']
+        im2 = components['im2']
+        mag = np.array([0.0, re1+im1*1j, re2+im2*1j])
+        mag = xr.DataArray(
+            data=mag, name='response', dims='omega', coords=[omega])
+        return mag
+
+    def test_values(self, f1, nfreq, time, fd, components):
+        """Test that the function returns the correct time domain
+        response.
+        """
+        td = wot.time_results(fd, time)
+        re1 = components['re1']
+        im1 = components['im1']
+        re2 = components['re2']
+        im2 = components['im2']
+        w = wot.frequency(f1, nfreq) * 2*np.pi
+        t = td.time.values
+        response = (
+            re1*np.cos(w[1]*t) - im1*np.sin(w[1]*t) +
+            re2*np.cos(w[2]*t) - im2*np.sin(w[2]*t)
+        )
+        assert np.allclose(td.values, response)

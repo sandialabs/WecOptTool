@@ -2333,23 +2333,3 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         out = out + \
             np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
-
-
-def add_zerofreq_to_xr(data: Dataset) -> Dataset:
-    """Add a zero-frequency component to an :py:class:`xarray.Dataset`.
-
-    Frequency variable must be called :python:`omega`.
-
-    Parameters
-    ----------
-    data
-        Dataset with no zero-frequency component.
-    """
-    if not np.isclose(data.coords['omega'][0].values, 0):
-        tmp = data.isel(omega=0).copy(deep=True)
-        tmp['omega'] = tmp['omega'] * 0
-        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
-        for var in vars:
-            tmp[var] = tmp[var] * 0
-        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
-    return data
