@@ -29,7 +29,7 @@ conda install -c conda-forge wecopttool
 **Option 2** - using `pip` (requires Fortran compilers on your system):
 
 ```bash
-pip install wecopttool
+pip install gmsh pygmsh wecopttool
 ```
 
 This approach is not recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
