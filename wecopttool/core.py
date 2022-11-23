@@ -41,6 +41,7 @@ __all__ = [
     "run_bem",
     "change_bem_convention",
     "linear_hydrodynamics",
+    "hydrodynamic_impedance",
     "atleast_2d",
     "subset_close",
     "scale_dofs",
@@ -2116,6 +2117,23 @@ def linear_hydrodynamics(
             hydro_data[name] = (dims, data)
 
     return hydro_data
+
+
+def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
+    """Calculate hydrodynamic intrinsic impedance.
+
+    Parameters
+    ----------
+    hydro_data
+        Dataset with linear hydrodynamic coefficients produced by 
+        :py:func:`wecopttool.linear_hydrodynamics`.
+    """
+    
+    Zi = (hydro_data['inertia_matrix'] \
+        + hydro_data['added_mass'])*1j*hydro_data['omega'] \
+            + hydro_data['radiation_damping'] + hydro_data['friction'] \
+                + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
+    return Zi
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
