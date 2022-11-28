@@ -1379,7 +1379,7 @@ def mimo_transfer_mat(
     For example, it can be an impedance matrix or an RAO transfer
     matrix.
     The input complex impedance matrix has shape
-    :python`(ndof*nfreq, ndof*nfreq)`.
+    :python`(ndof, ndof, nfreq)`.
 
     Returns the 2D real matrix that transform the state representation
     of the input variable variable to the state representation of the
@@ -1764,7 +1764,7 @@ def force_from_impedance(
     omega: ArrayLike,
     impedance: ArrayLike,
 ) -> TStateFunction:
-    """Create a force function its impedance.
+    """Create a force function from its impedance.
 
     Parameters
     ----------

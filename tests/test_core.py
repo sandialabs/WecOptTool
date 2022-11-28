@@ -80,6 +80,57 @@ def wave_regular(f1, nfreq):
     return wave, params
 
 
+@pytest.fixture(scope="module")
+def ndof_waves():
+    """Number of WEC degrees of freedom to consider for the wave tests.
+    """
+    return 3
+
+
+@pytest.fixture(scope="module")
+def exc_coeff(wave_regular, waves_multi, ndof_waves, nfreq, f1):
+    """Excitation coefficients for the WEC."""
+    # regular wave parameter
+    wave_regular, params_reg = wave_regular
+    n_r = params_reg['n']
+    # multi-directional wave parameters
+    waves_multi, params_multi = waves_multi
+    directions = np.deg2rad(params_multi['directions'])
+    ndir = len(directions)
+    n_m = params_multi['n']
+    # excitation force coefficients
+    exc_coeff = np.zeros([nfreq, ndir, ndof_waves], dtype=complex)
+    exc_coeff[n_m-1, 0, :] = [1+11j, 2+22j, 3+33j]
+    exc_coeff[n_m-1, 1, :] = [4+44j, 5+55j, 6+66j]
+    exc_coeff[n_r-1, 0, :] = [1+11j, 2+22j, 3+33j]
+    exc_coeff[n_r-1, 1, :] = [4+44j, 5+55j, 6+66j]
+    omega = 2*np.pi*wot.frequency(f1, nfreq, False)
+    coords = {
+        'omega': (['omega'], omega, {'units': 'rad/s'}),
+        'wave_direction': (['wave_direction'], directions, {'units': 'rad'}),
+        'influenced_dof': (['influenced_dof'], ['DOF_1', 'DOF_2', 'DOF_3'], {})
+        }
+    return xr.DataArray(exc_coeff, coords=coords, attrs={})
+
+
+@pytest.fixture(scope="module")
+def fexc_regular(nfreq, wave_regular, exc_coeff, ndof_waves):
+    """Excitation force for the regular wave."""
+    # wave elevation
+    wave_regular, params_reg = wave_regular
+    n_r = params_reg['n']
+    wave_elev_regular = (
+        params_reg['amp'] *
+        np.exp(1j*wot.degrees_to_radians(params_reg['phase'])))
+    # excitation force
+    fexc = np.zeros([nfreq, ndof_waves], dtype=complex)
+    for idof in range(ndof_waves):
+        idir = 0
+        fexc[n_r-1, idof] = (
+            exc_coeff[n_r-1, idir, idof] * wave_elev_regular)
+    return fexc
+
+
 # fixture: sea-state composed of two wave components with different
 # frequencies and directions.
 @pytest.fixture(scope="module")
@@ -101,6 +152,87 @@ def waves_multi(f1, nfreq):
               'phase0': phase0, 'phase1': phase1}
 
     return waves, params
+
+
+@pytest.fixture(scope="module")
+def fexc_multi(nfreq, waves_multi, exc_coeff, ndof_waves):
+    """Excitation force for the multi-directional wave."""
+    # wave elevation
+    waves_multi, params_multi = waves_multi
+    n_m = params_multi['n']
+    directions = np.deg2rad(params_multi['directions'])
+    ndir = len(directions)
+    waves_elev_multi = [
+        params_multi['amp0'] * np.exp(1j*np.deg2rad(params_multi['phase0'])),
+        params_multi['amp1'] * np.exp(1j*np.deg2rad(params_multi['phase1']))]
+    # excitation force
+    fexc = np.zeros([nfreq, ndof_waves], dtype=complex)
+    for idof in range(ndof_waves):
+        for idir in range(ndir):
+            fexc[n_m-1, idof] += \
+                exc_coeff[n_m-1, idir, idof] * waves_elev_multi[idir]
+    return fexc
+
+
+# fixture: synthetic impedance
+@pytest.fixture(scope="module")
+def ndof_imp():
+    """Number of degrees of freedom in synthetic impedance."""
+    return 2
+
+
+@pytest.fixture(scope="module")
+def nfreq_imp():
+    """Number of frequencies in synthetic impedance."""
+    return 2
+
+
+@pytest.fixture(scope="module")
+def impedance(ndof_imp, nfreq_imp):
+    """Synthetic impedance matrix."""
+    impedance = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
+    impedance[0, 0, :] = [0+1j, 0+2j]
+    impedance[1, 0, :] = [1+1j, 11+2j]
+    impedance[0, 1, :] = [2+1j, 22+2j]
+    impedance[1, 1, :] = [3+1j, 33+2j]
+    return impedance
+
+@pytest.fixture(scope="module")
+def mimo(nfreq_imp):
+    """Correct MIMO matrix corresponding to the synthetic impedance
+    matrix.
+    """
+    ncomponents = wot.ncomponents(nfreq_imp)
+    mimo = np.zeros([ncomponents*2, ncomponents*2])
+    mimo[:ncomponents, :ncomponents] = np.array([
+        [0, 0,  0, 0,  0],
+        [0, 0, -1, 0,  0],
+        [0, 1,  0, 0,  0],
+        [0, 0,  0, 0, -2],
+        [0, 0,  0, 2,  0],
+    ])
+    mimo[ncomponents:, :ncomponents] = np.array([
+        [0, 0,  0,  0,  0],
+        [0, 1, -1,  0,  0],
+        [0, 1,  1,  0,  0],
+        [0, 0,  0, 11, -2],
+        [0, 0,  0,  2, 11],
+    ])
+    mimo[:ncomponents, ncomponents:] = np.array([
+        [0, 0,  0,  0,  0],
+        [0, 2, -1,  0,  0],
+        [0, 1,  2,  0,  0],
+        [0, 0,  0, 22, -2],
+        [0, 0,  0,  2, 22],
+        ])
+    mimo[ncomponents:, ncomponents:] = np.array([
+        [0, 0,  0,  0,  0],
+        [0, 3, -1,  0,  0],
+        [0, 1,  3,  0,  0],
+        [0, 0,  0, 33, -2],
+        [0, 0,  0,  2, 33],
+    ])
+    return mimo
 
 
 class TestNComponents:
@@ -339,63 +471,6 @@ class TestDerivativeMat:
 
 class TestMIMOTransferMat:
     """Test function :python:`mimo_transfer_mat`."""
-
-    @pytest.fixture(scope="class")
-    def ndof_imp(self,):
-        """Number of degrees of freedom in synthetic impedance."""
-        return 2
-
-    @pytest.fixture(scope="class")
-    def nfreq_imp(self,):
-        """Number of frequencies in synthetic impedance."""
-        return 2
-
-    @pytest.fixture(scope="class")
-    def impedance(self, ndof_imp, nfreq_imp):
-        """Synthetic impedance matrix."""
-        impedance = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-        impedance[0, 0, :] = [0+1j, 0+2j]
-        impedance[1, 0, :] = [1+1j, 11+2j]
-        impedance[0, 1, :] = [2+1j, 22+2j]
-        impedance[1, 1, :] = [3+1j, 33+2j]
-        return impedance
-
-    @pytest.fixture(scope="class")
-    def mimo(self, nfreq_imp):
-        """Correct MIMO matrix corresponding to the synthetic impedance
-        matrix.
-        """
-        ncomponents = wot.ncomponents(nfreq_imp)
-        mimo = np.zeros([ncomponents*2, ncomponents*2])
-        mimo[:ncomponents, :ncomponents] = np.array([
-            [0, 0,  0, 0,  0],
-            [0, 0, -1, 0,  0],
-            [0, 1,  0, 0,  0],
-            [0, 0,  0, 0, -2],
-            [0, 0,  0, 2,  0],
-        ])
-        mimo[ncomponents:, :ncomponents] = np.array([
-            [0, 0,  0,  0,  0],
-            [0, 1, -1,  0,  0],
-            [0, 1,  1,  0,  0],
-            [0, 0,  0, 11, -2],
-            [0, 0,  0,  2, 11],
-        ])
-        mimo[:ncomponents, ncomponents:] = np.array([
-            [0, 0,  0,  0,  0],
-            [0, 2, -1,  0,  0],
-            [0, 1,  2,  0,  0],
-            [0, 0,  0, 22, -2],
-            [0, 0,  0,  2, 22],
-            ])
-        mimo[ncomponents:, ncomponents:] = np.array([
-            [0, 0,  0,  0,  0],
-            [0, 3, -1,  0,  0],
-            [0, 1,  3,  0,  0],
-            [0, 0,  0, 33, -2],
-            [0, 0,  0,  2, 33],
-        ])
-        return mimo
 
     def test_mimo_transfer_mat(self, impedance, mimo):
         """Test the function produces the correct MIMO transfer matrix.
@@ -726,19 +801,114 @@ class TestCheckLinearDamping:
         assert data_new_nofric.equals(data_org_nofric)
 
 
-class TestForceFromRAOTransferFunction:
-    """Test function :python:`force_from_rao_transfer_function`."""
-    # TODO
+class TestForceFromImpedanceOrTransferFunction:
+    """Test both functions :python:`force_from_rao_transfer_function`
+    and :python:`force_from_impedance`.
+    """
 
+    @pytest.fixture(scope="class")
+    def omega(self, f1, nfreq_imp):
+        """Radial frequency vector."""
+        return wot.frequency(f1, nfreq_imp) * 2*np.pi
 
-class TestForceFromImpedance:
-    """Test function :python:`force_from_impedance`."""
-    # TODO
+    @pytest.fixture(scope="class")
+    def x_wec(self,):
+        """WEC position state vector for a simple synthetic case."""
+        return [0, 1, 1, 1, 1, 0, 2, 2, 2, 2]
+
+    @pytest.fixture(scope="class")
+    def force(self, f1, nfreq_imp, ndof_imp):
+        """Correct forces for the synthetic example."""
+        # amplitude: A  = mimo @ x_wec, calculated manually
+        #   reshaped for convenience
+        A = np.array([
+            [0, 1,  7, 38, 50],
+            [0, 4, 10, 71, 83],
+        ])
+        force = np.zeros((wot.ncomponents(nfreq_imp), ndof_imp))
+        w = wot.frequency(f1, nfreq_imp) * 2*np.pi
+        t = wot.time(f1, nfreq_imp)
+        force[:, 0] = (
+            A[0, 0] +
+            A[0, 1]*np.cos(w[1]*t) - A[0, 2]*np.sin(w[1]*t) +
+            A[0, 3]*np.cos(w[2]*t) - A[0,4]*np.sin(w[2]*t)
+        )
+        force[:, 1] = (
+            A[1, 0] +
+            A[1, 1]*np.cos(w[1]*t) - A[1, 2]*np.sin(w[1]*t) +
+            A[1, 3]*np.cos(w[2]*t) - A[1, 4]*np.sin(w[2]*t)
+        )
+        return force
+
+    def test_from_transfer(
+            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec
+        ):
+        """Test the function :python:`force_from_rao_transfer_function`
+        for a small synthetic problem.
+        """
+        force_func = wot.force_from_rao_transfer_function(impedance, False)
+        wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
+        force_calculated = force_func(wec, x_wec, None, None)
+        assert np.allclose(force_calculated, force)
+
+    def test_from_impedance(
+            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec, omega
+        ):
+        """Test the function :python:`force_from_impedance` for a small
+        synthetic problem.
+        """
+        force_func = wot.force_from_impedance(omega[1:], impedance*1j*omega[1:])
+        wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
+        force_calculated = force_func(wec, x_wec, None, None)
+        assert np.allclose(force_calculated, force)
 
 
 class TestForceFromWaves:
     """Test function :python:`force_from_waves`."""
-    # TODO
+
+    def test_regular(
+            self, exc_coeff, f1, nfreq, ndof_waves, wave_regular, fexc_regular
+        ):
+        """Test regular wave forces."""
+        # correct
+        A = fexc_regular
+        force = np.zeros((wot.ncomponents(nfreq), ndof_waves))
+        w = wot.frequency(f1, nfreq) * 2*np.pi
+        w = w[1:]
+        t = wot.time(f1, nfreq)
+        for i in range(ndof_waves):
+            for j in range(nfreq):
+                Ar, Ai = np.real(A[j, i]), np.imag(A[j, i])
+                force[:, i] += Ar*np.cos(w[j]*t) - Ai*np.sin(w[j]*t)
+        # calculated
+        force_func = wot.force_from_waves(exc_coeff)
+        wec = wot.WEC(f1, nfreq, {}, ndof=ndof_waves, inertia_in_forces=True)
+        waves, _ = wave_regular
+        force_calculated = force_func(wec, None, None, waves)
+        # test
+        assert np.allclose(force_calculated, force)
+
+    def test_multi(
+            self, exc_coeff, f1, nfreq, ndof_waves, waves_multi, fexc_multi
+        ):
+        """Test iregular wave forces."""
+        # correct
+        A = fexc_multi
+        force = np.zeros((wot.ncomponents(nfreq), ndof_waves))
+        w = wot.frequency(f1, nfreq) * 2*np.pi
+        w = w[1:]
+        t = wot.time(f1, nfreq)
+        for i in range(ndof_waves):
+            for j in range(nfreq):
+                Ar, Ai = np.real(A[j, i]), np.imag(A[j, i])
+                force[:, i] += Ar*np.cos(w[j]*t) - Ai*np.sin(w[j]*t)
+        # calculated
+        force_func = wot.force_from_waves(exc_coeff)
+        wec = wot.WEC(f1, nfreq, {}, ndof=ndof_waves, inertia_in_forces=True)
+        waves, _ = waves_multi
+        force_calculated = force_func(wec, None, None, waves)
+        # test
+        assert np.allclose(force_calculated, force)
 
 
 class TestInertiaStandardForces:
@@ -853,85 +1023,18 @@ class TestLinearHydrodynamics:
 class TestWaveExcitation:
     """Test function :python:`wave_excitation`."""
 
-    @pytest.fixture(scope="class")
-    def ndof(self,):
-        """Number of WEC degrees of freedom."""
-        return 3
-
-    @pytest.fixture(scope="class")
-    def exc_coeff(self, wave_regular, waves_multi, ndof, nfreq, f1):
-        """Excitation coefficients for the WEC."""
-        # regular wave parameter
-        wave_regular, params_reg = wave_regular
-        n_r = params_reg['n']
-        # multi-directional wave parameters
-        waves_multi, params_multi = waves_multi
-        directions = np.deg2rad(params_multi['directions'])
-        ndir = len(directions)
-        n_m = params_multi['n']
-        # excitation force coefficients
-        exc_coeff = np.zeros([nfreq, ndir, ndof], dtype=complex)
-        exc_coeff[n_m-1, 0, :] = [1+11j, 2+22j, 3+33j]
-        exc_coeff[n_m-1, 1, :] = [4+44j, 5+55j, 6+66j]
-        exc_coeff[n_r-1, 0, :] = [1+11j, 2+22j, 3+33j]
-        exc_coeff[n_r-1, 1, :] = [4+44j, 5+55j, 6+66j]
-        omega = 2*np.pi*wot.frequency(f1, nfreq, False)
-        coords = {
-            'omega': (['omega'], omega, {'units': 'rad/s'}),
-            'wave_direction': (['wave_direction'], directions, {'units': 'rad'}),
-            'influenced_dof': (['influenced_dof'], ['DOF_1', 'DOF_2', 'DOF_3'], {})
-            }
-        return xr.DataArray(exc_coeff, coords=coords, attrs={})
-
-    @pytest.fixture(scope="class")
-    def fexc_regular(self, nfreq, wave_regular, exc_coeff, ndof):
-        """Excitation force for the regular wave."""
-        # wave elevation
-        wave_regular, params_reg = wave_regular
-        n_r = params_reg['n']
-        wave_elev_regular = (
-            params_reg['amp'] *
-            np.exp(1j*wot.degrees_to_radians(params_reg['phase'])))
-        # excitation force
-        fexc = np.zeros([nfreq, ndof], dtype=complex)
-        for idof in range(ndof):
-            idir = 0
-            fexc[n_r-1, idof] = (
-                exc_coeff[n_r-1, idir, idof] * wave_elev_regular)
-        return fexc
-
-    @pytest.fixture(scope="class")
-    def fexc_multi(self, nfreq, waves_multi, exc_coeff, ndof):
-        """Excitation force for the multi-directional wave."""
-        # wave elevation
-        waves_multi, params_multi = waves_multi
-        n_m = params_multi['n']
-        directions = np.deg2rad(params_multi['directions'])
-        ndir = len(directions)
-        waves_elev_multi = [
-            params_multi['amp0'] * np.exp(1j*np.deg2rad(params_multi['phase0'])),
-            params_multi['amp1'] * np.exp(1j*np.deg2rad(params_multi['phase1']))]
-        # excitation force
-        fexc = np.zeros([nfreq, ndof], dtype=complex)
-        for idof in range(ndof):
-            for idir in range(ndir):
-                fexc[n_m-1, idof] += \
-                    exc_coeff[n_m-1, idir, idof] * waves_elev_multi[idir]
-        return fexc
-
     def test_regular_value(
-            self, exc_coeff, wave_regular, fexc_regular, nfreq, ndof
+            self, exc_coeff, wave_regular, fexc_regular, nfreq, ndof_waves
         ):
         """Test the value of the regular wave excitation force."""
         wave_regular, _ = wave_regular
         calculated = wot.wave_excitation(exc_coeff, wave_regular)
         calc_shape = calculated.shape
-        shape = (nfreq, ndof)
-        assert calc_shape==shape
-        assert np.allclose(calculated, fexc_regular)
+        shape = (nfreq, ndof_waves)
+        assert calc_shape==shape and np.allclose(calculated, fexc_regular)
 
     def test_multi_value(
-            self, exc_coeff, waves_multi, fexc_multi, nfreq, ndof
+            self, exc_coeff, waves_multi, fexc_multi, nfreq, ndof_waves
         ):
         """Test the value of the multi-directional wave excitation
         force.
@@ -939,7 +1042,7 @@ class TestWaveExcitation:
         waves_multi, _ = waves_multi
         calculated = wot.wave_excitation(exc_coeff, waves_multi)
         calc_shape = calculated.shape
-        shape = (nfreq, ndof)
+        shape = (nfreq, ndof_waves)
         assert calc_shape==shape and np.allclose(calculated, fexc_multi)
 
     def test_error_directions_not_subset(self, f1, nfreq, exc_coeff):
