@@ -57,7 +57,11 @@ _log_capytaine = logging.getLogger("capytaine")
 _log_capytaine.addHandler(_handler)
 
 
-def set_loglevel(level:str) -> None:
+def set_loglevel(
+    level: str,
+    wecopttool: bool = True,
+    capytaine: bool = True,
+) -> None:
     """ Change the logging level of the :python:`wecopttool` and
     :python:`capytaine` loggers to the specified level.
 
@@ -66,6 +70,12 @@ def set_loglevel(level:str) -> None:
     level
         Level for :py:meth:`python.logging.Logger.setLevel`.
         See `list of logging levels <https://docs.python.org/3/library/logging.html#levels>`_.
+    wecopttool
+        Whether to change WecOptTool's log level.
+    capytaine
+        Whether to change Capytaine's log level.
     """
-    _log.setLevel(level.upper())
-    _log_capytaine.setLevel(level.upper())
+    if wecopttool:
+        _log.setLevel(level.upper())
+    if capytaine:
+        _log_capytaine.setLevel(level.upper())

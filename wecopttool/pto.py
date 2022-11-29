@@ -667,8 +667,6 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
         Size 2*n_dof.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else
-        not used.
     """
     z_11 = impedance[:ndof, :ndof, :]  # Fu
     z_12 = impedance[:ndof, ndof:, :]  # Fi
@@ -696,8 +694,6 @@ def _make_mimo_transfer_mat(
         PTO impedance in ABCD form.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else
-        not used.
     """
     elem = [[None]*2*ndof for _ in range(2*ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
