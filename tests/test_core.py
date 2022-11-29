@@ -9,29 +9,41 @@ import pytest
 from pytest import approx
 import numpy as np
 import xarray as xr
+import capytaine as cpy
 
 import wecopttool as wot
 
 
 # small problem setup with synthetic BEM data
 @pytest.fixture(scope='module')
-def f1(): return 0.12
+def f1():
+    """Fundamental frequency [Hz]."""
+    return 0.12
 
 
 @pytest.fixture(scope='module')
-def nfreq(): return 5
+def nfreq():
+    """Number of frequencies in frequency vector."""
+    return 5
 
 
 @pytest.fixture(scope='module')
-def nsubsteps(): return random.randint(2, 10)
+def nsubsteps():
+    """Number of sub-steps between default step size for the time
+    vector.
+    """
+    return random.randint(2, 10)
 
 
 @pytest.fixture(scope="module")
-def ncomponents(nfreq): return wot.ncomponents(nfreq)
+def ncomponents(nfreq):
+    """Number of components in the WEC state."""
+    return wot.ncomponents(nfreq)
 
 
 @pytest.fixture(scope='module')
 def bem_data(f1, nfreq):
+    """Synthetic BEM data."""
     coords = {
         'omega': [2*np.pi*(ifreq+1)*f1 for ifreq in range(nfreq)],
         'influenced_dof': ['DOF_1', 'DOF_2'],
@@ -59,18 +71,22 @@ def bem_data(f1, nfreq):
 
 @pytest.fixture(scope='module')
 def hydro_data(bem_data):
+    """Synthetic hydro-data containing inertia, stiffness, and friction
+    in addition to the coefficients in `bem_data`."""
     ndof = len(bem_data.influenced_dof)
     inertia_matrix = np.ones([ndof, ndof])
     stiffness = np.ones([ndof, ndof])
     friction = np.ones([ndof, ndof])
     data = wot.linear_hydrodynamics(
-        bem_data, inertia_matrix, stiffness, friction)
+        bem_data, inertia_matrix, stiffness, friction
+    )
     return data
 
 
 # fixture: regular wave
 @pytest.fixture(scope="module")
 def wave_regular(f1, nfreq):
+    """Wave structure consisting of a single regular wave."""
     n = np.random.randint(1, nfreq)
     freq = n*f1  # Hz
     amp = 1.1  # m
@@ -135,6 +151,9 @@ def fexc_regular(nfreq, wave_regular, exc_coeff, ndof_waves):
 # frequencies and directions.
 @pytest.fixture(scope="module")
 def waves_multi(f1, nfreq):
+    """Waves structure composed of two sinusoidal waves in different
+    directions.
+    """
     n = np.random.randint(1, nfreq)
     directions = [0.0, 30.0]
     ndir = len(directions)
@@ -196,6 +215,7 @@ def impedance(ndof_imp, nfreq_imp):
     impedance[0, 1, :] = [2+1j, 22+2j]
     impedance[1, 1, :] = [3+1j, 33+2j]
     return impedance
+
 
 @pytest.fixture(scope="module")
 def mimo(nfreq_imp):
@@ -1007,17 +1027,58 @@ class TestInertiaStandardForces:
 
 class TestRunBEM:
     """Test function :python:`run_bem`."""
-    # TODO
+
+    def test_it_runs(self,):
+        """Test that the function at least runs and returns correct
+        data type.
+        """
+        rect = cpy.RectangularParallelepiped(
+            size=(5.0, 5.0, 2.0), resolution=(10, 10, 10), center=(0.0, 0.0, 0.0,)
+        )
+        rect.add_translation_dof(name="Heave")
+        bem_data = wot.run_bem(fb=rect, freq=[0.1, 0.2], wave_dirs=[0,])
+        assert type(bem_data) == xr.Dataset
 
 
 class TestChangeBEMConvention:
     """Test function :python:`change_bem_convention`."""
-    # TODO
+
+    @pytest.fixture(scope="class")
+    def data_there(self, bem_data):
+        """Modified BEM data."""
+        data_here = bem_data.copy(deep=True)
+        return wot.change_bem_convention(data_here)
+
+    @pytest.fixture(scope="class")
+    def data_back(self, data_there):
+        """Twice modified BEM data. Should be equal to original."""
+        return wot.change_bem_convention(data_there)
+
+    def test_fk(self, bem_data, data_there):
+        """Test that the Froude-Krylov force was changed correctly."""
+        calculated = data_there['Froude_Krylov_force'].values
+        correct = np.conjugate(bem_data['Froude_Krylov_force'].values)
+        assert np.allclose(calculated, correct)
+
+    def test_diff(self, bem_data, data_there):
+        """Test that the diffraction force was changed correctly."""
+        calculated = data_there['diffraction_force'].values
+        correct = np.conjugate(bem_data['diffraction_force'].values)
+        assert np.allclose(calculated, correct)
+
+    def test_round_trip(self, bem_data, data_back):
+        """Test that a round trip returns the original dataset."""
+        xr.testing.assert_allclose(data_back, bem_data)
 
 
 class TestLinearHydrodynamics:
     """Test function :python:`linear_hydrodynamics`."""
-    # TODO
+
+    def test_values(self, bem_data, hydro_data):
+        """Test the function returns expected values."""
+        mat = np.array([[1, 1], [1, 1]])
+        calculated = wot.linear_hydrodynamics(bem_data, mat, mat, mat)
+        xr.testing.assert_allclose(calculated, hydro_data)
 
 
 class TestWaveExcitation:
