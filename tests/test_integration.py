@@ -219,23 +219,16 @@ def test_same_wec_init(
 
     waves = wot.waves.regular_wave(f1, nfreq, 0.3, 0.0625)
     obj_fun = pto.average_power
-    x_wec_0=1e-1*np.ones(wec_from_bem.nstate_wec)
-    x_opt_0=1e-1*np.ones(wec_from_bem.nstate_wec)
-    bem_res = wec_from_bem.solve(waves, obj_fun, 2*nfreq+1,
-                                 x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                 optim_options={'maxiter': 3},
-                                 )
-    fb_res = wec_from_floatingbody.solve(waves, obj_fun, 2*nfreq+1,
-                                         x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                         optim_options={'maxiter': 3},
-                                         )
-    imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1,
-                                       x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                       optim_options={'maxiter': 3},
-                                       )
+    np.random.seed(0)
+    x_wec_0=np.random.randn(wec_from_bem.nstate_wec)
+    np.random.seed(1)
+    x_opt_0=np.random.randn(wec_from_bem.nstate_wec)
+    bem_res = wec_from_bem.resid_fun(x_wec_0, x_opt_0, waves)
+    fb_res = wec_from_floatingbody.resid_fun(x_wec_0, x_opt_0, waves)
+    imp_res = wec_from_impedance.resid_fun(x_wec_0, x_opt_0, waves)
 
-    assert fb_res.fun == approx(bem_res.fun, rel=0.01)
-    assert imp_res.fun == approx(bem_res.fun, rel=0.01)
+    assert fb_res == approx(bem_res, rel=0.01)
+    assert imp_res == approx(bem_res, rel=0.1)
 
 
 def test_p_controller_resonant_wave(fb,

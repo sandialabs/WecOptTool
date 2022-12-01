@@ -577,6 +577,17 @@ class WEC:
         wec = WEC(f1, nfreq, forces, constraints,
                   inertia_in_forces=True, ndof=shape[0])
         return wec
+    
+    def resid_fun(self, x_wec, x_opt, waves):
+        """TODO"""
+        if not self.inertia_in_forces:
+            ri = self.inertia(self, x_wec, x_opt, waves)
+        else:
+            ri = np.zeros([self.ncomponents, self.ndof])
+        # forces, -Σf
+        for f in self.forces.values():
+            ri = ri - f(self, x_wec, x_opt, waves)
+        return self.dofmat_to_vec(ri)
 
     # solve
     def solve(self,
@@ -724,22 +735,14 @@ class WEC:
             constraints[i] = icons_new
 
         # system dynamics through equality constraint, ma - Σf = 0
-        def resid_fun(x):
+        def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            # inertia, ma
-            if not self.inertia_in_forces:
-                ri = self.inertia(self, x_wec, x_opt, waves)
-            else:
-                ri = np.zeros([self.ncomponents, self.ndof])
-            # forces, -Σf
-            for f in self.forces.values():
-                ri = ri - f(self, x_wec, x_opt, waves)
-            return self.dofmat_to_vec(ri)
+            return self.resid_fun(x_wec, x_opt, waves)
 
-        eq_cons = {'type': 'eq', 'fun': resid_fun}
+        eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
-            eq_cons['jac'] = jacobian(resid_fun)
+            eq_cons['jac'] = jacobian(scaled_resid_fun)
         constraints.append(eq_cons)
 
         # bounds
