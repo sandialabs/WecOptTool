@@ -172,7 +172,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
                              bounds_opt=bounds_opt,
                              )
 
-    assert pytest.approx(kplim, 1e-10) == res['x'][-1]
+    assert pytest.approx(kplim, 1e-5) == res['x'][-1]
 
 
 def test_post_process(wec_from_bem, regular_wave, pto, nfreq):
