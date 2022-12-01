@@ -123,7 +123,7 @@ def resonant_wave(f1, nfreq, fb, bem):
     hstiff = wot.hydrostatics.stiffness_matrix(fb).values
     hd = wot.linear_hydrodynamics(bem, mass, hstiff)
     Zi = wot.hydrodynamic_impedance(hd)
-    wn = Zi['omega'][np.abs(Zi).argmin()]
+    wn = Zi['omega'][np.abs(Zi).argmin(dim='omega')].item()
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
     return waves
 
@@ -223,13 +223,16 @@ def test_same_wec_init(
     x_opt_0=1e-1*np.ones(wec_from_bem.nstate_wec)
     bem_res = wec_from_bem.solve(waves, obj_fun, 2*nfreq+1,
                                  x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                 optim_options={'maxiter': 3})
+                                 optim_options={'maxiter': 3},
+                                 )
     fb_res = wec_from_floatingbody.solve(waves, obj_fun, 2*nfreq+1,
                                          x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                         optim_options={'maxiter': 3})
+                                         optim_options={'maxiter': 3},
+                                         )
     imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1,
                                        x_wec_0=x_wec_0, x_opt_0=x_opt_0,
-                                       optim_options={'maxiter': 3})
+                                       optim_options={'maxiter': 3},
+                                       )
 
     assert fb_res.fun == approx(bem_res.fun, rel=0.01)
     assert imp_res.fun == approx(bem_res.fun, rel=0.01)
