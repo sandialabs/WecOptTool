@@ -782,7 +782,7 @@ def controller_pid(
         True to include derivative gain
     """
     ndof = pto.ndof
-    force_td = np.zeros([wec.nt, ndof])
+    force_td = np.zeros([wec.nt*nsubsteps, ndof])
     idx = 0
 
     def update_force_td(response):
