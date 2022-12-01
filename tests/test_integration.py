@@ -219,9 +219,17 @@ def test_same_wec_init(
 
     waves = wot.waves.regular_wave(f1, nfreq, 0.3, 0.0625)
     obj_fun = pto.average_power
-    bem_res = wec_from_bem.solve(waves, obj_fun, 2*nfreq+1)
-    fb_res = wec_from_floatingbody.solve(waves, obj_fun, 2*nfreq+1)
-    imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1)
+    x_wec_0=1e-1*np.ones(wec_from_bem.nstate_wec)
+    x_opt_0=1e-1*np.ones(wec_from_bem.nstate_wec)
+    bem_res = wec_from_bem.solve(waves, obj_fun, 2*nfreq+1,
+                                 x_wec_0=x_wec_0, x_opt_0=x_opt_0,
+                                 optim_options={'maxiter': 3})
+    fb_res = wec_from_floatingbody.solve(waves, obj_fun, 2*nfreq+1,
+                                         x_wec_0=x_wec_0, x_opt_0=x_opt_0,
+                                         optim_options={'maxiter': 3})
+    imp_res = wec_from_impedance.solve(waves, obj_fun, 2*nfreq+1,
+                                       x_wec_0=x_wec_0, x_opt_0=x_opt_0,
+                                       optim_options={'maxiter': 3})
 
     assert fb_res.fun == approx(bem_res.fun, rel=0.01)
     assert imp_res.fun == approx(bem_res.fun, rel=0.01)
