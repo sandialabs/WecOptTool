@@ -21,15 +21,13 @@ __all__ = [
     "time",
     "time_mat",
     "derivative_mat",
-    "degrees_to_radians",
+    "mimo_transfer_mat",
     "vec_to_dofmat",
     "dofmat_to_vec",
-    "mimo_transfer_mat",
     "real_to_complex",
     "complex_to_real",
     "fd_to_td",
     "td_to_fd",
-    "wave_excitation",
     "read_netcdf",
     "write_netcdf",
     "check_linear_damping",
@@ -41,14 +39,15 @@ __all__ = [
     "run_bem",
     "change_bem_convention",
     "linear_hydrodynamics",
+    "wave_excitation",
     "hydrodynamic_impedance",
     "atleast_2d",
+    "degrees_to_radians",
     "subset_close",
     "scale_dofs",
     "decompose_state",
     "frequency_parameters",
     "time_results",
-    "add_zerofreq_to_xr",
 ]
 
 
@@ -112,8 +111,8 @@ class WEC:
     """
     def __init__(
         self,
-        f1:float,
-        nfreq:int,
+        f1: float,
+        nfreq: int,
         forces: TIForceDict,
         constraints: Optional[Iterable[Mapping]] = None,
         inertia_matrix: Optional[ndarray] = None,
@@ -645,8 +644,8 @@ class WEC:
             decision variable.
             See :py:func:`scipy.optimize.minimize`.
         callback
-            Function called after each iteration, must have signature 
-            :python:`fun(wec, x_wec, x_opt, waves)`. The default 
+            Function called after each iteration, must have signature
+            :python:`fun(wec, x_wec, x_opt, waves)`. The default
             provides status reports at each iteration via logging at the
             INFO level.
 
@@ -750,7 +749,7 @@ class WEC:
             bounds_in = [bounds_wec, bounds_opt]
             for idx, bii in enumerate(bounds_in):
                 if isinstance(bii, tuple):
-                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii], 
+                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
                                             ub=[xibs[1] for xibs in bii])
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
@@ -988,7 +987,7 @@ class WEC:
     def omega(self) -> ndarray:
         """Radial frequency vector [rad/s]."""
         return self._freq * (2*np.pi)
-    
+
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
@@ -1370,28 +1369,54 @@ def derivative_mat(
     return block_diag(*blocks)
 
 
-def degrees_to_radians(
-    degrees: FloatOrArray,
-    sort: Optional[bool] = True,
-) -> Union[float, ndarray]:
-    """Convert a 1D array of angles in degrees to radians in the range
-    :math:`(-π, π]` and optionally sort them.
+def mimo_transfer_mat(
+    transfer_mat: ArrayLike,
+    zero_freq: Optional[bool] = True,
+) -> ndarray:
+    """Create a block matrix of the MIMO transfer function.
+
+    The input is a complex transfer matrix that relates the complex
+    Fourier representation of two variables.
+    For example, it can be an impedance matrix or an RAO transfer
+    matrix.
+    The input complex impedance matrix has shape
+    :python`(ndof, ndof, nfreq)`.
+
+    Returns the 2D real matrix that transform the state representation
+    of the input variable variable to the state representation of the
+    output variable.
+    Here, a state representation :python:`x` consists of the mean (DC)
+    component followed by the real and imaginary components of the
+    Fourier coefficients as
+    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`.
 
     Parameters
     ----------
-    degrees
-        1D array of angles in degrees.
-    sort
-        Whether to sort the angles from smallest to largest in
-        :math:`(-π, π]`.
+    transfer_mat
+        Complex transfer matrix.
+    zero_freq
+        Whether the first frequency should be zero.
     """
-    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
-    if radians.size == 1:
-        radians = radians.item()
-    elif sort:
-        radians = np.sort(radians)
-    return radians
+    ndof = transfer_mat.shape[0]
+    assert transfer_mat.shape[1] == ndof
+    elem = [[None]*ndof for _ in range(ndof)]
+    def block(re, im): return np.array([[re, -im], [im, re]])
+    for idof in range(ndof):
+        for jdof in range(ndof):
+            if zero_freq:
+                Zp0 = transfer_mat[idof, jdof, 0]
+                assert np.all(np.isreal(Zp0))
+                Zp0 = np.real(Zp0)
+                Zp = transfer_mat[idof, jdof, 1:]
+            else:
+                Zp0 = [0.0]
+                Zp = transfer_mat[idof, jdof, :]
+            re = np.real(Zp)
+            im = np.imag(Zp)
+            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            blocks =[Zp0] + blocks
+            elem[idof][jdof] = block_diag(*blocks)
+    return np.block(elem)
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1434,56 +1459,6 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     vec_to_dofmat,
     """
     return np.reshape(mat, -1, order='F')
-
-
-def mimo_transfer_mat(
-    transfer_mat: ArrayLike,
-    zero_freq: Optional[bool] = True,
-) -> ndarray:
-    """Create a block matrix of the MIMO transfer function.
-
-    The input is a complex transfer matrix that relates the complex
-    Fourier representation of two variables.
-    For example, it can be an impedance matrix or an RAO transfer
-    matrix.
-    The input complex impedance matrix has shape
-    :python`(ndof*nfreq, ndof*nfreq)`.
-
-    Returns the 2D real matrix that transform the state representation
-    of the input variable variable to the state representation of the
-    output variable.
-    Here, a state representation :python:`x` consists of the mean (DC)
-    component followed by the real and imaginary components of the
-    Fourier coefficients as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`.
-
-    Parameters
-    ----------
-    transfer_mat
-        Complex transfer matrix.
-    zero_freq
-        Whether the first frequency should be zero.
-    """
-    ndof = transfer_mat.shape[0]
-    assert transfer_mat.shape[1] == ndof
-    elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
-    for idof in range(ndof):
-        for jdof in range(ndof):
-            if zero_freq:
-                Zp0 = transfer_mat[idof, jdof, 0]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
-                Zp = transfer_mat[idof, jdof, 1:]
-            else:
-                Zp0 = [0.0]
-                Zp = transfer_mat[idof, jdof, :]
-            re = np.real(Zp)
-            im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            blocks =[Zp0] + blocks
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
 
 
 def real_to_complex(
@@ -1678,55 +1653,6 @@ def td_to_fd(
     return fd
 
 
-def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
-    """Calculate the complex, frequency-domain, excitation force due to
-    waves.
-
-    The resulting force is indexed only by frequency and not direction
-    angle.
-    The input :python:`waves` frequencies must be same as
-    :python:`exc_coeff`, but the directions can be a subset.
-
-    Parameters
-    ----------
-    exc_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle.
-    waves
-        Complex frequency-domain wave elevation.
-
-    Raises
-    ------
-    ValueError
-        If the frequency vectors of :python:`exc_coeff` and
-        :python:`waves` are different.
-    ValueError
-        If any of the directions in :python:`waves` is not in
-        :python:`exc_coeff`.
-    """
-    omega_w = waves['omega'].values
-    omega_e = exc_coeff['omega'].values
-    dir_w = waves['wave_direction'].values
-    dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
-
-    wave_elev_fd = np.expand_dims(waves.values, -1)
-
-    if not np.allclose(omega_w, omega_e):
-        raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
-
-    subset, sub_ind = subset_close(dir_w, dir_e)
-
-    if not subset:
-        raise ValueError(
-            "Some wave directions are not in excitation coefficients " +
-            f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
-            f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
-
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
-
-
 def read_netcdf(fpath: Union[str, Path]) -> Dataset:
     """Read a *NetCDF* file with possibly complex entries as a
     :py:class:`xarray.Dataset`.
@@ -1839,7 +1765,7 @@ def force_from_impedance(
     omega: ArrayLike,
     impedance: ArrayLike,
 ) -> TStateFunction:
-    """Create a force function its impedance.
+    """Create a force function from its impedance.
 
     Parameters
     ----------
@@ -2119,6 +2045,55 @@ def linear_hydrodynamics(
     return hydro_data
 
 
+def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
+    """Calculate the complex, frequency-domain, excitation force due to
+    waves.
+
+    The resulting force is indexed only by frequency and not direction
+    angle.
+    The input :python:`waves` frequencies must be same as
+    :python:`exc_coeff`, but the directions can be a subset.
+
+    Parameters
+    ----------
+    exc_coeff
+        Complex excitation coefficients indexed by frequency and
+        direction angle.
+    waves
+        Complex frequency-domain wave elevation.
+
+    Raises
+    ------
+    ValueError
+        If the frequency vectors of :python:`exc_coeff` and
+        :python:`waves` are different.
+    ValueError
+        If any of the directions in :python:`waves` is not in
+        :python:`exc_coeff`.
+    """
+    omega_w = waves['omega'].values
+    omega_e = exc_coeff['omega'].values
+    dir_w = waves['wave_direction'].values
+    dir_e = exc_coeff['wave_direction'].values
+    exc_coeff = exc_coeff.transpose(
+        'omega', 'wave_direction', 'influenced_dof').values
+
+    wave_elev_fd = np.expand_dims(waves.values, -1)
+
+    if not np.allclose(omega_w, omega_e):
+        raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
+
+    subset, sub_ind = subset_close(dir_w, dir_e)
+
+    if not subset:
+        raise ValueError(
+            "Some wave directions are not in excitation coefficients " +
+            f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
+            f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
+
+    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+
+
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     """Calculate hydrodynamic intrinsic impedance.
 
@@ -2153,6 +2128,30 @@ def atleast_2d(array: ArrayLike) -> ndarray:
     """
     array = np.atleast_1d(array)
     return np.expand_dims(array, -1) if len(array.shape)==1 else array
+
+
+def degrees_to_radians(
+    degrees: FloatOrArray,
+    sort: Optional[bool] = True,
+) -> Union[float, ndarray]:
+    """Convert a 1D array of angles in degrees to radians in the range
+    :math:`[-π, π)` and optionally sort them.
+
+    Parameters
+    ----------
+    degrees
+        1D array of angles in degrees.
+    sort
+        Whether to sort the angles from smallest to largest in
+        :math:`[-π, π)`.
+    """
+    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
+    radians[radians > np.pi] -= 2*np.pi
+    if radians.size == 1:
+        radians = radians.item()
+    elif sort:
+        radians = np.sort(radians)
+    return radians
 
 
 def subset_close(
@@ -2195,6 +2194,9 @@ def subset_close(
     ValueError
         If either of the two arrays contains repeated elements.
     """
+    set_a = np.atleast_1d(set_a)
+    set_b = np.atleast_1d(set_b)
+
     if len(np.unique(set_a.round(decimals = 6))) != len(set_a):
         raise ValueError("Elements in set_a not unique")
     if len(np.unique(set_b.round(decimals = 6))) != len(set_b):
@@ -2348,23 +2350,3 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         out = out + \
             np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
-
-
-def add_zerofreq_to_xr(data: Dataset) -> Dataset:
-    """Add a zero-frequency component to an :py:class:`xarray.Dataset`.
-
-    Frequency variable must be called :python:`omega`.
-
-    Parameters
-    ----------
-    data
-        Dataset with no zero-frequency component.
-    """
-    if not np.isclose(data.coords['omega'][0].values, 0):
-        tmp = data.isel(omega=0).copy(deep=True)
-        tmp['omega'] = tmp['omega'] * 0
-        vars = [var for var in list(data.keys()) if 'omega' in data[var].dims]
-        for var in vars:
-            tmp[var] = tmp[var] * 0
-        data = xr.concat([tmp, data], dim='omega', data_vars='minimal')
-    return data
