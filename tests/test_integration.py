@@ -37,6 +37,15 @@ def p_controller_pto():
     return pto
 
 
+@pytest.fixture()
+def pi_controller_pto():
+    ndof = 1
+    pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
+                      controller=wot.pto.controller_pi,
+                      names=["PI controller PTO"])
+    return pto
+
+
 @pytest.fixture
 def fb():
     #  mesh
@@ -58,7 +67,7 @@ def bem(f1, nfreq, fb):
 
 @pytest.fixture
 def regular_wave(f1, nfreq):
-    wfreq = 0.1
+    wfreq = 0.3
     wamp = 0.0625
     wphase = 0
     wdir = 0
@@ -218,12 +227,12 @@ def test_same_wec_init(
     assert imp_res.fun == approx(bem_res.fun, rel=0.01)
 
 
-def test_p_controller_optimal_for_resonant_wave(fb,
-                                                bem,
-                                                resonant_wave,
-                                                p_controller_pto):
-    """Proportional controller should be able to match optimum for natural 
-    resonant wave"""
+def test_p_controller_resonant_wave(fb,
+                                    bem,
+                                    resonant_wave,
+                                    p_controller_pto):
+    """Proportional controller should match optimum for natural resonant wave
+    """
 
     mass = wot.hydrostatics.inertia_matrix(fb).values
     hstiff = wot.hydrostatics.stiffness_matrix(fb).values
@@ -245,10 +254,10 @@ def test_p_controller_optimal_for_resonant_wave(fb,
     power_sol = -1*res['fun']
 
     res_fd, res_td = wec.post_process(res, resonant_wave,
-                                      nsubsteps=2)
+                                      nsubsteps=1)
     pto_fd, pto_td = p_controller_pto.post_process(wec, res,
                                                    resonant_wave,
-                                                   nsubsteps=2)
+                                                   nsubsteps=1)
 
     mass = wot.hydrostatics.inertia_matrix(fb).values
     hstiff = wot.hydrostatics.stiffness_matrix(fb).values
@@ -259,26 +268,50 @@ def test_p_controller_optimal_for_resonant_wave(fb,
     power_optimal = (np.abs(Fex)**2/8 / np.real(Zi.squeeze())
                      ).squeeze().sum('omega').item()
 
-    #TODO - remove
-    # import matplotlib.pyplot as plt
-
-    # fig, ax = plt.subplots(nrows=3,
-    #                        sharex=True)
-
-    # pto_td.vel.plot(ax=ax[0])
-    # pto_td.force.plot(ax=ax[1])
-    # pto_td.power.plot(ax=ax[2])
-    # (pto_td.vel * pto_td.force).plot(ax=ax[2])
-
-    # fig, ax = plt.subplots(nrows=3,
-    #                        sharex=True)
-
-    # np.abs(pto_fd.vel).plot(ax=ax[0])
-    # np.abs(pto_fd.force).plot(ax=ax[1])
-    # np.abs(pto_fd.power).plot(ax=ax[2])
-
     assert power_sol == approx(power_optimal, rel=0.02)
 
+
+def test_pi_controller_regular_wave(fb,
+                                    bem,
+                                    regular_wave,
+                                    pi_controller_pto):
+    """PI controller matches optimal for any regular wave"""
+
+    mass = wot.hydrostatics.inertia_matrix(fb).values
+    hstiff = wot.hydrostatics.stiffness_matrix(fb).values
+    f_add = {"PTO": pi_controller_pto.force_on_wec}
+    wec = wot.WEC.from_bem(bem, mass, hstiff, f_add=f_add)
+
+    res = wec.solve(waves=regular_wave,
+                    obj_fun=pi_controller_pto.average_power,
+                    nstate_opt=2,
+                    x_wec_0=1e-1*np.ones(wec.nstate_wec),
+                    x_opt_0=[-1e3, 1e4],
+                    scale_x_wec=1e2,
+                    scale_x_opt=1e-3,
+                    scale_obj=1e-2,
+                    optim_options={'maxiter': 50},
+                    bounds_opt=((-1e4, 0), (0, 2e4),)
+                    )
+
+    power_sol = -1*res['fun']
+
+    res_fd, res_td = wec.post_process(res, regular_wave,
+                                      nsubsteps=1)
+    pto_fd, pto_td = pi_controller_pto.post_process(wec, res,
+                                                    regular_wave,
+                                                    nsubsteps=1)
+
+    mass = wot.hydrostatics.inertia_matrix(fb).values
+    hstiff = wot.hydrostatics.stiffness_matrix(fb).values
+    hd = wot.linear_hydrodynamics(bem, mass, hstiff)
+    hd = wot.check_linear_damping(hd)
+    Zi = wot.hydrodynamic_impedance(hd)
+    Fex = res_fd.force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')
+    power_optimal = (np.abs(Fex)**2/8 / np.real(Zi.squeeze())
+                     ).squeeze().sum('omega').item()
+
+    assert power_sol == approx(power_optimal, rel=1e-4)
 
 # TODO: convert some of the old tests to v2:
 
