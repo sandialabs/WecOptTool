@@ -204,7 +204,7 @@ def long_crested_wave(
 
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(2*values * df)
+    amplitudes = np.sqrt(values * df) * 2*np.sqrt(2)  # TODO: Correct? Document!
 
     attr = {
         'Wave type': 'Long-crested irregular',
