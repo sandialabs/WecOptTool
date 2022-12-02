@@ -821,6 +821,51 @@ class TestCheckLinearDamping:
         assert data_new_nofric.equals(data_org_nofric)
 
 
+class TestCheckImpedance:
+    """Test function :python:`check_impedance`."""
+
+    @pytest.fixture(scope="class")
+    def data(self, hydro_data):
+        """Hydrodynamic data structure for this test set."""
+        data = hydro_data.copy(deep=True)
+        data['radiation_damping'] *= 0
+        data['friction'] *= 0
+        data['friction'] += -0.1
+        Zi = wot.hydrodynamic_impedance(data)
+        return Zi
+
+    @pytest.fixture(scope="class")
+    def tol(self, data):
+        """Tolerance for function :python:`check_impedance`."""
+        return 0.01
+
+    @pytest.fixture(scope="class")
+    def data_new(self, data, tol):
+        """Hydrodynamic data structure for which the function
+        :python:`check_impedance` has been called.
+        """
+        return wot.check_impedance(data, tol)
+
+    def test_friction(self, data_new, tol):
+        """Test that the modified friction diagonal has the expected
+        value.
+        """
+        assert np.allclose(np.real(np.diagonal(data_new)), tol)
+
+    def test_only_diagonal_friction(self, data, data_new):
+        """Test that only the diagonal was changed."""
+        data_org = data.copy(deep=True)
+
+        def offdiags(x):
+            return x.values[np.invert(np.eye(x.shape[0], dtype=bool))]
+        assert np.allclose(offdiags(data_new), offdiags(data_org))
+
+    def test_only_friction(self, data, data_new):
+        """Test that only the real part of the impedance was changed.
+        """
+        assert np.allclose(np.imag(data), np.imag(data_new))
+
+
 class TestForceFromImpedanceOrTransferFunction:
     """Test both functions :python:`force_from_rao_transfer_function`
     and :python:`force_from_impedance`.

@@ -31,6 +31,7 @@ __all__ = [
     "read_netcdf",
     "write_netcdf",
     "check_linear_damping",
+    "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
     "force_from_waves",
@@ -553,6 +554,8 @@ class WEC:
         if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
+            
+        impedance = check_impedance(impedance)
 
         # impedance force
         omega = freqs * 2*np.pi
@@ -1734,6 +1737,37 @@ def check_linear_damping(
                 f'{delta.values} N/(m/s).')
             hydro_data_new['friction'][idof, idof] = (ifriction + delta)
     return hydro_data_new
+
+
+def check_impedance(
+    Zi: ArrayLike,
+    min_damping: Optional[float] = 1e-6,
+) -> DataArray:
+    """Ensure that the real part of the impedance (resistive) is positive.
+
+    Adds to real part of the impedance.
+    Returns the (possibly) updated impedance with
+    :math:`Re(Zi)>=` :python:`min_damping`.
+
+    Parameters
+    ----------
+    Zi
+        Linear hydrodynamic impedance.
+    min_damping
+        Minimum threshold for damping. Default is 1e-6.
+    """
+    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_shifted = Zi.copy()
+    for dof in range(Zi_diag.shape[1]):
+        dmin = np.min(np.real(Zi_diag[:, dof]))
+        if dmin < min_damping:
+            delta = min_damping - dmin
+            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+                + np.abs(delta)
+            _log.warning(
+                f'Real part of impedance for {dof} has negative or close to ' +
+                f'zero terms. Shifting up by {delta}')
+    return Zi_shifted
 
 
 def force_from_rao_transfer_function(
