@@ -806,7 +806,7 @@ class TestCheckLinearDamping:
         assert np.allclose(np.diagonal(data_new.friction.values), tol)
 
     def test_only_diagonal_friction(self, data, data_new):
-        """Test that only the diagonal of is changed."""
+        """Test that only the diagonal was changed."""
         data_org = data.copy(deep=True)
         def nodiag(x):
             return x.friction.values - np.diag(np.diagonal(x.friction.values))
@@ -847,7 +847,7 @@ class TestCheckImpedance:
         return wot.check_impedance(data, tol)
 
     def test_friction(self, data_new, tol):
-        """Test that the modified friction diagonal has the expected
+        """Test that the modified impedance diagonal has the expected
         value.
         """
         assert np.allclose(np.real(np.diagonal(data_new)), tol)
