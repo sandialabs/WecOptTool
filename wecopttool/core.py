@@ -501,6 +501,7 @@ class WEC:
         hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
+        min_damping: Optional[float] = _default_min_damping,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -539,6 +540,10 @@ class WEC:
             :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
+        min_damping
+            Minimum damping level to ensure a stable system.
+            See :py:func:`wecopttool.check_impedance` for
+            more details.
 
         Raises
         ------
@@ -555,7 +560,7 @@ class WEC:
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
             
-        impedance = check_impedance(impedance)
+        impedance = check_impedance(impedance, min_damping)
 
         # impedance force
         omega = freqs * 2*np.pi
