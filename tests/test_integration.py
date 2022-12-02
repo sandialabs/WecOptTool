@@ -75,6 +75,16 @@ def regular_wave(f1, nfreq):
     return waves
 
 
+@pytest.fixture
+def irregular_wave(f1, nfreq):
+    freq = wot.frequency(f1, nfreq, False)
+    fp = 0.3
+    hs = 0.0625*1.9
+    spec = wot.waves.pierson_moskowitz_spectrum(freq,fp,hs)
+    waves = wot.waves.long_crested_wave(spec)
+    return waves
+
+
 @pytest.fixture()
 def wec_from_bem(f1, nfreq, bem, fb, pto):
     """Simple WEC: 1 DOF, no constraints."""
@@ -315,6 +325,48 @@ def test_pi_controller_regular_wave(fb,
                      ).squeeze().sum('omega').item()
 
     assert power_sol == approx(power_optimal, rel=1e-4)
+
+
+def test_unstructured_controller_irregular_wave(fb,
+                                                bem,
+                                                regular_wave,
+                                                pto,
+                                                nfreq):
+    """Unstructured (numerical optimal) controller matches optimal for any 
+    irregular wave when unconstrained"""
+    
+    mass = wot.hydrostatics.inertia_matrix(fb).values
+    hstiff = wot.hydrostatics.stiffness_matrix(fb).values
+    f_add = {"PTO": pto.force_on_wec}
+    wec = wot.WEC.from_bem(bem, mass, hstiff, f_add=f_add)
+
+    res = wec.solve(waves=regular_wave,
+                    obj_fun=pto.average_power,
+                    nstate_opt=2*nfreq+1,
+                    x_wec_0=1e-1*np.ones(wec.nstate_wec),
+                    scale_x_wec=1e2,
+                    scale_x_opt=1e-2,
+                    scale_obj=1e-2,
+                    )
+
+    power_sol = -1*res['fun']
+
+    res_fd, res_td = wec.post_process(res, regular_wave,
+                                      nsubsteps=1)
+    pto_fd, pto_td = pto.post_process(wec, res,
+                                      regular_wave,
+                                      nsubsteps=1)
+
+    mass = wot.hydrostatics.inertia_matrix(fb).values
+    hstiff = wot.hydrostatics.stiffness_matrix(fb).values
+    hd = wot.linear_hydrodynamics(bem, mass, hstiff)
+    hd = wot.check_linear_damping(hd)
+    Zi = wot.hydrodynamic_impedance(hd)
+    Fex = res_fd.force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')
+    power_optimal = (np.abs(Fex)**2/8 / np.real(Zi.squeeze())
+                     ).squeeze().sum('omega').item()
+
+    assert power_sol == approx(power_optimal, rel=1e-3)
 
 # TODO: convert some of the old tests to v2:
 
