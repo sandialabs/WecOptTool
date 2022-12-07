@@ -323,7 +323,7 @@ class PTO:
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         assert force_td.shape == (wec.nt*nsubsteps, self.ndof)
         force_td = np.expand_dims(np.transpose(force_td), axis=0)
-        assert force_td.shape == (1, wec.ndof, wec.nt*nsubsteps)
+        assert force_td.shape == (1, self.ndof, wec.nt*nsubsteps)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
