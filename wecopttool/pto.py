@@ -323,7 +323,7 @@ class PTO:
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         assert force_td.shape == (wec.nt*nsubsteps, self.ndof)
         force_td = np.expand_dims(np.transpose(force_td), axis=0)
-        assert force_td.shape == (1, wec.ndof, wec.nt*nsubsteps)
+        assert force_td.shape == (1, self.ndof, wec.nt*nsubsteps)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
@@ -667,8 +667,6 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
         Size 2*n_dof.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else
-        not used.
     """
     z_11 = impedance[:ndof, :ndof, :]  # Fu
     z_12 = impedance[:ndof, ndof:, :]  # Fi
@@ -696,8 +694,6 @@ def _make_mimo_transfer_mat(
         PTO impedance in ABCD form.
     ndof
         Number of degrees of freedom.
-        Must be specified if :python:`inertia_in_forces is True`, else
-        not used.
     """
     elem = [[None]*2*ndof for _ in range(2*ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
@@ -786,7 +782,7 @@ def controller_pid(
         True to include derivative gain
     """
     ndof = pto.ndof
-    force_td = np.zeros([wec.nt, ndof])
+    force_td = np.zeros([wec.nt*nsubsteps, ndof])
     idx = 0
 
     def update_force_td(response):
