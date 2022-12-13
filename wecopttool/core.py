@@ -1603,6 +1603,10 @@ def fd_to_td(
     --------
     td_to_fd, time, time_mat
     """
+    if zero_freq:
+        msg = "The first row must be real when `zero_freq=True`."
+        assert np.allclose(np.imag(fd[0, :]), 0), msg
+
     fd = atleast_2d(fd)
     if (f1 is not None) and (nfreq is not None):
         tmat = time_mat(f1, nfreq)
