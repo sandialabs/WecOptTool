@@ -245,7 +245,7 @@ class TestLongCrestedWave:
         assert np.isclose(pm_hs, efth.hs().values)
 
     def test_time_series(self, pm_spectrum, pm_f1, pm_nfreq):
-        """Test that the created time series follows the spectrum."""
+        """Test that the created time series has the desired spectrum."""
         # create time-series
         direction = 0.0
         wave = wot.waves.long_crested_wave(pm_spectrum, direction)
