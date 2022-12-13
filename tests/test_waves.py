@@ -7,6 +7,7 @@ import pytest
 import capytaine as cpy
 import numpy as np
 import wavespectra as ws
+from scipy import signal
 
 import wecopttool as wot
 from wecopttool.core import _default_parameters
@@ -188,6 +189,35 @@ class TestLongCrestedWave:
             ndbc_omnidirectional.efth, direction)
         return elev
 
+    @pytest.fixture(scope="class")
+    def pm_f1(self,):
+        """Fundamental frequency for the Pierson-Moskowitz spectrum."""
+        return 0.001
+
+    @pytest.fixture(scope="class")
+    def pm_nfreq(self,):
+        """Number of frequencies for the Pierson-Moskowitz spectrum."""
+        return 10000
+
+    @pytest.fixture(scope="class")
+    def pm_hs(self,):
+        """Significant wave height for Pierson-Moskowitz spectrum."""
+        return 5.0
+
+    @pytest.fixture(scope="class")
+    def pm_spectrum(self, pm_f1, pm_nfreq, pm_hs):
+        """Pierson-Moskowitz spectrum."""
+        Tp = 1.2
+        Hs = pm_hs
+        def spectrum_func(f):
+            return wot.waves.pierson_moskowitz_spectrum(f, fp=1/Tp, hs=Hs)
+        spectrum_name = f"Pierson-Moskowitz ({Tp}s, {Hs}m)"
+
+        efth_xr = wot.waves.omnidirectional_spectrum(
+            pm_f1, pm_nfreq, spectrum_func, spectrum_name
+        )
+        return efth_xr
+
     def test_coordinates(self, elevation):
         """Test that the elevation dataArray has the correct
         coordinates.
@@ -208,6 +238,28 @@ class TestLongCrestedWave:
         """Test that the wave direction is correct."""
         dir_out = elevation.wave_direction.values.item()
         assert np.isclose(dir_out, wot.degrees_to_radians(direction))
+
+    def test_spectrum(self, pm_spectrum, pm_hs):
+        """Test that the constructed spectrum has the expected Hs."""
+        efth = ws.SpecArray(pm_spectrum)
+        assert np.isclose(pm_hs, efth.hs().values)
+
+    def test_time_series(self, pm_spectrum, pm_f1, pm_nfreq):
+        """Test that the created time series follows the spectrum."""
+        # create time-series
+        direction = 0.0
+        wave = wot.waves.long_crested_wave(pm_spectrum, direction)
+        wave_ts = wot.fd_to_td(wave.values, pm_f1, pm_nfreq, False)
+        # calculate the spectrum from the time-series
+        t = wot.time(pm_f1, pm_nfreq)
+        fs = 1/t[1]
+        nnft = len(t)
+        [_, S_data] = signal.welch(
+            wave_ts.squeeze(), fs=fs, window='boxcar', nperseg=nnft, nfft=nnft,
+            noverlap=0
+        )
+        # check it is equal to the original spectrum
+        assert np.allclose(S_data[1:], pm_spectrum.values.squeeze())
 
 
 class TestIrregularWave:
