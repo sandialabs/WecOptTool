@@ -19,7 +19,6 @@ from __future__ import annotations
 
 
 __all__ = [
-    "elevation_fd",
     "regular_wave",
     "long_crested_wave",
     "irregular_wave",
@@ -204,7 +203,7 @@ def long_crested_wave(
 
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(values * df) * 2*np.sqrt(2)  # TODO: Correct? Document!
+    amplitudes = np.sqrt(2 * values * df)
 
     attr = {
         'Wave type': 'Long-crested irregular',
@@ -240,7 +239,7 @@ def irregular_wave(efth: DataArray) -> DataArray:
 
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(values * df * dd)
+    amplitudes = np.sqrt(2 * values * df * dd)
 
     attr = {'Wave type': 'Irregular'}
 
