@@ -19,6 +19,7 @@ from __future__ import annotations
 
 
 __all__ = [
+    "elevation_fd",
     "regular_wave",
     "long_crested_wave",
     "irregular_wave",
