@@ -204,7 +204,7 @@ def long_crested_wave(
 
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(2*values * df)
+    amplitudes = np.sqrt(2 * values * df)
 
     attr = {
         'Wave type': 'Long-crested irregular',
@@ -240,7 +240,7 @@ def irregular_wave(efth: DataArray) -> DataArray:
 
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(values * df * dd)
+    amplitudes = np.sqrt(2 * values * df * dd)
 
     attr = {'Wave type': 'Irregular'}
 
