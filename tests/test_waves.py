@@ -192,12 +192,12 @@ class TestLongCrestedWave:
     @pytest.fixture(scope="class")
     def pm_f1(self,):
         """Fundamental frequency for the Pierson-Moskowitz spectrum."""
-        return 0.001
+        return 0.05
 
     @pytest.fixture(scope="class")
     def pm_nfreq(self,):
         """Number of frequencies for the Pierson-Moskowitz spectrum."""
-        return 10000
+        return 100
 
     @pytest.fixture(scope="class")
     def pm_hs(self,):
