@@ -75,6 +75,16 @@ At first the solution will not be correct, but as the optimization algorithm ite
 Practical concerns
 ------------------
 
+Frequencies
+^^^^^^^^^^^
+The solution to :eq:`optim_prob` will be found by projecting the time-domain trajectories into the frequency domain (see further discussion in :doc:`implementation`).
+To control this process, the user must specify an equally spaced frequency array (see :py:func:`wecopttool.frequency`).
+When creating this frequency array, consider
+
+    * Exciting frequencies of the wave and, if you expect a nonlinear response, superharmonics of the exciting frequencies
+    * Power absorption occurs at two times the exciting frequencies
+    * The fundamental frequency is also the frequency step (:math:`f_1=\Delta f`); set this sufficiently small to resolve the wave spectra and frequency response functios of interest
+
 Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` will often be quite large.
