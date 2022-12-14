@@ -68,4 +68,4 @@ In the time-domain, :math:`x(t)`, this is given as :math:`Mx`, where :math:`M` i
 Similarly, the state of its derivative is given as :math:`Dx`, where :math:`D` is the derivative matrix.
 Alternatively, we sometimes need to represent the state as a complex vector :math:`x=[X_0, X_1, \dots, X_n]^T`.
 Finally, sometimes we need to relate the state :math:`x` to another state :math:`y` (e.g. a force component) via an impedance matrix :math:`Z` as :math:`y = Zx`.
-The matrices :math:`M`, :math:`D`, and different matrices :math:`Z`, and relevant functions are constructed in the :python:`core.py` module.
+The matrices :math:`M`, :math:`D`, and different matrices :math:`Z`, and relevant functions are constructed internally in :py:mod:`wecopttool`.
