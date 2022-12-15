@@ -201,9 +201,9 @@ def test_same_wec_init(
     x_wec_0 = np.random.randn(wec_from_bem.nstate_wec)
     np.random.seed(1)
     x_opt_0 = np.random.randn(wec_from_bem.nstate_wec)
-    bem_res = wec_from_bem.resid_fun(x_wec_0, x_opt_0, waves)
-    fb_res = wec_from_floatingbody.resid_fun(x_wec_0, x_opt_0, waves)
-    imp_res = wec_from_impedance.resid_fun(x_wec_0, x_opt_0, waves)
+    bem_res = wec_from_bem._resid_fun(x_wec_0, x_opt_0, waves)
+    fb_res = wec_from_floatingbody._resid_fun(x_wec_0, x_opt_0, waves)
+    imp_res = wec_from_impedance._resid_fun(x_wec_0, x_opt_0, waves)
 
     assert fb_res == approx(bem_res, rel=0.01)
     assert imp_res == approx(bem_res, rel=0.01)

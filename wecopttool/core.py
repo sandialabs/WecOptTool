@@ -586,8 +586,7 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[0])
         return wec
     
-    def resid_fun(self, x_wec, x_opt, waves):
-        """TODO"""
+    def _resid_fun(self, x_wec, x_opt, waves):
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
@@ -746,7 +745,7 @@ class WEC:
         def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            return self.resid_fun(x_wec, x_opt, waves)
+            return self._resid_fun(x_wec, x_opt, waves)
 
         eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
