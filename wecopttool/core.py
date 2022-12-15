@@ -31,6 +31,7 @@ __all__ = [
     "read_netcdf",
     "write_netcdf",
     "check_linear_damping",
+    "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
     "force_from_waves",
@@ -40,6 +41,7 @@ __all__ = [
     "change_bem_convention",
     "linear_hydrodynamics",
     "wave_excitation",
+    "hydrodynamic_impedance",
     "atleast_2d",
     "degrees_to_radians",
     "subset_close",
@@ -499,6 +501,7 @@ class WEC:
         hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
+        min_damping: Optional[float] = _default_min_damping,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -537,6 +540,10 @@ class WEC:
             :py:func:`scipy.optimize.minimize` for description and
             options of constraints dictionaries.
             If :python:`None`: empty list :python:`[]`.
+        min_damping
+            Minimum damping level to ensure a stable system.
+            See :py:func:`wecopttool.check_impedance` for
+            more details.
 
         Raises
         ------
@@ -552,6 +559,8 @@ class WEC:
         if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
+            
+        impedance = check_impedance(impedance, min_damping)
 
         # impedance force
         omega = freqs * 2*np.pi
@@ -576,6 +585,16 @@ class WEC:
         wec = WEC(f1, nfreq, forces, constraints,
                   inertia_in_forces=True, ndof=shape[0])
         return wec
+    
+    def _resid_fun(self, x_wec, x_opt, waves):
+        if not self.inertia_in_forces:
+            ri = self.inertia(self, x_wec, x_opt, waves)
+        else:
+            ri = np.zeros([self.ncomponents, self.ndof])
+        # forces, -Σf
+        for f in self.forces.values():
+            ri = ri - f(self, x_wec, x_opt, waves)
+        return self.dofmat_to_vec(ri)
 
     # solve
     def solve(self,
@@ -723,22 +742,14 @@ class WEC:
             constraints[i] = icons_new
 
         # system dynamics through equality constraint, ma - Σf = 0
-        def resid_fun(x):
+        def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            # inertia, ma
-            if not self.inertia_in_forces:
-                ri = self.inertia(self, x_wec, x_opt, waves)
-            else:
-                ri = np.zeros([self.ncomponents, self.ndof])
-            # forces, -Σf
-            for f in self.forces.values():
-                ri = ri - f(self, x_wec, x_opt, waves)
-            return self.dofmat_to_vec(ri)
+            return self._resid_fun(x_wec, x_opt, waves)
 
-        eq_cons = {'type': 'eq', 'fun': resid_fun}
+        eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
-            eq_cons['jac'] = jacobian(resid_fun)
+            eq_cons['jac'] = jacobian(scaled_resid_fun)
         constraints.append(eq_cons)
 
         # bounds
@@ -1737,6 +1748,37 @@ def check_linear_damping(
     return hydro_data_new
 
 
+def check_impedance(
+    Zi: ArrayLike,
+    min_damping: Optional[float] = 1e-6,
+) -> DataArray:
+    """Ensure that the real part of the impedance (resistive) is positive.
+
+    Adds to real part of the impedance.
+    Returns the (possibly) updated impedance with
+    :math:`Re(Zi)>=` :python:`min_damping`.
+
+    Parameters
+    ----------
+    Zi
+        Linear hydrodynamic impedance.
+    min_damping
+        Minimum threshold for damping. Default is 1e-6.
+    """
+    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_shifted = Zi.copy()
+    for dof in range(Zi_diag.shape[1]):
+        dmin = np.min(np.real(Zi_diag[:, dof]))
+        if dmin < min_damping:
+            delta = min_damping - dmin
+            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+                + np.abs(delta)
+            _log.warning(
+                f'Real part of impedance for {dof} has negative or close to ' +
+                f'zero terms. Shifting up by {delta}')
+    return Zi_shifted
+
+
 def force_from_rao_transfer_function(
     rao_transfer_mat: ArrayLike,
     zero_freq: Optional[bool] = True,
@@ -2096,6 +2138,23 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
     return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+
+
+def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
+    """Calculate hydrodynamic intrinsic impedance.
+
+    Parameters
+    ----------
+    hydro_data
+        Dataset with linear hydrodynamic coefficients produced by 
+        :py:func:`wecopttool.linear_hydrodynamics`.
+    """
+    
+    Zi = (hydro_data['inertia_matrix'] \
+        + hydro_data['added_mass'])*1j*hydro_data['omega'] \
+            + hydro_data['radiation_damping'] + hydro_data['friction'] \
+                + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
+    return Zi
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
