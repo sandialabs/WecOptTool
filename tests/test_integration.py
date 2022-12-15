@@ -11,13 +11,14 @@ from scipy.optimize import Bounds
 
 @pytest.fixture(scope="module")
 def f1():
+    """Fundamental frequency [Hz]"""
     return 0.05
 
 
 @pytest.fixture(scope="module")
 def nfreq():
+    """Number of frequencies in the array"""
     return 50
-
 
 @pytest.fixture(scope='module')
 def pto():
@@ -30,6 +31,7 @@ def pto():
 
 @pytest.fixture(scope='module')
 def p_controller_pto():
+    """Basic PTO: proportional (P) controller, 1 DOF, mechanical power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
                       controller=wot.pto.controller_p,
@@ -39,6 +41,8 @@ def p_controller_pto():
 
 @pytest.fixture(scope='module')
 def pi_controller_pto():
+    """Basic PTO: proportional-integral (PI) controller, 1 DOF, mechanical 
+    power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
                       controller=wot.pto.controller_pi,
@@ -48,12 +52,11 @@ def pi_controller_pto():
 
 @pytest.fixture(scope="module")
 def fb():
-    #  mesh
-    mesh_size_factor = 0.5  # 1.0 for default, smaller to refine mesh
-    wb = wot.geom.WaveBot()  # use standard dimensions
+    """Capytaine FloatingBody object"""
+    mesh_size_factor = 0.5
+    wb = wot.geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
 
-    # capytaine floating body
     fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb
@@ -61,12 +64,14 @@ def fb():
 
 @pytest.fixture(scope="module")
 def bem(f1, nfreq, fb):
+    """Boundary elemement model (Capytaine) results"""
     freq = wot.frequency(f1, nfreq, False)
     return wot.run_bem(fb, freq)
 
 
 @pytest.fixture(scope='module')
 def regular_wave(f1, nfreq):
+    """Single frequency wave"""
     wfreq = 0.3
     wamp = 0.0625
     wphase = 0
@@ -77,6 +82,7 @@ def regular_wave(f1, nfreq):
 
 @pytest.fixture(scope='module')
 def irregular_wave(f1, nfreq):
+    """Idealized (Pierson-Moskowitz) spectrum wave"""
     freq = wot.frequency(f1, nfreq, False)
     fp = 0.3
     hs = 0.0625*1.9
@@ -129,6 +135,7 @@ def wec_from_impedance(bem, pto, fb):
 
 @pytest.fixture(scope='module')
 def resonant_wave(f1, nfreq, fb, bem):
+    """Regular wave at natural frequency of the WEC"""
     mass = wot.hydrostatics.inertia_matrix(fb).values
     hstiff = wot.hydrostatics.stiffness_matrix(fb).values
     hd = wot.linear_hydrodynamics(bem, mass, hstiff)
@@ -185,14 +192,11 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
     assert pytest.approx(kplim, 1e-5) == res['x'][-1]
 
 
-def test_same_wec_init(
-    wec_from_bem,
-    wec_from_floatingbody,
-    wec_from_impedance,
-    pto,
-    f1,
-    nfreq,
-):
+def test_same_wec_init(wec_from_bem,
+                       wec_from_floatingbody,
+                       wec_from_impedance,
+                       f1,
+                       nfreq):
     """Test that different init methods for WEC class produce the same object
     """
 
@@ -210,32 +214,36 @@ def test_same_wec_init(
 
 
 class TestTheoreticalPowerLimits:
+    """Compare power from numerical solutions against known theoretical limits
+    """
 
     @pytest.fixture(scope='class')
     def mass(self, fb):
+        """Rigid-body mass"""
         return wot.hydrostatics.inertia_matrix(fb).values
 
     @pytest.fixture(scope='class')
     def hstiff(self, fb):
+        """Hydrostatic stiffness"""
         return wot.hydrostatics.stiffness_matrix(fb).values
 
     @pytest.fixture(scope='class')
     def hydro_impedance(self, bem, mass, hstiff):
+        """Intrinsic hydrodynamic impedance"""
         hd = wot.linear_hydrodynamics(bem, mass, hstiff)
         hd = wot.check_linear_damping(hd)
         Zi = wot.hydrodynamic_impedance(hd)
         return Zi
 
     def test_p_controller_resonant_wave(self,
-                                        fb,
                                         bem,
                                         resonant_wave,
                                         p_controller_pto,
                                         mass,
                                         hstiff,
                                         hydro_impedance):
-        """Proportional controller should match optimum for natural resonant wave
-        """
+        """Proportional controller should match optimum for natural resonant 
+        wave"""
 
         f_add = {"PTO": p_controller_pto.force_on_wec}
         wec = wot.WEC.from_bem(bem, mass, hstiff, f_add=f_add)
@@ -254,12 +262,7 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res['fun']
 
-        res_fd, res_td = wec.post_process(res, resonant_wave,
-                                          nsubsteps=1)
-        pto_fd, pto_td = p_controller_pto.post_process(wec, res,
-                                                       resonant_wave,
-                                                       nsubsteps=1)
-
+        res_fd, _ = wec.post_process(res, resonant_wave,nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
@@ -268,7 +271,6 @@ class TestTheoreticalPowerLimits:
         assert power_sol == approx(power_optimal, rel=0.02)
 
     def test_pi_controller_regular_wave(self,
-                                        fb,
                                         bem,
                                         regular_wave,
                                         pi_controller_pto,
@@ -294,12 +296,7 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res['fun']
 
-        res_fd, res_td = wec.post_process(res, regular_wave,
-                                          nsubsteps=1)
-        pto_fd, pto_td = pi_controller_pto.post_process(wec, res,
-                                                        regular_wave,
-                                                        nsubsteps=1)
-
+        res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
@@ -333,12 +330,7 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res['fun']
 
-        res_fd, res_td = wec.post_process(res, regular_wave,
-                                          nsubsteps=1)
-        pto_fd, pto_td = pto.post_process(wec, res,
-                                          regular_wave,
-                                          nsubsteps=1)
-
+        res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
