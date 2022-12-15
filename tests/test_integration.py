@@ -9,6 +9,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import Bounds
 
 
+kplim = -1e1
+
+
 @pytest.fixture(scope="module")
 def f1():
     """Fundamental frequency [Hz]"""
@@ -165,9 +168,6 @@ def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
     out, err = capfd.readouterr()
 
     assert out.split('\n')[0] == cbstring
-
-
-kplim = -1e1
 
 
 @pytest.mark.parametrize("bounds_opt",
