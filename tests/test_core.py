@@ -44,6 +44,7 @@ def ncomponents(nfreq):
 @pytest.fixture(scope='module')
 def bem_data(f1, nfreq):
     """Synthetic BEM data."""
+    # TODO - start using single BEM solution across entire test suite
     coords = {
         'omega': [2*np.pi*(ifreq+1)*f1 for ifreq in range(nfreq)],
         'influenced_dof': ['DOF_1', 'DOF_2'],
@@ -822,7 +823,8 @@ class TestCheckLinearDamping:
 
 
 class TestCheckImpedance:
-    """Test function :python:`check_impedance`."""
+    """Test functions :python:`hydrodynamic_impedance` and 
+    :python:`check_impedance`."""
 
     @pytest.fixture(scope="class")
     def data(self, hydro_data):
@@ -833,6 +835,10 @@ class TestCheckImpedance:
         data['friction'] += -0.1
         Zi = wot.hydrodynamic_impedance(data)
         return Zi
+    
+    def test_hydrodynamic_impedance(self, data, hydro_data):
+        """"Check that shape of impedance is as expected"""
+        assert data.shape == hydro_data.added_mass.shape
 
     @pytest.fixture(scope="class")
     def tol(self, data):
