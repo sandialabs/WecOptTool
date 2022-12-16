@@ -57,14 +57,15 @@ class PTO:
         kinematics: Union[TStateFunction, ndarray],
         controller: Optional[TStateFunction] = None,
         impedance: Optional[ndarray] = None,
-        loss: Optional[TEFF] = None,
+        efficiency: Optional[TEFF] = None,
         names: Optional[list[str]] = None,
     ) -> None:
         """Create a PTO object.
 
         The :py:class:`wecopttool.pto.PTO` class describes the
-        kinematics, control logic, impedance and/or non-=linear loss map
-        of a power take-off system. The forces/moments applied by a
+        kinematics, control logic, impedance and/or non-linear
+        efficiency map of a power take-off system.
+        The forces/moments applied by a
         :py:class:`wecopttool.pto.PTO` object can be applied to a
         :py:class:`wecopttool.WEC` object through the
         :py:attr:`wecopttool.WEC.f_add` property. The power produced by a
@@ -87,9 +88,9 @@ class PTO:
             from the WEC DOFs to the PTO DOFs.
         impedance
             Matrix representing the PTO impedance.
-        loss
+        efficiency
             Function that maps flow and effort variables to a
-            non-linear loss. Outputs are between 0-1.
+            non-linear efficiency. Outputs are between 0-1.
         names
             PTO names.
         """
@@ -123,7 +124,7 @@ class PTO:
 
         # power
         self._impedance = impedance
-        self._loss = loss  # TODO: change to 'loss'
+        self._efficiency = efficiency
         if impedance is not None:
             impedance_abcd = _make_abcd(impedance, ndof)
             self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
@@ -157,9 +158,9 @@ class PTO:
         return self._impedance
 
     @property
-    def loss(self) -> TEFF:
-        """Nonlinear loss function."""
-        return self._loss
+    def efficiency(self) -> TEFF:
+        """Nonlinear efficiency function."""
+        return self._efficiency
 
     @property
     def transfer_mat(self) -> ndarray:
@@ -442,28 +443,28 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        # convert e1 (PTO force), q1 (PTO velocity) to e2,q2
+        # convert q1 (PTO velocity), e1 (PTO force) to q2, e2
         if self.impedance is not None:
-            e1_td = self.force(wec, x_wec, x_opt, waves)
             q1_td = self.velocity(wec, x_wec, x_opt, waves)
+            e1_td = self.force(wec, x_wec, x_opt, waves)
             q1 = complex_to_real(td_to_fd(q1_td, False))
             e1 = complex_to_real(td_to_fd(e1_td, False))
             vars_1 = np.hstack([q1, e1])
             vars_1_flat = dofmat_to_vec(vars_1)
             vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
             vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
-            e2 = vars_2[:, self.ndof:]
             q2 = vars_2[:, :self.ndof]
+            e2 = vars_2[:, self.ndof:]
             time_mat = self._tmat(wec, nsubsteps)
-            e2_td = np.dot(time_mat, e2)
             q2_td = np.dot(time_mat, q2)
+            e2_td = np.dot(time_mat, e2)
         else:
-            e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
             q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+            e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         # power
-        power_out = e2_td * q2_td
-        if self.loss is not None:
-            power_out = power_out * (1-self.loss(e2_td, q2_td))
+        power_out = q2_td * e2_td
+        if self.efficiency is not None:
+            power_out = power_out * self.efficiency(q2_td, e2_td)
         return power_out
 
     def energy(self,
