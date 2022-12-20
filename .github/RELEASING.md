@@ -30,8 +30,8 @@ See the [GitHub workflow](https://github.com/SNL-WaterPower/WecOptTool/blob/main
 
 ## Conda package
 When a new release is available on PyPI, conda-forge has a [bot](https://github.com/regro/cf-scripts) that will automatically find this and create a pull request in [wecopttool-feedstock]((https://github.com/conda-forge/wecopttool-feedstock)), the GitHub repository that houses the Conda recipe for WecOptTool. conda-forge does not currently have full integration with `pyproject.toml` files, so we have to manually update the [`meta.yaml`](https://github.com/conda-forge/wecopttool-feedstock/blob/main/recipe/meta.yaml) file in the WecOptTool Conda recipe with:
-    - The new version number in the `{% set version = "x.x.x" %}` line
-    - Any new or removed dependencies
+* The new version number in the `{% set version = "x.x.x" %}` line
+* Any new or removed dependencies
 
 Then push these updates to the pull request automatically created by the conda-forge bot. This push can be done manually or using the [`hub`](https://github.com/github/hub) Python package. Instructions on both methods are available on the [conda-forge maintainer documentation](https://conda-forge.org/docs/maintainer/updating_pkgs.html#pushing-to-regro-cf-autotick-bot-branch).
 
