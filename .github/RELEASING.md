@@ -33,6 +33,6 @@ When a new release is available on PyPI, conda-forge has a [bot](https://github.
     - The new version number in the `{% set version = "x.x.x" %}` line
     - Any new or removed dependencies
 
-Then push these updates to the pull request automatically created by the conda-forge bot. This push can be done manually or using the [`hub`](https://github.com/github/hub) Python package. Instructions on both methods are available on the [conda-forge maintainer documentation]([URL HERE](https://conda-forge.org/docs/maintainer/updating_pkgs.html#pushing-to-regro-cf-autotick-bot-branch)).
+Then push these updates to the pull request automatically created by the conda-forge bot. This push can be done manually or using the [`hub`](https://github.com/github/hub) Python package. Instructions on both methods are available on the [conda-forge maintainer documentation](https://conda-forge.org/docs/maintainer/updating_pkgs.html#pushing-to-regro-cf-autotick-bot-branch).
 
 Once the updates have been pushed to the pull request, merge and close it, and the Conda build will now be up to date.
