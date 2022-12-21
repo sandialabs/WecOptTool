@@ -32,7 +32,11 @@ from wecopttool.core import *
 from wecopttool import waves
 from wecopttool import hydrostatics
 from wecopttool import pto
-from wecopttool import geom
+
+try:
+  from wecopttool import geom
+except ModuleNotFoundError:
+  warning("`geom` submodule not loaded because of missing dependencies. Install these by running `pip install wecopttool[geometry]`.")
 
 
 # metadata
