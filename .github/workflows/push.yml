@@ -123,22 +123,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'  # CHANGE: Python version
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: documentation_environment
+          python-version: 3.10
 
-    - name: Install WecOptTool for documentation
-      shell: bash -l {0}
-      run: |
-        python3 -m pip install --upgrade pip
-        pip3 install .[dev]
+      - name: Install WecOptTool for documentation
+        shell: bash -l {0}
+        run: |
+          conda install -c conda-forge capytaine wavespectra
+          python3 -m pip install --upgrade pip
+          pip3 install .[dev]
 
-    - name: Build documentation
-      shell: bash -l {0}
-      run: |
-        cd docs
-        make clean
-        make linkcheck
-        make html
-        cd ../
+      - name: Build documentation
+        shell: bash -l {0}
+        run: |
+          cd docs
+          make clean
+          make linkcheck
+          make html
+          cd ../
