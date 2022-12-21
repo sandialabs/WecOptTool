@@ -127,12 +127,12 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: documentation_environment
-          python-version: 3.9
+          python-version: "3.10"
 
       - name: Install WecOptTool for documentation
         shell: bash -l {0}
         run: |
-          conda install -c conda-forge capytaine wavespectra
+          conda install -c conda-forge capytaine wavespectra gifsicle pandoc
           python3 -m pip install --upgrade pip
           pip3 install .[dev]
 
