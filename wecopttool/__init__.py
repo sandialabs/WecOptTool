@@ -27,6 +27,7 @@ accessed as :python:`wecopttool.<module>.<function>`.
 
 from importlib.metadata import metadata as metadata
 import logging
+import warnings
 
 from wecopttool.core import *
 from wecopttool import waves
@@ -36,7 +37,7 @@ from wecopttool import pto
 try:
   from wecopttool import geom
 except ModuleNotFoundError:
-  warning("`geom` submodule not loaded because of missing dependencies. Install these by running `pip install wecopttool[geometry]`.")
+  warnings.warn("`geom` submodule not loaded because of missing dependencies. Install these by running `pip install wecopttool[geometry]`.")
 
 
 # metadata
