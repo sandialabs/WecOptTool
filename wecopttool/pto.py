@@ -44,7 +44,7 @@ from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 
 # type aliases
 TPTO = TypeVar("TPTO", bound="PTO")
-TEFF = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
+TLOSS = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 
 class PTO:
@@ -57,21 +57,22 @@ class PTO:
         kinematics: Union[TStateFunction, ndarray],
         controller: Optional[TStateFunction] = None,
         impedance: Optional[ndarray] = None,
-        loss: Optional[TEFF] = None,
+        loss: Optional[TLOSS] = None,
         names: Optional[list[str]] = None,
     ) -> None:
         """Create a PTO object.
 
         The :py:class:`wecopttool.pto.PTO` class describes the
-        kinematics, control logic, impedance and/or non-linear loss map
-        of a power take-off system.
+        kinematics, control logic, impedance and/or non-linear power
+        loss of a power take-off system.
         The forces/moments applied by a
         :py:class:`wecopttool.pto.PTO` object can be applied to a
         :py:class:`wecopttool.WEC` object through the
-        :py:attr:`wecopttool.WEC.f_add` property. The power produced by a
-        :py:class:`wecopttool.pto.PTO` object can be used for the
-        :python:`obj_fun` of pseudo-spectral optimization problem when
-        calling :py:meth:`wecopttool.WEC.solve`.
+        :py:attr:`wecopttool.WEC.f_add` property.
+        The power produced by a :py:class:`wecopttool.pto.PTO` object
+        can be used for the :python:`obj_fun` of pseudo-spectral
+        optimization problem when calling
+        :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
         ----------
@@ -90,7 +91,9 @@ class PTO:
             Matrix representing the PTO impedance.
         loss
             Function that maps flow and effort variables to a
-            non-linear loss. Outputs are between 0-1.
+            non-linear power loss.
+            The output is the dissipated power (loss) in Watts.
+            This should be a positive value.
         names
             PTO names.
         """
@@ -158,8 +161,8 @@ class PTO:
         return self._impedance
 
     @property
-    def loss(self) -> TEFF:
-        """Nonlinear loss function."""
+    def loss(self) -> TLOSS:
+        """Nonlinear power loss function with outputs in Watts."""
         return self._loss
 
     @property
@@ -464,7 +467,7 @@ class PTO:
         # power
         power_out = q2_td * e2_td
         if self.loss is not None:
-            power_out = power_out * (1 - self.loss(q2_td, e2_td))
+            power_out = power_out + self.loss(q2_td, e2_td)
         return power_out
 
     def energy(self,
