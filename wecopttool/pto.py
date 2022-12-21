@@ -57,14 +57,14 @@ class PTO:
         kinematics: Union[TStateFunction, ndarray],
         controller: Optional[TStateFunction] = None,
         impedance: Optional[ndarray] = None,
-        efficiency: Optional[TEFF] = None,
+        loss: Optional[TEFF] = None,
         names: Optional[list[str]] = None,
     ) -> None:
         """Create a PTO object.
 
         The :py:class:`wecopttool.pto.PTO` class describes the
-        kinematics, control logic, impedance and/or non-linear
-        efficiency map of a power take-off system.
+        kinematics, control logic, impedance and/or non-linear loss map
+        of a power take-off system.
         The forces/moments applied by a
         :py:class:`wecopttool.pto.PTO` object can be applied to a
         :py:class:`wecopttool.WEC` object through the
@@ -88,9 +88,9 @@ class PTO:
             from the WEC DOFs to the PTO DOFs.
         impedance
             Matrix representing the PTO impedance.
-        efficiency
+        loss
             Function that maps flow and effort variables to a
-            non-linear efficiency. Outputs are between 0-1.
+            non-linear loss. Outputs are between 0-1.
         names
             PTO names.
         """
@@ -124,7 +124,7 @@ class PTO:
 
         # power
         self._impedance = impedance
-        self._efficiency = efficiency
+        self._loss = loss
         if impedance is not None:
             impedance_abcd = _make_abcd(impedance, ndof)
             self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
@@ -158,9 +158,9 @@ class PTO:
         return self._impedance
 
     @property
-    def efficiency(self) -> TEFF:
-        """Nonlinear efficiency function."""
-        return self._efficiency
+    def loss(self) -> TEFF:
+        """Nonlinear loss function."""
+        return self._loss
 
     @property
     def transfer_mat(self) -> ndarray:
@@ -463,8 +463,8 @@ class PTO:
             e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         # power
         power_out = q2_td * e2_td
-        if self.efficiency is not None:
-            power_out = power_out * self.efficiency(q2_td, e2_td)
+        if self.loss is not None:
+            power_out = power_out * (1 - self.loss(q2_td, e2_td))
         return power_out
 
     def energy(self,
