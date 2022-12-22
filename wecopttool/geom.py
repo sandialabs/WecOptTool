@@ -8,20 +8,14 @@ from __future__ import annotations
 __all__ = [
     "WaveBot",
 ]
-no_pygmsh_errmsg = ('`pygmsh` package not found. To use meshing ' +
-                    'capabilities, run `pip install gmsh pygmsh` to your ' +
-                    'working Python environment.')
 
 from typing import Optional
 
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import Axes, Figure
 from meshio._mesh import Mesh
-try:
-    import gmsh
-    import pygmsh
-except ImportError:
-    pygmsh = None
+import gmsh
+import pygmsh
 
 
 class WaveBot:
@@ -72,23 +66,21 @@ class WaveBot:
         mesh_size_factor
             Control for the mesh size. Smaller values give a finer mesh.
         """
-        if pygmsh:
-            with pygmsh.occ.Geometry() as geom:
-                gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
-                cyl = geom.add_cylinder([0, 0, 0],
-                                        [0, 0, -self.h1],
-                                        self.r1)
-                cone = geom.add_cone([0, 0, -self.h1],
-                                    [0, 0, -self.h2],
-                                    self.r1, self.r2)
-                geom.translate(cyl, [0, 0, self.freeboard])
-                geom.translate(cone, [0, 0, self.freeboard])
-                geom.boolean_union([cyl, cone])
-                mesh = geom.generate_mesh()
+        with pygmsh.occ.Geometry() as geom:
+            gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)
+            cyl = geom.add_cylinder([0, 0, 0],
+                                    [0, 0, -self.h1],
+                                    self.r1)
+            cone = geom.add_cone([0, 0, -self.h1],
+                                [0, 0, -self.h2],
+                                self.r1, self.r2)
+            geom.translate(cyl, [0, 0, self.freeboard])
+            geom.translate(cone, [0, 0, self.freeboard])
+            geom.boolean_union([cyl, cone])
+            mesh = geom.generate_mesh()
 
-            return mesh
-        else:
-            raise ImportError(no_pygmsh_errmsg)
+        return mesh
+
 
     def plot_cross_section(self,
         show: bool = False,
