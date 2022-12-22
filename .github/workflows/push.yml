@@ -103,6 +103,14 @@ jobs:
         COVERALLS_FLAG_NAME: ${{ matrix.os }}-${{ matrix.python-version }}
         COVERALLS_PARALLEL: true
 
+    # install Capytaine and wavespectra from pip on ubuntu
+    - name: Install Capytaine and wavespectra from pip
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash -l {0}
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install capytaine wavespectra
+
 
   coveralls:
     name: Indicate completion to coveralls.io
