@@ -16,23 +16,25 @@ It is strongly recommended you create a dedicated virtual environment (e.g., usi
 **Option 1** - using `Conda`:
 
 ```bash
-conda install -c conda-forge capytaine wavespectra
-pip install gmsh pygmsh wecopttool
-```
-
-<!---
-```bash
 conda install -c conda-forge wecopttool
 ```
--->
 
 **Option 2** - using `pip` (requires Fortran compilers on your system):
 
 ```bash
-pip install gmsh pygmsh wecopttool
+pip install wecopttool
 ```
 
 This approach is not recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+
+**Geometry module and tutorials**
+
+To use our geometry examples, including for running the tutorials, you will need to install some additional dependencies. 
+For the tutorials you will also need to install `jupyter`. 
+
+```bash
+pip install wecopttool[geometry] jupyter
+```
 
 ## Tutorials
 The tutorials can be found in the `examples` directory and are written as [Jupyter Notebooks](https://jupyter.org/).
