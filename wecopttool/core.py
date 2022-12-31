@@ -1775,7 +1775,7 @@ def check_impedance(
                 + np.abs(delta)
             _log.warning(
                 f'Real part of impedance for {dof} has negative or close to ' +
-                f'zero terms. Shifting up by {delta}')
+                f'zero terms. Shifting up by {delta:.2f}')
     return Zi_shifted
 
 
