@@ -9,6 +9,7 @@ The third part builds on the second to solve a design optimization problem, usin
 
 
     - :doc:`_examples/tutorial_1_wavebot`: Three part example of using the inner and outer optimization loops for a simple control co-design study.
+    - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study.
 
 
 .. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples
@@ -19,3 +20,4 @@ The third part builds on the second to solve a design optimization problem, usin
     :hidden:
 
     _examples/tutorial_1_wavebot
+    _examples/tutorial_2_AquaHarmonics
