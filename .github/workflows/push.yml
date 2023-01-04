@@ -131,8 +131,12 @@ jobs:
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
+        mamba env update -n test-env -f environment.yml
+        conda activate test-env
         python3 -m pip install --upgrade pip
-        pip3 install .[dev]
+        pip3 install gmsh pygmsh
+        pip3 install coveralls pytest charset-normalizer
+        pip3 install .
 
     - name: Build documentation
       shell: bash -l {0}
