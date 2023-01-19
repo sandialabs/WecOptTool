@@ -420,6 +420,52 @@ class PTO:
         energy = self.mechanical_energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
 
+    def power_variables(self,
+        wec: TWEC,
+        x_wec: ndarray,
+        x_opt: ndarray,
+        waves: Optional[Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+    ) -> tuple[ndarray, ndarray]:
+        """Calculate the power variables (flow q and effort e) time-series in each PTO DOF for a given
+        system state.
+
+        Parameters
+        ----------
+        wec
+            :py:class:`wecopttool.WEC` object.
+        x_wec
+            WEC dynamic state.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        nsubsteps
+            Number of steps between the default (implied) time steps.
+            A value of :python:`1` corresponds to the default step
+            length.
+        """
+        # convert q1 (PTO velocity), e1 (PTO force) to q2 (flow variable), e2 (effort variable)
+        if self.impedance is not None:
+            q1_td = self.velocity(wec, x_wec, x_opt, waves)
+            e1_td = self.force(wec, x_wec, x_opt, waves)
+            q1 = complex_to_real(td_to_fd(q1_td, False))
+            e1 = complex_to_real(td_to_fd(e1_td, False))
+            vars_1 = np.hstack([q1, e1])
+            vars_1_flat = dofmat_to_vec(vars_1)
+            vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
+            vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
+            q2 = vars_2[:, :self.ndof]
+            e2 = vars_2[:, self.ndof:]
+            time_mat = self._tmat(wec, nsubsteps)
+            q2_td = np.dot(time_mat, q2)
+            e2_td = np.dot(time_mat, e2)
+        else:
+            q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+            e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+        return q2_td, e2_td
+
     def power(self,
         wec: TWEC,
         x_wec: ndarray,
@@ -446,24 +492,8 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        # convert q1 (PTO velocity), e1 (PTO force) to q2, e2
-        if self.impedance is not None:
-            q1_td = self.velocity(wec, x_wec, x_opt, waves)
-            e1_td = self.force(wec, x_wec, x_opt, waves)
-            q1 = complex_to_real(td_to_fd(q1_td, False))
-            e1 = complex_to_real(td_to_fd(e1_td, False))
-            vars_1 = np.hstack([q1, e1])
-            vars_1_flat = dofmat_to_vec(vars_1)
-            vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
-            vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
-            q2 = vars_2[:, :self.ndof]
-            e2 = vars_2[:, self.ndof:]
-            time_mat = self._tmat(wec, nsubsteps)
-            q2_td = np.dot(time_mat, q2)
-            e2_td = np.dot(time_mat, e2)
-        else:
-            q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-            e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+        q2_td, e2_td = self.power_variables(wec, x_wec, 
+                                            x_opt, waves, nsubsteps)
         # power
         power_out = q2_td * e2_td
         if self.loss is not None:
@@ -527,6 +557,66 @@ class PTO:
         """
         energy = self.energy(wec, x_wec, x_opt, waves, nsubsteps)
         return energy / wec.tf
+
+    def transduced_flow(self,
+        wec: TWEC,
+        x_wec: ndarray,
+        x_opt: ndarray,
+        waves: Optional[Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+    ) -> float:
+        """Calculate the transduced flow variable time-series in each PTO DOF 
+        for a given system state. Equals the PTO velocity if no impedance 
+        is defined.
+
+        Parameters
+        ----------
+        wec
+            :py:class:`wecopttool.WEC` object.
+        x_wec
+            WEC dynamic state.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        nsubsteps
+            Number of steps between the default (implied) time steps.
+            A value of :python:`1` corresponds to the default step
+            length.
+        """
+        q2_td, _ = self.power_variables(wec, x_wec, x_opt, waves, nsubsteps)
+        return q2_td   
+
+    def transduced_effort(self,
+        wec: TWEC,
+        x_wec: ndarray,
+        x_opt: ndarray,
+        waves: Optional[Dataset] = None,
+        nsubsteps: Optional[int] = 1,
+    ) -> float:
+        """Calculate the transduced flow variable time-series in each PTO DOF 
+        for a given system state. Equals the PTO force if no impedance 
+        is defined.
+
+        Parameters
+        ----------
+        wec
+            :py:class:`wecopttool.WEC` object.
+        x_wec
+            WEC dynamic state.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        nsubsteps
+            Number of steps between the default (implied) time steps.
+            A value of :python:`1` corresponds to the default step
+            length.
+        """
+        _, e2_td = self.power_variables(wec, x_wec, x_opt, waves, nsubsteps)
+        return e2_td  
 
     def post_process(self,
         wec: TWEC,
@@ -607,7 +697,7 @@ class PTO:
         # mechanical power
         mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
                                               nsubsteps)
-        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
+        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])    
 
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
@@ -655,6 +745,28 @@ class PTO:
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": create_time}
             )
+        
+        if self.impedance is not None:
+        #transduced flow and effort variables
+            q2_td, e2_td = self.power_variables(wec, x_wec, x_opt,
+                                                waves, nsubsteps)
+            q2_fd = wec.td_to_fd(q2_td[::nsubsteps])
+            e2_fd = wec.td_to_fd(e2_td[::nsubsteps])
+
+            q2_attr = {'long_name': 'Transduced Flow', 
+                       'units': 'A or m^3/s or rad/s or m/s'}
+            e2_attr = {'long_name': 'Transduced Effort', 
+                       'units': 'V or N/m^2 or Nm or Ns'}
+
+            results_td = results_td.assign({
+                            'trans_flo': (['time','dof'], q2_td, q2_attr),
+                            'trans_eff': (['time','dof'], e2_td, e2_attr),
+                        })
+            results_fd = results_fd.assign({
+                           'trans_flo': (['omega','dof'], q2_fd, q2_attr),
+                           'trans_eff': (['omega','dof'], e2_fd, e2_attr),
+                        })
+
 
         return results_fd, results_td
 
