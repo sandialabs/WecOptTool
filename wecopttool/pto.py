@@ -427,8 +427,8 @@ class PTO:
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[ndarray, ndarray]:
-        """Calculate the power variables (flow q and effort e) time-series in each PTO DOF for a given
-        system state.
+        """Calculate the power variables (flow q and effort e) time-series 
+        in each PTO DOF for a given        system state.
 
         Parameters
         ----------
@@ -446,7 +446,8 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        # convert q1 (PTO velocity), e1 (PTO force) to q2 (flow variable), e2 (effort variable)
+        # convert q1 (PTO velocity), e1 (PTO force) 
+        # to q2 (flow variable), e2 (effort variable)
         if self.impedance is not None:
             q1_td = self.velocity(wec, x_wec, x_opt, waves)
             e1_td = self.force(wec, x_wec, x_opt, waves)
@@ -585,7 +586,8 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        q2_td, _ = self.power_variables(wec, x_wec, x_opt, waves, nsubsteps)
+        q2_td, _ = self.power_variables(wec, x_wec, 
+                                        x_opt, waves, nsubsteps)
         return q2_td   
 
     def transduced_effort(self,
@@ -701,7 +703,8 @@ class PTO:
 
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+        acc_attr = {'long_name': 'Acceleration',
+                    'units': 'm/s^2 or rad/s^2'}
         force_attr = {'long_name': 'Force or moment on WEC',
                       'units': 'N or Nm'}
         power_attr = {'long_name': 'Power', 'units': 'W'}
@@ -721,7 +724,8 @@ class PTO:
                 'acc': (['omega','dof'], acc_fd, acc_attr),
                 'force': (['omega','dof'], force_fd, force_attr),
                 'power': (['omega','dof'], power_fd, power_attr),
-                'mech_power': (['omega','dof'], mech_power_fd, mech_power_attr)
+                'mech_power': (['omega','dof'], 
+                                mech_power_fd, mech_power_attr)
             },
             coords={
                 'omega':('omega', wec.omega, omega_attr),
@@ -738,7 +742,8 @@ class PTO:
                 'acc': (['time','dof'], acc_td, acc_attr),
                 'force': (['time','dof'], force_td, force_attr),
                 'power': (['time','dof'], power_td, power_attr),
-                'mech_power': (['time','dof'], mech_power_td, mech_power_attr)
+                'mech_power': (['time','dof'],
+                                 mech_power_td, mech_power_attr)
             },
             coords={
                 'time':('time', t_dat, time_attr),
@@ -759,13 +764,13 @@ class PTO:
                        'units': 'V or N/m^2 or Nm or Ns'}
 
             results_td = results_td.assign({
-                            'trans_flo': (['time','dof'], q2_td, q2_attr),
-                            'trans_eff': (['time','dof'], e2_td, e2_attr),
-                        })
+                        'trans_flo': (['time','dof'], q2_td, q2_attr),
+                        'trans_eff': (['time','dof'], e2_td, e2_attr),
+                    })
             results_fd = results_fd.assign({
-                           'trans_flo': (['omega','dof'], q2_fd, q2_attr),
-                           'trans_eff': (['omega','dof'], e2_fd, e2_attr),
-                        })
+                        'trans_flo': (['omega','dof'], q2_fd, q2_attr),
+                        'trans_eff': (['omega','dof'], e2_fd, e2_attr),
+                    })
 
 
         return results_fd, results_td
