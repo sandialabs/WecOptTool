@@ -1423,7 +1423,7 @@ def mimo_transfer_mat(
                 Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)] ###
+            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)[:-1, :-1] ###
@@ -1506,12 +1506,15 @@ def real_to_complex(
     """
     fd= atleast_2d(fd)
     if zero_freq:
-        assert fd.shape[0]%2==1
+        assert fd.shape[0]%2==0 ###
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = fd[0::2, :] + 1j*fd[1::2, :]
+    fdc = fd[0:-1:2, :] + 1j*fd[1::2, :]
+    f2pt = fd[-1, :].reshape(-1, 1)
     if zero_freq:
-        fdc = np.concatenate((mean, fdc), axis=0)
+        fdc = np.concatenate((mean, fdc, f2pt), axis=0)
+    else:
+        fdc = np.concatenate((fdc, f2pt), axis=0)
     return fdc
 
 
@@ -1558,12 +1561,12 @@ def complex_to_real(
         b = np.real(fd)
         c = np.imag(fd)
     out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])[:-1] ###
+    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
         out = np.concatenate([a, out])
-        assert out.shape == (2*nfreq, ndof)
+        assert out.shape == (2*nfreq+1, ndof)
     else:
-        assert out.shape == (2*nfreq-1, ndof)
+        assert out.shape == (2*nfreq, ndof)
     return out
 
 
@@ -1838,7 +1841,7 @@ def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
     """
     def force(wec, x_wec, x_opt, waves):
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        return np.dot(wec.time_mat[:, 1:], force_fd)
+        return np.dot(wec.time_mat[:, 1:], force_fd[:-1]) ###
     return force
 
 
