@@ -1241,7 +1241,7 @@ def ncomponents(
     zero_freq
         Whether to include the zero-frequency.
     """
-    ncomp = 2*nfreq
+    ncomp = 2*nfreq -1 ###
     if zero_freq:
         ncomp = ncomp + 1
     return ncomp
@@ -1340,7 +1340,7 @@ def time_mat(
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt)
+    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) ###
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
@@ -1376,7 +1376,7 @@ def derivative_mat(
     blocks = [block(n+1) for n in range(nfreq)]
     if zero_freq:
         blocks = [0.0] + blocks
-    return block_diag(*blocks)
+    return block_diag(*blocks)[:-1, :-1] ###
 
 
 def mimo_transfer_mat(
@@ -1423,10 +1423,10 @@ def mimo_transfer_mat(
                 Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
+            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)] ###
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+    return np.block(elem)[:-1, :-1] ###
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1558,12 +1558,12 @@ def complex_to_real(
         b = np.real(fd)
         c = np.imag(fd)
     out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])[:-1] ###
     if zero_freq:
         out = np.concatenate([a, out])
-        assert out.shape == (2*nfreq+1, ndof)
-    else:
         assert out.shape == (2*nfreq, ndof)
+    else:
+        assert out.shape == (2*nfreq-1, ndof)
     return out
 
 
