@@ -262,11 +262,11 @@ class TestNComponents:
     def test_default(self, ncomponents, nfreq):
         """Test default, which will include a zero-frequency component.
         """
-        assert ncomponents == 2*nfreq + 1
+        assert ncomponents == 2*nfreq
 
     def test_nozero(self, nfreq):
         """Test without a zero-frequency component."""
-        assert wot.ncomponents(nfreq, False) == 2*nfreq
+        assert wot.ncomponents(nfreq, False) == 2*nfreq - 1
 
 
 class TestFrequency:
@@ -712,7 +712,7 @@ class TestFDToTDToFD:
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
         calculated = wot.fd_to_td(fd, f1, nfreq)
-        assert calculated.shape==(1+2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
     def test_td_to_fd(self, fd, td, f1, nfreq):
         """Test the :python:`td_to_fd` function outputs."""
@@ -723,14 +723,14 @@ class TestFDToTDToFD:
         """Test the :python:`fd_to_td` function outputs when using FFT.
         """
         calculated = wot.fd_to_td(fd)
-        assert calculated.shape==(1+2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
     def test_fd_to_td_1dof(self, fd_1dof, td_1dof, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs for the 1 DOF
         case.
         """
         calculated = wot.fd_to_td(fd_1dof, f1, nfreq)
-        shape = (1+2*nfreq, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -748,7 +748,7 @@ class TestFDToTDToFD:
         for the 1 DOF.
         """
         calculated = wot.fd_to_td(fd_1dof)
-        shape = (1+2*nfreq, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
