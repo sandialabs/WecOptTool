@@ -1230,6 +1230,7 @@ class WEC:
 def ncomponents(
     nfreq : int,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> int:
     """Number of Fourier components (:python:`2*nfreq + 1`) for each
     DOF.
@@ -1241,9 +1242,11 @@ def ncomponents(
     zero_freq
         Whether to include the zero-frequency.
     """
-    ncomp = 2*nfreq -1 ###
+    ncomp = 2*nfreq
     if zero_freq:
         ncomp = ncomp + 1
+    if full_2pt_wave:
+        ncomp = ncomp - 1
     return ncomp
 
 
@@ -1308,6 +1311,7 @@ def time_mat(
     nfreq: int,
     nsubsteps: Optional[int] = 1,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
@@ -1340,7 +1344,10 @@ def time_mat(
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) ###
+    if full_2pt_wave:
+        time_mat[:, 2::2] = -np.sin(wt)
+    else:
+        time_mat[:, 2::2] = -np.sin(wt[:, :-1])
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
@@ -1350,6 +1357,7 @@ def derivative_mat(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
@@ -1376,12 +1384,16 @@ def derivative_mat(
     blocks = [block(n+1) for n in range(nfreq)]
     if zero_freq:
         blocks = [0.0] + blocks
-    return block_diag(*blocks)[:-1, :-1] ###
+    deriv_mat = block_diag(*blocks)
+    if full_2pt_wave:
+        deriv_mat = deriv_mat[:-1, :-1]
+    return deriv_mat
 
 
 def mimo_transfer_mat(
     transfer_mat: ArrayLike,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
@@ -1426,7 +1438,10 @@ def mimo_transfer_mat(
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)[:-1, :-1] ###
+    mimo_mat = np.block(elem)
+    if full_2pt_wave:
+        mimo_mat = mimo_mat[:-1, :-1]
+    return mimo_mat
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1474,6 +1489,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 def real_to_complex(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
@@ -1506,15 +1522,19 @@ def real_to_complex(
     """
     fd= atleast_2d(fd)
     if zero_freq:
-        assert fd.shape[0]%2==0 ###
+        if full_2pt_wave:
+            assert fd.shape[0]%2==1
+        else:
+            assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = fd[0:-1:2, :] + 1j*fd[1::2, :]
-    f2pt = fd[-1, :].reshape(-1, 1)
-    if zero_freq:
-        fdc = np.concatenate((mean, fdc, f2pt), axis=0)
+    if full_2pt_wave:
+        fdc = fd[0::2, :] + 1j*fd[1::2, :]
     else:
-        fdc = np.concatenate((fdc, f2pt), axis=0)
+        fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
+                        fd[-1, :].reshape(-1, 1), axis=0)
+    if zero_freq:
+        fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
 
 
@@ -1830,7 +1850,9 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance/(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
+def force_from_waves(force_coeff: ArrayLike,
+                     full_2pt_wave: Optional[bool]=False,
+                     ) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
     Parameters
@@ -1841,7 +1863,10 @@ def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
     """
     def force(wec, x_wec, x_opt, waves):
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        return np.dot(wec.time_mat[:, 1:], force_fd[:-1]) ###
+        if full_2pt_wave:
+            return np.dot(wec.time_mat[:, 1:], force_fd)
+        else:
+            return np.dot(wec.time_mat[:, 1:], force_fd[:-1])
     return force
 
 
