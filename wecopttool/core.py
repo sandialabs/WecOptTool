@@ -1245,7 +1245,7 @@ def ncomponents(
     ncomp = 2*nfreq
     if zero_freq:
         ncomp = ncomp + 1
-    if full_2pt_wave:
+    if not full_2pt_wave:
         ncomp = ncomp - 1
     return ncomp
 
@@ -1385,7 +1385,7 @@ def derivative_mat(
     if zero_freq:
         blocks = [0.0] + blocks
     deriv_mat = block_diag(*blocks)
-    if full_2pt_wave:
+    if not full_2pt_wave:
         deriv_mat = deriv_mat[:-1, :-1]
     return deriv_mat
 
@@ -1439,7 +1439,7 @@ def mimo_transfer_mat(
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     mimo_mat = np.block(elem)
-    if full_2pt_wave:
+    if not full_2pt_wave:
         mimo_mat = mimo_mat[:-1, :-1]
     return mimo_mat
 
