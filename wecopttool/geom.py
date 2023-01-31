@@ -150,6 +150,7 @@ class AquaHarmonics:
         r1:float=1.085,
         r2:float=0.405,
         r3:float=0.355,
+        scale_factor:float=1,
         ofst:float=0.1,
     ) -> None:
         """
@@ -169,16 +170,19 @@ class AquaHarmonics:
             Outer radius of tube [m].
         r3 : float, optional
             Inner radius of tube [m].
+        scale_factor
+            Scale factor to linearly scale hull dimensions [ ].
         ofst : float, optional
             Offset for clipping at waterplane [m].
         """
-        self.T1 = T1
-        self.T2 = T2
-        self.T3 = T3
-        self.r1 = r1
-        self.r2 = r2
-        self.r3 = r3
-        self.ofst = ofst
+        self.T1 = T1 * scale_factor
+        self.T2 = T2 * scale_factor
+        self.T3 = T3 * scale_factor
+        self.r1 = r1 * scale_factor
+        self.r2 = r2 * scale_factor
+        self.r3 = r3 * scale_factor
+        self.ofst = ofst * scale_factor
+        self.scale_factor = scale_factor
 
     def mesh(self, mesh_size_factor:float=0.25) -> Mesh:
         """
