@@ -55,16 +55,11 @@ class WaveBot:
             calculations) [m]. The draft of the cylindrical section is
             :python:`h1-freeboard`.
         """
-        r1 = r1 * scale_factor
-        r2 = r2 * scale_factor
-        h1 = h1 * scale_factor
-        h2 = h2 * scale_factor
-        freeboard = freeboard * scale_factor
-        self.r1 = r1
-        self.r2 = r2
-        self.h1 = h1
-        self.h2 = h2
-        self.freeboard = freeboard
+        self.r1 = r1 * scale_factor
+        self.r2 = r2 * scale_factor
+        self.h1 = h1 * scale_factor
+        self.h2 = h2 * scale_factor
+        self.freeboard = freeboard * scale_factor
         self.scale_factor = scale_factor
         self.gear_ratio = 12.47
 
