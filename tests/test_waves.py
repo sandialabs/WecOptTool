@@ -163,7 +163,7 @@ class TestLongCrestedWave:
         nfreq = 24
         freq = wot.frequency(f1, nfreq, False)
         dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
-        spec = ws.read_ndbc(os.path.join(dir, '41013w2020.txt'))
+        spec = ws.read_ndbc_ascii(os.path.join(dir, '41013w2020.txt'))
         return spec.sel(time=time).interp(freq=freq)
 
     @pytest.fixture(scope="class")
@@ -277,7 +277,7 @@ class TestIrregularWave:
         markers = ('w', 'd', 'i', 'j', 'k')
         dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
         files = [f'41013{i}2020.txt' for i in markers]
-        spec = ws.read_ndbc([os.path.join(dir, file) for file in files])
+        spec = ws.read_ndbc_ascii([os.path.join(dir, file) for file in files])
         return spec.sel(time=time).interp(freq=freq)
 
     @pytest.fixture(scope="class")
