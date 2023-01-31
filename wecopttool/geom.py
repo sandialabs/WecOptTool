@@ -33,6 +33,7 @@ class WaveBot:
         r2: float = 0.35,
         h1: float = 0.17,
         h2: float = 0.37,
+        scale_factor: float = 1,
         freeboard: float = 0.01,
     ) -> None:
         """Create a WaveBot with specific dimensions.
@@ -47,16 +48,24 @@ class WaveBot:
             Height of the cylindrical section [m].
         h2
             Height of the conic frustum section [m].
+        scale_factor
+            Scale factor to linearly scale hull dimensions [ ].
         freeboard
             Freeboard above free surface (will be removed later for BEM
             calculations) [m]. The draft of the cylindrical section is
             :python:`h1-freeboard`.
         """
+        r1 = r1 * scale_factor
+        r2 = r2 * scale_factor
+        h1 = h1 * scale_factor
+        h2 = h2 * scale_factor
+        freeboard = freeboard * scale_factor
         self.r1 = r1
         self.r2 = r2
         self.h1 = h1
         self.h2 = h2
         self.freeboard = freeboard
+        self.scale_factor = scale_factor
         self.gear_ratio = 12.47
 
     def mesh(self, mesh_size_factor: Optional[float] = 0.1) -> Mesh:
@@ -106,7 +115,7 @@ class WaveBot:
         else:
             fig = None
 
-        y = [-1*(self.h1 - self.freeboard +self.h2),
+        y = [-1*(self.h1 - self.freeboard + self.h2),
              -1*(self.h1 - self.freeboard + self.h2),
              -1*(self.h1 - self.freeboard),
              0,
