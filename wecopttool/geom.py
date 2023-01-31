@@ -243,8 +243,13 @@ class AquaHarmonics:
 
         ax.plot(
             [0, self.r3, self.r3, self.r2, self.r2, self.r1, self.r1],
-            [-1*(self.T1+self.T2), -1*(self.T1+self.T2), -1*(self.T1+self.T2+self.T3), -
-             1*(self.T1+self.T2+self.T3), -1*(self.T1+self.T2), -1*(self.T1), self.ofst],
+            [-1*(self.T1+self.T2),
+             -1*(self.T1+self.T2),
+             -1*(self.T1+self.T2+self.T3),
+             -1*(self.T1+self.T2+self.T3),
+             -1*(self.T1+self.T2),
+             -1*(self.T1),
+             self.ofst],
             marker='.'
         )
 
