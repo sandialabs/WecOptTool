@@ -120,6 +120,7 @@ class WEC:
         ndof: Optional[int] = None,
         inertia_in_forces: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
+        full_2pt_wave: Optional[bool] = False,
         ) -> None:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
@@ -206,9 +207,10 @@ class WEC:
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
-        self._time_mat = time_mat(f1, nfreq)
-        self._derivative_mat = derivative_mat(f1, nfreq)
+        self._time_mat = time_mat(f1, nfreq, full_2pt_wave=full_2pt_wave)
+        self._derivative_mat = derivative_mat(f1, nfreq, full_2pt_wave=full_2pt_wave)
         self._forces = forces
+        self._full_2pt_wave = full_2pt_wave
         constraints = list(constraints) if (constraints is not None) else []
         self._constraints = constraints
 
@@ -288,6 +290,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        full_2pt_wave: Optional[bool] = False,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
         obtained using the boundary element method (BEM) code Capytaine.
@@ -389,7 +392,7 @@ class WEC:
         forces = linear_force_functions | f_add
         # constraints
         constraints = constraints if (constraints is not None) else []
-        return WEC(f1, nfreq, forces, constraints, inertia_matrix)
+        return WEC(f1, nfreq, forces, constraints, inertia_matrix, full_2pt_wave=full_2pt_wave)
 
     @staticmethod
     def from_floating_body(
@@ -406,6 +409,7 @@ class WEC:
         rho: Optional[float] = _default_parameters['rho'],
         g: Optional[float] = _default_parameters['g'],
         depth: Optional[float] = _default_parameters['depth'],
+        full_2pt_wave: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from a Capytaine :python:`FloatingBody`
         (:py:class:capytaine.bodies.bodies.FloatingBody).
@@ -490,7 +494,7 @@ class WEC:
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
             bem_data, inertia_matrix, hydrostatic_stiffness, friction, f_add,
-            constraints, min_damping=min_damping)
+            constraints, min_damping=min_damping, full_2pt_wave=full_2pt_wave)
         return wec
 
     @staticmethod
@@ -502,6 +506,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        full_2pt_wave: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -583,7 +588,8 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0])
+                  inertia_in_forces=True, ndof=shape[0],
+                  full_2pt_wave=full_2pt_wave)
         return wec
     
     def _resid_fun(self, x_wec, x_opt, waves):
@@ -1059,7 +1065,7 @@ class WEC:
         """Number of Fourier components (:python:`2*nfreq + 1`) for each
         degree of freedom.
         """
-        return ncomponents(self.nfreq)
+        return ncomponents(self.nfreq, full_2pt_wave=self._full_2pt_wave)
 
     @property
     def nstate_wec(self) -> int:
@@ -1134,7 +1140,7 @@ class WEC:
         --------
         time_mat, WEC.time_mat, WEC.time_nsubsteps
         """
-        return time_mat(self.f1, self.nfreq, nsubsteps)
+        return time_mat(self.f1, self.nfreq, nsubsteps, full_2pt_wave=self._full_2pt_wave)
 
     def vec_to_dofmat(self, vec: ndarray) -> ndarray:
         """Convert a vector to a matrix with one column per degree of
@@ -1340,7 +1346,7 @@ def time_mat(
     t = time(f1, nfreq, nsubsteps)
     omega = frequency(f1, nfreq) * 2*np.pi
     wt = np.outer(t, omega[1:])
-    ncomp = ncomponents(nfreq)
+    ncomp = ncomponents(nfreq, zero_freq=zero_freq, full_2pt_wave=full_2pt_wave)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
@@ -1541,6 +1547,7 @@ def real_to_complex(
 def complex_to_real(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
@@ -1582,11 +1589,17 @@ def complex_to_real(
         c = np.imag(fd)
     out = np.concatenate([np.transpose(b), np.transpose(c)])
     out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+    if not full_2pt_wave:
+        out = out[:-1, :]
     if zero_freq:
         out = np.concatenate([a, out])
+    if zero_freq and full_2pt_wave:
         assert out.shape == (2*nfreq+1, ndof)
-    else:
+    if ((zero_freq and not full_2pt_wave) or
+        (not zero_freq and full_2pt_wave)):
         assert out.shape == (2*nfreq, ndof)
+    if not zero_freq and not full_2pt_wave:
+        assert out.shape == (2*nfreq-1, ndof)
     return out
 
 
@@ -1595,6 +1608,7 @@ def fd_to_td(
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
     of time-domain responses.
@@ -1644,10 +1658,8 @@ def fd_to_td(
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
-        tmat = time_mat(f1, nfreq)
-        if not zero_freq:
-            tmat = tmat[:, 1:]
-        td = tmat @ complex_to_real(fd, zero_freq)
+        tmat = time_mat(f1, nfreq, zero_freq=zero_freq, full_2pt_wave=full_2pt_wave)
+        td = tmat @ complex_to_real(fd, zero_freq, full_2pt_wave)
     elif (f1 is None) and (nfreq is None):
         n = 1 + 2*(fd.shape[0]-1)
         td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
@@ -1661,6 +1673,7 @@ def td_to_fd(
     td: ArrayLike,
     fft: Optional[bool] = True,
     zero_freq: Optional[bool] = True,
+    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
@@ -1675,6 +1688,7 @@ def td_to_fd(
         Whether to use the real FFT.
     zero_freq
         Whether the mean (DC) component is returned.
+    full_2pt_wave
 
     See Also
     --------
@@ -1851,7 +1865,6 @@ def force_from_impedance(
 
 
 def force_from_waves(force_coeff: ArrayLike,
-                     full_2pt_wave: Optional[bool]=False,
                      ) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
@@ -1863,17 +1876,14 @@ def force_from_waves(force_coeff: ArrayLike,
     """
     def force(wec, x_wec, x_opt, waves):
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        if full_2pt_wave:
-            return np.dot(wec.time_mat[:, 1:], force_fd)
-        else:
-            return np.dot(wec.time_mat[:, 1:], force_fd[:-1])
+        return np.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
 
 def inertia(
     f1: float,
     nfreq: int,
-    inertia_matrix: ArrayLike
+    inertia_matrix: ArrayLike,
 ) -> TStateFunction:
     """Create the inertia "force" from the inertia matrix.
 

@@ -450,14 +450,17 @@ class PTO:
         if self.impedance is not None:
             q1_td = self.velocity(wec, x_wec, x_opt, waves)
             e1_td = self.force(wec, x_wec, x_opt, waves)
-            q1 = complex_to_real(td_to_fd(q1_td, False))
-            e1 = complex_to_real(td_to_fd(e1_td, False))
+            q1 = complex_to_real(td_to_fd(q1_td, False), full_2pt_wave=True)
+            e1 = complex_to_real(td_to_fd(e1_td, False), full_2pt_wave=True)
             vars_1 = np.hstack([q1, e1])
             vars_1_flat = dofmat_to_vec(vars_1)
             vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
             vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
             q2 = vars_2[:, :self.ndof]
             e2 = vars_2[:, self.ndof:]
+            if not wec._full_2pt_wave:
+                q2 = q2[:-1, :]
+                e2 = e2[:-1, :]
             time_mat = self._tmat(wec, nsubsteps)
             q2_td = np.dot(time_mat, q2)
             e2_td = np.dot(time_mat, e2)
