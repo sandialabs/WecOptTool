@@ -1308,7 +1308,7 @@ def time(
     """
     if nsubsteps < 1:
         raise ValueError("'nsubsteps' must be 1 or greater")
-    nsteps = nsubsteps * ncomponents(nfreq)
+    nsteps = nsubsteps * ncomponents(nfreq, full_2pt_wave=True)
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
 

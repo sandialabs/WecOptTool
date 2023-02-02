@@ -712,25 +712,25 @@ class TestFDToTDToFD:
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
         calculated = wot.fd_to_td(fd, f1, nfreq, full_2pt_wave=True)
-        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq+1, 2) and np.allclose(calculated, td)
 
     def test_td_to_fd(self, fd, td, f1, nfreq):
         """Test the :python:`td_to_fd` function outputs."""
         calculated = wot.td_to_fd(td, f1, nfreq)
-        assert calculated.shape==(1+nfreq, 2) and np.allclose(calculated, fd)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd)
 
     def test_fft(self, fd, td, nfreq):
         """Test the :python:`fd_to_td` function outputs when using FFT.
         """
         calculated = wot.fd_to_td(fd, full_2pt_wave=True)
-        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq+1, 2) and np.allclose(calculated, td)
 
     def test_fd_to_td_1dof(self, fd_1dof, td_1dof, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs for the 1 DOF
         case.
         """
         calculated = wot.fd_to_td(fd_1dof, f1, nfreq, full_2pt_wave=True)
-        shape = (2*nfreq, 1)
+        shape = (2*nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -739,7 +739,7 @@ class TestFDToTDToFD:
         case.
         """
         calculated = wot.td_to_fd(td_1dof.squeeze(), f1, nfreq)
-        shape = (1+nfreq, 1)
+        shape = (nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, fd_1dof)
 
@@ -748,7 +748,7 @@ class TestFDToTDToFD:
         for the 1 DOF.
         """
         calculated = wot.fd_to_td(fd_1dof, full_2pt_wave=True)
-        shape = (2*nfreq, 1)
+        shape = (2*nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
