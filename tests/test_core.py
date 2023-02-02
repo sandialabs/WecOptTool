@@ -38,7 +38,7 @@ def nsubsteps():
 @pytest.fixture(scope="module")
 def ncomponents(nfreq):
     """Number of components in the WEC state."""
-    return wot.ncomponents(nfreq, full_2pt_wave=True)
+    return wot.ncomponents(nfreq)
 
 
 @pytest.fixture(scope='module')
@@ -223,7 +223,7 @@ def mimo(nfreq_imp):
     """Correct MIMO matrix corresponding to the synthetic impedance
     matrix.
     """
-    ncomponents = wot.ncomponents(nfreq_imp, full_2pt_wave=True)
+    ncomponents = wot.ncomponents(nfreq_imp)
     mimo = np.zeros([ncomponents*2, ncomponents*2])
     mimo[:ncomponents, :ncomponents] = np.array([
         [0, 0,  0, 0,  0],
@@ -266,7 +266,7 @@ class TestNComponents:
 
     def test_nozero(self, nfreq):
         """Test without a zero-frequency component."""
-        assert wot.ncomponents(nfreq, False, full_2pt_wave=True) == 2*nfreq
+        assert wot.ncomponents(nfreq, False) == 2*nfreq
 
 
 class TestFrequency:
@@ -398,11 +398,11 @@ class TestTimeMat:
     @pytest.fixture(scope="class")
     def time_mat_sub(self, f1, nfreq, nsubsteps):
         """Time matrix with sub-steps."""
-        return wot.time_mat(f1, nfreq, nsubsteps, full_2pt_wave=True)
+        return wot.time_mat(f1, nfreq, nsubsteps)
 
     def test_time_mat(self, time_mat, f1_tm, nfreq_tm):
         """Test the default created time matrix."""
-        calculated = wot.time_mat(f1_tm, nfreq_tm, full_2pt_wave=True)
+        calculated = wot.time_mat(f1_tm, nfreq_tm)
         assert calculated==approx(time_mat)
 
     def test_shape(self, time_mat_sub, ncomponents, nsubsteps):
@@ -427,7 +427,7 @@ class TestTimeMat:
         """
         f = 0.1
         w = 2*np.pi*f
-        time_mat = wot.time_mat(f, 1, full_2pt_wave=True)
+        time_mat = wot.time_mat(f, 1)
         x = 1.2 + 3.4j
         X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])
         x_t = time_mat @ X
@@ -467,12 +467,12 @@ class TestDerivativeMat:
 
     def test_derivative_mat(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the default created derivative matrix."""
-        calculated = wot.derivative_mat(f1_dm, nfreq_dm, full_2pt_wave=True)
+        calculated = wot.derivative_mat(f1_dm, nfreq_dm)
         assert calculated==approx(derivative_mat)
 
     def test_no_mean(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the derivative matrix without the mean component."""
-        calculated = wot.derivative_mat(f1_dm, nfreq_dm, False, full_2pt_wave=True)
+        calculated = wot.derivative_mat(f1_dm, nfreq_dm, False)
         assert calculated==approx(derivative_mat[1:, 1:])
 
     def test_behavior(self,):
@@ -482,7 +482,7 @@ class TestDerivativeMat:
         """
         f = 0.1
         w = 2*np.pi*f
-        derivative_mat = wot.derivative_mat(f, 1, full_2pt_wave=True)
+        derivative_mat = wot.derivative_mat(f, 1)
         x = 1.2 + 3.4j
         X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])
         V = derivative_mat @ X
@@ -496,7 +496,7 @@ class TestMIMOTransferMat:
     def test_mimo_transfer_mat(self, impedance, mimo):
         """Test the function produces the correct MIMO transfer matrix.
         """
-        calculated = wot.mimo_transfer_mat(impedance, False, full_2pt_wave=True)
+        calculated = wot.mimo_transfer_mat(impedance, False)
         assert np.all(calculated == mimo)
 
     def test_behavior(self,):
@@ -510,7 +510,7 @@ class TestMIMOTransferMat:
         z = 2.1+4.3j
         f = z*x
         F = np.reshape([0, np.real(f), np.imag(f)], [-1,1])
-        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False, full_2pt_wave=True)
+        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
         assert np.allclose(Z_mimo @ X, F)
 
 
@@ -611,30 +611,30 @@ class TestRealToComplexToReal:
 
     def test_complex_to_real(self, complex_response, real_response):
         """Test converting from complex to real."""
-        calculated = wot.complex_to_real(complex_response, full_2pt_wave=True)
+        calculated = wot.complex_to_real(complex_response)
         assert np.allclose(calculated, real_response)
 
     def test_real_to_complex(self, complex_response, real_response):
         """Test converting from real to complex."""
-        calculated = wot.real_to_complex(real_response, full_2pt_wave=True)
+        calculated = wot.real_to_complex(real_response)
         assert np.allclose(calculated, complex_response)
 
     def test_cycle_real(self, real_response):
         """Test converting from real to complex and back to real."""
-        calculated = wot.real_to_complex(real_response, full_2pt_wave=True)
-        calculated = wot.complex_to_real(calculated, full_2pt_wave=True)
+        calculated = wot.real_to_complex(real_response)
+        calculated = wot.complex_to_real(calculated)
         assert np.allclose(calculated, real_response)
 
     def test_cycle_complex(self, complex_response):
         """Test converting from complex to real and back to complex."""
-        calculated = wot.complex_to_real(complex_response, full_2pt_wave=True)
-        calculated = wot.real_to_complex(calculated, full_2pt_wave=True)
+        calculated = wot.complex_to_real(complex_response)
+        calculated = wot.real_to_complex(calculated)
         assert np.allclose(calculated, complex_response)
 
     def test_shapes(self, complex_response, real_response):
         """Test output shapes."""
-        c_calc = wot.real_to_complex(real_response, full_2pt_wave=True)
-        r_calc = wot.complex_to_real(c_calc, full_2pt_wave=True)
+        c_calc = wot.real_to_complex(real_response)
+        r_calc = wot.complex_to_real(c_calc)
         c_shape = complex_response.shape
         r_shape = real_response.shape
         assert (c_calc.shape==c_shape) and (r_calc.shape==r_shape)
@@ -644,7 +644,7 @@ class TestRealToComplexToReal:
         input.
         """
         complex_1d = np.array([1+0j, 2+3j])
-        real_1d_calculated = wot.complex_to_real(complex_1d, full_2pt_wave=True)
+        real_1d_calculated = wot.complex_to_real(complex_1d)
         real_1d = np.array([[1], [2], [3]])
         assert np.allclose(real_1d_calculated, real_1d)
 
@@ -711,7 +711,7 @@ class TestFDToTDToFD:
 
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
-        calculated = wot.fd_to_td(fd, f1, nfreq, full_2pt_wave=True)
+        calculated = wot.fd_to_td(fd, f1, nfreq)
         assert calculated.shape==(2*nfreq+1, 2) and np.allclose(calculated, td)
 
     def test_td_to_fd(self, fd, td, f1, nfreq):
@@ -722,14 +722,14 @@ class TestFDToTDToFD:
     def test_fft(self, fd, td, nfreq):
         """Test the :python:`fd_to_td` function outputs when using FFT.
         """
-        calculated = wot.fd_to_td(fd, full_2pt_wave=True)
+        calculated = wot.fd_to_td(fd)
         assert calculated.shape==(2*nfreq+1, 2) and np.allclose(calculated, td)
 
     def test_fd_to_td_1dof(self, fd_1dof, td_1dof, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs for the 1 DOF
         case.
         """
-        calculated = wot.fd_to_td(fd_1dof, f1, nfreq, full_2pt_wave=True)
+        calculated = wot.fd_to_td(fd_1dof, f1, nfreq)
         shape = (2*nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
@@ -747,7 +747,7 @@ class TestFDToTDToFD:
         """Test the :python:`fd_to_td` function outputs when using FFT
         for the 1 DOF.
         """
-        calculated = wot.fd_to_td(fd_1dof, full_2pt_wave=True)
+        calculated = wot.fd_to_td(fd_1dof)
         shape = (2*nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
@@ -896,7 +896,7 @@ class TestForceFromImpedanceOrTransferFunction:
             [0, 1,  7, 38, 50],
             [0, 4, 10, 71, 83],
         ])
-        force = np.zeros((wot.ncomponents(nfreq_imp, full_2pt_wave=True), ndof_imp))
+        force = np.zeros((wot.ncomponents(nfreq_imp), ndof_imp))
         w = wot.frequency(f1, nfreq_imp) * 2*np.pi
         t = wot.time(f1, nfreq_imp)
         force[:, 0] = (
@@ -943,7 +943,7 @@ class TestForceFromWaves:
         """Test regular wave forces."""
         # correct
         A = fexc_regular
-        force = np.zeros((wot.ncomponents(nfreq, full_2pt_wave=True), ndof_waves))
+        force = np.zeros((wot.ncomponents(nfreq), ndof_waves))
         w = wot.frequency(f1, nfreq) * 2*np.pi
         w = w[1:]
         t = wot.time(f1, nfreq)
@@ -965,7 +965,7 @@ class TestForceFromWaves:
         """Test iregular wave forces."""
         # correct
         A = fexc_multi
-        force = np.zeros((wot.ncomponents(nfreq, full_2pt_wave=True), ndof_waves))
+        force = np.zeros((wot.ncomponents(nfreq), ndof_waves))
         w = wot.frequency(f1, nfreq) * 2*np.pi
         w = w[1:]
         t = wot.time(f1, nfreq)
@@ -1029,7 +1029,7 @@ class TestInertiaStandardForces:
         forces = wot.standard_forces(data)
         # calculated inertia and forces
         wec = wot.WEC(
-            f1, nfreq, {}, inertia_matrix=data['inertia_matrix'].values, full_2pt_wave=True)
+            f1, nfreq, {}, inertia_matrix=data['inertia_matrix'].values)
         waves = wot.waves.regular_wave(
             f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
         x_wec = np.zeros((nfreq*2+1)*ndof)

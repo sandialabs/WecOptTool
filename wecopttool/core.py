@@ -120,7 +120,6 @@ class WEC:
         ndof: Optional[int] = None,
         inertia_in_forces: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
-        full_2pt_wave: Optional[bool] = False,
         ) -> None:
         """Create a WEC object directly from its inertia matrix and
         list of forces.
@@ -207,10 +206,9 @@ class WEC:
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
-        self._time_mat = time_mat(f1, nfreq, full_2pt_wave=full_2pt_wave)
-        self._derivative_mat = derivative_mat(f1, nfreq, full_2pt_wave=full_2pt_wave)
+        self._time_mat = time_mat(f1, nfreq)
+        self._derivative_mat = derivative_mat(f1, nfreq)
         self._forces = forces
-        self._full_2pt_wave = full_2pt_wave
         constraints = list(constraints) if (constraints is not None) else []
         self._constraints = constraints
 
@@ -290,7 +288,6 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-        full_2pt_wave: Optional[bool] = False,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
         obtained using the boundary element method (BEM) code Capytaine.
@@ -392,7 +389,7 @@ class WEC:
         forces = linear_force_functions | f_add
         # constraints
         constraints = constraints if (constraints is not None) else []
-        return WEC(f1, nfreq, forces, constraints, inertia_matrix, full_2pt_wave=full_2pt_wave)
+        return WEC(f1, nfreq, forces, constraints, inertia_matrix)
 
     @staticmethod
     def from_floating_body(
@@ -409,7 +406,6 @@ class WEC:
         rho: Optional[float] = _default_parameters['rho'],
         g: Optional[float] = _default_parameters['g'],
         depth: Optional[float] = _default_parameters['depth'],
-        full_2pt_wave: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from a Capytaine :python:`FloatingBody`
         (:py:class:capytaine.bodies.bodies.FloatingBody).
@@ -494,7 +490,7 @@ class WEC:
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
             bem_data, inertia_matrix, hydrostatic_stiffness, friction, f_add,
-            constraints, min_damping=min_damping, full_2pt_wave=full_2pt_wave)
+            constraints, min_damping=min_damping)
         return wec
 
     @staticmethod
@@ -506,7 +502,6 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-        full_2pt_wave: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -588,8 +583,7 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0],
-                  full_2pt_wave=full_2pt_wave)
+                  inertia_in_forces=True, ndof=shape[0])
         return wec
     
     def _resid_fun(self, x_wec, x_opt, waves):
@@ -1065,7 +1059,7 @@ class WEC:
         """Number of Fourier components (:python:`2*nfreq + 1`) for each
         degree of freedom.
         """
-        return ncomponents(self.nfreq, full_2pt_wave=self._full_2pt_wave)
+        return ncomponents(self.nfreq)
 
     @property
     def nstate_wec(self) -> int:
@@ -1140,7 +1134,7 @@ class WEC:
         --------
         time_mat, WEC.time_mat, WEC.time_nsubsteps
         """
-        return time_mat(self.f1, self.nfreq, nsubsteps, full_2pt_wave=self._full_2pt_wave)
+        return time_mat(self.f1, self.nfreq, nsubsteps)
 
     def vec_to_dofmat(self, vec: ndarray) -> ndarray:
         """Convert a vector to a matrix with one column per degree of
@@ -1236,7 +1230,6 @@ class WEC:
 def ncomponents(
     nfreq : int,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> int:
     """Number of Fourier components (:python:`2*nfreq + 1`) for each
     DOF.
@@ -1248,11 +1241,9 @@ def ncomponents(
     zero_freq
         Whether to include the zero-frequency.
     """
-    ncomp = 2*nfreq
+    ncomp = 2*nfreq - 1
     if zero_freq:
         ncomp = ncomp + 1
-    if not full_2pt_wave:
-        ncomp = ncomp - 1
     return ncomp
 
 
@@ -1308,7 +1299,7 @@ def time(
     """
     if nsubsteps < 1:
         raise ValueError("'nsubsteps' must be 1 or greater")
-    nsteps = nsubsteps * ncomponents(nfreq, full_2pt_wave=True)
+    nsteps = nsubsteps * ncomponents(nfreq)
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
 
@@ -1317,7 +1308,6 @@ def time_mat(
     nfreq: int,
     nsubsteps: Optional[int] = 1,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
@@ -1346,14 +1336,11 @@ def time_mat(
     t = time(f1, nfreq, nsubsteps)
     omega = frequency(f1, nfreq) * 2*np.pi
     wt = np.outer(t, omega[1:])
-    ncomp = ncomponents(nfreq, zero_freq=zero_freq, full_2pt_wave=full_2pt_wave)
+    ncomp = ncomponents(nfreq, zero_freq=zero_freq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
-    if full_2pt_wave:
-        time_mat[:, 2::2] = -np.sin(wt)
-    else:
-        time_mat[:, 2::2] = -np.sin(wt[:, :-1])
+    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
@@ -1363,7 +1350,6 @@ def derivative_mat(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
@@ -1391,15 +1377,13 @@ def derivative_mat(
     if zero_freq:
         blocks = [0.0] + blocks
     deriv_mat = block_diag(*blocks)
-    if not full_2pt_wave:
-        deriv_mat = deriv_mat[:-1, :-1]
+    deriv_mat = deriv_mat[:-1, :-1] # remove 2pt wave sine component
     return deriv_mat
 
 
 def mimo_transfer_mat(
     transfer_mat: ArrayLike,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
@@ -1444,10 +1428,7 @@ def mimo_transfer_mat(
             blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
             blocks =[Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
-    mimo_mat = np.block(elem)
-    if not full_2pt_wave:
-        mimo_mat = mimo_mat[:-1, :-1]
-    return mimo_mat
+    return np.block(elem)[:-1, :-1]
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1495,7 +1476,6 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 def real_to_complex(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
@@ -1528,17 +1508,11 @@ def real_to_complex(
     """
     fd= atleast_2d(fd)
     if zero_freq:
-        if full_2pt_wave:
-            assert fd.shape[0]%2==1
-        else:
-            assert fd.shape[0]%2==0
+        assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    if full_2pt_wave:
-        fdc = fd[0::2, :] + 1j*fd[1::2, :]
-    else:
-        fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                        fd[-1, :].reshape(-1, 1), axis=0)
+    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
+                    fd[-1, :].reshape(-1, 1), axis=0)
     if zero_freq:
         fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
@@ -1547,7 +1521,6 @@ def real_to_complex(
 def complex_to_real(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
@@ -1588,17 +1561,11 @@ def complex_to_real(
         b = np.real(fd)
         c = np.imag(fd)
     out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
-    if not full_2pt_wave:
-        out = out[:-1, :]
+    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])[:-1, :] 
     if zero_freq:
         out = np.concatenate([a, out])
-    if zero_freq and full_2pt_wave:
-        assert out.shape == (2*nfreq+1, ndof)
-    if ((zero_freq and not full_2pt_wave) or
-        (not zero_freq and full_2pt_wave)):
         assert out.shape == (2*nfreq, ndof)
-    if not zero_freq and not full_2pt_wave:
+    else:
         assert out.shape == (2*nfreq-1, ndof)
     return out
 
@@ -1608,7 +1575,6 @@ def fd_to_td(
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
     of time-domain responses.
@@ -1658,8 +1624,8 @@ def fd_to_td(
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
-        tmat = time_mat(f1, nfreq, zero_freq=zero_freq, full_2pt_wave=full_2pt_wave)
-        td = tmat @ complex_to_real(fd, zero_freq, full_2pt_wave)
+        tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
+        td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 1 + 2*(fd.shape[0]-1)
         td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
@@ -1673,7 +1639,6 @@ def td_to_fd(
     td: ArrayLike,
     fft: Optional[bool] = True,
     zero_freq: Optional[bool] = True,
-    full_2pt_wave: Optional[bool] = False,
 ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
@@ -1688,7 +1653,6 @@ def td_to_fd(
         Whether to use the real FFT.
     zero_freq
         Whether the mean (DC) component is returned.
-    full_2pt_wave
 
     See Also
     --------
