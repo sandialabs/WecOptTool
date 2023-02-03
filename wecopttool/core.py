@@ -1377,8 +1377,7 @@ def derivative_mat(
     if zero_freq:
         blocks = [0.0] + blocks
     deriv_mat = block_diag(*blocks)
-    deriv_mat = deriv_mat[:-1, :-1] # remove 2pt wave sine component
-    return deriv_mat
+    return deriv_mat[:-1, :-1] # remove 2pt wave sine component
 
 
 def mimo_transfer_mat(
@@ -1425,10 +1424,10 @@ def mimo_transfer_mat(
                 Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            blocks =[Zp0] + blocks
+            blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
+            blocks =[Zp0] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)[:-1, :-1]
+    return np.block(elem)
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1555,17 +1554,20 @@ def complex_to_real(
     if zero_freq:
         assert np.all(np.isreal(fd[0, :]))
         a = np.real(fd[0:1, :])
-        b = np.real(fd[1:, :])
-        c = np.imag(fd[1:, :])
+        b = np.real(fd[1:-1, :])
+        c = np.imag(fd[1:-1, :])
+        d = np.real(fd[-1:, :])
     else:
-        b = np.real(fd)
-        c = np.imag(fd)
+        b = np.real(fd[:-1, :])
+        c = np.imag(fd[:-1, :])
+        d = np.real(fd[-1:, :])
     out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])[:-1, :] 
+    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
-        out = np.concatenate([a, out])
+        out = np.concatenate([a, out, d])
         assert out.shape == (2*nfreq, ndof)
     else:
+        out = np.concatenate([out, d])
         assert out.shape == (2*nfreq-1, ndof)
     return out
 

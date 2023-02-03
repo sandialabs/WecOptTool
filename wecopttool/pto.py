@@ -456,8 +456,8 @@ class PTO:
             vars_1_flat = dofmat_to_vec(vars_1)
             vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
             vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
-            q2 = vars_2[:-1, :self.ndof]
-            e2 = vars_2[:-1, self.ndof:]
+            q2 = vars_2[:, :self.ndof]
+            e2 = vars_2[:, self.ndof:]
             time_mat = self._tmat(wec, nsubsteps)
             q2_td = np.dot(time_mat, q2)
             e2_td = np.dot(time_mat, e2)
@@ -706,8 +706,8 @@ def _make_mimo_transfer_mat(
             Zp = impedance_abcd[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            blocks = [0.0] + blocks
+            blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
+            blocks = [0.0] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
