@@ -736,14 +736,14 @@ class TestFDToTDToFD:
         """Test the :python:`fd_to_td` function outputs when using FFT.
         """
         calculated = wot.fd_to_td(fd)
-        assert calculated.shape==(2*nfreq+1, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
     def test_fd_to_td_1dof(self, fd_1dof, td_1dof, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs for the 1 DOF
         case.
         """
         calculated = wot.fd_to_td(fd_1dof, f1, nfreq)
-        shape = (2*nfreq+1, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -761,7 +761,7 @@ class TestFDToTDToFD:
         for the 1 DOF.
         """
         calculated = wot.fd_to_td(fd_1dof)
-        shape = (2*nfreq+1, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -898,7 +898,7 @@ class TestForceFromImpedanceOrTransferFunction:
     @pytest.fixture(scope="class")
     def x_wec(self,):
         """WEC position state vector for a simple synthetic case."""
-        return [0, 1, 1, 1, 1, 0, 2, 2, 2]
+        return [0, 1, 1, 1, 0, 2, 2, 2]
 
     @pytest.fixture(scope="class")
     def force(self, f1, nfreq_imp, ndof_imp):
@@ -906,8 +906,8 @@ class TestForceFromImpedanceOrTransferFunction:
         # amplitude: A  = mimo @ x_wec, calculated manually
         #   reshaped for convenience
         A = np.array([
-            [0, 1,  7, 38, 50],
-            [0, 4, 10, 71, 83],
+            [0, 1,  7, 44],
+            [0, 4, 10, 77],
         ])
         force = np.zeros((wot.ncomponents(nfreq_imp), ndof_imp))
         w = wot.frequency(f1, nfreq_imp) * 2*np.pi
@@ -1341,7 +1341,7 @@ class TestDecomposeState:
     def test_function(self,):
         """Test that the function returns expected results."""
         ndof, nfreq = 1, 2  # ncomponents = ndof*(2*nfreq-1)+1 = 4
-        state = [1, 1, 1, 1, 1, 3.4]
+        state = [1, 1, 1, 1, 3.4]
         x_wec = [1, 1, 1, 1]
         x_opt = [3.4]
         x_w_calc, x_o_calc = wot.decompose_state(state, ndof, nfreq)

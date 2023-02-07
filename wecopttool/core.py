@@ -1425,7 +1425,7 @@ def mimo_transfer_mat(
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
-            blocks =[Zp0] + blocks + [re[-1]]
+            blocks = [Zp0] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
@@ -1629,7 +1629,7 @@ def fd_to_td(
         tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
-        n = 1 + 2*(fd.shape[0]-1)
+        n = 2*(fd.shape[0]-1)
         td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
     else:
         raise ValueError(
