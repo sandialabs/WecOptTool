@@ -569,7 +569,12 @@ class PTO:
         """Calculate the transduced flow variable time-series in each PTO DOF 
         for a given system state. Equals the PTO velocity if no impedance 
         is defined.
-
+        Examples for PTO impedance and corresponding flow variables:
+        - OWC: (pneumatic admittance)^-1 : flow = volumetric air flow
+        - Drive-train: rotational impedance : flow = rotational velocity
+        - Generator: winding impedance: flow = electric current
+        - Drive-train and Generator combined: flow = electric current
+        
         Parameters
         ----------
         wec
@@ -600,7 +605,11 @@ class PTO:
         """Calculate the transduced flow variable time-series in each PTO DOF 
         for a given system state. Equals the PTO force if no impedance 
         is defined.
-
+        Examples for PTO impedance and corresponding effort variables:
+        - OWC: (pneumatic admittance)^-1 : effort =  air pressure
+        - Drive-train: rotational impedance : effort = torque
+        - Generator: winding impedance: effort = voltage
+        - Drive-train and Generator combined: effort = voltage
         Parameters
         ----------
         wec
