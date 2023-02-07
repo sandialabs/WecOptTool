@@ -1511,7 +1511,7 @@ def real_to_complex(
         mean = fd[0:1, :]
         fd = fd[1:, :]
     fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    fd[-1, :].reshape(-1, 1), axis=0)
+                    [fd[-1, :]], axis=0)
     if zero_freq:
         fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
