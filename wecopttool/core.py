@@ -453,7 +453,7 @@ class WEC:
             :python:`fun` has a  signature
             :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
             forces in the time-domain of size
-            :python:`(2*nfreq+1, ndof)`.
+            :python:`(2*nfreq, ndof)`.
         constraints
             List of constraints, see documentation for
             :py:func:`scipy.optimize.minimize` for description and
@@ -534,7 +534,7 @@ class WEC:
             :python:`fun` has a  signature
             :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
             forces in the time-domain of size
-            :python:`(2*nfreq+1, ndof)`.
+            :python:`(2*nfreq, ndof)`.
         constraints
             List of constraints, see documentation for
             :py:func:`scipy.optimize.minimize` for description and
@@ -1010,7 +1010,7 @@ class WEC:
 
     @property
     def time(self) -> ndarray:
-        """Time vector [s], size '(2*nfreq+1, ndof)', not containing the
+        """Time vector [s], size '(2*nfreq, ndof)', not containing the
         end time 'tf'."""
         return self._time
 
@@ -1018,10 +1018,11 @@ class WEC:
     def time_mat(self) -> ndarray:
         """Matrix to create time-series from Fourier coefficients.
 
-        For some array of Fourier coefficients :python:`x`, size
-        :python:`(2*nfreq+1, ndof)`, the time series, also size
-        :python:`(2*nfreq+1, ndof)`, is obtained as
-        :python:`time_mat @ x`.
+        For some array of Fourier coefficients :python:`x`
+        (excluding the sine component of the highest freequency), size
+        :python:`(2*nfreq, ndof)`, the time series is obtained via
+        :python:`time_mat @ x`, also size
+        :python:`(2*nfreq, ndof)`.
         """
         return self._time_mat
 
@@ -1030,9 +1031,10 @@ class WEC:
         """Matrix to create Fourier coefficients of the derivative of
         some quantity.
 
-        For some array of Fourier coefficients :python:`x`, size
-        :python:`(2*nfreq+1, ndof)`, the Fourier coefficients of the
-        derivative of :python:`x` are obtained as
+        For some array of Fourier coefficients :python:`x`
+        (excluding the sine component of the highest freequency), size
+        :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
+        derivative of :python:`x` are obtained via
         :python:`derivative_mat @ x`.
         """
         return self._derivative_mat
@@ -1056,8 +1058,10 @@ class WEC:
 
     @property
     def ncomponents(self) -> int:
-        """Number of Fourier components (:python:`2*nfreq + 1`) for each
-        degree of freedom.
+        """Number of Fourier components (:python:`2*nfreq`) for each
+        degree of freedom. Note that the sine component of the highest
+        frequency (the 2-point wave) is excluded as this will always
+        evaluate to zero.
         """
         return ncomponents(self.nfreq)
 
@@ -1216,7 +1220,7 @@ class WEC:
         ----------
         td
             Time-domain real array with shape
-            :python:`(2*WEC.nfreq+1, N)` for any :python:`N`.
+            :python:`(2*WEC.nfreq, N)` for any :python:`N`.
         fft
             Whether to use the real FFT.
 
@@ -1231,8 +1235,12 @@ def ncomponents(
     nfreq : int,
     zero_freq: Optional[bool] = True,
 ) -> int:
-    """Number of Fourier components (:python:`2*nfreq + 1`) for each
-    DOF.
+    """Number of Fourier components (:python:`2*nfreq`) for each
+    DOF. The sine component of the highest frequency (the 2-point wave)
+    is excluded as it will always evaluate to zero.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the number of components is reduced by 1.
 
     Parameters
     ----------
@@ -1260,6 +1268,9 @@ def frequency(
     Returns the frequency array, e.g.,
     :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
 
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`0` is excluded, and the vector length is reduced by 1.
+
     Parameters
     ----------
     f1
@@ -1283,9 +1294,9 @@ def time(
 
     Returns the 1D time vector, in seconds, starting at time
     :python:`0`, and not containing the end time :python:`tf=1/f1`.
-    The time vector has length :python:`(2*nfreq+1)*nsubsteps`.
+    The time vector has length :python:`(2*nfreq)*nsubsteps`.
     The timestep length is :python:`dt = dt_default * 1/nsubsteps`,
-    where :python:`dt_default=tf/(2*nfreq+1)`.
+    where :python:`dt_default=tf/(2*nfreq)`.
 
     Parameters
     ----------
@@ -1314,12 +1325,15 @@ def time_mat(
 
     For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
-    coefficients as
-    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
+    coefficients (excluding the imaginary component of the 2-point wave) as
+    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
     the response vector in the time-domain (:math:`x(t)`) is given as
     :math:`Mx`, where :math:`M` is the time matrix.
 
-    The time matrix has size :python:`(nfreq*2+1, nfreq*2+1)`.
+    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Parameters
     ---------
@@ -1356,12 +1370,15 @@ def derivative_mat(
 
     For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
-    coefficients as
-    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`,
+    coefficients (excluding the imaginary component of the 2-point wave) as
+    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
     the state of its derivative is given as :math:`Dx`, where
     :math:`D` is the derivative matrix.
 
-    The derivative matrix has size :python:`(nfreq*2+1, nfreq*2+1)`.
+    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Parameters
     ---------
@@ -1398,8 +1415,12 @@ def mimo_transfer_mat(
     output variable.
     Here, a state representation :python:`x` consists of the mean (DC)
     component followed by the real and imaginary components of the
-    Fourier coefficients as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`.
+    Fourier coefficients (excluding the imaginary component of the
+    2-point wave) as
+    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
+    
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Parameters
     ----------
@@ -1481,10 +1502,11 @@ def real_to_complex(
 
     The input is a real 2D array with each column containing the real
     and imaginary components of the Fourier coefficients for some
-    response.
-    The column length is :python:`2*nfreq+1`.
+    response, excluding the imaginary component of the highest frequency
+    (2-point wave).
+    The column length is :python:`2*nfreq`.
     The entries of a column representing a response :python:`x` are
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`.
+    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
 
     Returns a complex 2D array with each column containing the complex
     Fourier coefficients.
@@ -1492,6 +1514,9 @@ def real_to_complex(
     to the real-valued zero-frequency (mean, DC) components.
     The entries of a column representing a response :python:`x` are
     :python:`x=[X0, X1, ..., Xn]`.
+
+    If :python:`zero_freq = False`, the mean (DC) component :python:`X0`
+    is excluded, and the column length is reduced by 1.
 
     Parameters
     ----------
@@ -1532,10 +1557,15 @@ def complex_to_real(
     :python:`x=[X0, X1, ..., Xn]`.
 
     Returns a real 2D array with each column containing the real and
-    imaginary components of the Fourier coefficients.
-    The column length is :python:`2*nfreq+1`.
+    imaginary components of the Fourier coefficients. The imaginary component
+    of the highest frequency (the 2-point wave) is excluded, as it will
+    always evaluate to zero.
+    The column length is :python:`2*nfreq`.
     The entries of a column representing a response :python:`x` are
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn), Im(Xn)]`.
+    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the vector length is reduced by 1.
 
     Parameters
     ----------
@@ -1589,12 +1619,17 @@ def fd_to_td(
     :python:`x=[X0, X1, ..., Xn]`.
 
     Returns a real array with same number of columns and
-    :python:`2*nfreq+1` rows, containing the time-domain response at
+    :python:`2*nfreq` rows, containing the time-domain response at
     times :python:`wecopttool.time(f1, nfreq, nsubsteps=1)`.
+    The imaginary component of the highest frequency (the 2-point wave) is
+    excluded, as it will always evaluate to zero.
 
     If both :python:`f1` and :python:`nfreq` are provided, it uses the
     time matrix :python:`wecopttool.time_mat(f1, nfreq, nsubsteps=1)`,
     else it uses the inverse real FFT (:py:func:`numpy.fft.irfft`).
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Opposite of :py:meth:`wecopttool.td_to_fd`.
 
@@ -1644,6 +1679,9 @@ def td_to_fd(
 ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Opposite of :py:func:`wecopttool.fd_to_td`
 
@@ -1790,6 +1828,9 @@ def force_from_rao_transfer_function(
 
     This is the position equivalent to the velocity-based
     :py:func:`wecopttool.force_from_impedance`.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    of the transfer matrix (first row) is excluded.
 
     Parameters
     ----------
@@ -2337,7 +2378,9 @@ def frequency_parameters(
 
     This function can be used as a check for inputs to other functions
     since it raises an error if the frequency vector does not have
-    the correct format :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
+    the correct format :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`
+    (or :python:`freqs = [f1, 2*f1, ..., nfreq*f1] if
+    :python:`zero_freq = False`).
 
     Parameters
     ----------
