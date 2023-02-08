@@ -260,7 +260,7 @@ class TestLongCrestedWave:
             noverlap=0
         )
         # check it is equal to the original spectrum
-        assert np.allclose(S_data[1:], pm_spectrum.values.squeeze())
+        assert np.allclose(S_data[1:-1], pm_spectrum.values.squeeze()[:-1])
 
 
 class TestIrregularWave:

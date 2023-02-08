@@ -1336,7 +1336,7 @@ def time_mat(
     t = time(f1, nfreq, nsubsteps)
     omega = frequency(f1, nfreq) * 2*np.pi
     wt = np.outer(t, omega[1:])
-    ncomp = ncomponents(nfreq, zero_freq=zero_freq)
+    ncomp = ncomponents(nfreq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
