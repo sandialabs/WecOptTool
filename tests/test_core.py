@@ -418,7 +418,7 @@ class TestTimeMat:
         """Test the components at time zero of the time matrix with
         sub-steps.
         """
-        assert all(time_mat_sub[0, 1:]==np.array([1, 0]*nfreq)[:-1])
+        assert all(time_mat_sub[0, 1:]==np.array([1, 0]*(nfreq-1)))
 
     def test_behavior(self,):
         """Test that when the time matrix multiplies a state-vector it
@@ -428,7 +428,7 @@ class TestTimeMat:
         w = 2*np.pi*f
         time_mat = wot.time_mat(f, 1)
         x = 1.2 + 3.4j
-        X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])[:-1]
+        X = np.concatenate([0, np.real(x), np.imag(x[:-1])])
         x_t = time_mat @ X
         t = wot.time(f, 1)
         assert np.allclose(x_t.squeeze(), np.real(x*np.exp(1j*w*t)))
@@ -491,7 +491,8 @@ class TestDerivativeMat:
         ])
         V = derivative_mat @ X
         v = np.sum(V[1::2]) + 1j*np.sum(V[2::2])
-        expected = np.sum([[(i+1) * 1j * w * x[i]] for i in range(np.size(x)-1)])
+        expected = np.sum(
+            [[(i+1) * 1j * w * x[i]] for i in range(np.size(x)-1)])
         assert np.allclose(v, expected)
 
 
@@ -521,7 +522,9 @@ class TestMIMOTransferMat:
                       3.5+4.5j])
         F = np.concatenate([
             [0.],
-            np.reshape([[np.real(z[i]*x[i]), np.imag(z[i]*x[i])] for i in range(np.size(x)-1)], -1),
+            np.reshape(
+                [[np.real(z[i]*x[i]), np.imag(z[i]*x[i])] for 
+                i in range(np.size(x)-1)], -1),
             [np.real(z[-1]) * np.real(x[-1])],
         ])
         Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
