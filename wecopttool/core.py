@@ -1806,7 +1806,6 @@ def force_from_rao_transfer_function(
         return np.dot(wec.time_mat, force_fd)
     return force
 
-# Alicia will change this!
 def force_from_impedance(
     omega: ArrayLike,
     impedance: ArrayLike,
