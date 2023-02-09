@@ -560,7 +560,7 @@ class WEC:
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
             
-        # Alicia will change this!!
+        # Alicia will change this!!!
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
