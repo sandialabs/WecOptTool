@@ -560,7 +560,6 @@ class WEC:
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
             
-        # Alicia will change this!!!
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
@@ -1807,7 +1806,7 @@ def force_from_rao_transfer_function(
         return np.dot(wec.time_mat, force_fd)
     return force
 
-
+# Alicia will change this!
 def force_from_impedance(
     omega: ArrayLike,
     impedance: ArrayLike,
@@ -1825,7 +1824,7 @@ def force_from_impedance(
     --------
     force_from_rao_transfer_function,
     """
-    return force_from_rao_transfer_function(impedance/(1j*omega), False)
+    return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
 def force_from_waves(force_coeff: ArrayLike) -> TStateFunction:
