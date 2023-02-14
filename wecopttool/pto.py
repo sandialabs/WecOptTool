@@ -332,6 +332,288 @@ class PTO:
         kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
         return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
 
+    def self_rectifying_turbine_power(self,
+        torque: ndarray,
+        V_wec: ndarray,
+    ) -> np.ndarray: #tuple[np.ndarray, np.ndarray]:
+        """Calculate the turbine power, note that turbine inertia should be included in the drivetrain impedance
+
+        Parameters
+        ----------
+        torque
+            Torque on the turbine
+        V_wec
+            Velocity of the wec
+        """
+        
+        # TODO: put in self
+
+        rho = 1.225
+        blade_chord = 0.054 #m
+        N_blades = 30.0
+        blade_radius = 0.298/2 #m
+        blade_height = (1.0-0.7)*blade_radius #m
+        A_wec = 1.0
+        A_turb = 1.0
+
+        V_turb = A_wec*V_wec/A_turb #TODO: compressibility correction pv = nrt?
+
+        ####################################################################################################
+        ####### Directly Control turbine rotation rate to avoid residual (for now) ######
+        ####################################################################################################
+        omega_turbine_guess = torque
+        omega_turbine = torque
+
+        # inv_TSR = np.array(V_turb/(omega_turbine_guess*blade_radius))
+
+        # torque_coefficient = 0.2962*inv_TSR**4 - 1.7108*inv_TSR**3 + 2.9842*inv_TSR**2 - 0.4105*inv_TSR + 0.3721
+
+        # omega_turbine = np.sqrt(torque/(torque_coefficient*0.5*rho*blade_height*blade_chord*N_blades*blade_radius**3)-V_turb**2)
+        
+        inv_TSR = V_turb/(omega_turbine*blade_radius)
+
+        inv_TSRdata = np.array([-10000.0,
+            -100.0,
+            -50.0,
+            -20.0,
+            -10.0,
+            0.0,
+            0.012668019,
+            0.03426608,
+            0.045142045,
+            0.057553153,
+            0.071173399,
+            0.085301268,
+            0.097366303,
+            0.118841776,
+            0.129754941,
+            0.139778827,
+            0.158789719,
+            0.169510357,
+            0.179040696,
+            0.19001597,
+            0.20320735,
+            0.217075432,
+            0.235373075,
+            0.243281766,
+            0.261535771,
+            0.276437612,
+            0.28738014,
+            0.309746514,
+            0.314496222,
+            0.330525042,
+            0.346010286,
+            0.35791277,
+            0.39363278,
+            0.426007626,
+            0.432751135,
+            0.448256149,
+            0.472991905,
+            0.49238604,
+            0.506538082,
+            0.522258542,
+            0.541141927,
+            0.559711436,
+            0.587280356,
+            0.603243099,
+            0.623148907,
+            0.643251111,
+            0.66566147,
+            0.680382139,
+            0.702029778,
+            0.72676211,
+            0.75149701,
+            0.778443456,
+            0.802495913,
+            0.830306138,
+            0.859654739,
+            0.890547726,
+            0.921439344,
+            0.953872962,
+            0.987842604,
+            1.021805398,
+            1.055763211,
+            1.089717911,
+            1.123670121,
+            1.157624821,
+            1.191565203,
+            1.225508697,
+            1.259449701,
+            1.293384479,
+            1.327313966,
+            1.361237849,
+            1.395167335,
+            1.429090907,
+            1.463007631,
+            1.496926223,
+            1.530844503,
+            1.564760293,
+            1.598674838,
+            1.632587515,
+            1.666499881,
+            1.700410691,
+            1.734322745,
+            1.768229819,
+            1.802136271,
+            1.836043345,
+            1.869948551,
+            1.903858116,
+            1.937757408,
+            1.971661992,
+            2.005578093,
+            2.039467113,
+            2.073365782,
+            2.107270366,
+            2.14117246,
+            2.175075487,
+            2.208974156,
+            2.242872826,
+            2.276771495,
+            2.310670165,
+            2.344568834,
+            2.378467504,
+            2.412366173,
+            2.446264843,
+            2.480163512,
+            2.503649469,
+            2.509371154,
+            2.65,
+            2.75,
+            3.0,
+            4.0,
+            5.0,
+            7.0,
+            10.0,
+            20.0,
+            50.0,
+            100.0,
+            10000.0])
+            #   y = np.sin(x)
+        Ca_data = np.array([0.092282521,
+            0.092282521,
+            0.092282521,
+            0.092282521,
+            0.092282521,
+            0.092282521,
+            0.092282521,
+            0.108898362,
+            0.166429569,
+            0.220299948,
+            0.281008945,
+            0.337880945,
+            0.389410575,
+            0.459040664,
+            0.518464217,
+            0.578526192,
+            0.629890894,
+            0.672544117,
+            0.723541827,
+            0.778887736,
+            0.830091701,
+            0.892335842,
+            0.945980007,
+            0.994584051,
+            1.05696206,
+            1.106830028,
+            1.161446822,
+            1.228899216,
+            1.290898399,
+            1.359077526,
+            1.408090836,
+            1.465159246,
+            1.562243494,
+            1.655088735,
+            1.697592835,
+            1.759255085,
+            1.811679549,
+            1.859073611,
+            1.914558511,
+            1.982617847,
+            2.036904363,
+            2.087541557,
+            2.145242742,
+            2.194618208,
+            2.255209854,
+            2.300621402,
+            2.344023427,
+            2.396784052,
+            2.445120045,
+            2.495353764,
+            2.547230542,
+            2.59005665,
+            2.643459039,
+            2.691239423,
+            2.737428015,
+            2.785870789,
+            2.833437265,
+            2.88173104,
+            2.92692827,
+            2.967744011,
+            3.005373215,
+            3.041010834,
+            3.075055183,
+            3.110692802,
+            3.137169126,
+            3.165637035,
+            3.192511676,
+            3.215403146,
+            3.23490892,
+            3.250829839,
+            3.270335613,
+            3.286057374,
+            3.297397646,
+            3.30993287,
+            3.322268935,
+            3.333011731,
+            3.342957894,
+            3.351709104,
+            3.360261157,
+            3.367817416,
+            3.37617031,
+            3.381336666,
+            3.386104705,
+            3.391271062,
+            3.395242467,
+            3.402002092,
+            3.402189484,
+            3.405762572,
+            3.4066704527,
+            3.410319686,
+            3.410108761,
+            3.413681849,
+            3.415661668,
+            3.418238963,
+            3.418028038,
+            3.417817113,
+            3.417606188,
+            3.417395263,
+            3.417184338,
+            3.416973413,
+            3.416762488,
+            3.416551563,
+            3.416340638,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823,
+            3.408526823])
+
+        power_coefficient = myinterp(inv_TSRdata,Ca_data,inv_TSR)
+        # power_coefficient = 0.4093*inv_TSR**3 - 2.5095*inv_TSR**2 + 5.1228*inv_TSR - 0.0864
+
+        power = power_coefficient*0.5*rho*(V_turb**2+(omega_turbine*blade_radius)**2)*blade_height*blade_chord*N_blades*V_turb
+
+        # residual = omega_turbine_guess-omega_turbine
+        return power #, residual
+
     def mechanical_power(self,
         wec: TWEC,
         x_wec: ndarray,
@@ -360,7 +642,8 @@ class PTO:
         """
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-        return vel_td * force_td
+        power = self.self_rectifying_turbine_power(force_td,vel_td)
+        return power
 
     def mechanical_energy(self,
         wec: TWEC,
@@ -465,7 +748,7 @@ class PTO:
             q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
             e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         # power
-        power_out = q2_td * e2_td
+        power_out = self.self_rectifying_turbine_power(e2_td,q2_td)#q2_td * e2_td
         if self.loss is not None:
             power_out = power_out + self.loss(q2_td, e2_td)
         return power_out
@@ -872,3 +1155,45 @@ def controller_p(
     force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
                                True, False, False)
     return force_td
+
+def h_poly_helper(tt):
+  A = np.array([
+      [1, 0, -3, 2],
+      [0, 1, -2, 1],
+      [0, 0, 3, -2],
+      [0, 0, -1, 1]
+      ], dtype=tt[-1].dtype)
+  return [
+    sum( A[i, j]*tt[j] for j in range(4) )
+    for i in range(4) ]
+
+def h_poly(t):
+  tt = [ None for _ in range(4) ]
+  tt[0] = 1
+  for i in range(1, 4):
+    tt[i] = tt[i-1]*t
+  return h_poly_helper(tt)
+
+def H_poly(t):
+  tt = [ None for _ in range(4) ]
+  tt[0] = t
+  for i in range(1, 4):
+    tt[i] = tt[i-1]*t*i/(i+1)
+  return h_poly_helper(tt)
+
+def interp_func(x, y):
+  "Returns integral of interpolating function"
+  if len(y)>1:
+    m = (y[1:] - y[:-1])/(x[1:] - x[:-1])
+    m = np.concatenate([m[[0]], (m[1:] + m[:-1])/2, m[[-1]]])
+  def f(xs):
+    if len(y)==1: # in the case of 1 point, treat as constant function
+      return y[0] + np.zeros_like(xs)
+    I = np.searchsorted(x[1:], xs)
+    dx = (x[I+1]-x[I])
+    hh = h_poly((xs-x[I])/dx)
+    return hh[0]*y[I] + hh[1]*m[I]*dx + hh[2]*y[I+1] + hh[3]*m[I+1]*dx
+  return f
+
+def myinterp(x, y, xs):
+  return interp_func(x,y)(xs)
