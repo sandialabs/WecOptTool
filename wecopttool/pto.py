@@ -334,8 +334,9 @@ class PTO:
 
     def self_rectifying_turbine_power(self,
         torque: ndarray,
-        V_wec: ndarray,
-    ) -> np.ndarray: #tuple[np.ndarray, np.ndarray]:
+        V_wec: ndarray, #m/s
+        omega_turbine_guess: ndarray, #rad/s
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Calculate the turbine power, note that turbine inertia should be included in the drivetrain impedance
 
         Parameters
@@ -353,26 +354,23 @@ class PTO:
         N_blades = 30.0
         blade_radius = 0.298/2 #m
         blade_height = (1.0-0.7)*blade_radius #m
-        A_wec = 1.0
-        A_turb = 1.0
+        A_wec = 1.0 #m2
+        A_turb = 1.0 #m2
+        P_ambient = 1.0 #atm
 
-        V_turb = A_wec*V_wec/A_turb #TODO: compressibility correction pv = nrt?
+        V_turb = A_wec*V_wec/A_turb
+        power = torque*omega_turbine_guess
+        V_turbcompressed = V_turb/((P_ambient+power/(A_turb*V_turb))/P_ambient)**(1/1.401) #compressibility correction pv = nrt -> assume adiabiatic p2/p1 = (V1/V2)^specific_heat_ratio (1.401 for air for the operating temp we're at)
 
-        ####################################################################################################
-        ####### Directly Control turbine rotation rate to avoid residual (for now) ######
-        ####################################################################################################
-        omega_turbine_guess = torque
-        omega_turbine = torque
+        inv_TSR = np.array(V_turbcompressed/(omega_turbine_guess*blade_radius))
 
-        # inv_TSR = np.array(V_turb/(omega_turbine_guess*blade_radius))
+        torque_coefficient = 0.2962*inv_TSR**4 - 1.7108*inv_TSR**3 + 2.9842*inv_TSR**2 - 0.4105*inv_TSR + 0.3721
 
-        # torque_coefficient = 0.2962*inv_TSR**4 - 1.7108*inv_TSR**3 + 2.9842*inv_TSR**2 - 0.4105*inv_TSR + 0.3721
-
-        # omega_turbine = np.sqrt(torque/(torque_coefficient*0.5*rho*blade_height*blade_chord*N_blades*blade_radius**3)-V_turb**2)
+        omega_turbine = np.sqrt(torque/(torque_coefficient*0.5*rho*blade_height*blade_chord*N_blades*blade_radius**3)-V_turbcompressed**2)
         
-        inv_TSR = V_turb/(omega_turbine*blade_radius)
+        inv_TSR = V_turbcompressed/(omega_turbine*blade_radius)
 
-        inv_TSRdata = np.array([-10000.0,
+        inv_TSRdata = np.array([-1000000.0,
             -100.0,
             -50.0,
             -20.0,
@@ -487,8 +485,8 @@ class PTO:
             20.0,
             50.0,
             100.0,
-            10000.0])
-            #   y = np.sin(x)
+            1000000.0])
+
         Ca_data = np.array([0.092282521,
             0.092282521,
             0.092282521,
@@ -609,10 +607,10 @@ class PTO:
         power_coefficient = myinterp(inv_TSRdata,Ca_data,inv_TSR)
         # power_coefficient = 0.4093*inv_TSR**3 - 2.5095*inv_TSR**2 + 5.1228*inv_TSR - 0.0864
 
-        power = power_coefficient*0.5*rho*(V_turb**2+(omega_turbine*blade_radius)**2)*blade_height*blade_chord*N_blades*V_turb
+        power = power_coefficient*0.5*rho*(V_turbcompressed**2+(omega_turbine*blade_radius)**2)*blade_height*blade_chord*N_blades*V_turbcompressed
 
-        # residual = omega_turbine_guess-omega_turbine
-        return power #, residual
+        OWCresidual = omega_turbine_guess-omega_turbine
+        return power, OWCresidual
 
     def mechanical_power(self,
         wec: TWEC,
@@ -642,7 +640,7 @@ class PTO:
         """
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-        power = self.self_rectifying_turbine_power(force_td,vel_td)
+        power,OWC_resid = self.self_rectifying_turbine_power(force_td,vel_td,omega_turbine_guess)
         return power
 
     def mechanical_energy(self,
@@ -748,7 +746,7 @@ class PTO:
             q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
             e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         # power
-        power_out = self.self_rectifying_turbine_power(e2_td,q2_td)#q2_td * e2_td
+        power_out, OWC_resid = self.self_rectifying_turbine_power(e2_td,q2_td,omega_turbine_guess)#q2_td * e2_td
         if self.loss is not None:
             power_out = power_out + self.loss(q2_td, e2_td)
         return power_out
