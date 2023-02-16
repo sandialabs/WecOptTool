@@ -123,20 +123,18 @@ class TestSupportFunctions:
     def test_make_mimo_transfer_mat(self, abcd, ndof, nfreq):
         """Test the function :python:`pto._mimo_transfer_mat`"""
         mimo = wot.pto._make_mimo_transfer_mat(abcd, ndof)
-        n = 2*nfreq+1
+        n = 2*nfreq
         expected = np.zeros([2*ndof*n, 2*ndof*n])
         # 0,0
         imp = abcd[0, 0, :]
         r0 = np.real(imp[0])
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
-        i1 = np.imag(imp[1])
         expected[:n, :n] = np.array([
-            [0, 0,    0, 0,    0],
-            [0, r0, -i0, 0,    0],
-            [0, i0,  r0, 0,    0],
-            [0, 0,    0, r1, -i1],
-            [0, 0,    0, i1,  r1]
+            [0, 0,    0, 0],
+            [0, r0, -i0, 0],
+            [0, i0,  r0, 0],
+            [0, 0,    0, r1],
         ])
         # 0,1
         imp = abcd[0, 1, :]
@@ -145,37 +143,32 @@ class TestSupportFunctions:
         r1 = np.real(imp[1])
         i1 = np.imag(imp[1])
         expected[:n, n:] = np.array([
-            [0, 0,    0, 0,    0],
-            [0, r0, -i0, 0,    0],
-            [0, i0,  r0, 0,    0],
-            [0, 0,    0, r1, -i1],
-            [0, 0,    0, i1,  r1]
+            [0, 0,    0, 0],
+            [0, r0, -i0, 0],
+            [0, i0,  r0, 0],
+            [0, 0,    0, r1],
         ])
         # 1,0
         imp = abcd[1, 0, :]
         r0 = np.real(imp[0])
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
-        i1 = np.imag(imp[1])
         expected[n:, :n] = np.array([
-            [0, 0,    0, 0,    0],
-            [0, r0, -i0, 0,    0],
-            [0, i0,  r0, 0,    0],
-            [0, 0,    0, r1, -i1],
-            [0, 0,    0, i1,  r1]
+            [0, 0,    0, 0],
+            [0, r0, -i0, 0],
+            [0, i0,  r0, 0],
+            [0, 0,    0, r1],
         ])
         # 1,1
         imp = abcd[1, 1, :]
         r0 = np.real(imp[0])
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
-        i1 = np.imag(imp[1])
         expected[n:, n:] = np.array([
-            [0, 0,    0, 0,    0],
-            [0, r0, -i0, 0,    0],
-            [0, i0,  r0, 0,    0],
-            [0, 0,    0, r1, -i1],
-            [0, 0,    0, i1,  r1]
+            [0, 0,    0, 0],
+            [0, r0, -i0, 0],
+            [0, i0,  r0, 0],
+            [0, 0,    0, r1],
         ])
         # test
         assert np.allclose(mimo, expected)
@@ -215,10 +208,10 @@ class TestControllers:
         controller = wot.pto.controller_unstructured
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 1.2
-        w = omega[-1]
+        w = omega[-2]
         force = amp * np.cos(w * wec.time)
         force = force.reshape(-1, 1)
-        x_opt = [0, 0, 0, amp, 0]
+        x_opt = [0, amp, 0, 0]
         calculated = pto.force(wec, None, x_opt, None)
         assert np.allclose(force, calculated)
 
@@ -227,12 +220,12 @@ class TestControllers:
         controller = wot.pto.controller_p
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
-        w = omega[-1]
+        w = omega[-2]
         # pos = amp * np.cos(w * wec.time)
         vel = -1 * amp * w * np.sin(w * wec.time)
         force = vel*pid_p
         force = force.reshape(-1, 1)
-        x_wec = [0, 0, 0, amp, 0]
+        x_wec = [0, amp, 0, 0]
         x_opt = [pid_p,]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
@@ -242,12 +235,12 @@ class TestControllers:
         controller = wot.pto.controller_pi
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
-        w = omega[-1]
+        w = omega[-2]
         pos = amp * np.cos(w * wec.time)
         vel = -1 * amp * w * np.sin(w * wec.time)
         force = vel*pid_p + pos*pid_i
         force = force.reshape(-1, 1)
-        x_wec = [0, 0, 0, amp, 0]
+        x_wec = [0, amp, 0, 0]
         x_opt = [pid_p, pid_i]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
@@ -259,13 +252,13 @@ class TestControllers:
         controller = wot.pto.controller_pid
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
-        w = omega[-1]
+        w = omega[-2]
         pos = amp * np.cos(w * wec.time)
         vel = -1 * amp * w * np.sin(w * wec.time)
         acc = -1 * amp * w**2 * np.cos(w * wec.time)
         force = vel*pid_p + pos*pid_i + acc*pid_d
         force = force.reshape(-1, 1)
-        x_wec = [0, 0, 0, amp, 0]
+        x_wec = [0, amp, 0, 0]
         x_opt = [pid_p, pid_i, pid_d]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)

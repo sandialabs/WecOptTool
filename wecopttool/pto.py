@@ -832,8 +832,9 @@ def _make_mimo_transfer_mat(
             Zp = impedance_abcd[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re, im)]
-            blocks = [0.0] + blocks
+            # Exclude the sine component of the 2-point wave
+            blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
+            blocks = [0.0] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
