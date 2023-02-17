@@ -208,20 +208,20 @@ def nfreq_imp():
 
 
 @pytest.fixture(scope="module")
-def impedance(ndof_imp, nfreq_imp):
-    """Synthetic impedance matrix."""
-    impedance = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-    impedance[0, 0, :] = [0+1j, 0+2j]
-    impedance[1, 0, :] = [1+1j, 11+2j]
-    impedance[0, 1, :] = [2+1j, 22+2j]
-    impedance[1, 1, :] = [3+1j, 33+2j]
-    return impedance
+def rao(ndof_imp, nfreq_imp):
+    """Synthetic RAO transfer matrix."""
+    rao = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
+    rao[0, 0, :] = [0+1j, 0+2j]
+    rao[1, 0, :] = [1+1j, 11+2j]
+    rao[0, 1, :] = [2+1j, 22+2j]
+    rao[1, 1, :] = [3+1j, 33+2j]
+    return rao
 
 
 @pytest.fixture(scope="module")
 def mimo(nfreq_imp):
-    """Correct MIMO matrix corresponding to the synthetic impedance
-    matrix.
+    """Correct MIMO matrix corresponding to the synthetic RAO
+    transfer matrix.
     """
     ncomponents = wot.ncomponents(nfreq_imp)
     mimo = np.zeros([ncomponents*2, ncomponents*2])
@@ -499,16 +499,16 @@ class TestDerivativeMat:
 class TestMIMOTransferMat:
     """Test function :python:`mimo_transfer_mat`."""
 
-    def test_mimo_transfer_mat(self, impedance, mimo):
+    def test_mimo_transfer_mat(self, rao, mimo):
         """Test the function produces the correct MIMO transfer matrix.
         """
-        calculated = wot.mimo_transfer_mat(impedance, False)
+        calculated = wot.mimo_transfer_mat(rao, False)
         assert np.all(calculated == mimo)
 
     def test_behavior(self,):
         """Test that the MIMO transfer matrix applied to a state vector
         produces the expected output state vector, based on the
-        synthetic impedance.
+        synthetic RAO transfer function.
         """
         # test use/behavior
         x = np.array([1 + 2j,
@@ -928,23 +928,23 @@ class TestForceFromImpedanceOrTransferFunction:
         return force
 
     def test_from_transfer(
-            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec
+            self, rao, f1, nfreq_imp, ndof_imp, force, x_wec
         ):
         """Test the function :python:`force_from_rao_transfer_function`
         for a small synthetic problem.
         """
-        force_func = wot.force_from_rao_transfer_function(impedance, False)
+        force_func = wot.force_from_rao_transfer_function(rao, False)
         wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
         force_calculated = force_func(wec, x_wec, None, None)
         assert np.allclose(force_calculated, force)
 
     def test_from_impedance(
-            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec, omega
+            self, rao, f1, nfreq_imp, ndof_imp, force, x_wec, omega
         ):
         """Test the function :python:`force_from_impedance` for a small
         synthetic problem.
         """
-        force_func = wot.force_from_impedance(omega[1:], impedance*1j*omega[1:])
+        force_func = wot.force_from_impedance(omega[1:], rao/(1j*omega[1:]))
         wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
         force_calculated = force_func(wec, x_wec, None, None)
         assert np.allclose(force_calculated, force)
