@@ -56,8 +56,16 @@ def pi_controller_pto():
 @pytest.fixture(scope="module")
 def fb():
     """Capytaine FloatingBody object"""
+    try:
+        import wot.geom as geom
+    except ImportError:
+        pytest.skip(
+            'Skipping integration tests due to missing optional geometry ' +
+            'dependencies. Run `pip install wecopttool[geometry]` to run ' +
+            'these tests.'
+            )
     mesh_size_factor = 0.5
-    wb = wot.geom.WaveBot()
+    wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
 
     fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
