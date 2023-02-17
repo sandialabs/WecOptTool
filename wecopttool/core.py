@@ -1868,7 +1868,7 @@ def force_from_impedance(
     --------
     force_from_rao_transfer_function,
     """
-    return force_from_rao_transfer_function(impedance/(1j*omega), False)
+    return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
 def force_from_waves(force_coeff: ArrayLike,
