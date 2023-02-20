@@ -25,7 +25,7 @@ conda install -c conda-forge wecopttool
 pip install wecopttool
 ```
 
-This approach is not recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+This approach is not recommended for Windows users since compiling `capytaine` on Windows requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
 
 **Geometry module and tutorials**
 
@@ -52,4 +52,4 @@ To report bugs, use WecOptTool's [issues page](https://github.com/SNL-WaterPower
 For general discussion, use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
 
 ## Contributing
-If your interested in contributing to WecOptTool see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).
+If you are interested in contributing to WecOptTool, see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).
