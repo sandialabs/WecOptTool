@@ -36,6 +36,12 @@ For the tutorials you will also need to install `jupyter`.
 pip install wecopttool[geometry] jupyter
 ```
 
+or on a Mac (`Zsh` shell)
+
+```bash
+pip install wecopttool[geometry] jupyter
+```
+
 ## Tutorials
 The tutorials can be found in the `examples` directory and are written as [Jupyter Notebooks](https://jupyter.org/).
 To run the tutorials, first download the notebook files and then, from the directory containing the notebooks, run `jupyter notebook`.
