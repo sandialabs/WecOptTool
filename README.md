@@ -39,7 +39,7 @@ pip install wecopttool[geometry] jupyter
 or on a Mac (`Zsh` shell)
 
 ```bash
-pip install wecopttool[geometry] jupyter
+pip install wecopttool\[geometry] jupyter
 ```
 
 ## Tutorials
