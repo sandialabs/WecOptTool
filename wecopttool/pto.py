@@ -570,9 +570,13 @@ class PTO:
         for a given system state. Equals the PTO velocity if no impedance 
         is defined.
         Examples for PTO impedance and corresponding flow variables:
+
         - OWC: (pneumatic admittance)^-1 : flow = volumetric air flow
+
         - Drive-train: rotational impedance : flow = rotational velocity
+
         - Generator: winding impedance: flow = electric current
+        
         - Drive-train and Generator combined: flow = electric current
         
         Parameters
