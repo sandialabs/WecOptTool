@@ -49,19 +49,25 @@ def interp_func(x, y):
   return f
 
 def myinterp(x, y, xs):
-  return interp_func(x,y)(xs)
+    if xs.size==1:
+        return interp_func(x,y)(xs)
+    else:
+        return [interp_func(x,y)(xs[ii]) for ii in range(xs.size)]
 
 def interp2d(interp1d, xdata, ydata, fdata, xpt, ypt):
 
-    # for i in range(ydata.size):
-    #     yinterp[i, :] .= interp1d(xdata, fdata[:, i], xpt)
-    
-    yinterp = [interp1d(xdata,fdata[:, ii],xpt) for ii in range(ydata.size)]
+    yinterp = np.zeros((ydata.size,xpt.size))
+    output = np.zeros((xpt.size,ypt.size)) #Array{R}(undef, nxpt, nypt)
 
-    # for i in range(xpt.size):
-    #     output[i, :] .= interp1d(ydata, yinterp[:, i], ypt)
+    for i in range(ydata.size):
+        yinterp[i, :] = interp1d(xdata, fdata[:, i], xpt)
     
-    output = [interp1d(ydata,yinterp[:, ii],ypt) for ii in range(xpt.size)]
+    # yinterp = [np.array(interp1d(xdata,fdata[:, ii],xpt)) for ii in range(ydata.size)]
+
+    for i in range(xpt.size):
+        output[i, :] = interp1d(ydata, yinterp[:, i], ypt)
+    
+    # output = [interp1d(ydata,yinterp[:, ii],ypt) for ii in range(xpt.size)]
 
     return output
 
@@ -179,7 +185,7 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
     blade_radius = 0.298/2 #m
     blade_height = (1.0-0.7)*blade_radius #m
     A_wec = 2.0 #m2
-    A_turb = 0.1 #m2
+    A_turb = np.pi*blade_radius**2 #m2
     P_ambient = 101325.0 #pa (1 atm)
 
     # power = np.zeros_like(torque)
@@ -654,170 +660,65 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
     power = [myinternalsolve(torque[ii],V_wec[ii]) for ii in range(torque.size)]
     return power
 
-def myforce_on_wec(wec,x_wec,x_opt,
-    waves = None,
-    nsubsteps = 1,
-)
-    
-    if nsubsteps==1:
-        tmat = wec.time_mat
-    else:
-        tmat = wec.time_mat_nsubsteps(nsubsteps)
 
-    # Unstructured Controller Force
-    ndof = 1
-    x_opt = np.reshape(x_opt, (-1, ndof), order='F')
-    force_td = np.dot(tmat, x_opt)
-    assert force_td.shape == (wec.nt*nsubsteps, ndof)
-    force_td = np.expand_dims(np.transpose(force_td), axis=0)
-    assert force_td.shape == (1, ndof, wec.nt*nsubsteps)
-    kinematics = np.eye(ndof)
-    n = wec.nt*nsubsteps
-    kinematics_mat = np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)    # kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
-    kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
-    
-    return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt # for plotting
+    import time
+    import pickle
 
-def mymechanical_average_power(wec,#: TWEC,
-        x_wec,#: ndarray,
-        x_opt,#: ndarray,
-        waves = None,
-        nsubsteps = 1,
-    ) -> float:
-    """Calculate average mechanical power in each PTO DOF for a
-    given system state.
+    nx = 11
+    ny = 21
+    torque = np.linspace(1.0, 100, nx)
+    V_wec = np.linspace(1.0, 5, ny)
+    power = np.zeros((nx,ny))
+    torquegrid = np.zeros((nx,ny))
+    V_wecgrid = np.zeros((nx,ny))
+    start = time.time()
+    for i_V_wec in range(ny):
+        V_wec2 = np.zeros(ny)+V_wec[i_V_wec]
+        power[:,i_V_wec] = self_rectifying_turbine_power_internalsolve(torque,V_wec2)
+        torquegrid[:,i_V_wec] = torque
+        for i_torque in range (nx):
+            V_wecgrid[i_torque,i_V_wec] = V_wec[i_V_wec]
 
-    Parameters
-    ----------
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements
-        shown by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step
-        length.
-    """
+    end = time.time()
+    print("Calculation Time")
+    print(end - start)
 
-    if nsubsteps==1:
-        tmat = wec.time_mat
-    else:
-        tmat = wec.time_mat_nsubsteps(nsubsteps)
+    # Save Precalculated Data
+    pickle.dump((torque, V_wec,power), open('mydata.p', 'wb'))
+    savedtorque, savedV_wec, savedpower = pickle.load(open('mydata.p', 'rb'))
 
-    # Unstructured Controller Force
-    ndof = 1
-    x_opt = np.reshape(x_opt, (-1, ndof), order='F')
-    force_td = np.dot(tmat, x_opt)
-
-    # WEC Velocty
-    pos_wec = wec.vec_to_dofmat(x_wec)
-    vel_wec = np.dot(wec.derivative_mat, pos_wec)
-    vel_wec_td = np.dot(tmat, vel_wec)
-    assert vel_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
-    vel_wec_td = np.expand_dims(np.transpose(vel_wec_td), axis=0)
+    nx = 50
+    ny = 30
+    start = time.time()
+    newtorque = np.linspace(1.0, 100, nx)
+    newVwec = np.linspace(1.0, 5, ny)
+    testout = interp2d(myinterp, torque, V_wec, power, newtorque, newVwec)
+    end = time.time()
+    print("Interp Time")
+    print(end - start)
 
 
-    # if callable(kinematics):
-    #     def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
-    #         pos_wec = wec.vec_to_dofmat(x_wec)
-    #         # tmat = self._tmat(wec, nsubsteps)
-    #         pos_wec_td = np.dot(tmat, pos_wec)
-    #         return kinematics(pos_wec_td)
-    # else:
-    #     def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
-    #         n = wec.nt*nsubsteps
-    #         return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
-    kinematics = np.eye(ndof)
-    n = wec.nt*nsubsteps
-    kinematics_mat = np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)#kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps)
-    vel_td = np.transpose(np.sum(kinematics_mat*vel_wec_td, axis=1))
+    # Make new grid points for plotting
+    torquegrid2 = np.zeros((nx,ny))
+    V_wecgrid2 = np.zeros((nx,ny))
+    for i_V_wec in range(ny):
+        torquegrid2[:,i_V_wec] = newtorque
+        for i_torque in range (nx):
+            V_wecgrid2[i_torque,i_V_wec] = newVwec[i_V_wec]
 
-    # Turbine Power Considering Wec Avalaible Power from control and veloctiy
-    power_td = self_rectifying_turbine_power_internalsolve(force_td,vel_td)
-    energy = np.sum(power_td) * wec.dt/nsubsteps
-    return energy / wec.tf
 
-wb = wot.geom.WaveBot()  # use standard dimensions
-mesh_size_factor = 0.5 # 1.0 for default, smaller to refine mesh
-mesh = wb.mesh(mesh_size_factor)
-fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
-fb.add_translation_dof(name="Heave")
-ndof = fb.nb_dofs
-
-stiffness = wot.hydrostatics.stiffness_matrix(fb).values
-mass = wot.hydrostatics.inertia_matrix(fb).values
-
-# fb.show_matplotlib()
-# _ = wb.plot_cross_section(show=True)  # specific to WaveBot
-
-f1 = 0.05
-nfreq = 50
-freq = wot.frequency(f1, nfreq, False) # False -> no zero frequency
-
-bem_data = wot.run_bem(fb, freq)
-
-name = ["PTO_Heave",]
-# kinematics = np.eye(ndof)
-# controller = None
-# loss = None
-# pto_impedance = None
-# pto = wot.pto.PTO(ndof, kinematics, controller, pto_impedance, loss, name)
-
-# PTO dynamics forcing function
-f_add = {'PTO': myforce_on_wec}
-
-# Constraint
-f_max = 2000.0
-nsubsteps = 4
-
-def const_f_pto(wec, x_wec, x_opt, waves): # Format for scipy.optimize.minimize
-    f = myforce_on_wec(wec, x_wec, x_opt, waves, nsubsteps)
-    return f_max - np.abs(f.flatten())
-
-ineq_cons = {'type': 'ineq',
-             'fun': const_f_pto,
-             }
-constraints = [ineq_cons]
-
-wec = wot.WEC.from_bem(
-    bem_data,
-    inertia_matrix=mass,
-    hydrostatic_stiffness=stiffness,
-    constraints=constraints,
-    friction=None,
-    f_add=f_add,
-)
-
-amplitude = 0.0625  
-wavefreq = 0.3
-phase = 30
-wavedir = 0
-waves = wot.waves.regular_wave(f1, nfreq, wavefreq, amplitude, phase, wavedir)
-
-# obj_fun = pto.mechanical_average_power
-obj_fun = mymechanical_average_power
-nstate_opt = 2*nfreq+1
-
-options = {'maxiter': 400, 'ftol': 1e-6}#, 'gtol': 1e-8}
-scale_x_wec = 1e1
-scale_x_opt = 1e-3
-scale_obj = 1e-2
-x_opt_0 = np.zeros(nstate_opt)+100.0
-results = wec.solve(
-    waves, 
-    obj_fun, 
-    nstate_opt,
-    optim_options=options,
-    x_opt_0=x_opt_0, 
-    scale_x_wec=scale_x_wec,
-    scale_x_opt=scale_x_opt,
-    scale_obj=scale_obj,
-    )
-
-opt_mechanical_average_power = results.fun
-print(f'Optimal average mechanical power: {opt_mechanical_average_power} W')
+    #   Ys = integ(x, y, xs)
+    # P.plot(torque, power, label='Torque', color='blue')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(torquegrid,V_wecgrid,power,marker='.',label='Power')
+    ax.scatter(torquegrid,V_wecgrid,savedpower,marker='.',label='PowerSaved')
+    ax.scatter(torquegrid2,V_wecgrid2,testout,marker='.',label='PowerInterp')
+    ax.set_xlabel('Torque')
+    ax.set_ylabel('Velocity')
+    ax.set_zlabel('Power')
+    plt.legend()
+    plt.show()
+    # print(len(power))

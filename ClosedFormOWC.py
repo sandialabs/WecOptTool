@@ -49,19 +49,25 @@ def interp_func(x, y):
   return f
 
 def myinterp(x, y, xs):
-  return interp_func(x,y)(xs)
+    if xs.size==1:
+        return interp_func(x,y)(xs)
+    else:
+        return [interp_func(x,y)(xs[ii]) for ii in range(xs.size)]
 
 def interp2d(interp1d, xdata, ydata, fdata, xpt, ypt):
 
-    # for i in range(ydata.size):
-    #     yinterp[i, :] .= interp1d(xdata, fdata[:, i], xpt)
-    
-    yinterp = [interp1d(xdata,fdata[:, ii],xpt) for ii in range(ydata.size)]
+    yinterp = np.zeros((ydata.size,xpt.size))
+    output = np.zeros((xpt.size,ypt.size)) #Array{R}(undef, nxpt, nypt)
 
-    # for i in range(xpt.size):
-    #     output[i, :] .= interp1d(ydata, yinterp[:, i], ypt)
+    for i in range(ydata.size):
+        yinterp[i, :] = interp1d(xdata, fdata[:, i], xpt)
     
-    output = [interp1d(ydata,yinterp[:, ii],ypt) for ii in range(xpt.size)]
+    # yinterp = [np.array(interp1d(xdata,fdata[:, ii],xpt)) for ii in range(ydata.size)]
+
+    for i in range(xpt.size):
+        output[i, :] = interp1d(ydata, yinterp[:, i], ypt)
+    
+    # output = [interp1d(ydata,yinterp[:, ii],ypt) for ii in range(xpt.size)]
 
     return output
 
@@ -179,7 +185,7 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
     blade_radius = 0.298/2 #m
     blade_height = (1.0-0.7)*blade_radius #m
     A_wec = 2.0 #m2
-    A_turb = 0.1 #m2
+    A_turb = np.pi*blade_radius**2 #m2
     P_ambient = 101325.0 #pa (1 atm)
 
     # power = np.zeros_like(torque)
@@ -189,11 +195,11 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
         def OWC_turbine0(omega_turbine_guess):
             V_turb = np.abs(A_wec*V_wec_ii/A_turb) #turbine always sees velocity as positive
             power1 = np.abs(torque_ii*omega_turbine_guess)
-            V_turbcompressed = V_turb/((P_ambient+power1/(A_turb*V_turb))/P_ambient)**(1/1.401) #compressibility correction pv = nrt -> assume adiabiatic p2/p1 = (V1/V2)^specific_heat_ratio (1.401 for air for the operating temp we're at)
+            V_turbcompressed = V_turb#/((P_ambient+power1/(A_turb*V_turb))/P_ambient)**(1/1.401) #compressibility correction pv = nrt -> assume adiabiatic p2/p1 = (V1/V2)^specific_heat_ratio (1.401 for air for the operating temp we're at)
             
-            inv_TSR = V_turbcompressed/(omega_turbine_guess*blade_radius)
-            if inv_TSR > 1000000:
-                inv_TSR = 1000000
+            inv_TSR_guess = V_turbcompressed/(omega_turbine_guess*blade_radius)
+            if inv_TSR_guess > 1000000.0:
+                inv_TSR_guess = np.array(1000000.0)
 
             inv_TSRdata_Ct = np.array([-1000000,
                 -100,
@@ -375,7 +381,7 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
                 2.771242526,
                 2.771242526])
             
-            torque_coefficient = myinterp(inv_TSRdata_Ct,Ct_data,inv_TSR)
+            torque_coefficient = myinterp(inv_TSRdata_Ct,Ct_data,inv_TSR_guess)
             # torque_coefficient = 0.2962*inv_TSR**4 - 1.7108*inv_TSR**3 + 2.9842*inv_TSR**2 - 0.4105*inv_TSR + 0.3721
             omega_squared = np.abs(torque_ii)/(torque_coefficient*0.5*rho*blade_height*blade_chord*N_blades*blade_radius**3)-V_turbcompressed**2
             if omega_squared<0.0:
@@ -618,23 +624,35 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
                 3.408526823,
                 3.408526823])
             
-            if inv_TSR > 1000000:
-                inv_TSR = 1000000
+            if inv_TSR > 1000000.0:
+                inv_TSR = np.array(1000000.0)
         
-            power_coefficient = myinterp(inv_TSRdata_Ca,Ca_data,inv_TSR)
-            # power_coefficient = 0.4093*inv_TSR**3 - 2.5095*inv_TSR**2 + 5.1228*inv_TSR - 0.0864
+            Ca_used = myinterp(inv_TSRdata_Ca,Ca_data,inv_TSR)
+            # Ca_used = 0.4093*inv_TSR**3 - 2.5095*inv_TSR**2 + 5.1228*inv_TSR - 0.0864
+            flowrate_turb = V_turbcompressed*A_turb
+            flowrate_wec = A_wec*V_wec_ii
 
-            power2 = power_coefficient*0.5*rho*(V_turbcompressed**2+(omega_turbine*blade_radius)**2)*blade_height*blade_chord*N_blades*V_turbcompressed
+            deltaP_turb = Ca_used/flowrate_turb*0.5*rho*blade_height*blade_chord*N_blades*V_turbcompressed*(V_turbcompressed**2+(omega_turbine*blade_radius)**2)
+            deltaP_wec = deltaP_turb*flowrate_turb/flowrate_wec
+            force_wec = deltaP_wec*A_wec
+
+            V_turbcompressed2 = V_turb#/((P_ambient+deltaP_turb)/P_ambient)**(1/1.401) #compressibility correction pv = nrt -> assume adiabiatic p2/p1 = (V1/V2)^specific_heat_ratio (1.401 for air for the operating temp we're at)
+            # print(V_turbcompressed-V_turbcompressed2)
+            power2 = Ca_used*0.5*rho*(V_turbcompressed**2+(omega_turbine*blade_radius)**2)*blade_height*blade_chord*N_blades*V_turbcompressed
 
             OWCresidual = omega_turbine_guess-omega_turbine
-            return OWCresidual, power2*np.sign(torque_ii)
+            return OWCresidual, power2*np.sign(torque_ii), force_wec
+
+        def OWC_turbine_deltaP(omega_turbine_guess):
+            OWCresidual, power2, force_wec = OWC_turbine0(omega_turbine_guess)
+            return force_wec
 
         def OWC_turbine2(omega_turbine_guess):
-            OWCresidual, power2= OWC_turbine0(omega_turbine_guess)
+            OWCresidual, power2, force_wec = OWC_turbine0(omega_turbine_guess)
             return power2
 
         def OWC_turbine(omega_turbine_guess):
-            OWCresidual, power2 = OWC_turbine0(omega_turbine_guess)
+            OWCresidual, power2, force_wec = OWC_turbine0(omega_turbine_guess)
             return OWCresidual
 
         omega_star_ii,error_num = brent(OWC_turbine,0.1,1e4) #rad/s, which is approx 1.0-100,000.0 RPM
@@ -648,176 +666,72 @@ def self_rectifying_turbine_power_internalsolve(torque,V_wec): #m/s omega_turbin
             print(V_wec_ii)
             power_ii = 0.0
         else:
-            power_ii = OWC_turbine2(omega_star_ii)
+            # power_ii = OWC_turbine2(omega_star_ii)
+            power_ii = OWC_turbine_deltaP(omega_star_ii)
         
         return power_ii
     power = [myinternalsolve(torque[ii],V_wec[ii]) for ii in range(torque.size)]
     return power
 
-def myforce_on_wec(wec,x_wec,x_opt,
-    waves = None,
-    nsubsteps = 1,
-)
-    
-    if nsubsteps==1:
-        tmat = wec.time_mat
-    else:
-        tmat = wec.time_mat_nsubsteps(nsubsteps)
 
-    # Unstructured Controller Force
-    ndof = 1
-    x_opt = np.reshape(x_opt, (-1, ndof), order='F')
-    force_td = np.dot(tmat, x_opt)
-    assert force_td.shape == (wec.nt*nsubsteps, ndof)
-    force_td = np.expand_dims(np.transpose(force_td), axis=0)
-    assert force_td.shape == (1, ndof, wec.nt*nsubsteps)
-    kinematics = np.eye(ndof)
-    n = wec.nt*nsubsteps
-    kinematics_mat = np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)    # kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
-    kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
-    
-    return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt # for plotting
+    import time
+    import pickle
 
-def mymechanical_average_power(wec,#: TWEC,
-        x_wec,#: ndarray,
-        x_opt,#: ndarray,
-        waves = None,
-        nsubsteps = 1,
-    ) -> float:
-    """Calculate average mechanical power in each PTO DOF for a
-    given system state.
+    nx = 21
+    ny = 22
+    torque = np.linspace(1.0, 100, nx)
+    V_wec = np.linspace(1.0, 10, ny)
+    power = np.zeros((nx,ny))
+    torquegrid = np.zeros((nx,ny))
+    V_wecgrid = np.zeros((nx,ny))
+    start = time.time()
+    for i_V_wec in range(ny):
+        V_wec2 = np.zeros(ny)+V_wec[i_V_wec]
+        power[:,i_V_wec] = self_rectifying_turbine_power_internalsolve(torque,V_wec2)
+        torquegrid[:,i_V_wec] = torque
+        for i_torque in range (nx):
+            V_wecgrid[i_torque,i_V_wec] = V_wec[i_V_wec]
 
-    Parameters
-    ----------
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements
-        shown by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step
-        length.
-    """
+    end = time.time()
+    print("Calculation Time")
+    print(end - start)
 
-    if nsubsteps==1:
-        tmat = wec.time_mat
-    else:
-        tmat = wec.time_mat_nsubsteps(nsubsteps)
+    # Save Precalculated Data
+    pickle.dump((torque, V_wec,power), open('power_coarse.p', 'wb'))
+    savedtorque, savedV_wec, savedpower = pickle.load(open('power_coarse.p', 'rb'))
 
-    # Unstructured Controller Force
-    ndof = 1
-    x_opt = np.reshape(x_opt, (-1, ndof), order='F')
-    force_td = np.dot(tmat, x_opt)
-
-    # WEC Velocty
-    pos_wec = wec.vec_to_dofmat(x_wec)
-    vel_wec = np.dot(wec.derivative_mat, pos_wec)
-    vel_wec_td = np.dot(tmat, vel_wec)
-    assert vel_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
-    vel_wec_td = np.expand_dims(np.transpose(vel_wec_td), axis=0)
+    nx = 30
+    ny = 31
+    start = time.time()
+    newtorque = np.linspace(1.0, 100, nx)
+    newVwec = np.linspace(1.0, 10, ny)
+    testout = interp2d(myinterp, torque, V_wec, power, newtorque, newVwec)
+    end = time.time()
+    print("Interp Time")
+    print(end - start)
 
 
-    # if callable(kinematics):
-    #     def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
-    #         pos_wec = wec.vec_to_dofmat(x_wec)
-    #         # tmat = self._tmat(wec, nsubsteps)
-    #         pos_wec_td = np.dot(tmat, pos_wec)
-    #         return kinematics(pos_wec_td)
-    # else:
-    #     def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
-    #         n = wec.nt*nsubsteps
-    #         return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
-    kinematics = np.eye(ndof)
-    n = wec.nt*nsubsteps
-    kinematics_mat = np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)#kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps)
-    vel_td = np.transpose(np.sum(kinematics_mat*vel_wec_td, axis=1))
+    # Make new grid points for plotting
+    torquegrid2 = np.zeros((nx,ny))
+    V_wecgrid2 = np.zeros((nx,ny))
+    for i_V_wec in range(ny):
+        torquegrid2[:,i_V_wec] = newtorque
+        for i_torque in range (nx):
+            V_wecgrid2[i_torque,i_V_wec] = newVwec[i_V_wec]
 
-    # Turbine Power Considering Wec Avalaible Power from control and veloctiy
-    power_td = self_rectifying_turbine_power_internalsolve(force_td,vel_td)
-    energy = np.sum(power_td) * wec.dt/nsubsteps
-    return energy / wec.tf
 
-wb = wot.geom.WaveBot()  # use standard dimensions
-mesh_size_factor = 0.5 # 1.0 for default, smaller to refine mesh
-mesh = wb.mesh(mesh_size_factor)
-fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
-fb.add_translation_dof(name="Heave")
-ndof = fb.nb_dofs
-
-stiffness = wot.hydrostatics.stiffness_matrix(fb).values
-mass = wot.hydrostatics.inertia_matrix(fb).values
-
-# fb.show_matplotlib()
-# _ = wb.plot_cross_section(show=True)  # specific to WaveBot
-
-f1 = 0.05
-nfreq = 50
-freq = wot.frequency(f1, nfreq, False) # False -> no zero frequency
-
-bem_data = wot.run_bem(fb, freq)
-
-name = ["PTO_Heave",]
-# kinematics = np.eye(ndof)
-# controller = None
-# loss = None
-# pto_impedance = None
-# pto = wot.pto.PTO(ndof, kinematics, controller, pto_impedance, loss, name)
-
-# PTO dynamics forcing function
-f_add = {'PTO': myforce_on_wec}
-
-# Constraint
-f_max = 2000.0
-nsubsteps = 4
-
-def const_f_pto(wec, x_wec, x_opt, waves): # Format for scipy.optimize.minimize
-    f = myforce_on_wec(wec, x_wec, x_opt, waves, nsubsteps)
-    return f_max - np.abs(f.flatten())
-
-ineq_cons = {'type': 'ineq',
-             'fun': const_f_pto,
-             }
-constraints = [ineq_cons]
-
-wec = wot.WEC.from_bem(
-    bem_data,
-    inertia_matrix=mass,
-    hydrostatic_stiffness=stiffness,
-    constraints=constraints,
-    friction=None,
-    f_add=f_add,
-)
-
-amplitude = 0.0625  
-wavefreq = 0.3
-phase = 30
-wavedir = 0
-waves = wot.waves.regular_wave(f1, nfreq, wavefreq, amplitude, phase, wavedir)
-
-# obj_fun = pto.mechanical_average_power
-obj_fun = mymechanical_average_power
-nstate_opt = 2*nfreq+1
-
-options = {'maxiter': 400, 'ftol': 1e-6}#, 'gtol': 1e-8}
-scale_x_wec = 1e1
-scale_x_opt = 1e-3
-scale_obj = 1e-2
-x_opt_0 = np.zeros(nstate_opt)+100.0
-results = wec.solve(
-    waves, 
-    obj_fun, 
-    nstate_opt,
-    optim_options=options,
-    x_opt_0=x_opt_0, 
-    scale_x_wec=scale_x_wec,
-    scale_x_opt=scale_x_opt,
-    scale_obj=scale_obj,
-    )
-
-opt_mechanical_average_power = results.fun
-print(f'Optimal average mechanical power: {opt_mechanical_average_power} W')
+    #   Ys = integ(x, y, xs)
+    # P.plot(torque, power, label='Torque', color='blue')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(torquegrid,V_wecgrid,power,marker='.',label='Force')
+    # ax.scatter(torquegrid,V_wecgrid,savedForce,marker='.',label='ForceSaved')
+    ax.scatter(torquegrid2,V_wecgrid2,testout,marker='.',label='ForceInterp')
+    ax.set_xlabel('Torque')
+    ax.set_ylabel('Velocity')
+    ax.set_zlabel('Force')
+    plt.legend()
+    plt.show()
+    # print(len(power))
