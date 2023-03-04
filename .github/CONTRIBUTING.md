@@ -66,15 +66,15 @@ The homepage source code is in `./docs/source/index.rst`.
 To build the documentation locally (not required but good check)
 
 ```bash
-cd docs
-make html
+python3 docs/build_docs.py
 ```
 
 The built documentation will be in `./docs/_build` and the homepage is `./docs/_build/index.html`.
-To delete do `make clean`.
+To delete, do `python3 docs/clean_docs.py`.
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
 When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
+We recommend installing pandoc using its Anaconda distribution: `conda install -c conda-forge pandoc`.
 
 ### Editing the tutorials
 The tutorials are used as part of the Documentation.
