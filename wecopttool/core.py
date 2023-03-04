@@ -2379,7 +2379,7 @@ def frequency_parameters(
     This function can be used as a check for inputs to other functions
     since it raises an error if the frequency vector does not have
     the correct format :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`
-    (or :python:`freqs = [f1, 2*f1, ..., nfreq*f1] if
+    (or :python:`freqs = [f1, 2*f1, ..., nfreq*f1]` if
     :python:`zero_freq = False`).
 
     Parameters
