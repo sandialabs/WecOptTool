@@ -24,7 +24,7 @@ class WaveBot:
     See, e.g.,
 
         - https://doi.org/10.3390/en10040472
-        - https://www.osti.gov/biblio/1330189/
+        - https://tethys-engineering.pnnl.gov/publications/advanced-wec-dynamics-controls-fy16-testing-report
 
     """
 
