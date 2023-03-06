@@ -12,17 +12,30 @@ example_dir = os.path.join(source_dir, '_examples')
 api_dir = os.path.join(source_dir, 'api_docs')
 
 
-def build():
+def linkcheck():
     app = Sphinx(source_dir,
-                    conf_dir,
-                    build_dir,
-                    doctree_dir,
-                    'linkcheck',
-                    warningiserror=True)
-    app.add_builder('html')
-    app.build(force_all=True)
+                 conf_dir,
+                 build_dir,
+                 doctree_dir,
+                 'linkcheck',
+                 warningiserror=True,
+                 freshenv=True)
+    app.build()
+
+
+def html():
+    app = Sphinx(source_dir,
+                 conf_dir,
+                 build_dir,
+                 doctree_dir,
+                 'html',
+                 warningiserror=True,
+                 freshenv=True)
+    
+    app.build()
 
 
 if __name__ == '__main__':
     source.make_theory_animations
-    build()
+    linkcheck()
+    html()
