@@ -20,6 +20,7 @@ def linkcheck():
                     'linkcheck',
                     warningiserror=True)
     app.build()
+    app.disconnect()
 
 
 def html():
@@ -30,6 +31,7 @@ def html():
                 'html',
                 warningiserror=True)
     app.build()
+    app.disconnect()
 
 
 if __name__ == '__main__':
