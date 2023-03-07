@@ -52,7 +52,10 @@ html_static_path = ['_static']
 def setup(app):
     app.add_css_file('css/custom.css')
 
-suppress_warnings = ["autosectionlabel.*"] # nbsphinx and austosectionlabel do not play well together
+suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do not play well together
+                     'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these
+                     'app.add_directive',
+                     'app.add_role',]
 
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
