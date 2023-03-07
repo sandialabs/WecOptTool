@@ -18,8 +18,7 @@ def linkcheck():
                  build_dir,
                  doctree_dir,
                  'linkcheck',
-                 warningiserror=True,
-                 freshenv=True)
+                 warningiserror=True)
     app.build()
 
 
@@ -29,8 +28,7 @@ def html():
                  build_dir,
                  doctree_dir,
                  'html',
-                 warningiserror=True,
-                 freshenv=True)
+                 warningiserror=True)
     
     app.build()
 
