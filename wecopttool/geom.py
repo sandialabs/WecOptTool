@@ -24,7 +24,7 @@ class WaveBot:
     See, e.g.,
 
         - https://doi.org/10.3390/en10040472
-        - https://www.osti.gov/biblio/1330189/
+        - https://doi.org/10.2172/1330189
 
     """
 

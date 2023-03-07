@@ -59,7 +59,7 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
 
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
-    'https://www.osti.gov/biblio/1330189/',
+    'https://doi.org/10.2172/1330189',
 ]
 
 # -- References (BibTex) -----------------------------------------------------
