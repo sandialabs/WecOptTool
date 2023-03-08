@@ -12,7 +12,7 @@ Using `conda` this looks like:
 ```bash
 conda create -n wecopttool python=3.10
 conda activate wecopttool
-conda install -c conda-forge capytaine==1.4.2 wavespectra
+conda install -c conda-forge capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
 pip install -e .[dev]
