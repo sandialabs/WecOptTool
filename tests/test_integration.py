@@ -56,8 +56,16 @@ def pi_controller_pto():
 @pytest.fixture(scope="module")
 def fb():
     """Capytaine FloatingBody object"""
+    try:
+        import wot.geom as geom
+    except ImportError:
+        pytest.skip(
+            'Skipping integration tests due to missing optional geometry ' +
+            'dependencies. Run `pip install wecopttool[geometry]` to run ' +
+            'these tests.'
+            )
     mesh_size_factor = 0.5
-    wb = wot.geom.WaveBot()
+    wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
 
     fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
@@ -158,7 +166,7 @@ def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
 
     _ = wec_from_bem.solve(regular_wave,
                            obj_fun=pto.average_power,
-                           nstate_opt=2*nfreq+1,
+                           nstate_opt=2*nfreq,
                            scale_x_wec=1.0,
                            scale_x_opt=0.01,
                            scale_obj=1e-1,
@@ -321,7 +329,7 @@ class TestTheoreticalPowerLimits:
 
         res = wec.solve(waves=regular_wave,
                         obj_fun=pto.average_power,
-                        nstate_opt=2*nfreq+1,
+                        nstate_opt=2*nfreq,
                         x_wec_0=1e-1*np.ones(wec.nstate_wec),
                         scale_x_wec=1e2,
                         scale_x_opt=1e-2,
