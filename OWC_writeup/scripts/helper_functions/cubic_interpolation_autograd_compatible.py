@@ -42,6 +42,20 @@ def interp_func(x, y):
 def interp(x, y, xs):
   return interp_func(x,y)(xs)
 
+def interp2d(interp1d, xdata, ydata, fdata, xpt, ypt):
+
+  # for i in range(ydata.size):
+  #     yinterp[i, :] .= interp1d(xdata, fdata[:, i], xpt)
+  
+  yinterp = [interp1d(xdata,fdata[:, ii],xpt) for ii in range(ydata.size)]
+
+  # for i in range(xpt.size):
+  #     output[i, :] .= interp1d(ydata, yinterp[:, i], ypt)
+  
+  output = [interp1d(ydata,yinterp[:, ii],ypt) for ii in range(xpt.size)]
+
+  return output
+
 # def integ_func(x, y):
 #   "Returns interpolating function"
 #   if len(y)>1:
