@@ -1,5 +1,5 @@
 import os
-from shutil import rmtree
+import re
 import source.make_theory_animations
 from sphinx.application import Sphinx
 
@@ -7,15 +7,15 @@ docs_dir = os.path.dirname(os.path.abspath(__file__))
 source_dir = os.path.join(docs_dir, 'source')
 conf_dir = source_dir
 build_dir = os.path.join(docs_dir, '_build')
-doctree_dir = os.path.join(build_dir, '.doctrees')
-example_dir = os.path.join(source_dir, '_examples')
-api_dir = os.path.join(source_dir, 'api_docs')
+linkcheck_dir = os.path.join(build_dir, 'linkcheck')
+html_dir = os.path.join(build_dir, 'html')
+doctree_dir = os.path.join(build_dir, 'doctrees')
 
 
 def linkcheck():
     app = Sphinx(source_dir,
                  conf_dir,
-                 build_dir,
+                 linkcheck_dir,
                  doctree_dir,
                  'linkcheck',
                  warningiserror=True)
@@ -25,7 +25,7 @@ def linkcheck():
 def html():
     app = Sphinx(source_dir,
                  conf_dir,
-                 build_dir,
+                 html_dir,
                  doctree_dir,
                  'html',
                  warningiserror=True)
@@ -35,5 +35,5 @@ def html():
 
 if __name__ == '__main__':
     source.make_theory_animations
-    linkcheck()
+    # linkcheck()
     html()
