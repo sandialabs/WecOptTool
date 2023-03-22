@@ -32,8 +32,19 @@ def html():
     
     app.build()
 
+def cleanup():
+    index_file = os.path.join(html_dir, 'index.html')
+    with open(index_file, 'r', encoding='utf-8') as f:
+        data = f.read()
+
+    with open(index_file, 'w', encoding='utf-8') as f:
+        data2 = re.sub(
+            '\<section id="package"\>.*?\</section\>',
+            '', data, flags=re.DOTALL)
+        f.write(data2)
 
 if __name__ == '__main__':
     source.make_theory_animations
-    # linkcheck()
+    linkcheck()
     html()
+    cleanup()
