@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>wecopttool.degrees_to_radians &mdash; WecOptTool 2.2.3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="wecopttool.derivative_mat" href="wecopttool.derivative_mat.html" />
+    <link rel="prev" title="wecopttool.decompose_state" href="wecopttool.decompose_state.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            WecOptTool
+          </a>
+              <div class="version">
+                2.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">wecopttool.degrees_to_radians</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wecopttool.degrees_to_radians"><code class="docutils literal notranslate"><span class="pre">degrees_to_radians()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative_mat.html">wecopttool.derivative_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.dofmat_to_vec.html">wecopttool.dofmat_to_vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_impedance.html">wecopttool.force_from_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html">wecopttool.force_from_rao_transfer_function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_waves.html">wecopttool.force_from_waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency.html">wecopttool.frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.inertia.html">wecopttool.inertia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.linear_hydrodynamics.html">wecopttool.linear_hydrodynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.metadata.html">wecopttool.metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.mimo_transfer_mat.html">wecopttool.mimo_transfer_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.ncomponents.html">wecopttool.ncomponents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.read_netcdf.html">wecopttool.read_netcdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.real_to_complex.html">wecopttool.real_to_complex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.run_bem.html">wecopttool.run_bem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.scale_dofs.html">wecopttool.scale_dofs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.set_loglevel.html">wecopttool.set_loglevel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.standard_forces.html">wecopttool.standard_forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.subset_close.html">wecopttool.subset_close</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.td_to_fd.html">wecopttool.td_to_fd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time.html">wecopttool.time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time_mat.html">wecopttool.time_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time_results.html">wecopttool.time_results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.vec_to_dofmat.html">wecopttool.vec_to_dofmat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.wave_excitation.html">wecopttool.wave_excitation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.write_netcdf.html">wecopttool.write_netcdf</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="wecopttool.html">API Documentation</a></li>
+      <li class="breadcrumb-item active">wecopttool.degrees_to_radians</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="wecopttool-degrees-to-radians">
+<h1>wecopttool.degrees_to_radians<a class="headerlink" href="#wecopttool-degrees-to-radians" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="wecopttool.degrees_to_radians">
+<span class="sig-name descname"><span class="pre">degrees_to_radians</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degrees</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#degrees_to_radians"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.degrees_to_radians" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a 1D array of angles in degrees to radians in the range
+<span class="math notranslate nohighlight">\([-π, π)\)</span> and optionally sort them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degrees</strong> (<em>FloatOrArray</em>) – 1D array of angles in degrees.</p></li>
+<li><p><strong>sort</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em> | </em><em>None</em>) – Whether to sort the angles from smallest to largest in
+<span class="math notranslate nohighlight">\([-π, π)\)</span>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)">float</a> | <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>ndarray</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="wecopttool.decompose_state.html" class="btn btn-neutral float-left" title="wecopttool.decompose_state" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.derivative_mat.html" class="btn btn-neutral float-right" title="wecopttool.derivative_mat" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

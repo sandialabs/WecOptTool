@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theory &amp; Practice &mdash; WecOptTool 2.0.0 documentation</title>
+  <title>Theory &amp; Practice &mdash; WecOptTool 2.2.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -13,9 +13,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -33,14 +30,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> WecOptTool
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WecOptTool
           </a>
               <div class="version">
-                2.0
+                2.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -65,7 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_docs.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_docs/wecopttool.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -81,8 +82,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Theory &amp; Practice</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Theory &amp; Practice</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -91,31 +92,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<section id="theory-practice">
+  <section id="theory-practice">
 <h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Permalink to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -196,15 +173,13 @@ Recall that <span class="math notranslate nohighlight">\(x = [x_{w}, x_{u}]\)</s
 Consider, for example, a general case without a controller structure, in which <span class="math notranslate nohighlight">\(x_{u}\)</span> would relate to PTO forces.
 For a wave tank scale device, one might expect velocities of <span class="math notranslate nohighlight">\(\mathcal{O}(1e{-1})\)</span>, but the forces could be <span class="math notranslate nohighlight">\(\mathcal{O}(1e3)\)</span>.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
-Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of <span class="math notranslate nohighlight">\(x\)</span> as well as the objective function (see <a class="reference internal" href="api_docs/wecopttool.core.WEC.solve.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.solve()</span></code></a>).
-Additionally, you may set <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">logging,</span> <span class="pre">logging.basicConfig(level=logging.INFO)</span></code> to output the maximum values of <cite>x</cite> and the objective function during the solution process.
-Depending on your problem, it may also be helpful to use the <code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.initial_x_wec_guess()</span></code> method and/or the <code class="code docutils literal notranslate"><span class="pre">unconstrained_first</span></code> for <a class="reference internal" href="api_docs/wecopttool.core.WEC.solve.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.solve()</span></code></a>.</p>
+Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.</p>
 </section>
 <section id="constraints">
 <h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading"></a></h3>
-<p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.</p>
-<p>An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
+<p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
+This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
+An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec" title="wecopttool.pto.PTO.force_on_wec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PTO.force_on_wec()</span></code></a>).</p>
 </section>
@@ -213,7 +188,7 @@ In WecOptTool’s example PTO module, this is controlled by the <code class="cod
 <p>As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
-In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="api_docs/wecopttool.core.WEC.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
+In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="api_docs/wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
 </section>
 <section id="pto-kinematics">
 <h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Permalink to this heading"></a></h3>
@@ -250,7 +225,7 @@ f_w = K^T f_p \\\end{split}\]</div>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

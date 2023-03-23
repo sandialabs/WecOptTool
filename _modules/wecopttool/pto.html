@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.pto &mdash; WecOptTool 2.0.0 documentation</title>
+  <title>wecopttool.pto &mdash; WecOptTool 2.2.3 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -12,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -28,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> WecOptTool
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            WecOptTool
           </a>
               <div class="version">
-                2.0
+                2.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -48,7 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api_docs.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_docs/wecopttool.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -64,9 +65,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>wecopttool.pto</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../wecopttool.html">wecopttool</a></li>
+      <li class="breadcrumb-item active">wecopttool.pto</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -95,6 +97,15 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;PTO&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;controller_unstructured&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;controller_pid&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;controller_pi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;controller_p&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -113,12 +124,12 @@
 
 <span class="c1"># type aliases</span>
 <span class="n">TPTO</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TPTO&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;PTO&quot;</span><span class="p">)</span>
-<span class="n">TEFF</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">FloatOrArray</span><span class="p">,</span> <span class="n">FloatOrArray</span><span class="p">],</span> <span class="n">FloatOrArray</span><span class="p">]</span>
+<span class="n">TLOSS</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">FloatOrArray</span><span class="p">,</span> <span class="n">FloatOrArray</span><span class="p">],</span> <span class="n">FloatOrArray</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="PTO"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.html#wecopttool.pto.PTO">[docs]</a><span class="k">class</span> <span class="nc">PTO</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A power take-off (PTO) object to be used in conjunction with a</span>
-<span class="sd">    :py:class:`wecopttool.core.WEC` object.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A power take-off (PTO) object to be used in conjunction with a</span>
+<span class="sd">    :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PTO.__init__"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.html#wecopttool.pto.PTO.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -126,20 +137,22 @@
         <span class="n">kinematics</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TStateFunction</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span>
         <span class="n">controller</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TStateFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">impedance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">loss</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TEFF</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">loss</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TLOSS</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a PTO object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a PTO object.</span>
 
 <span class="sd">        The :py:class:`wecopttool.pto.PTO` class describes the</span>
-<span class="sd">        kinematics, control logic, impedance and/or non-=linear loss map</span>
-<span class="sd">        of a power take-off system. The forces/moments applied by a</span>
+<span class="sd">        kinematics, control logic, impedance and/or non-linear power</span>
+<span class="sd">        loss of a power take-off system.</span>
+<span class="sd">        The forces/moments applied by a</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO` object can be applied to a</span>
-<span class="sd">        :py:class:`wecopttool.core.WEC` object through the</span>
-<span class="sd">        :python:`WEC.f_add` property. The power produced by a</span>
-<span class="sd">        :py:class:`wecopttool.pto.PTO` object can be used for the</span>
-<span class="sd">        :python:`obj_fun` of pseudo-spectral optimization problem when</span>
-<span class="sd">        calling :python:`WEC.solve`.</span>
+<span class="sd">        :py:class:`wecopttool.WEC` object through the</span>
+<span class="sd">        :py:attr:`wecopttool.WEC.f_add` property.</span>
+<span class="sd">        The power produced by a :py:class:`wecopttool.pto.PTO` object</span>
+<span class="sd">        can be used for the :python:`obj_fun` of pseudo-spectral</span>
+<span class="sd">        optimization problem when calling</span>
+<span class="sd">        :py:meth:`wecopttool.WEC.solve`.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -158,7 +171,9 @@
 <span class="sd">            Matrix representing the PTO impedance.</span>
 <span class="sd">        loss</span>
 <span class="sd">            Function that maps flow and effort variables to a</span>
-<span class="sd">            non-linear loss. Outputs are between 0-1.</span>
+<span class="sd">            non-linear power loss.</span>
+<span class="sd">            The output is the dissipated power (loss) in Watts.</span>
+<span class="sd">            This should be a positive value.</span>
 <span class="sd">        names</span>
 <span class="sd">            PTO names.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -192,7 +207,7 @@
 
         <span class="c1"># power</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span> <span class="o">=</span> <span class="n">impedance</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_loss</span> <span class="o">=</span> <span class="n">loss</span>  <span class="c1"># TODO: change to &#39;loss&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loss</span> <span class="o">=</span> <span class="n">loss</span>
         <span class="k">if</span> <span class="n">impedance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">impedance_abcd</span> <span class="o">=</span> <span class="n">_make_abcd</span><span class="p">(</span><span class="n">impedance</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_transfer_mat</span> <span class="o">=</span> <span class="n">_make_mimo_transfer_mat</span><span class="p">(</span><span class="n">impedance_abcd</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span>
@@ -201,41 +216,41 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Number of degrees of freedom.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of degrees of freedom.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;DOF Names.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;DOF Names.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">kinematics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Kinematics function.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Kinematics function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kinematics</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;PTO force in PTO coordinates.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;PTO force in PTO coordinates.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_force</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">impedance</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Impedance matrix.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Impedance matrix.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impedance</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TEFF</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Nonlinear loss function.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TLOSS</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Nonlinear power loss function with outputs in Watts.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">transfer_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Transfer matrix.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transfer matrix.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transfer_mat</span>
 
-    <span class="k">def</span> <span class="nf">_tmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_tmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">nsubsteps</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
             <span class="n">tmat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span>
         <span class="k">else</span><span class="p">:</span>
@@ -243,21 +258,21 @@
         <span class="k">return</span> <span class="n">tmat</span>
 
     <span class="k">def</span> <span class="nf">_fkinematics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">f_wec</span><span class="p">,</span>
+        <span class="n">f_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
         <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
         <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
         <span class="n">x_opt</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return time-domain values in the PTO frame.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return time-domain values in the PTO frame.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        f_wec</span>
 <span class="sd">            Fourier coefficients of some quantity &quot;f&quot; in the WEC frame.</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -284,12 +299,12 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the PTO position time-series.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the PTO position time-series.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -312,12 +327,12 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the PTO velocity time-series.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the PTO velocity time-series.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -341,12 +356,12 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the PTO acceleration time-series.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the PTO acceleration time-series.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -371,12 +386,12 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the PTO force on WEC.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the PTO force on WEC.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -392,7 +407,7 @@
         <span class="n">force_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">force_td</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">)</span>
         <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">force_td</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">force_td</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">ndof</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">force_td</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">)</span>
         <span class="n">kinematics_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="n">kinematics_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">kinematics_mat</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">kinematics_mat</span><span class="o">*</span><span class="n">force_td</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
@@ -404,13 +419,13 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the mechanical power time-series in each PTO DOF</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the mechanical power time-series in each PTO DOF</span>
 <span class="sd">        for a given system state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -434,13 +449,13 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the mechanical energy in each PTO DOF for a given</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the mechanical energy in each PTO DOF for a given</span>
 <span class="sd">        system state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -463,13 +478,13 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate average mechanical power in each PTO DOF for a</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate average mechanical power in each PTO DOF for a</span>
 <span class="sd">        given system state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -485,20 +500,20 @@
         <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mechanical_energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">energy</span> <span class="o">/</span> <span class="n">wec</span><span class="o">.</span><span class="n">tf</span></div>
 
-<div class="viewcode-block" id="PTO.power"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.power.html#wecopttool.pto.PTO.power">[docs]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="PTO.power_variables"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.power_variables.html#wecopttool.pto.PTO.power_variables">[docs]</a>    <span class="k">def</span> <span class="nf">power_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
         <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
         <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the power time-series in each PTO DOF for a given</span>
-<span class="sd">        system state.</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the power variables (flow q and effort e) time-series </span>
+<span class="sd">        in each PTO DOF for a given system state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -511,30 +526,59 @@
 <span class="sd">            A value of :python:`1` corresponds to the default step</span>
 <span class="sd">            length.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># convert e1 (PTO force), q1 (PTO velocity) to e2,q2</span>
+        <span class="c1"># convert q1 (PTO velocity), e1 (PTO force) </span>
+        <span class="c1"># to q2 (flow variable), e2 (effort variable)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impedance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">e1_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
             <span class="n">q1_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+            <span class="n">e1_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
             <span class="n">q1</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">q1_td</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
             <span class="n">e1</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">e1_td</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
             <span class="n">vars_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">q1</span><span class="p">,</span> <span class="n">e1</span><span class="p">])</span>
             <span class="n">vars_1_flat</span> <span class="o">=</span> <span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">vars_1</span><span class="p">)</span>
             <span class="n">vars_2_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">vars_1_flat</span><span class="p">)</span>
             <span class="n">vars_2</span> <span class="o">=</span> <span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">vars_2_flat</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">)</span>
-            <span class="n">e2</span> <span class="o">=</span> <span class="n">vars_2</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">:]</span>
             <span class="n">q2</span> <span class="o">=</span> <span class="n">vars_2</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">]</span>
+            <span class="n">e2</span> <span class="o">=</span> <span class="n">vars_2</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">:]</span>
             <span class="n">time_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tmat</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-            <span class="n">e2_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span>
             <span class="n">q2_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+            <span class="n">e2_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># e1_td = self.force(wec, x_wec, x_opt, waves)</span>
-            <span class="c1"># q1_td = self.velocity(wec, x_wec, x_opt, waves)</span>
-            <span class="n">e2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
             <span class="n">q2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+            <span class="n">e2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q2_td</span><span class="p">,</span> <span class="n">e2_td</span></div>
+
+<div class="viewcode-block" id="PTO.power"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.power.html#wecopttool.pto.PTO.power">[docs]</a>    <span class="k">def</span> <span class="nf">power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
+        <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the power time-series in each PTO DOF for a given</span>
+<span class="sd">        system state.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
+<span class="sd">        x_wec</span>
+<span class="sd">            WEC dynamic state.</span>
+<span class="sd">        x_opt</span>
+<span class="sd">            Optimization (control) state.</span>
+<span class="sd">        waves</span>
+<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
+<span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
+<span class="sd">        nsubsteps</span>
+<span class="sd">            Number of steps between the default (implied) time steps.</span>
+<span class="sd">            A value of :python:`1` corresponds to the default step</span>
+<span class="sd">            length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">q2_td</span><span class="p">,</span> <span class="n">e2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_variables</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> 
+                                            <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="c1"># power</span>
-        <span class="n">power_out</span> <span class="o">=</span> <span class="n">e2_td</span> <span class="o">*</span> <span class="n">q2_td</span>
+        <span class="n">power_out</span> <span class="o">=</span> <span class="n">q2_td</span> <span class="o">*</span> <span class="n">e2_td</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">power_out</span> <span class="o">=</span> <span class="n">power_out</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">e2_td</span><span class="p">,</span> <span class="n">q2_td</span><span class="p">))</span>
+            <span class="n">power_out</span> <span class="o">=</span> <span class="n">power_out</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">q2_td</span><span class="p">,</span> <span class="n">e2_td</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">power_out</span></div>
 
 <div class="viewcode-block" id="PTO.energy"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.energy.html#wecopttool.pto.PTO.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -544,13 +588,13 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the energy in each PTO DOF for a given system</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the energy in each PTO DOF for a given system</span>
 <span class="sd">        state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -573,13 +617,13 @@
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Calculate the average power in each PTO DOF for a given</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the average power in each PTO DOF for a given</span>
 <span class="sd">        system state.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        x_wec</span>
 <span class="sd">            WEC dynamic state.</span>
 <span class="sd">        x_opt</span>
@@ -595,19 +639,100 @@
         <span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">energy</span> <span class="o">/</span> <span class="n">wec</span><span class="o">.</span><span class="n">tf</span></div>
 
+<div class="viewcode-block" id="PTO.transduced_flow"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.transduced_flow.html#wecopttool.pto.PTO.transduced_flow">[docs]</a>    <span class="k">def</span> <span class="nf">transduced_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
+        <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the transduced flow variable time-series in each PTO DOF </span>
+<span class="sd">        for a given system state. Equals the PTO velocity if no impedance </span>
+<span class="sd">        is defined.</span>
+
+<span class="sd">        Examples for PTO impedance and corresponding flow variables:</span>
+
+<span class="sd">        - OWC: (pneumatic admittance)^-1 : flow = volumetric air flow</span>
+
+<span class="sd">        - Drive-train: rotational impedance : flow = rotational velocity</span>
+
+<span class="sd">        - Generator: winding impedance: flow = electric current</span>
+
+<span class="sd">        - Drive-train and Generator combined: flow = electric current</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
+<span class="sd">        x_wec</span>
+<span class="sd">            WEC dynamic state.</span>
+<span class="sd">        x_opt</span>
+<span class="sd">            Optimization (control) state.</span>
+<span class="sd">        waves</span>
+<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
+<span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
+<span class="sd">        nsubsteps</span>
+<span class="sd">            Number of steps between the default (implied) time steps.</span>
+<span class="sd">            A value of :python:`1` corresponds to the default step</span>
+<span class="sd">            length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">q2_td</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_variables</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> 
+                                        <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">q2_td</span>   </div>
+
+<div class="viewcode-block" id="PTO.transduced_effort"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.transduced_effort.html#wecopttool.pto.PTO.transduced_effort">[docs]</a>    <span class="k">def</span> <span class="nf">transduced_effort</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
+        <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the transduced flow variable time-series in each PTO DOF </span>
+<span class="sd">        for a given system state. Equals the PTO force if no impedance </span>
+<span class="sd">        is defined.</span>
+
+<span class="sd">        Examples for PTO impedance and corresponding effort variables:</span>
+
+<span class="sd">        - OWC: (pneumatic admittance)^-1 : effort =  air pressure</span>
+
+<span class="sd">        - Drive-train: rotational impedance : effort = torque</span>
+
+<span class="sd">        - Generator: winding impedance: effort = voltage</span>
+
+<span class="sd">        - Drive-train and Generator combined: effort = voltage</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        wec</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
+<span class="sd">        x_wec</span>
+<span class="sd">            WEC dynamic state.</span>
+<span class="sd">        x_opt</span>
+<span class="sd">            Optimization (control) state.</span>
+<span class="sd">        waves</span>
+<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
+<span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
+<span class="sd">        nsubsteps</span>
+<span class="sd">            Number of steps between the default (implied) time steps.</span>
+<span class="sd">            A value of :python:`1` corresponds to the default step</span>
+<span class="sd">            length.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">e2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_variables</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e2_td</span>  </div>
+
 <div class="viewcode-block" id="PTO.post_process"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.post_process.html#wecopttool.pto.PTO.post_process">[docs]</a>    <span class="k">def</span> <span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
         <span class="n">res</span><span class="p">:</span> <span class="n">OptimizeResult</span><span class="p">,</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DataArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
 <span class="sd">        that the user can work with directly.</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
-<span class="sd">        The :meth:`wecopttool.core.WEC.solve` method only returns the</span>
-<span class="sd">        post-processed results for the :py:class:`wecopttool.core.WEC`</span>
+<span class="sd">        The :py:meth:`wecopttool.WEC.solve` method only returns the</span>
+<span class="sd">        post-processed results for the :py:class:`wecopttool.WEC`</span>
 <span class="sd">        object.</span>
 
 <span class="sd">        &gt;&gt;&gt; res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,</span>
@@ -629,7 +754,7 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        wec</span>
-<span class="sd">            :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">            :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">        res</span>
 <span class="sd">            Results produced by :py:func:`scipy.optimize.minimize`.</span>
 <span class="sd">        waves</span>
@@ -647,6 +772,8 @@
 <span class="sd">        results_td</span>
 <span class="sd">            :py:class:`xarray.Dataset` with time domain results.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">create_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
         <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
 
         <span class="c1"># position</span>
@@ -672,21 +799,23 @@
         <span class="c1"># mechanical power</span>
         <span class="n">mech_power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mechanical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span>
                                               <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="n">mech_power_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">mech_power_td</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>
+        <span class="n">mech_power_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">mech_power_td</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>    
 
         <span class="n">pos_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Position&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m or rad&#39;</span><span class="p">}</span>
         <span class="n">vel_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s or rad/s&#39;</span><span class="p">}</span>
-        <span class="n">acc_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Acceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or rad/s^2&#39;</span><span class="p">}</span>
+        <span class="n">acc_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Acceleration&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or rad/s^2&#39;</span><span class="p">}</span>
         <span class="n">force_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Force or moment on WEC&#39;</span><span class="p">,</span>
                       <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;N or Nm&#39;</span><span class="p">}</span>
         <span class="n">power_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">}</span>
         <span class="n">mech_power_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mechanical power&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">}</span>
-        <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
+        <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Radial frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
+        <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span><span class="p">}</span>
+        <span class="n">period_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Period&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">}</span>
         <span class="n">dof_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO degree of freedom&#39;</span><span class="p">}</span>
         <span class="n">time_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;s&#39;</span><span class="p">}</span>
 
         <span class="n">t_dat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
-
 
         <span class="n">results_fd</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
             <span class="n">data_vars</span><span class="o">=</span><span class="p">{</span>
@@ -695,12 +824,15 @@
                 <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">acc_fd</span><span class="p">,</span> <span class="n">acc_attr</span><span class="p">),</span>
                 <span class="s1">&#39;force&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">force_fd</span><span class="p">,</span> <span class="n">force_attr</span><span class="p">),</span>
                 <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">power_fd</span><span class="p">,</span> <span class="n">power_attr</span><span class="p">),</span>
-                <span class="s1">&#39;mech_power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">mech_power_fd</span><span class="p">,</span> <span class="n">mech_power_attr</span><span class="p">)</span>
+                <span class="s1">&#39;mech_power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> 
+                                <span class="n">mech_power_fd</span><span class="p">,</span> <span class="n">mech_power_attr</span><span class="p">)</span>
             <span class="p">},</span>
             <span class="n">coords</span><span class="o">=</span><span class="p">{</span>
                 <span class="s1">&#39;omega&#39;</span><span class="p">:(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">omega</span><span class="p">,</span> <span class="n">omega_attr</span><span class="p">),</span>
+                <span class="s1">&#39;freq&#39;</span><span class="p">:(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span>
+                <span class="s1">&#39;period&#39;</span><span class="p">:(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">period</span><span class="p">,</span> <span class="n">period_attr</span><span class="p">),</span>
                 <span class="s1">&#39;dof&#39;</span><span class="p">:(</span><span class="s1">&#39;dof&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">dof_attr</span><span class="p">)},</span>
-            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;time_created_utc&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;time_created_utc&quot;</span><span class="p">:</span> <span class="n">create_time</span><span class="p">}</span>
             <span class="p">)</span>
 
         <span class="n">results_td</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span>
@@ -710,20 +842,43 @@
                 <span class="s1">&#39;acc&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">acc_td</span><span class="p">,</span> <span class="n">acc_attr</span><span class="p">),</span>
                 <span class="s1">&#39;force&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">force_td</span><span class="p">,</span> <span class="n">force_attr</span><span class="p">),</span>
                 <span class="s1">&#39;power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">power_td</span><span class="p">,</span> <span class="n">power_attr</span><span class="p">),</span>
-                <span class="s1">&#39;mech_power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">mech_power_td</span><span class="p">,</span> <span class="n">mech_power_attr</span><span class="p">)</span>
+                <span class="s1">&#39;mech_power&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span>
+                                 <span class="n">mech_power_td</span><span class="p">,</span> <span class="n">mech_power_attr</span><span class="p">)</span>
             <span class="p">},</span>
             <span class="n">coords</span><span class="o">=</span><span class="p">{</span>
                 <span class="s1">&#39;time&#39;</span><span class="p">:(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="n">t_dat</span><span class="p">,</span> <span class="n">time_attr</span><span class="p">),</span>
                 <span class="s1">&#39;dof&#39;</span><span class="p">:(</span><span class="s1">&#39;dof&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">dof_attr</span><span class="p">)},</span>
-            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;time_created_utc&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+            <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;time_created_utc&quot;</span><span class="p">:</span> <span class="n">create_time</span><span class="p">}</span>
             <span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impedance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1">#transduced flow and effort variables</span>
+            <span class="n">q2_td</span><span class="p">,</span> <span class="n">e2_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_variables</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span>
+                                                <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+            <span class="n">q2_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">q2_td</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>
+            <span class="n">e2_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">e2_td</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>
+
+            <span class="n">q2_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Transduced Flow&#39;</span><span class="p">,</span> 
+                       <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;A or m^3/s or rad/s or m/s&#39;</span><span class="p">}</span>
+            <span class="n">e2_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Transduced Effort&#39;</span><span class="p">,</span> 
+                       <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;V or N/m^2 or Nm or Ns&#39;</span><span class="p">}</span>
+
+            <span class="n">results_td</span> <span class="o">=</span> <span class="n">results_td</span><span class="o">.</span><span class="n">assign</span><span class="p">({</span>
+                        <span class="s1">&#39;trans_flo&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">q2_td</span><span class="p">,</span> <span class="n">q2_attr</span><span class="p">),</span>
+                        <span class="s1">&#39;trans_eff&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">e2_td</span><span class="p">,</span> <span class="n">e2_attr</span><span class="p">),</span>
+                    <span class="p">})</span>
+            <span class="n">results_fd</span> <span class="o">=</span> <span class="n">results_fd</span><span class="o">.</span><span class="n">assign</span><span class="p">({</span>
+                        <span class="s1">&#39;trans_flo&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">q2_fd</span><span class="p">,</span> <span class="n">q2_attr</span><span class="p">),</span>
+                        <span class="s1">&#39;trans_eff&#39;</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span><span class="s1">&#39;dof&#39;</span><span class="p">],</span> <span class="n">e2_fd</span><span class="p">,</span> <span class="n">e2_attr</span><span class="p">),</span>
+                    <span class="p">})</span>
+
 
         <span class="k">return</span> <span class="n">results_fd</span><span class="p">,</span> <span class="n">results_td</span></div></div>
 
 
 <span class="c1"># power conversion chain</span>
 <span class="k">def</span> <span class="nf">_make_abcd</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Transform the impedance matrix into ABCD form from a MIMO</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform the impedance matrix into ABCD form from a MIMO</span>
 <span class="sd">    transfer function.</span>
 
 <span class="sd">    Parameters</span>
@@ -733,8 +888,6 @@
 <span class="sd">        Size 2*n_dof.</span>
 <span class="sd">    ndof</span>
 <span class="sd">        Number of degrees of freedom.</span>
-<span class="sd">        Must be specified if :python:`inertia_in_forces is True`, else</span>
-<span class="sd">        not used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">z_11</span> <span class="o">=</span> <span class="n">impedance</span><span class="p">[:</span><span class="n">ndof</span><span class="p">,</span> <span class="p">:</span><span class="n">ndof</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># Fu</span>
     <span class="n">z_12</span> <span class="o">=</span> <span class="n">impedance</span><span class="p">[:</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:,</span> <span class="p">:]</span>  <span class="c1"># Fi</span>
@@ -754,7 +907,7 @@
     <span class="n">impedance_abcd</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
     <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a block matrix of a MIMO transfer function.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a block matrix of a MIMO transfer function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -762,8 +915,6 @@
 <span class="sd">        PTO impedance in ABCD form.</span>
 <span class="sd">    ndof</span>
 <span class="sd">        Number of degrees of freedom.</span>
-<span class="sd">        Must be specified if :python:`inertia_in_forces is True`, else</span>
-<span class="sd">        not used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">elem</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span><span class="p">)]</span>
     <span class="k">def</span> <span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
@@ -772,8 +923,9 @@
             <span class="n">Zp</span> <span class="o">=</span> <span class="n">impedance_abcd</span><span class="p">[</span><span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">,</span> <span class="p">:]</span>
             <span class="n">re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
             <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
-            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">)]</span>
-            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span>
+            <span class="c1"># Exclude the sine component of the 2-point wave</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">im</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span> <span class="o">+</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
             <span class="n">elem</span><span class="p">[</span><span class="n">idof</span><span class="p">][</span><span class="n">jdof</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
 
@@ -787,7 +939,7 @@
     <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Unstructured numerical optimal controller that returns a time</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unstructured numerical optimal controller that returns a time</span>
 <span class="sd">    history of PTO forces.</span>
 
 <span class="sd">    Parameters</span>
@@ -795,7 +947,7 @@
 <span class="sd">    pto</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
 <span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">    x_wec</span>
 <span class="sd">        WEC dynamic state.</span>
 <span class="sd">    x_opt</span>
@@ -824,7 +976,7 @@
     <span class="n">integral</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">derivative</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Proportional-integral-derivative (PID) controller that returns</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional-integral-derivative (PID) controller that returns</span>
 <span class="sd">    a time history of PTO forces.</span>
 
 <span class="sd">    Parameters</span>
@@ -832,7 +984,7 @@
 <span class="sd">    pto</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
 <span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">    x_wec</span>
 <span class="sd">        WEC dynamic state.</span>
 <span class="sd">    x_opt</span>
@@ -852,7 +1004,7 @@
 <span class="sd">        True to include derivative gain</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ndof</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">ndof</span>
-    <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
+    <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
     <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">update_force_td</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
@@ -881,7 +1033,7 @@
     <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Proportional-integral (PI) controller that returns a time</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional-integral (PI) controller that returns a time</span>
 <span class="sd">    history of PTO forces.</span>
 
 <span class="sd">    Parameters</span>
@@ -889,7 +1041,7 @@
 <span class="sd">    pto</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
 <span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">    x_wec</span>
 <span class="sd">        WEC dynamic state.</span>
 <span class="sd">    x_opt</span>
@@ -915,7 +1067,7 @@
     <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Proportional (P) controller that returns a time history of</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional (P) controller that returns a time history of</span>
 <span class="sd">    PTO forces.</span>
 
 <span class="sd">    Parameters</span>
@@ -923,7 +1075,7 @@
 <span class="sd">    pto</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
 <span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.core.WEC` object.</span>
+<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
 <span class="sd">    x_wec</span>
 <span class="sd">        WEC dynamic state.</span>
 <span class="sd">    x_opt</span>
@@ -947,7 +1099,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

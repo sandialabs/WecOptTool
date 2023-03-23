@@ -1,0 +1,953 @@
+{
+ "cells": [
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Tutorial 2 - AquaHarmonics\n",
+    "The goal of this tutorial is to illustrate a more realistic model of a PTO, including non-linear power conversion chain. \n",
+    "It uses the [AquaHarmonics](https://aquaharmonics.com/wec_vis/) device in one degree of freedom in regular waves, models the PTO generator using a motor power loss map and adds realistic constraints, including generator maximum torque and min/max line tension.\n",
+    "\n",
+    "This tutorial is comprises two parts, where the second section builds upon the first.\n",
+    "\n",
+    "1. [Optimal control with a loss map](#1.-Optimal-control-with-a-loss-map)\n",
+    "2. [Control co-design of line pre-tension/ballast with non-linear power conversion](#2.-Control-co-design-of-line-pre-tension/ballast-with-non-linear-power-conversion)\n",
+    "\n",
+    "![AquaHarmonics device](https://aquaharmonics.com/wec_vis.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import capytaine as cpy\n",
+    "import autograd.numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from matplotlib import cm\n",
+    "from scipy.optimize import brute\n",
+    "\n",
+    "import wecopttool as wot"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Optimal control with a loss map\n",
+    "\n",
+    "### WEC object\n",
+    "We will go through a number of steps to create a `WEC` object, with which we can solve for the optimal control trajectory.\n",
+    "To compose the `WEC` object, we will need to define the mesh, degrees of freedom, mass and hydrostatic properties, linear hydrodynamic coefficients (from a BEM solution), any additional dynamic forces (e.g. PTO force), and constraints (e.g. minimum line tension).  \n",
+    "\n",
+    "#### Geometry\n",
+    "First we create a surface mesh for the WEC hull, and quickly visualize the cross-sectional shape of the hull.\n",
+    "The AquaHarmonics hull mesh is already included with WecOptTool—take a look at the `geometry.py` module if you're interested in seeing how it was created.\n",
+    "Note that the lower cylindrical section of the hull is open to the sea."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ah_hull = wot.geom.AquaHarmonics()\n",
+    "mesh = ah_hull.mesh(mesh_size_factor=0.25)\n",
+    "_ = ah_hull.plot_cross_section()"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Next we create a `FloatingBody` object from the mesh in Capytaine, which we will use to calculate the hydrodynamics.\n",
+    "We can visualize a 3D rendering of the mesh now as well."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fb = cpy.FloatingBody.from_meshio(mesh, name=\"AquaHarmonics\")\n",
+    "fb.add_translation_dof(name=\"Heave\")\n",
+    "ndof = fb.nb_dofs\n",
+    "fb.show_matplotlib()"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Hydrostatics and mass\n",
+    "The AquaHarmonics device is positively buoyant (i.e., the buoyancy force is greater than the force due to gravity).\n",
+    "Therefore, we'll calculate the hydrostatic stiffness from the mesh, but set the rigid-body mass manually. \n",
+    "We will also calculate the displaced volume and mass from the mesh, which we will need later for defining forces and constraints."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "mass = np.atleast_2d(5e3) # [kg]\n",
+    "stiffness = wot.hydrostatics.stiffness_matrix(fb).values\n",
+    "\n",
+    "g = 9.81\n",
+    "rho = 1025\n",
+    "displaced_mass = wot.hydrostatics.inertia_matrix(fb, rho).values  # [kg]\n",
+    "displacement = displaced_mass/rho # [m^3] "
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Hydrodynamics\n",
+    "\n",
+    "Next we will run the boundary element model (BEM) [Capytaine](https://github.com/capytaine/capytaine) to obtain the hydrodynamic coefficients for the hull.\n",
+    "Before running the BEM solver, we must specify a set of frequencies at which to perform the calculations.\n",
+    "For `WecOptTool`, these must be a regularly spaced frequency array. \n",
+    "We will also save the results to a file so that they can be used later, in Part 2, without re-running the BEM solver."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "f1 = 0.06 # [Hz]\n",
+    "nfreq = 20\n",
+    "freq = wot.frequency(f1, nfreq, False) # False -> no zero frequency\n",
+    "\n",
+    "bem_data = wot.run_bem(fb, freq, rho=rho, g=g)\n",
+    "\n",
+    "# save results for use in Part 2\n",
+    "out_dir = \"results_tutorial_2\"\n",
+    "os.makedirs(out_dir, exist_ok=True)\n",
+    "bem_file = os.path.join(out_dir,\"bem_data.nc\")\n",
+    "wot.write_netcdf(bem_file, bem_data)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can also quickly plot the results to confirm they look reasonable."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, axes = plt.subplots(3,1)\n",
+    "bem_data['added_mass'].plot(ax = axes[0])\n",
+    "bem_data['radiation_damping'].plot(ax = axes[1])\n",
+    "axes[2].plot(bem_data['omega'],np.abs(np.squeeze(bem_data['diffraction_force'].values)), color = 'orange')\n",
+    "axes[2].set_ylabel('abs(diffraction_force)', color = 'orange')\n",
+    "axes[2].tick_params(axis ='y', labelcolor = 'orange')\n",
+    "ax2r = axes[2].twinx()\n",
+    "ax2r.plot(bem_data['omega'], np.abs(np.squeeze(bem_data['Froude_Krylov_force'].values)), color = 'blue')\n",
+    "ax2r.set_ylabel('abs(FK_force)', color = 'blue')\n",
+    "ax2r.tick_params(axis ='y', labelcolor = 'blue')\n",
+    "\n",
+    "for axi in axes:\n",
+    "    axi.set_title('')\n",
+    "    axi.label_outer()\n",
+    "    axi.grid()\n",
+    "    \n",
+    "axes[-1].set_xlabel('Frequency [rad/s]')"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### PTO \n",
+    "The AquaHarmonics device drive train includes a generator and pneumatic air spring, each of which have distinct gearings relative to linear tether motion as well as finite levels of inertia and friction. \n",
+    "Take a look at their [interactive visualization](https://aquaharmonics.com/wec_vis/) of the device and PTO system in motion.\n",
+    "Here, we define each of these factors so that they may be subsequently incorporated into our model."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "radii = {\n",
+    "    \"S1\": 0.02, \"S2\": 0.795, \"S3\": 0.1595, \"S4\": 0.200525, \"S5\": 0.40105, \n",
+    "    \"S6\": 0.12575, \"S7\": 0.103\n",
+    "}\n",
+    "\n",
+    "inertias = {\n",
+    "    \"Igen\": 3.9, \"I1\": 0.029, \"I2\": 25.6, \"I3\": 1.43, \"I4\": 1.165, \"I5\": 4.99, \n",
+    "    \"I6\": 1.43, \"I7\": 1.5, \"mps\": 40\n",
+    "}\n",
+    "\n",
+    "friction = {\n",
+    "    \"Bgen\": 7, \"Bdrivetrain\": 40, \"Bshaft\": 40, \"Bspring_pulley\": 80, \n",
+    "    \"Bpneumatic_spring\": 700, \"Bpneumatic_spring_static1\": 0, \n",
+    "    \"Bpspneumatic_spring_static2\": 0\n",
+    "}\n",
+    "\n",
+    "airspring = {\n",
+    "    \"gamma\": 1.4, \"height\": 1, \"diameter\": 3, \"area\": 0.0709676, \n",
+    "    \"press_init\": 854e3, \"vol_init\": 1\n",
+    "}\n",
+    "\n",
+    "gear_ratios = {\n",
+    "    \"R21\": radii['S2']/radii['S1'],\n",
+    "    \"R45\": radii['S4']/radii['S5'], \n",
+    "    \"R67\": radii['S6']/radii['S7'],\n",
+    "    \"spring\": radii['S6']*(radii['S4']/radii['S5'])\n",
+    "}\n",
+    "\n",
+    "inertia_pto = (\n",
+    "    (inertias[\"Igen\"]  + inertias[\"I1\"])*gear_ratios['R21']**2 +\n",
+    "    (inertias['I2'] +inertias['I3'] + inertias['I4']) +\n",
+    "    gear_ratios[\"R45\"]**2 * (\n",
+    "        inertias['I5'] + inertias['I6'] +\n",
+    "        inertias[\"I7\"] * gear_ratios['R67']**2 +\n",
+    "        inertias['mps'] * radii['S6']**2   \n",
+    "    )\n",
+    ")\n",
+    "\n",
+    "friction_pto = (\n",
+    "    friction['Bgen']*gear_ratios['R21']**2 + \n",
+    "    friction['Bdrivetrain'] +\n",
+    "    gear_ratios[\"R45\"]**2 * (\n",
+    "        friction[\"Bshaft\"]+\n",
+    "        friction[\"Bspring_pulley\"]*gear_ratios['R67']**2 +\n",
+    "        friction[\"Bpneumatic_spring\"]*radii['S6']**2\n",
+    "    )\n",
+    ")"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "##### Generator loss map\n",
+    "The generator used by the AquaHarmonics devices is a motor from a Nissan Leaf.\n",
+    "`WecOptTool` currently uses loss maps, as efficiency maps are unable to account for losses that occur when the mechanical power is zero (e.g., when the torque is nonzero, but the shaft speed is zero).\n",
+    "Thus, we use an [approximate model for the losses](https://en.wikipedia.org/wiki/Joule_heating) in this example."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "winding_resistance = 0.4\n",
+    "torque_coefficient = 1.5\n",
+    "\n",
+    "def power_loss(speed, torque):\n",
+    "    return winding_resistance * (torque / torque_coefficient)**2 "
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In addition to the loss data, the generator has some limitations, which we can capture in our model.\n",
+    "Specifically, this generator has the following limits:\n",
+    "\n",
+    " * Maximum rotational speed: 10,000 rpm\n",
+    " * Maximum torque: 300 Nm\n",
+    " * Maximum power: 80 kW"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "rot_max = 10000*2*np.pi/60 # [rad/s]\n",
+    "torque_max = 300 # [Nm]\n",
+    "power_max = 80e3 # [W]"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Finally, we can plot the motor power loss surface to see how it looks.\n",
+    "Here, the independent variables are the motor speed in [rad/s] and the motor torque in [Nm].\n",
+    "Note that we limit the plot by the power limit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x = np.arange(-1*rot_max, 1*rot_max, 10)\n",
+    "y = np.arange(-1*torque_max, 1.0*torque_max, 5)\n",
+    "X, Y = np.meshgrid(x, y)\n",
+    "Z = power_loss(X, Y).copy()/1e3\n",
+    "Z[np.abs(X*Y) > power_max] = np.NaN  # cut off area outside of power limit\n",
+    "\n",
+    "fig = plt.figure(figsize=plt.figaspect(0.4))\n",
+    "ax = [fig.add_subplot(1, 2, 1, projection=\"3d\"),\n",
+    "      fig.add_subplot(1, 2, 2)]\n",
+    "\n",
+    "ax[0].plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0)\n",
+    "ax[0].set_xlabel('Shaft speed [rad/s]')\n",
+    "ax[0].set_ylabel('Torque [Nm]')\n",
+    "ax[0].set_zlabel('Power loss [kW]')\n",
+    "# ax[0].set_zlim([0, 1.1])\n",
+    "\n",
+    "contour = ax[1].contourf(X, Y, Z, cmap=cm.coolwarm)\n",
+    "plt.colorbar(contour, label=\"Power loss [kW]\")\n",
+    "ax[1].set_xlabel('Shaft speed [rad/s]')\n",
+    "ax[1].set_ylabel('Torque [Nm]')\n",
+    "\n",
+    "plt.tight_layout()"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "##### PTO object\n",
+    "Using both the parametric kinematics (gear ratios) and the motor power loss map, we can now create a PTO object that will be inserted in our WEC object.\n",
+    "Note that the friction and inertia effects will be included as additional forces.\n",
+    "By defining the PTO object in this way, we will be able to more clearly distinguish the power generating forces from other effects (e.g., friction)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "name = [\"PTO_Heave\",]\n",
+    "gear_ratio_generator = gear_ratios['R21']/radii['S3']\n",
+    "kinematics = gear_ratio_generator*np.eye(ndof)\n",
+    "controller = None\n",
+    "nstate_opt = 2*nfreq\n",
+    "pto_impedance = None\n",
+    "pto = wot.pto.PTO(\n",
+    "    ndof, kinematics, controller, pto_impedance, power_loss, name\n",
+    ")"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Additional Forces\n",
+    "In WecOptTool, hydrodynamic forces are considered automatically.\n",
+    "Thus to account for other phenomena we create ''**additional forces**'':\n",
+    "\n",
+    "* **Buoyancy, gravity and pretension** - While the buoyancy and gravity phenomena are often lumped together, we will keep them separate here. This is useful because the AquaHarmonics devices has a pretension force, so the buoyancy and gravity forces are not balanced at the neutral position and there is a pretension force from the tether/air spring.\n",
+    "* **Passive PTO forces** - Inertia forces due to finite rigid body inertia of gears and friction forces within the drive train are captured by this function.\n",
+    "* **PTO line force** - The total force imposed on the WEC from its tether is the sum of the PTO force due to action by the generator and the pretension force from the air spring.\n",
+    "The generator torque will be our control state for which we will derive the optimal trajectory."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def f_buoyancy(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "    \"\"\"Only the zeroth order component (doesn't include linear stiffness)\"\"\"\n",
+    "    return displacement * rho * g * np.ones([wec.ncomponents*nsubsteps, wec.ndof])\n",
+    "\n",
+    "def f_gravity(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "    return -1 * wec.inertia_matrix.item() * g * np.ones([wec.ncomponents*nsubsteps, wec.ndof])\n",
+    "\n",
+    "def f_pretension_wec(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "    \"\"\"Pretension force as it acts on the WEC\"\"\"\n",
+    "    f_b = f_buoyancy(wec, x_wec, x_opt, waves, nsubsteps) \n",
+    "    f_g = f_gravity(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return  -1*(f_b+f_g)\n",
+    "\n",
+    "def f_pto_passive(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "    pos = wec.vec_to_dofmat(x_wec)\n",
+    "    vel = np.dot(wec.derivative_mat,pos)\n",
+    "    acc = np.dot(wec.derivative_mat, vel)\n",
+    "    time_matrix = wec.time_mat_nsubsteps(nsubsteps)\n",
+    "    spring = -(gear_ratios['spring']*airspring['gamma']*airspring['area']*\n",
+    "              airspring['press_init']/airspring['vol_init']) * pos\n",
+    "    f_spring = np.dot(time_matrix,spring)\n",
+    "    fric = -(friction_pto  + \n",
+    "                friction['Bpneumatic_spring_static1']*\n",
+    "                gear_ratios['spring']) * vel\n",
+    "    f_fric = np.dot(time_matrix,fric)\n",
+    "    inertia = inertia_pto * acc\n",
+    "    f_inertia = np.dot(time_matrix,inertia)\n",
+    "    return f_spring + f_fric + f_inertia\n",
+    "\n",
+    "def f_pto_line(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "    f_pto = pto.force_on_wec(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    f_pre = f_pretension_wec(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return f_pto + f_pre\n",
+    "\n",
+    "f_add = {'PTO': f_pto_line,\n",
+    "         'PTO_passive': f_pto_passive,\n",
+    "         'buoyancy': f_buoyancy,\n",
+    "         'gravity': f_gravity}"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Constraints\n",
+    "A number a constraints need to be imposed to reflect finite limitation of the drive train hardware.\n",
+    "Each of these will be implemented as inequality constraints that will be passed to the numerical optimization solver.\n",
+    "\n",
+    "Note that we are imposing the constraints at more points than the dynamics by setting `nsubsteps>1`.\n",
+    "This ensures that the constraint is properly maintained (see the Theory page in the WecOptTool documentation for more details).\n",
+    "\n",
+    " * **Peak torque** - The absolute motor torque cannot exceed this value.\n",
+    " * **Maximum rotational speed** - The absolute motor speed cannot exceed this value.\n",
+    " * **Maximum power** - The maximum mechanical power (i.e., product of torque and velocity) cannot exceed this value.\n",
+    " * **Minumum line tension** - In addition to these limitations on the hardware, we will also constrain the solution to prevent the tether tension from going below a certain threshold. We absolutely cannot allow the line tension to be less than zero, or else it will go slack. In practice, it is prudent to set some nonzero limit for the tether tension.\n",
+    " * **Mean torque** - While solutions with an nonzero mean positions may indeed be valid, we want to rely on a single calculation of the linear hydrodynamics at a mean position of 0. To avoid violating this approach, we will constrain the mean WEC position to zero."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Generator constraints\n",
+    "torque_peak_max = 280  #[Nm]   \n",
+    "rot_speed_max = 10000*2*np.pi/60  #[rad/s]\n",
+    "# mooring/PTO line constraint\n",
+    "min_line_tension = -1000\n",
+    "\n",
+    "nsubsteps = 2\n",
+    "\n",
+    "def const_peak_torque_pto(wec, x_wec, x_opt, waves):\n",
+    "    torque = pto.force(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return torque_peak_max - np.abs(torque.flatten())\n",
+    "\n",
+    "def const_speed_pto(wec, x_wec, x_opt, waves):\n",
+    "    rot_vel = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return rot_speed_max - np.abs(rot_vel.flatten())\n",
+    "\n",
+    "def const_power_pto(wec, x_wec, x_opt, waves):\n",
+    "    power_mech = (\n",
+    "        pto.velocity(wec, x_wec, x_opt, waves, nsubsteps) *\n",
+    "        pto.force(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    )\n",
+    "    return power_max - np.abs(power_mech.flatten())\n",
+    "\n",
+    "def constrain_min_tension(wec, x_wec, x_opt, waves):\n",
+    "    total_tension = -1*f_pto_line(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return total_tension.flatten() + min_line_tension\n",
+    "\n",
+    "def zero_mean_pos(wec, x_wec, x_opt, waves):\n",
+    "    return x_wec[0]\n",
+    "\n",
+    "constraints = [\n",
+    "    {'type': 'ineq', 'fun': constrain_min_tension,},\n",
+    "    {'type': 'ineq', 'fun': const_peak_torque_pto,},\n",
+    "    {'type': 'ineq', 'fun': const_speed_pto,},\n",
+    "    {'type': 'ineq', 'fun': const_power_pto,},\n",
+    "    {'type': 'eq', 'fun': zero_mean_pos},\n",
+    "]"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### WEC object\n",
+    "Finally, we can use all the different components we've developed thus far to construct a `WEC` object:\n",
+    "\n",
+    " * **BEM data** - defines the hydrodynamics of the hull\n",
+    " * **Inertia and hydrostatics** - rigid-body inertia and hydrostatic stiffness\n",
+    " * **Constraints** - limitations on the hardware (max power, max torque, etc.) and the constraint to prevent the tether from going slack\n",
+    " * **Additional forces** - this captures all of the forces on the WEC that are not due to the interaction between the hull and water (PTO, etc.)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "wec = wot.WEC.from_bem(\n",
+    "    bem_data,\n",
+    "    inertia_matrix = mass,\n",
+    "    hydrostatic_stiffness = stiffness,\n",
+    "    constraints = constraints,\n",
+    "    f_add = f_add,\n",
+    ")"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Waves\n",
+    "A regular wave will allow us to get a good initial understanding of the optimal control trajectory.\n",
+    "Note that we'll want to choose a wave frequency that is within the frequency array we used to calculate the hydrodynamic data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "amplitude = 0.5\n",
+    "wavefreq =  0.24/2 \n",
+    "phase = 30\n",
+    "wavedir = 0\n",
+    "waves = wot.waves.regular_wave(f1, nfreq, wavefreq, amplitude, phase, wavedir)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Objective function\n",
+    "To drive the solution of the optimal control trajectory, we will optimize the average electrical power from the PTO."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "obj_fun = pto.average_power"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Solve\n",
+    "Finally, we solve for the optimal control trajectory.\n",
+    "To ensure the numerical optimization problem is well-scaled, we set specific scaling factors for the WEC position (`scale_x_wec`), the PTO force (`scale_x_opt`), and objective function (`scale_obj`).\n",
+    "We will also set the [maximum iteration and objective function tolerance for the optimization solver](https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html).\n",
+    "This step typically takes about 30s."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "scale_x_wec = 1e1\n",
+    "scale_x_opt = 50e-2\n",
+    "scale_obj = 1e-3\n",
+    "\n",
+    "options = {'maxiter': 200, 'ftol': 1e-8}\n",
+    "\n",
+    "results = wec.solve(\n",
+    "    waves,\n",
+    "    obj_fun,\n",
+    "    nstate_opt,\n",
+    "    x_wec_0=np.ones(wec.nstate_wec) * 1e-3,\n",
+    "    x_opt_0=np.ones(nstate_opt) * 1e-3,\n",
+    "    optim_options=options,\n",
+    "    scale_x_wec=scale_x_wec,\n",
+    "    scale_x_opt=scale_x_opt,\n",
+    "    scale_obj=scale_obj,\n",
+    ")\n",
+    "\n",
+    "print(f'Optimal average power: {results.fun/1e3:.2f} kW')"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Post-process and plotting\n",
+    "Next, we post-process the results to allow us to more easily visualize them in a series of plots.\n",
+    "Note that because the `WEC` and `PTO` objects are distinct (the WEC object really only knows what the force from the PTO is, not how that force is obtained), we create two separate results objects (in each case, we get results in the frequency domain and time domain)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "wec_fdom, wec_tdom = wec.post_process(results, waves, nsubsteps=nsubsteps)\n",
+    "pto_fdom, pto_tdom = pto.post_process(wec, results, waves, nsubsteps=nsubsteps)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We can inspect each of these [Xarray Datasets](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html) for more details.\n",
+    "As an example the post-processed WEC time-domain results include the following:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "wec_tdom"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Time histories\n",
+    "We will now generate a series of time history plots:\n",
+    "\n",
+    " * **Excitation force and velocity** - Looking at the velocity of the WEC along with the excitation force is useful as we expect the two of these to be in phase *when maximizing mechanical power and in the absence of constraints.*\n",
+    " * **PTO and total mooring tether force** - Since we constrained the PTO force in order to maintain a minimum mooring tether tension, it is useful to visualize these values to confirm that the constraint was properly enforced.\n",
+    " * **Generator torque** - Similarly, we constrained the maximum torque from the generator\n",
+    " * **Power** - We can look at both electrical and mechanical power along with the constraint on mechanical power."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 12))\n",
+    "\n",
+    "# Excitation and velocity\n",
+    "ax1 = ax[0].twinx()\n",
+    "force_excitation = wec_tdom.force.sel(type=['Froude_Krylov', 'diffraction'])\n",
+    "force_excitation = force_excitation.sum('type')/1e3\n",
+    "force_excitation.plot(ax=ax[0], color='k')\n",
+    "wec_tdom.vel.plot(ax=ax1, color='orange')\n",
+    "ax1.set_ylabel('Velocity [m/s]', color='orange')\n",
+    "ax1.tick_params(axis='y', labelcolor='orange')\n",
+    "ax1.set_title('')\n",
+    "ax1.autoscale(enable=True, axis='x', tight=False)\n",
+    "ax[0].set_ylabel('Excitation force [kN]')\n",
+    "\n",
+    "# Forces\n",
+    "(wec_tdom.force.sel(type='PTO')/1e3).plot(\n",
+    "    ax=ax[1], \n",
+    "    label='PTO force in WEC frame',\n",
+    ")\n",
+    "x_wec, x_opt = wot.decompose_state(results.x, ndof=ndof, nfreq=nfreq)\n",
+    "ax[1].plot(\n",
+    "    wec.time_nsubsteps(nsubsteps),\n",
+    "    f_pto_line(wec, x_wec, x_opt, waves, nsubsteps)/1e3,\n",
+    "    linestyle='dashed', \n",
+    "    label='Mooring line tension',\n",
+    ")\n",
+    "ax[1].plot(\n",
+    "    wec.time, \n",
+    "    min_line_tension * np.ones(wec.time.shape) / 1e3,\n",
+    "    linestyle='dotted', \n",
+    "    color='black',\n",
+    "    label=f'Minimum line tension ({min_line_tension/1e3:.0f}kN)',\n",
+    ")\n",
+    "ax[1].axhline(y=0, xmin=0, xmax=1, color='0.75', linewidth=0.5)\n",
+    "ax[1].set_ylabel('Force [kN]')\n",
+    "ax[1].legend(loc=1)\n",
+    "\n",
+    "# Torque\n",
+    "pto_tdom.force.plot(\n",
+    "    ax=ax[2], \n",
+    "    linestyle='solid',\n",
+    "    label='PTO torque in PTO frame',\n",
+    ")\n",
+    "ax[2].plot(\n",
+    "    pto_tdom.time, \n",
+    "    1*torque_peak_max * np.ones(pto_tdom.time.shape),\n",
+    "    color='black', \n",
+    "    linestyle='dotted',\n",
+    "    label=f'Peak torque limit ($\\pm${torque_peak_max}Nm)',\n",
+    ")\n",
+    "ax[2].plot(\n",
+    "    pto_tdom.time, \n",
+    "    -1*torque_peak_max * np.ones(pto_tdom.time.shape), \n",
+    "    color='black', \n",
+    "    linestyle='dotted',\n",
+    ")\n",
+    "ax[2].set_ylabel('Torque [Nm] ')\n",
+    "ax[2].legend(loc='upper right',)\n",
+    "\n",
+    "# Power\n",
+    "(pto_tdom['mech_power']/1e3).plot(ax=ax[3], label='Mech. power')\n",
+    "(pto_tdom['power']/1e3).plot(ax=ax[3], linestyle='dashed', \n",
+    "                             label=\"Elec. power\")\n",
+    "# ax[3].axhline(-1*power_max/1e3, linestyle='dotted', color='black', \n",
+    "    # label=f'Max mech. power ($\\pm${power_max/1e3:.0f}kW)')\n",
+    "# ax[3].axhline(1*power_max/1e3, linestyle='dotted', color='black')\n",
+    "ax[3].grid(color='0.75', linestyle='-', linewidth=0.5, axis='x')\n",
+    "ax[3].legend(loc='upper right')\n",
+    "ax[3].set_title('')\n",
+    "ax[3].set_ylabel('Power [kW]')\n",
+    "\n",
+    "for axi in ax:\n",
+    "    axi.set_title('')\n",
+    "    axi.grid()\n",
+    "    axi.label_outer()\n",
+    "    axi.autoscale(axis='x', tight=True)\n"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Generator torque vs. shaft speed\n",
+    "An important factor in this study was the motor loss map that we defined for the generator.\n",
+    "We can visualize how the optimal control trajectory looks in state-space along with that loss map."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(1, 1, figsize=(8,6))\n",
+    "ax.plot(pto_tdom.vel, pto_tdom.force, color='k')\n",
+    "contour = ax.contourf(X, Y, Z, levels=20, cmap=cm.coolwarm)\n",
+    "plt.colorbar(contour, label=\"Power loss [kW]\")\n",
+    "ax.grid(which='major', linestyle='--')\n",
+    "ax.axvline(0, color='k', lw=1)\n",
+    "ax.axhline(0, color='k', lw=1)\n",
+    "ax.set_ylim([-torque_max, torque_max])\n",
+    "ax.set_ylabel('Torque [Nm]')\n",
+    "ax.set_xlabel('Shaft speed [rad/s]')"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Control co-design of line pre-tension/ballast\n",
+    "[Part 1](#1.-Optimal-control-with-a-loss-map) of this tutorial set up the model and solved for the optimal control trajectory of a single fixed device design.\n",
+    "We now will do control co-design to answer a real, practical question the designers have about the AquaHarmonics design:\n",
+    "**How big of an effect does the mass vs. line pre-tension have on the output power?** \n",
+    "\n",
+    "To do this study we will define the maximum mass as the mass that results in the pre-tension being equal to the minimum pretension, and define that as a mass ratio of `1`.\n",
+    "Note that this maximum mass is slightly smaller than the displaced mass, in order to maintain some positive net buoyancy and thus achieve the minimum line tension.\n",
+    "We will then consider different designs consisting of different mass ratios and see how the output power varies. \n",
+    "For each design the optimal controller for that design will be found (as in [Part 1](#1.-Optimal-control-with-a-loss-map))\n",
+    "\n",
+    "### Problem setup\n",
+    "The first step is to create a function that encapsulates solving for the optimal control trajectory to maximize power (i.e., [Part 1](#1.-Optimal-control-with-a-loss-map) of this tutorial) as an inner loop nested within an outer loop that varies the mass ratio.\n",
+    "To accomplish this, we will create a function which takes the mass fraction as an input and returns the average electrical power as an output.\n",
+    "We consider the same regular wave operational condition as in [Part 1](#1.-Optimal-control-with-a-loss-map). "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "global max_torque \n",
+    "max_torque = []\n",
+    "\n",
+    "def design_obj_fun(x):\n",
+    "    global n\n",
+    "    n += 1\n",
+    "\n",
+    "    # Unpack geometry variables\n",
+    "    mass_ratio = x[0]\n",
+    "    mass_var = mass_ratio * max_mass\n",
+    "    \n",
+    "    #BEM\n",
+    "    bem_data = bem_file\n",
+    "\n",
+    "    # update WEC \n",
+    "    wec_mass = wot.WEC.from_bem(\n",
+    "        bem_data,\n",
+    "        inertia_matrix = mass_var,\n",
+    "        hydrostatic_stiffness = stiffness,\n",
+    "        constraints = constraints,\n",
+    "        friction = None,\n",
+    "        f_add = f_add,\n",
+    "    )\n",
+    "\n",
+    "    # Solve\n",
+    "    print(f'\\nRun {n} of {N+1}: Mass ratio: {mass_ratio:.2f}')\n",
+    "    res = wec_mass.solve(\n",
+    "        waves, \n",
+    "        obj_fun, \n",
+    "        nstate_opt, \n",
+    "        optim_options=options, \n",
+    "        scale_x_wec=scale_x_wec,\n",
+    "        scale_x_opt=scale_x_opt,\n",
+    "        scale_obj=scale_obj)\n",
+    "    opt_average_power = res.fun\n",
+    "    print(\n",
+    "        f'* Mass: {mass_var:.2f} kg\\n' +\n",
+    "        f'* Optimal average electrical power: {opt_average_power/1e3:.2f} kW' \n",
+    "    )\n",
+    "\n",
+    "    # wec_fdom, wec_tdom = wec_mass.post_process(res, waves, nsubsteps=nsubsteps)\n",
+    "    global max_torque \n",
+    "    x_wec, x_opt = wot.decompose_state(res.x, ndof=ndof, nfreq=nfreq)\n",
+    "    max_torque.append(np.max(f_pto_line(wec_mass, x_wec, x_opt, waves, nsubsteps)))\n",
+    "    \n",
+    "    return res.fun"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Solve\n",
+    "We can now pass our function to an optimization algorithm of our choice to determine the optimal mass ratio.\n",
+    "Here, because the problem is fairly small and it is instructive to see the trends in the design space, we will use a [brute force optimization algorithm](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brute.html) to evaluate 7 values of mass ratio between 0.3 and 1.0.\n",
+    "Note that this step will take some time to complete."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# define range\n",
+    "min_ten = -1000\n",
+    "max_mass = (min_ten/g + displaced_mass).item()\n",
+    "global n; n = 0 \n",
+    "global N; N = 7 \n",
+    "min_mass_ratio = 0.3\n",
+    "max_mass_ratio = 1.0\n",
+    "mass_vals = np.linspace(min_mass_ratio, max_mass_ratio, N, endpoint=False)\n",
+    "ranges = (slice(\n",
+    "    mass_vals[0], mass_vals[-1]+np.diff(mass_vals)[0], np.diff(mass_vals)[0]\n",
+    "    ),\n",
+    ")\n",
+    "\n",
+    "# solve\n",
+    "res = brute(func=design_obj_fun, ranges=ranges, full_output=True,  finish=None)"
+   ]
+  },
+  {
+   "attachments": {},
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Results\n",
+    "The following plot shows the average electrical power (blue) for each of the seven designs considered along with the mean position of the device.\n",
+    "As the mass ratio is decreased (i.e., ballast removed), the generated power increases -- recall that negative power is power absorbed.\n",
+    "In this wave, the most power is generated when the mass fraction is 0.7.\n",
+    "This is a scenario when the ballast is such that the total rigid body mass is 70% of the maximum, which allows for a pretension that is approximately 21 times the minimum pretension.\n",
+    "\n",
+    "As the mass fraction is increased, pre-tension approaches the minimum line tension.\n",
+    "At the limit (mass fraction of unity), the WEC can produce no power, as any action by the motor would slack the mooring line (recall that we forced the solution be symmetric).\n",
+    "Recall from the results in [Part 1](#1.-Optimal-control-with-a-loss-map) that we observed the motor torque saturating to avoid violating the minimum line tension constraint.\n",
+    "The red curve corresponding to the y-axis on the right-hand side of the plot shows the minimum absolute line tension.\n",
+    "We can see that for mass fractions equal to and greater than 0.7 the line tension reaches the minimum value, thus bringing that constraint into effect and limiting the generated power.\n",
+    "\n",
+    "Below a mass fraction of 0.7, we see a slight decrease in generated power.\n",
+    "As we decrease the mass ($m$), we are increasing the natural frequency ($\\omega_n$), and increasingly detuning the device with respect to the incoming waves.\n",
+    "\n",
+    "$$\n",
+    "\\omega_n = \\sqrt{\\frac{k}{m}}\n",
+    "$$\n",
+    "\n",
+    "Thus we have at least two competing factors (maintaining the minimum line tension vs. aligning the natural frequency of the device to incoming waves), that produce the result seen below."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(figsize=(8,6))\n",
+    "ax.plot(res[2], res[3]/1e3, 'bo-')\n",
+    "ax.set_xlabel(\"Mass ratio, $m/m_{max}$\")\n",
+    "ax.set_ylabel(\"Average electric power, $\\overline{P}_e$ [kW]\", color=\"b\")\n",
+    "ax.tick_params(axis='y', labelcolor=\"b\")\n",
+    "\n",
+    "# second tick\n",
+    "new_tick_locations = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]\n",
+    "def tick_function(x):\n",
+    "    mass = np.array(x) * max_mass \n",
+    "    pretension_ratio = -1*g*(displaced_mass - mass) / min_line_tension\n",
+    "    return [f\"{tr:.2f}\" for tr in np.squeeze(pretension_ratio)]\n",
+    "ax2 = ax.twiny()\n",
+    "ax2.set_xlim(ax.get_xlim())\n",
+    "ax2.set_xticks(new_tick_locations)\n",
+    "ax2.set_xticklabels(tick_function(new_tick_locations))\n",
+    "ax2.set_xlabel(\"Pre-tension ratio, $t/t_{min}$\")\n",
+    "\n",
+    "ax3 = ax.twinx()\n",
+    "ax3.axhline(-1*min_line_tension/1e3, linestyle='dotted', color='black',\n",
+    "            label='Min. line tension')\n",
+    "ax3.plot(res[2], np.abs(max_torque)/1e3, 'ro-')\n",
+    "ax3.set_ylabel(\"Min. line tension [kN]\", color=\"r\")\n",
+    "ax3.tick_params(axis='y', labelcolor=\"r\")\n",
+    "ax3.set_yticks([1, 5, 10, 15, 20, 25])\n",
+    "ax3.legend(loc=9)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "wot_dev",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.8"
+  },
+  "vscode": {
+   "interpreter": {
+    "hash": "a3e13d9eb6391ec8c830b5b864d7e2cac256aef786c5e95ba02dc5258710976f"
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

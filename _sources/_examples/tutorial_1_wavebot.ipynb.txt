@@ -11,12 +11,13 @@
     "![WaveBot Photo](https://live.staticflickr.com/65535/51855905347_de87ccaaba_z.jpg)\n",
     "\n",
     "At the end of this tutorial the user will perform control co-design of the WEC's geometry and a corresponding optimal controller to maximize electrical power. \n",
-    "We build up to this problem in three parts of succesive complexity:\n",
+    "We build up to this problem in three parts of successive complexity:\n",
+    "\n",
     "1. [Optimal control for maximum mechanical power](#1.-Optimal-control-for-maximum-mechanical-power)\n",
     "2. [Optimal control for maximum electrical power](#2.-Optimal-control-for-maximum-electrical-power)\n",
-    "3. [Control co-design of the WEC's geometry for maximum electrical power](#3.-Control-co-design-of-the-WEC's-geometry-for-maximum-electrical-power)\n",
+    "3. [Control co-design of the WEC's geometry for maximum electrical power](#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power)\n",
     "\n",
-    "We will start by loading the necessary modules:\n",
+    "We will start by loading the necessary modules: \n",
     "\n",
     "* Import Autograd (wrapper on NumPy, required) for automatic differentiation\n",
     "* Import other packages we will use in this tutorial \n",
@@ -29,12 +30,13 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "from datetime import datetime\n",
+    "\n",
     "import autograd.numpy as np\n",
     "import capytaine as cpy\n",
     "import matplotlib.pyplot as plt\n",
-    "import datetime\n",
+    "from scipy.optimize import brute\n",
     "\n",
-    "# wecopttool\n",
     "import wecopttool as wot"
    ]
   },
@@ -276,11 +278,14 @@
    ]
   },
   {
+   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
     "### Objective function\n",
-    "The objective function is the quantity (scalar) we want to optimize—in this case, the average mechanical power. The objective function is itself a function of the optimization state, the size of which we need to properly define our call to `scipy.optimize.minimize()`. The average mechanical power can be taken directly from the `PTO` object we created:"
+    "The objective function is the quantity (scalar) we want to optimize—in this case, the average mechanical power. The objective function is itself a function of the optimization state, the size of which we need to properly define our call to `scipy.optimize.minimize()`. The average mechanical power can be taken directly from the `PTO` object we created.\n",
+    "\n",
+    "One technical quirk here: `nstate_opt` is one smaller than would be expected for a state space representing the mean (DC) component and the real and imaginary Fourier coefficients. This is because WecOptTool excludes the imaginary Fourier component of the highest frequency (the 2-point wave). Since the 2-point wave is sampled at multiples of $\\pi$, the imaginary component is evaluated as $sin(n\\pi); n = 0, 1, 2, ..., n_{freq}$, which is always zero. Excluding this component speeds up the optimization as the state space is reduced by one."
    ]
   },
   {
@@ -290,7 +295,7 @@
    "outputs": [],
    "source": [
     "obj_fun = pto.mechanical_average_power\n",
-    "nstate_opt = 2*nfreq+1"
+    "nstate_opt = 2*nfreq"
    ]
   },
   {
@@ -416,13 +421,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## 2. Optimal control for maximum electrical power"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
+    "## 2. Optimal control for maximum electrical power\n",
+    "\n",
     "The rest of this tutorial will focus on optimizing for electrical power (new objective function) rather than mechanical, as this is a form of power that is usable and transportable.\n",
     "\n",
     "Since we're still dealing with the same WaveBot as in part 1, we can reuse the BEM and wave data from before. Look back at part 1 if you need a refresher on how to create these data.\n",
@@ -619,7 +619,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## 3. Control co-design of the WEC's geometry for maximum electrical power\n",
+    "## 3. Control co-design of the WEC geometry for maximum electrical power\n",
     "The first two examples only used the inner optimization loop in WecOptTool to optimize PTO power. Here in Part 3 we bring it all together and show how to use both the inner and outer optimization loops in WecOptTool to do control co-optimization of a hull design in conjunction with an optimal controller for electrical power.\n",
     "Again, we use the WaveBot WEC in one degree of freedom in regular waves. \n",
     "The goal is to **find the optimal keel radius** (`r2`) that maximizes the average produced electrical power, while maintaining a constant hull volume. \n",
@@ -653,9 +653,6 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "from datetime import datetime\n",
-    "from scipy.optimize import brute\n",
-    "\n",
     "r1 = 0.88\n",
     "r2_0 = 0.35\n",
     "h2_0 = 0.37\n",
@@ -780,7 +777,7 @@
     "\n",
     "    # Objective function\n",
     "    obj_fun = pto.average_power\n",
-    "    nstate_opt = 2*nfreq+1\n",
+    "    nstate_opt = 2*nfreq\n",
     "    \n",
     "    # Solve\n",
     "    scale_x_wec = 1e1  \n",
@@ -816,6 +813,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "wot.set_loglevel(\"error\")  # Suppress warnings\n",
+    "\n",
     "# range over which to search\n",
     "ranges = (slice(r2_vals[0], r2_vals[-1]+np.diff(r2_vals)[0], np.diff(r2_vals)[0]),)\n",
     "\n",
@@ -859,7 +858,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
+   "display_name": "wot_dev",
    "language": "python",
    "name": "python3"
   },
@@ -873,11 +872,11 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.9.13"
+   "version": "3.10.8"
   },
   "vscode": {
    "interpreter": {
-    "hash": "751fc522c1cd2156fb1b6f8a14ead14cab593d90b0fb927ac1604f5aa00e9bbb"
+    "hash": "a3e13d9eb6391ec8c830b5b864d7e2cac256aef786c5e95ba02dc5258710976f"
    }
   }
  },

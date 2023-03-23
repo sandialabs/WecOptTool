@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.geom &mdash; WecOptTool 2.0.0 documentation</title>
+  <title>wecopttool.geom &mdash; WecOptTool 2.2.3 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -12,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -28,14 +25,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../index.html" class="icon icon-home"> WecOptTool
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            WecOptTool
           </a>
               <div class="version">
-                2.0
+                2.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -48,7 +49,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../references.html">References</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api_docs.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_docs/wecopttool.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -64,9 +65,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../index.html">Module code</a> &raquo;</li>
-      <li>wecopttool.geom</li>
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../wecopttool.html">wecopttool</a></li>
+      <li class="breadcrumb-item active">wecopttool.geom</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -83,17 +85,22 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;WaveBot&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">import</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">Figure</span>
-<span class="kn">import</span> <span class="nn">pygmsh</span>
-<span class="kn">import</span> <span class="nn">gmsh</span>
 <span class="kn">from</span> <span class="nn">meshio._mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">import</span> <span class="nn">gmsh</span>
+<span class="kn">import</span> <span class="nn">pygmsh</span>
 
 
 <div class="viewcode-block" id="WaveBot"><a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.html#wecopttool.geom.WaveBot">[docs]</a><span class="k">class</span> <span class="nc">WaveBot</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Class representing the Sandia WaveBot.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing the Sandia WaveBot.</span>
+
 <span class="sd">    See, e.g.,</span>
 
 <span class="sd">        - https://doi.org/10.3390/en10040472</span>
@@ -102,13 +109,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="WaveBot.__init__"><a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.html#wecopttool.geom.WaveBot.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">r1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.88</span><span class="p">,</span>
-        <span class="n">r2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span><span class="p">,</span>
-        <span class="n">h1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.17</span><span class="p">,</span>
-        <span class="n">h2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.37</span><span class="p">,</span>
-        <span class="n">freeboard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Create a WaveBot with specific dimensions.</span>
+                 <span class="n">r1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.88</span><span class="p">,</span>
+                 <span class="n">r2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span><span class="p">,</span>
+                 <span class="n">h1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.17</span><span class="p">,</span>
+                 <span class="n">h2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.37</span><span class="p">,</span>
+                 <span class="n">scale_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="n">freeboard</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a WaveBot with specific dimensions.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -120,20 +128,23 @@
 <span class="sd">            Height of the cylindrical section [m].</span>
 <span class="sd">        h2</span>
 <span class="sd">            Height of the conic frustum section [m].</span>
+<span class="sd">        scale_factor</span>
+<span class="sd">            Scale factor to linearly scale hull dimensions [ ].</span>
 <span class="sd">        freeboard</span>
 <span class="sd">            Freeboard above free surface (will be removed later for BEM</span>
 <span class="sd">            calculations) [m]. The draft of the cylindrical section is</span>
 <span class="sd">            :python:`h1-freeboard`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">r1</span> <span class="o">=</span> <span class="n">r1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">r2</span> <span class="o">=</span> <span class="n">r2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">=</span> <span class="n">h1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">h2</span> <span class="o">=</span> <span class="n">h2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span> <span class="o">=</span> <span class="n">freeboard</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r1</span> <span class="o">=</span> <span class="n">r1</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r2</span> <span class="o">=</span> <span class="n">r2</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">=</span> <span class="n">h1</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">h2</span> <span class="o">=</span> <span class="n">h2</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span> <span class="o">=</span> <span class="n">freeboard</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gear_ratio</span> <span class="o">=</span> <span class="mf">12.47</span></div>
 
 <div class="viewcode-block" id="WaveBot.mesh"><a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.mesh.html#wecopttool.geom.WaveBot.mesh">[docs]</a>    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Generate surface mesh of hull.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate surface mesh of hull.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -156,11 +167,11 @@
         <span class="k">return</span> <span class="n">mesh</span></div>
 
 <div class="viewcode-block" id="WaveBot.plot_cross_section"><a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.plot_cross_section.html#wecopttool.geom.WaveBot.plot_cross_section">[docs]</a>    <span class="k">def</span> <span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">ax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Axes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+                           <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                           <span class="n">ax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Axes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                           <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Plot hull cross-section.</span>
 
 <span class="sd">        Parameters</span>
@@ -178,7 +189,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span> <span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">h2</span><span class="p">),</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">h2</span><span class="p">),</span>
              <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">h2</span><span class="p">),</span>
              <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">h1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">freeboard</span><span class="p">),</span>
              <span class="mi">0</span><span class="p">,</span>
@@ -206,7 +217,133 @@
         <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div></div>
 
 
-<span class="c1"># TODO: Include at least one more example. Something different. OSWEC (pitch)? RM3 (2 bodies)?</span>
+<span class="k">class</span> <span class="nc">AquaHarmonics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing the AquaHarmonics WEC.</span>
+
+<span class="sd">    See https://aquaharmonics.com/wec_vis/.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">T1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+                 <span class="n">T2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.355</span><span class="p">,</span>
+                 <span class="n">T3</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">7.25</span><span class="p">,</span>
+                 <span class="n">r1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.085</span><span class="p">,</span>
+                 <span class="n">r2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.405</span><span class="p">,</span>
+                 <span class="n">r3</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.355</span><span class="p">,</span>
+                 <span class="n">scale_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+                 <span class="n">ofst</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+                 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create the AquaHarmonics WEC with specific dimensions.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        T1 : float, optional</span>
+<span class="sd">            Draft of large cylinder [m].</span>
+<span class="sd">        T2 : float, optional</span>
+<span class="sd">            Height of conic frustum [m].</span>
+<span class="sd">        T3 : float, optional</span>
+<span class="sd">            Height of tube [m].</span>
+<span class="sd">        r1 : float, optional</span>
+<span class="sd">            Radius of larger cylinder [m].</span>
+<span class="sd">        r2 : float, optional</span>
+<span class="sd">            Outer radius of tube [m].</span>
+<span class="sd">        r3 : float, optional</span>
+<span class="sd">            Inner radius of tube [m].</span>
+<span class="sd">        scale_factor</span>
+<span class="sd">            Scale factor to linearly scale hull dimensions [ ].</span>
+<span class="sd">        ofst : float, optional</span>
+<span class="sd">            Offset for clipping at waterplane [m].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T1</span> <span class="o">=</span> <span class="n">T1</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T2</span> <span class="o">=</span> <span class="n">T2</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T3</span> <span class="o">=</span> <span class="n">T3</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r1</span> <span class="o">=</span> <span class="n">r1</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r2</span> <span class="o">=</span> <span class="n">r2</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r3</span> <span class="o">=</span> <span class="n">r3</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ofst</span> <span class="o">=</span> <span class="n">ofst</span> <span class="o">*</span> <span class="n">scale_factor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
+
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mesh of AquaHarmonics hull.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        mesh</span>
+<span class="sd">            Surface mesh of hull.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">pygmsh</span><span class="o">.</span><span class="n">occ</span><span class="o">.</span><span class="n">Geometry</span><span class="p">()</span> <span class="k">as</span> <span class="n">geom</span><span class="p">:</span>
+            <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s1">&#39;Mesh.MeshSizeFactor&#39;</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">)</span>
+            <span class="n">cyl1</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+                                     <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="p">],</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">r1</span><span class="p">)</span>
+            <span class="n">cone</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cone</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="p">],</span>
+                                 <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">],</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">r2</span><span class="p">)</span>
+            <span class="n">cylout</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">)],</span>
+                                       <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T3</span><span class="p">],</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">r2</span><span class="p">)</span>
+            <span class="n">cylin</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">)],</span>
+                                      <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">T3</span><span class="p">],</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">r3</span><span class="p">)</span>
+            <span class="n">cyl2</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">boolean_difference</span><span class="p">(</span><span class="n">cylout</span><span class="p">,</span> <span class="n">cylin</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">wecGeom</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">boolean_union</span><span class="p">(</span><span class="n">entities</span><span class="o">=</span><span class="p">[</span><span class="n">cyl1</span><span class="p">,</span> <span class="n">cone</span><span class="p">,</span> <span class="n">cyl2</span><span class="p">],</span>
+                                         <span class="n">delete_first</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">geom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">wecGeom</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ofst</span><span class="p">])</span>
+            <span class="n">mesh</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">generate_mesh</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">mesh</span>
+
+    <span class="k">def</span> <span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                           <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                           <span class="n">ax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Axes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                           <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                           <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot hull cross-section.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        show</span>
+<span class="sd">            Whether to show the figure.</span>
+<span class="sd">        ax</span>
+<span class="sd">            Existing axes. The default is None.</span>
+<span class="sd">            If None, new axes will be created.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Passed to :func:`matplotlib.pyplot.plot`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">r1</span><span class="p">],</span>
+            <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">),</span>
+             <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">),</span>
+             <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T3</span><span class="p">),</span>
+             <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T3</span><span class="p">),</span>
+             <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">T2</span><span class="p">),</span>
+             <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T1</span><span class="p">),</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">ofst</span><span class="p">],</span>
+            <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span>
+        <span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Radius [m]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Height [m]&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">show</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
 </pre></div>
 
            </div>
@@ -216,7 +353,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

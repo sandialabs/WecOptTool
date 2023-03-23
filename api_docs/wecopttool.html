@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Documentation &mdash; WecOptTool 2.2.3 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="wecopttool.geom" href="wecopttool.geom.html" />
+    <link rel="prev" title="References" href="../references.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            WecOptTool
+          </a>
+              <div class="version">
+                2.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation.html">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative_mat.html">wecopttool.derivative_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.dofmat_to_vec.html">wecopttool.dofmat_to_vec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_impedance.html">wecopttool.force_from_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html">wecopttool.force_from_rao_transfer_function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_waves.html">wecopttool.force_from_waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency.html">wecopttool.frequency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.inertia.html">wecopttool.inertia</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.linear_hydrodynamics.html">wecopttool.linear_hydrodynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.metadata.html">wecopttool.metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.mimo_transfer_mat.html">wecopttool.mimo_transfer_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.ncomponents.html">wecopttool.ncomponents</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.read_netcdf.html">wecopttool.read_netcdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.real_to_complex.html">wecopttool.real_to_complex</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.run_bem.html">wecopttool.run_bem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.scale_dofs.html">wecopttool.scale_dofs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.set_loglevel.html">wecopttool.set_loglevel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.standard_forces.html">wecopttool.standard_forces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.subset_close.html">wecopttool.subset_close</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.td_to_fd.html">wecopttool.td_to_fd</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time.html">wecopttool.time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time_mat.html">wecopttool.time_mat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.time_results.html">wecopttool.time_results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.vec_to_dofmat.html">wecopttool.vec_to_dofmat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.wave_excitation.html">wecopttool.wave_excitation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.write_netcdf.html">wecopttool.write_netcdf</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Documentation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-wecopttool">
+<span id="api-documentation"></span><h1>API Documentation<a class="headerlink" href="#module-wecopttool" title="Permalink to this heading"></a></h1>
+<p>WEC Design Optimization Toolbox (<em>WecOptTool</em>) developed by
+Sandia National Laboratories. See
+<a class="reference external" href="https://snl-waterpower.github.io/WecOptTool/">snl-waterpower.github.io/WecOptTool/</a>.</p>
+<p>The top-level <code class="code highlight python docutils literal highlight-python"><span class="n">wecopttool</span></code> module contains:</p>
+<ul class="simple">
+<li><p>The <code class="code highlight python docutils literal highlight-python"><span class="n">wecopttool</span><span class="o">.</span><span class="n">WEC</span></code> class, which is the main way to interact
+with <em>WecOptTool</em>.</p></li>
+<li><p>Support functions for basic functionality, accessed as
+<code class="code highlight python docutils literal highlight-python"><span class="n">wecoptool</span><span class="o">.&lt;</span><span class="n">function</span><span class="o">&gt;</span></code>.</p></li>
+</ul>
+<p>Other functionalities are implemented in the submodules, and can be
+accessed as <code class="code highlight python docutils literal highlight-python"><span class="n">wecopttool</span><span class="o">.&lt;</span><span class="n">module</span><span class="o">&gt;.&lt;</span><span class="n">function</span><span class="o">&gt;</span></code>.</p>
+<p><strong>Type Aliases</strong></p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Alias</p></th>
+<th class="head"><p>Type</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="code highlight python docutils literal highlight-python"><span class="n">StateFunction</span></code></p></td>
+<td><p><code class="code highlight python docutils literal highlight-python"><span class="n">Callable</span><span class="p">[[</span><span class="n">WEC</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Modules</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.geom.html#module-wecopttool.geom" title="wecopttool.geom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wecopttool.geom</span></code></a></p></td>
+<td><p>Geometry and parameters for some example devices (WEC).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.hydrostatics.html#module-wecopttool.hydrostatics" title="wecopttool.hydrostatics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wecopttool.hydrostatics</span></code></a></p></td>
+<td><p>Functions for calculating hydrostatic and mass properties for floating bodies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.pto.html#module-wecopttool.pto" title="wecopttool.pto"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wecopttool.pto</span></code></a></p></td>
+<td><p>Provide power take-off (PTO) forces and produced energy functions for common PTO control approaches.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a></p></td>
+<td><p>Provide the wave definition structure and provide functions for creating different common types of waves.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.WEC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC</span></code></a></p></td>
+<td><p>A wave energy converter (WEC) object for performing simulations using the pseudo-spectral solution method.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.atleast_2d.html#wecopttool.atleast_2d" title="wecopttool.atleast_2d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">atleast_2d</span></code></a></p></td>
+<td><p>Ensure an array is at least 2D, otherwise add trailing dimensions to make it 2D.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.change_bem_convention.html#wecopttool.change_bem_convention" title="wecopttool.change_bem_convention"><code class="xref py py-obj docutils literal notranslate"><span class="pre">change_bem_convention</span></code></a></p></td>
+<td><p>Change the convention from <span class="math notranslate nohighlight">\(-iωt\)</span> to <span class="math notranslate nohighlight">\(+iωt\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.check_impedance.html#wecopttool.check_impedance" title="wecopttool.check_impedance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_impedance</span></code></a></p></td>
+<td><p>Ensure that the real part of the impedance (resistive) is positive.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.check_linear_damping.html#wecopttool.check_linear_damping" title="wecopttool.check_linear_damping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_linear_damping</span></code></a></p></td>
+<td><p>Ensure that the linear hydrodynamics (friction + radiation damping) have positive damping.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.complex_to_real.html#wecopttool.complex_to_real" title="wecopttool.complex_to_real"><code class="xref py py-obj docutils literal notranslate"><span class="pre">complex_to_real</span></code></a></p></td>
+<td><p>Convert from one complex amplitude to two real amplitudes per frequency.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.decompose_state.html#wecopttool.decompose_state" title="wecopttool.decompose_state"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decompose_state</span></code></a></p></td>
+<td><p>Split the state vector into the WEC dynamics state and the optimization (control) state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.degrees_to_radians.html#wecopttool.degrees_to_radians" title="wecopttool.degrees_to_radians"><code class="xref py py-obj docutils literal notranslate"><span class="pre">degrees_to_radians</span></code></a></p></td>
+<td><p>Convert a 1D array of angles in degrees to radians in the range <span class="math notranslate nohighlight">\([-π, π)\)</span> and optionally sort them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.derivative_mat.html#wecopttool.derivative_mat" title="wecopttool.derivative_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">derivative_mat</span></code></a></p></td>
+<td><p>Assemble the derivative matrix that converts the state vector of a response to the state vector of its derivative.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.dofmat_to_vec.html#wecopttool.dofmat_to_vec" title="wecopttool.dofmat_to_vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dofmat_to_vec</span></code></a></p></td>
+<td><p>Flatten a matrix that has one column per DOF.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.fd_to_td.html#wecopttool.fd_to_td" title="wecopttool.fd_to_td"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fd_to_td</span></code></a></p></td>
+<td><p>Convert a complex array of Fourier coefficients to a real array of time-domain responses.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.force_from_impedance.html#wecopttool.force_from_impedance" title="wecopttool.force_from_impedance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_from_impedance</span></code></a></p></td>
+<td><p>Create a force function from its impedance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html#wecopttool.force_from_rao_transfer_function" title="wecopttool.force_from_rao_transfer_function"><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_from_rao_transfer_function</span></code></a></p></td>
+<td><p>Create a force function from its position transfer matrix.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.force_from_waves.html#wecopttool.force_from_waves" title="wecopttool.force_from_waves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_from_waves</span></code></a></p></td>
+<td><p>Create a force function from waves excitation coefficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.frequency.html#wecopttool.frequency" title="wecopttool.frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frequency</span></code></a></p></td>
+<td><p>Construct equally spaced frequency array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.frequency_parameters.html#wecopttool.frequency_parameters" title="wecopttool.frequency_parameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frequency_parameters</span></code></a></p></td>
+<td><p>Return the fundamental frequency and the number of frequencies in a frequency array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html#wecopttool.hydrodynamic_impedance" title="wecopttool.hydrodynamic_impedance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hydrodynamic_impedance</span></code></a></p></td>
+<td><p>Calculate hydrodynamic intrinsic impedance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.inertia.html#wecopttool.inertia" title="wecopttool.inertia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inertia</span></code></a></p></td>
+<td><p>Create the inertia &quot;force&quot; from the inertia matrix.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.linear_hydrodynamics.html#wecopttool.linear_hydrodynamics" title="wecopttool.linear_hydrodynamics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linear_hydrodynamics</span></code></a></p></td>
+<td><p>Add rigid body inertia_matrix, hydrostatic stiffness, and linear friction to BEM data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.metadata.html#wecopttool.metadata" title="wecopttool.metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metadata</span></code></a></p></td>
+<td><p>Get the metadata for the named package.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.mimo_transfer_mat.html#wecopttool.mimo_transfer_mat" title="wecopttool.mimo_transfer_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mimo_transfer_mat</span></code></a></p></td>
+<td><p>Create a block matrix of the MIMO transfer function.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.ncomponents.html#wecopttool.ncomponents" title="wecopttool.ncomponents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ncomponents</span></code></a></p></td>
+<td><p>Number of Fourier components (<code class="code highlight python docutils literal highlight-python"><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span></code>) for each DOF.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.read_netcdf.html#wecopttool.read_netcdf" title="wecopttool.read_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_netcdf</span></code></a></p></td>
+<td><p>Read a <em>NetCDF</em> file with possibly complex entries as a <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.3.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.real_to_complex.html#wecopttool.real_to_complex" title="wecopttool.real_to_complex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">real_to_complex</span></code></a></p></td>
+<td><p>Convert from two real amplitudes to one complex amplitude per frequency.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.run_bem.html#wecopttool.run_bem" title="wecopttool.run_bem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_bem</span></code></a></p></td>
+<td><p>Run Capytaine for a range of frequencies and wave directions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.scale_dofs.html#wecopttool.scale_dofs" title="wecopttool.scale_dofs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_dofs</span></code></a></p></td>
+<td><p>Create a scaling vector based on a different scale for each DOF.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.set_loglevel.html#wecopttool.set_loglevel" title="wecopttool.set_loglevel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_loglevel</span></code></a></p></td>
+<td><p>Change the logging level of the <code class="code highlight python docutils literal highlight-python"><span class="n">wecopttool</span></code> and <code class="code highlight python docutils literal highlight-python"><span class="n">capytaine</span></code> loggers to the specified level.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.standard_forces.html#wecopttool.standard_forces" title="wecopttool.standard_forces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_forces</span></code></a></p></td>
+<td><p>Create functions for linear hydrodynamic forces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.subset_close.html#wecopttool.subset_close" title="wecopttool.subset_close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subset_close</span></code></a></p></td>
+<td><p>Check if the first set <code class="code highlight python docutils literal highlight-python"><span class="n">set_a</span></code> is contained, to some tolerance, in the second set <code class="code highlight python docutils literal highlight-python"><span class="n">set_b</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.td_to_fd.html#wecopttool.td_to_fd" title="wecopttool.td_to_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">td_to_fd</span></code></a></p></td>
+<td><p>Convert a real array of time-domain responses to a complex array of Fourier coefficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.time.html#wecopttool.time" title="wecopttool.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time</span></code></a></p></td>
+<td><p>Assemble the time vector with <code class="code highlight python docutils literal highlight-python"><span class="n">nsubsteps</span></code> subdivisions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.time_mat.html#wecopttool.time_mat" title="wecopttool.time_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_mat</span></code></a></p></td>
+<td><p>Assemble the time matrix that converts the state to a time-series.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.time_results.html#wecopttool.time_results" title="wecopttool.time_results"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_results</span></code></a></p></td>
+<td><p>Create a <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.3.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> of time-domain results from <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.3.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> of frequency-domain results.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.vec_to_dofmat.html#wecopttool.vec_to_dofmat" title="wecopttool.vec_to_dofmat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vec_to_dofmat</span></code></a></p></td>
+<td><p>Convert a vector back to a matrix with one column per DOF.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.wave_excitation.html#wecopttool.wave_excitation" title="wecopttool.wave_excitation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wave_excitation</span></code></a></p></td>
+<td><p>Calculate the complex, frequency-domain, excitation force due to waves.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.write_netcdf.html#wecopttool.write_netcdf" title="wecopttool.write_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_netcdf</span></code></a></p></td>
+<td><p>Save an <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.3.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> with possibly complex entries as a <em>NetCDF</em> file.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../references.html" class="btn btn-neutral float-left" title="References" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.geom.html" class="btn btn-neutral float-right" title="wecopttool.geom" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

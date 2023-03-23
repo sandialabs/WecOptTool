@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorials &mdash; WecOptTool 2.0.0 documentation</title>
+  <title>Tutorials &mdash; WecOptTool 2.2.3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -13,9 +13,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -31,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> WecOptTool
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WecOptTool
           </a>
               <div class="version">
-                2.0
+                2.2
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -49,12 +50,13 @@
 <li class="toctree-l1"><a class="reference internal" href="implementation.html">Implementation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_1_wavebot.html">Tutorial 1 - WaveBot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_2_AquaHarmonics.html">Tutorial 2 - AquaHarmonics</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="api_docs.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_docs/wecopttool.html">API Documentation</a></li>
 </ul>
 
         </div>
@@ -70,8 +72,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Tutorials</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorials</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -80,47 +82,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<section id="tutorials">
+  <section id="tutorials">
 <h1>Tutorials<a class="headerlink" href="#tutorials" title="Permalink to this heading"></a></h1>
-<p>This section presents a tutorial illustrating the application of WecOptTool.
-The tutorial is written as Jupyter Notebooks and is available in the <a class="reference external" href="https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples">GitHub repository</a>.
-The tutorial uses the <a class="reference external" href="https://doi.org/10.3390/en10040472">WaveBot</a> WEC, which is a single-body WEC developed at Sandia.
+<p>This section presents two tutorials illustrating the application of WecOptTool.
+The tutorials are written as Jupyter Notebooks and are available in the <a class="reference external" href="https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples">GitHub repository</a>.</p>
+<p>The first tutorial uses the <a class="reference external" href="https://doi.org/10.3390/en10040472">WaveBot</a> WEC, which is a single-body WEC developed at Sandia.
 The tutorial has three sequential parts of increased complexity.
-The first and second parts solve only the inner optimization loop for optimal mechanical and electricla power, respectively.
+The first and second parts solve only the inner optimization loop for optimal mechanical and electrical power, respectively.
 The third part builds on the second to solve a design optimization problem, using both the inner and outer optimization loops, and is more reflective of the optimization problems WecOptTool is designed to solve.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><a class="reference internal" href="_examples/tutorial_1_wavebot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>: Three part example of using the inner and outer optimization loops for a simple control co-design study.</p></li>
 </ul>
 </div></blockquote>
+<p>The second tutorial uses the <a class="reference external" href="https://aquaharmonics.com/technology/">AquaHarmonics</a> WEC, and provides a more robust optimization example illustrating more complex cases of the power take-off, applied forces, and constraints.
+The tutorial has two parts, which are similar in structure to the second and third parts of Tutorial 1.</p>
 <blockquote>
-<div><div class="toctree-wrapper compound">
-</div>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="_examples/tutorial_2_AquaHarmonics.html"><span class="doc">Tutorial 2 - AquaHarmonics</span></a>: Two part example with a realistic power take-off system and co-design study.</p></li>
+</ul>
 </div></blockquote>
+<div class="toctree-wrapper compound">
+</div>
 </section>
 
 
@@ -134,7 +117,7 @@ The third part builds on the second to solve a design optimization problem, usin
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

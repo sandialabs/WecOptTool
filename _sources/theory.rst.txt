@@ -12,8 +12,8 @@ Basic concept
 
 WecOptTool uses a pseudo-spectral method :cite:`Elnagar1995pseudospectral` to perform two tasks synchronously:
 
-	1. Optimize the solution for the desired objective function (e.g. power generation)
-	2. Simulate the wave energy converter (WEC) dynamics
+    1. Optimize the solution for the desired objective function (e.g. power generation)
+    2. Simulate the wave energy converter (WEC) dynamics
 
 This can be written as a traditional optimization problem:
 
@@ -36,17 +36,17 @@ Additionally, any number of arbitrary nonlinear constraints, such as requiring a
 Solving :eq:`optim_prob`, we can find the optimal control state :math:`x_{u}` (e.g., PTO force) that minimizes our objective function (e.g., power generation) for a given WEC design subject to arbitrary constraints and including nonlinear dynamics.
 The pseudo-spectral method has a number of key attributes that make it well-suited to this application:
 
-	* **Explicit constraints:** Dynamic and kinematic constraints can be enforced explicitly, negating the need to run unfeasible solutions and thus reducing computational cost.
-	* **Efficient simulation of nonlinear dynamics:** Frequency-domain solutions cannot include nonlinear dynamics and time-domain solutions can only do so with significant computational cost; the pseudo-spectral method can efficiently handle nonlinear systems.
-	* **Arbitrary or fixed controller structure:** As a starting point, one may consider optimal control without a given structure. Later on, it may be useful to consider, e.g., a proportional feedback or latching controller. This can be accomplished via the pseudo-spectral method by structuring the system dynamics and the control vector (:math:`x_{u}`).
+    * **Explicit constraints:** Dynamic and kinematic constraints can be enforced explicitly, negating the need to run unfeasible solutions and thus reducing computational cost.
+    * **Efficient simulation of nonlinear dynamics:** Frequency-domain solutions cannot include nonlinear dynamics and time-domain solutions can only do so with significant computational cost; the pseudo-spectral method can efficiently handle nonlinear systems.
+    * **Arbitrary or fixed controller structure:** As a starting point, one may consider optimal control without a given structure. Later on, it may be useful to consider, e.g., a proportional feedback or latching controller. This can be accomplished via the pseudo-spectral method by structuring the system dynamics and the control vector (:math:`x_{u}`).
 
 The solution to :eq:`optim_prob` can be wrapped with an *outer* design optimization problem, in which any optimization algorithm can be applied.
 Some examples of problems which can be addressed within this framework include:
 
-   * Optimization of geometry dimensions for a hull
-   * Optimization of PTO components (e.g., inertia of a flywheel, a gear ratio)
-   * Optimization of ballast versus pre-tension
-   * Optimization of the layout for a WEC array
+    * Optimization of geometry dimensions for a hull
+    * Optimization of PTO components (e.g., inertia of a flywheel, a gear ratio)
+    * Optimization of ballast versus pre-tension
+    * Optimization of the layout for a WEC array
 
 
 How's this different from what I'm used to?
@@ -56,17 +56,17 @@ Most users will be more familiar with a time-stepping approach for differential 
 Starting from an initial time (e.g., :math:`t=0`), the solution is solved by iteratively stepping forward in time.
 
 .. image:: ../_build/html/_static/theory_animation_td.gif
-  :width: 600
-  :alt: Time-domain solution animation
-  :align: center
+    :width: 600
+    :alt: Time-domain solution animation
+    :align: center
 
 Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.
 
 .. image:: ../_build/html/_static/theory_animation_ps.gif
-  :width: 600
-  :alt: Pseudo-spectral solution animation
-  :align: center
+    :width: 600
+    :alt: Pseudo-spectral solution animation
+    :align: center
 
 .. note::
     These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.
@@ -91,17 +91,11 @@ Consider, for example, a general case without a controller structure, in which :
 For a wave tank scale device, one might expect velocities of :math:`\mathcal{O}(1e{-1})`, but the forces could be :math:`\mathcal{O}(1e3)`.
 For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable :math:`x` and with the objective function :math:`J(x)` can lead to problems with convergence.
-To alleviate this issue, WecOptTool allows users to set scale factors for the components of :math:`x` as well as the objective function (see :meth:`wecopttool.core.WEC.solve`).
-Additionally, you may set :code:`import logging, logging.basicConfig(level=logging.INFO)` to output the maximum values of `x` and the objective function during the solution process.
-Depending on your problem, it may also be helpful to use the :meth:`wecopttool.core.WEC.initial_x_wec_guess` method and/or the :code:`unconstrained_first` for :meth:`wecopttool.core.WEC.solve`.
 
 Constraints
 ^^^^^^^^^^^
 Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
-
-..
-    This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
-
+This functionality is well-illustrated in :doc:`_examples/tutorial_1_wavebot`.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.PTO.force_on_wec`).
@@ -142,10 +136,6 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w^T = f_p^T K \\
     f_w = K^T f_p \\
     :label: conservation_energy
-
-..
-    (commented out): This represents a linearization of the function :math:`f_w(f_p)` about :math:`f_p=0` with :math:`K^T` being the Jacobian of :math:`f_w(f_p)` at :math:`f_p=0`.
-                     The assumption here is that :math:`f_p(p(x=0))=f_p(0)=0`.
 
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
