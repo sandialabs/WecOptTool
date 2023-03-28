@@ -288,6 +288,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
         obtained using the boundary element method (BEM) code Capytaine.
@@ -347,6 +348,11 @@ class WEC:
         min_damping
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_linear_damping` for more details.
+        dof_names
+            Names of the different degrees of freedom (e.g.
+            :python:`'Heave'`).
+            If :python:`None` the names
+            :python:`['DOF_0', ..., 'DOF_N']` are used.
 
         Raises
         ------
@@ -389,7 +395,7 @@ class WEC:
         forces = linear_force_functions | f_add
         # constraints
         constraints = constraints if (constraints is not None) else []
-        return WEC(f1, nfreq, forces, constraints, inertia_matrix)
+        return WEC(f1, nfreq, forces, constraints, inertia_matrix, dof_names=dof_names)
 
     @staticmethod
     def from_floating_body(
@@ -559,7 +565,7 @@ class WEC:
         if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
             raise ValueError(
                 "'impedance' must have shape '(ndof, ndof, nfreq)'.")
-            
+
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
@@ -585,7 +591,7 @@ class WEC:
         wec = WEC(f1, nfreq, forces, constraints,
                   inertia_in_forces=True, ndof=shape[0])
         return wec
-    
+
     def _resid_fun(self, x_wec, x_opt, waves):
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
@@ -1418,7 +1424,7 @@ def mimo_transfer_mat(
     Fourier coefficients (excluding the imaginary component of the
     2-point wave) as
     :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
-    
+
     If :python:`zero_freq = False` (not default), the mean (DC) component
     :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
@@ -2191,10 +2197,10 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     Parameters
     ----------
     hydro_data
-        Dataset with linear hydrodynamic coefficients produced by 
+        Dataset with linear hydrodynamic coefficients produced by
         :py:func:`wecopttool.linear_hydrodynamics`.
     """
-    
+
     Zi = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
