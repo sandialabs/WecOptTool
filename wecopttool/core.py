@@ -502,6 +502,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        dof_names: Optional[Iterable[str]] = None,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -544,6 +545,11 @@ class WEC:
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_impedance` for
             more details.
+        dof_names
+            Names of the different degrees of freedom (e.g.
+            :python:`'Heave'`).
+            If :python:`None` the names
+            :python:`['DOF_0', ..., 'DOF_N']` are used.
 
         Raises
         ------
@@ -583,7 +589,8 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0])
+                  inertia_in_forces=True, ndof=shape[0], 
+                  dof_names=dof_names)
         return wec
     
     def _resid_fun(self, x_wec, x_opt, waves):
