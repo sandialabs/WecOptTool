@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC.from_bem &mdash; WecOptTool 2.2.3 documentation</title>
+  <title>wecopttool.WEC.from_bem &mdash; WecOptTool 2.3.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -35,7 +35,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.2
+                2.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -165,7 +165,7 @@
 <h1>wecopttool.WEC.from_bem<a class="headerlink" href="#wecopttool-wec-from-bem" title="Permalink to this heading"></a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="wecopttool.WEC.from_bem">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">from_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inertia_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.from_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.WEC.from_bem" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">from_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inertia_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.from_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.WEC.from_bem" title="Permalink to this definition"></a></dt>
 <dd><p>Create a WEC object from linear hydrodynamic coefficients
 obtained using the boundary element method (BEM) code Capytaine.</p>
 <p>The <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code> can be a dataset or the name of a
@@ -213,6 +213,10 @@ options of constraints dictionaries.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code>: empty list <code class="code highlight python docutils literal highlight-python"><span class="p">[]</span></code>.</p></li>
 <li><p><strong>min_damping</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> | </em><em>None</em>) – Minimum damping level to ensure a stable system.
 See <a class="reference internal" href="wecopttool.check_linear_damping.html#wecopttool.check_linear_damping" title="wecopttool.check_linear_damping"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.check_linear_damping()</span></code></a> for more details.</p></li>
+<li><p><strong>dof_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>] </em><em>| </em><em>None</em>) – Names of the different degrees of freedom (e.g.
+<code class="code highlight python docutils literal highlight-python"><span class="s1">&#39;Heave&#39;</span></code>).
+If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> the names
+<code class="code highlight python docutils literal highlight-python"><span class="p">[</span><span class="s1">&#39;DOF_0&#39;</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="s1">&#39;DOF_N&#39;</span><span class="p">]</span></code> are used.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>

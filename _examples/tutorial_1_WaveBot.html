@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 1 - WaveBot &mdash; WecOptTool 2.2.3 documentation</title>
+  <title>Tutorial 1 - WaveBot &mdash; WecOptTool 2.3.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -38,7 +38,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.2
+                2.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -77,6 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="tutorial_2_AquaHarmonics.html">Tutorial 2 - AquaHarmonics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_3_LUPA.html">Tutorial 3 - LUPA</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -145,7 +146,7 @@
 <p>This example illustrates how to set up, run, and analyze a basic optimization problem within WecOptTool.</p>
 <p>The objective of this example is to <strong>find the optimal PTO force time-series</strong> that produces the most mechanical power subject to the WEC dynamics and a maximum force the PTO can exert.</p>
 <p>WecOptTool requires the following to be defined to successfully run its optimization routines: - The WEC object, including all of its properties and constraints - The wave condition - The objective function</p>
-<div><p><img alt="111fd67daa674883aacd0e3ed8f34caa" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="6bd12e4c66984e8a9651f24312f405af" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
 </div><p>The graphic shows all the requirements for this first part of the tutorial: from the wave on the left, to the objective (mechanical power) on the right. The WEC object, with all it’s components, is illustrated in the middle. The components inside the blue box are the WEC properties that are actually passed on to the optimizer. In short, the WEC’s hydrodynamic properties are modelled by 1. Defining the WEC’s geometry 2. Meshing the geometry 3. Obtaining the WEC’s BEM cofficients based on the mesh
 4. Determening the WEC’s intrinsic impedance model based on the BEM coefficients</p>
 <p>For this first part of the tutorial, the heave-only, WEC-PTO kinematics are trivial (Unity) and the PTO is assumed to be lossless.</p>
@@ -196,14 +197,14 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_8_0.png" src="../_images/_examples_tutorial_1_wavebot_8_0.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_8_0.png" src="../_images/_examples_tutorial_1_WaveBot_8_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_8_1.png" src="../_images/_examples_tutorial_1_wavebot_8_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_8_1.png" src="../_images/_examples_tutorial_1_WaveBot_8_1.png" />
 </div>
 </div>
 </section>
@@ -509,11 +510,11 @@ up the optimization as the state space is reduced by one.</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.0114888975447818
+            Current function value: -1.0114886782829016
             Iterations: 18
-            Function evaluations: 18
+            Function evaluations: 19
             Gradient evaluations: 18
-Optimal average mechanical power: -101.14888975447818 W
+Optimal average mechanical power: -101.14886782829015 W
 </pre></div></div>
 </div>
 </section>
@@ -546,14 +547,14 @@ Optimal average mechanical power: -101.14888975447818 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fd0914c7520&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f230cd0de10&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_27_1.png" src="../_images/_examples_tutorial_1_wavebot_27_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_27_1.png" src="../_images/_examples_tutorial_1_WaveBot_27_1.png" />
 </div>
 </div>
 <p>We could similarly plot any time- or frequency-domain repsonse of the WEC or PTO. For instance, here is the PTO heave motion.</p>
@@ -572,14 +573,14 @@ Optimal average mechanical power: -101.14888975447818 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fd09154b700&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f230cd89fc0&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_29_1.png" src="../_images/_examples_tutorial_1_wavebot_29_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_29_1.png" src="../_images/_examples_tutorial_1_WaveBot_29_1.png" />
 </div>
 </div>
 <div class="nbinput docutils container">
@@ -597,14 +598,14 @@ Optimal average mechanical power: -101.14888975447818 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7fd0914954e0&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f230cbf7040&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_30_1.png" src="../_images/_examples_tutorial_1_wavebot_30_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_30_1.png" src="../_images/_examples_tutorial_1_WaveBot_30_1.png" />
 </div>
 </div>
 <p>Note that there are other dynamic responses available in the post-processed WEC and PTO variables (<code class="docutils literal notranslate"><span class="pre">wec_tdom</span></code>, <code class="docutils literal notranslate"><span class="pre">pto_tdom</span></code>, <code class="docutils literal notranslate"><span class="pre">wec_fdom</span></code>, <code class="docutils literal notranslate"><span class="pre">pto_fdom</span></code>). For example, the time domain PTO variable contains the following response:</p>
@@ -990,259 +991,259 @@ Coordinates:
   * time        (time) float64 0.0 0.04 0.08 0.12 ... 19.84 19.88 19.92 19.96
   * dof         (dof) &lt;U9 &#x27;PTO_Heave&#x27;
 Data variables:
-    pos         (time, dof) float64 0.08739 0.09596 0.1049 ... 0.07202 0.07939
-    vel         (time, dof) float64 0.2076 0.2201 0.2285 ... 0.16 0.1759 0.1923
-    acc         (time, dof) float64 0.3543 0.2666 0.1467 ... 0.4112 0.4038
-    force       (time, dof) float64 1.733e+03 1.836e+03 ... 1.412e+03 1.593e+03
-    power       (time, dof) float64 359.8 404.2 435.8 ... 190.1 248.3 306.3
-    mech_power  (time, dof) float64 359.8 404.2 435.8 ... 190.1 248.3 306.3
+    pos         (time, dof) float64 0.08735 0.09592 0.1049 ... 0.07201 0.07936
+    vel         (time, dof) float64 0.2075 0.2202 0.2288 ... 0.1594 0.1754 0.192
+    acc         (time, dof) float64 0.3594 0.2719 0.1518 ... 0.4142 0.4081
+    force       (time, dof) float64 1.743e+03 1.846e+03 ... 1.417e+03 1.602e+03
+    power       (time, dof) float64 361.7 406.5 438.3 ... 189.7 248.6 307.4
+    mech_power  (time, dof) float64 361.7 406.5 438.3 ... 189.7 248.6 307.4
 Attributes:
-    time_created_utc:  2023-03-23 20:06:29.397897</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-07642648-4dd1-4733-bb9d-0e5cec540b2c' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-07642648-4dd1-4733-bb9d-0e5cec540b2c' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 500</li><li><span class='xr-has-index'>dof</span>: 1</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-98565aab-2333-48c0-b1ca-a53e4d2165f3' class='xr-section-summary-in' type='checkbox'  checked><label for='section-98565aab-2333-48c0-b1ca-a53e4d2165f3' class='xr-section-summary' >Coordinates: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.04 0.08 ... 19.88 19.92 19.96</div><input id='attrs-96bd0fa2-60e7-4e8a-848e-fcb9dbf48f36' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-96bd0fa2-60e7-4e8a-848e-fcb9dbf48f36' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9e0c4b5a-9b3f-419a-a792-f483b2e86702' class='xr-var-data-in' type='checkbox'><label for='data-9e0c4b5a-9b3f-419a-a792-f483b2e86702' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.  ,  0.04,  0.08, ..., 19.88, 19.92, 19.96])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-b76576c7-12ae-405d-8568-d80d73a96ee7' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-b76576c7-12ae-405d-8568-d80d73a96ee7' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b9884cc6-1831-46b9-b04e-de0a306d09f4' class='xr-var-data-in' type='checkbox'><label for='data-b9884cc6-1831-46b9-b04e-de0a306d09f4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-819fdffe-eefe-4fb3-81ba-a43cb844d8eb' class='xr-section-summary-in' type='checkbox'  checked><label for='section-819fdffe-eefe-4fb3-81ba-a43cb844d8eb' class='xr-section-summary' >Data variables: <span>(6)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.08739 0.09596 ... 0.07202 0.07939</div><input id='attrs-339f034d-b3a2-4589-8db9-c3648463706f' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-339f034d-b3a2-4589-8db9-c3648463706f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-23b1cd06-4035-44b8-9157-40dbad09eb3b' class='xr-var-data-in' type='checkbox'><label for='data-23b1cd06-4035-44b8-9157-40dbad09eb3b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.08739248],
-       [ 0.09595752],
-       [ 0.1049432 ],
-       [ 0.11415967],
-       [ 0.12337826],
-       [ 0.13234452],
-       [ 0.14079157],
-       [ 0.14845291],
-       [ 0.15507427],
-       [ 0.16042397],
-       [ 0.16430167],
-       [ 0.16654527],
-       [ 0.16703605],
-       [ 0.16570202],
-       [ 0.16251969],
-       [ 0.15751438],
-       [ 0.15075925],
-       [ 0.14237315],
-       [ 0.13251732],
-       [ 0.12139093],
+    time_created_utc:  2023-04-04 19:49:59.038606</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-ea7fad9c-db2c-4ca5-9aa0-947c0cda6d37' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-ea7fad9c-db2c-4ca5-9aa0-947c0cda6d37' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 500</li><li><span class='xr-has-index'>dof</span>: 1</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-e6ab587d-0b61-466a-9ffa-a1ca2757d241' class='xr-section-summary-in' type='checkbox'  checked><label for='section-e6ab587d-0b61-466a-9ffa-a1ca2757d241' class='xr-section-summary' >Coordinates: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.04 0.08 ... 19.88 19.92 19.96</div><input id='attrs-9fe1c7a4-e4c4-4fb8-9744-f735875251c0' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-9fe1c7a4-e4c4-4fb8-9744-f735875251c0' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5c74699a-286c-4adb-8607-c4366a127181' class='xr-var-data-in' type='checkbox'><label for='data-5c74699a-286c-4adb-8607-c4366a127181' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.  ,  0.04,  0.08, ..., 19.88, 19.92, 19.96])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-4dba7246-c13d-4769-8123-5556ff0ed435' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-4dba7246-c13d-4769-8123-5556ff0ed435' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-75a05914-e3dc-4bdb-a470-918a2f14d09b' class='xr-var-data-in' type='checkbox'><label for='data-75a05914-e3dc-4bdb-a470-918a2f14d09b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-6f4beee8-eba4-4616-867c-23bfcb36284b' class='xr-section-summary-in' type='checkbox'  checked><label for='section-6f4beee8-eba4-4616-867c-23bfcb36284b' class='xr-section-summary' >Data variables: <span>(6)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.08735 0.09592 ... 0.07201 0.07936</div><input id='attrs-f82acfdb-0e69-46f5-ad2a-c064c27ed4bb' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-f82acfdb-0e69-46f5-ad2a-c064c27ed4bb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-42acf991-5645-401f-b4a4-04e59deaa9a1' class='xr-var-data-in' type='checkbox'><label for='data-42acf991-5645-401f-b4a4-04e59deaa9a1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.08735194],
+       [ 0.09591733],
+       [ 0.10491408],
+       [ 0.1141506 ],
+       [ 0.12339544],
+       [ 0.13239108],
+       [ 0.1408679 ],
+       [ 0.14855753],
+       [ 0.15520464],
+       [ 0.16057716],
+       [ 0.16447461],
+       [ 0.1667347 ],
+       [ 0.16723825],
+       [ 0.16591265],
+       [ 0.16273384],
+       [ 0.15772688],
+       [ 0.1509651 ],
+       [ 0.14256786],
+       [ 0.13269708],
+       [ 0.12155249],
 ...
-       [-0.08726877],
-       [-0.07361983],
-       [-0.0599354 ],
-       [-0.04648894],
-       [-0.03353305],
-       [-0.02128734],
-       [-0.00992659],
-       [ 0.0004298 ],
-       [ 0.00972595],
-       [ 0.01797399],
-       [ 0.02525379],
-       [ 0.03170742],
-       [ 0.03752816],
-       [ 0.04294496],
-       [ 0.04820338],
-       [ 0.05354503],
-       [ 0.05918739],
-       [ 0.06530606],
-       [ 0.07202092],
-       [ 0.07938728]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.2076 0.2201 ... 0.1759 0.1923</div><input id='attrs-37c252c9-f488-454c-bc27-9376e2aeab52' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-37c252c9-f488-454c-bc27-9376e2aeab52' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-da91ab79-f7c3-485a-b120-90f14a6c2660' class='xr-var-data-in' type='checkbox'><label for='data-da91ab79-f7c3-485a-b120-90f14a6c2660' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.2075893 ],
-       [ 0.22012521],
-       [ 0.22848474],
-       [ 0.2315312 ],
-       [ 0.2284543 ],
-       [ 0.21878789],
-       [ 0.20240248],
-       [ 0.17947877],
-       [ 0.1504695 ],
-       [ 0.11605609],
-       [ 0.07710486],
-       [ 0.03462579],
-       [-0.01026556],
-       [-0.05638334],
-       [-0.1025055 ],
-       [-0.14740778],
-       [-0.18989861],
-       [-0.22885449],
-       [-0.26325542],
-       [-0.29221881],
+       [-0.08750542],
+       [-0.07383028],
+       [-0.06011549],
+       [-0.0466359 ],
+       [-0.03364558],
+       [-0.02136546],
+       [-0.00997133],
+       [ 0.0004167 ],
+       [ 0.00974219],
+       [ 0.01801653],
+       [ 0.02531853],
+       [ 0.03178875],
+       [ 0.03761881],
+       [ 0.04303621],
+       [ 0.04828591],
+       [ 0.05361019],
+       [ 0.05922875],
+       [ 0.06532073],
+       [ 0.07201035],
+       [ 0.0793572 ]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.2075 0.2202 ... 0.1754 0.192</div><input id='attrs-695c0950-ab83-4ae8-a65f-f31ba8df0ff5' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-695c0950-ab83-4ae8-a65f-f31ba8df0ff5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-299b70a1-5a88-4079-b099-572c7bf5e763' class='xr-var-data-in' type='checkbox'><label for='data-299b70a1-5a88-4079-b099-572c7bf5e763' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.20745948],
+       [ 0.2202071 ],
+       [ 0.22877862],
+       [ 0.23201786],
+       [ 0.2290973 ],
+       [ 0.21953718],
+       [ 0.20319933],
+       [ 0.18026196],
+       [ 0.1511824 ],
+       [ 0.11665363],
+       [ 0.07755915],
+       [ 0.03492886],
+       [-0.01010292],
+       [-0.05633698],
+       [-0.10254665],
+       [-0.14751315],
+       [-0.19005886],
+       [-0.22907829],
+       [-0.26356664],
+       [-0.29264667],
 ...
-       [ 0.33842996],
-       [ 0.34288167],
-       [ 0.34031732],
-       [ 0.33109858],
-       [ 0.3158979 ],
-       [ 0.29570173],
-       [ 0.27178817],
-       [ 0.24567438],
-       [ 0.21903304],
-       [ 0.19358226],
-       [ 0.17095797],
-       [ 0.15258178],
-       [ 0.13953925],
-       [ 0.13248333],
-       [ 0.13157485],
-       [ 0.13646779],
-       [ 0.14634121],
-       [ 0.15997355],
-       [ 0.17585038],
-       [ 0.19229242]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.3543 0.2666 ... 0.4112 0.4038</div><input id='attrs-8010dcef-1028-490d-9d4d-87759e9a80de' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8010dcef-1028-490d-9d4d-87759e9a80de' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-dd296be4-6a42-46fb-aa9a-307d0313e28c' class='xr-var-data-in' type='checkbox'><label for='data-dd296be4-6a42-46fb-aa9a-307d0313e28c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[ 3.54302703e-01],
-       [ 2.66562495e-01],
-       [ 1.46657834e-01],
-       [ 2.28199023e-03],
-       [-1.58065990e-01],
-       [-3.25782561e-01],
-       [-4.92718694e-01],
-       [-6.51562056e-01],
-       [-7.96043713e-01],
-       [-9.20999923e-01],
-       [-1.02233727e+00],
-       [-1.09695355e+00],
-       [-1.14265880e+00],
-       [-1.15812430e+00],
-       [-1.14286785e+00],
-       [-1.09726666e+00],
-       [-1.02257860e+00],
-       [-9.20951335e-01],
-       [-7.95404363e-01],
-       [-6.49780184e-01],
+       [ 0.33902208],
+       [ 0.34352926],
+       [ 0.34101233],
+       [ 0.33184401],
+       [ 0.31669821],
+       [ 0.29655249],
+       [ 0.27266843],
+       [ 0.24654421],
+       [ 0.21983718],
+       [ 0.19425876],
+       [ 0.17144969],
+       [ 0.1528477 ],
+       [ 0.13956299],
+       [ 0.13227699],
+       [ 0.13117776],
+       [ 0.13594078],
+       [ 0.14575793],
+       [ 0.1594109 ],
+       [ 0.17537952],
+       [ 0.19197168]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.3594 0.2719 ... 0.4142 0.4081</div><input id='attrs-7e650117-f1fb-4b55-977f-a6c8777209e5' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7e650117-f1fb-4b55-977f-a6c8777209e5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fb4d2678-8ba9-4996-9365-705c13ae2fa1' class='xr-var-data-in' type='checkbox'><label for='data-fb4d2678-8ba9-4996-9365-705c13ae2fa1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[ 3.59421337e-01],
+       [ 2.71943332e-01],
+       [ 1.51794939e-01],
+       [ 6.71126694e-03],
+       [-1.54735346e-01],
+       [-3.23835155e-01],
+       [-4.92298949e-01],
+       [-6.52645692e-01],
+       [-7.98425999e-01],
+       [-9.24312742e-01],
+       [-1.02610235e+00],
+       [-1.10066948e+00],
+       [-1.14590726e+00],
+       [-1.16066994e+00],
+       [-1.14472135e+00],
+       [-1.09868400e+00],
+       [-1.02398364e+00],
+       [-9.22789904e-01],
+       [-7.97961820e-01],
+       [-6.53012818e-01],
 ...
-       [ 2.00161064e-01],
-       [ 2.27115420e-02],
-       [-1.49431348e-01],
-       [-3.08705667e-01],
-       [-4.47209102e-01],
-       [-5.57252041e-01],
-       [-6.32069315e-01],
-       [-6.66604432e-01],
-       [-6.58249794e-01],
-       [-6.07416655e-01],
-       [-5.17822826e-01],
-       [-3.96422792e-01],
-       [-2.52957710e-01],
-       [-9.91619572e-02],
-       [ 5.22824982e-02],
-       [ 1.88912659e-01],
-       [ 2.99622586e-01],
-       [ 3.75630058e-01],
-       [ 4.11158140e-01],
-       [ 4.03764137e-01]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.733e+03 1.836e+03 ... 1.593e+03</div><input id='attrs-77b32106-2c38-49d6-aa27-e0e58e746711' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-77b32106-2c38-49d6-aa27-e0e58e746711' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5d8dfb21-def1-46d7-82bf-22fc9a8b8ae4' class='xr-var-data-in' type='checkbox'><label for='data-5d8dfb21-def1-46d7-82bf-22fc9a8b8ae4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment on WEC</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[ 1733.20236447],
-       [ 1836.16508145],
-       [ 1907.4465547 ],
-       [ 1953.37909257],
-       [ 1980.31640154],
-       [ 1994.05552114],
-       [ 1999.47567884],
-       [ 2000.36956923],
-       [ 1999.42316424],
-       [ 1998.3004819 ],
-       [ 1997.80063036],
-       [ 1998.06531757],
-       [ 1998.81856988],
-       [ 1999.61531401],
-       [ 2000.06619715],
+       [ 2.01782566e-01],
+       [ 2.39355107e-02],
+       [-1.48236581e-01],
+       [-3.07372918e-01],
+       [-4.45835928e-01],
+       [-5.56173854e-01],
+       [-6.31754527e-01],
+       [-6.67506534e-01],
+       [-6.60661438e-01],
+       [-6.11366895e-01],
+       [-5.23043292e-01],
+       [-4.02387504e-01],
+       [-2.58981184e-01],
+       [-1.04526835e-01],
+       [ 4.82008589e-02],
+       [ 1.86551727e-01],
+       [ 2.99183581e-01],
+       [ 3.77075709e-01],
+       [ 4.14247302e-01],
+       [ 4.08107145e-01]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.743e+03 1.846e+03 ... 1.602e+03</div><input id='attrs-8e1549a9-ad18-45dc-9b18-35ec377ade9f' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8e1549a9-ad18-45dc-9b18-35ec377ade9f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9f2a98e9-8735-4915-affc-9dc10ff9c074' class='xr-var-data-in' type='checkbox'><label for='data-9f2a98e9-8735-4915-affc-9dc10ff9c074' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment on WEC</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[ 1743.25459238],
+       [ 1846.11260316],
+       [ 1915.83424174],
+       [ 1959.33088724],
+       [ 1983.69350181],
+       [ 1995.37214639],
+       [ 1999.62038022],
+       [ 2000.24645914],
+       [ 1999.64851083],
+       [ 1999.0588847 ],
+       [ 1998.89504227],
+       [ 1999.11527473],
+       [ 1999.50363924],
+       [ 1999.84912413],
+       [ 2000.02478516],
        [ 2000.        ],
-       [ 1999.52872709],
-       [ 1998.99613266],
-       [ 1998.81469835],
-       [ 1999.22135022],
+       [ 1999.82510454],
+       [ 1999.6127782 ],
+       [ 1999.51312106],
+       [ 1999.65311662],
 ...
        [-2000.        ],
-       [-1996.8354032 ],
-       [-1987.33509999],
-       [-1966.74567223],
-       [-1928.97700224],
-       [-1866.99478225],
-       [-1773.54422472],
-       [-1642.14583316],
-       [-1468.22012426],
-       [-1250.13604864],
-       [ -989.95926962],
-       [ -693.71252423],
-       [ -371.04693024],
-       [  -34.34118537],
-       [  302.6340938 ],
-       [  626.25805646],
-       [  924.53911693],
-       [ 1188.28604839],
-       [ 1411.80009638],
-       [ 1593.02502455]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>359.8 404.2 435.8 ... 248.3 306.3</div><input id='attrs-1970db33-0720-43fd-bf1b-f369de694ec5' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-1970db33-0720-43fd-bf1b-f369de694ec5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-770952ca-bfd1-4ef2-9e21-8645b6bd408b' class='xr-var-data-in' type='checkbox'><label for='data-770952ca-bfd1-4ef2-9e21-8645b6bd408b' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[ 359.79426435],
-       [ 404.1862278 ],
-       [ 435.82242339],
-       [ 452.2682096 ],
-       [ 452.4117879 ],
-       [ 436.27519359],
-       [ 404.69883137],
-       [ 359.02386273],
-       [ 300.85220166],
-       [ 231.91493394],
-       [ 154.04014517],
-       [  69.18458966],
-       [ -20.5189905 ],
-       [-112.74499593],
-       [-205.01777714],
-       [-294.81556479],
-       [-379.70771926],
-       [-457.47924432],
-       [-526.19879684],
-       [-584.2100862 ],
+       [-1997.13637229],
+       [-1988.13611835],
+       [-1968.06749232],
+       [-1930.63916294],
+       [-1868.69889994],
+       [-1775.03548765],
+       [-1643.38280067],
+       [-1469.46925147],
+       [-1251.93044194],
+       [ -992.91402517],
+       [ -698.25128377],
+       [ -377.1402585 ],
+       [  -41.36635221],
+       [  295.83712678],
+       [  621.12755412],
+       [  922.39892609],
+       [ 1189.94449369],
+       [ 1417.2775828 ],
+       [ 1601.50933255]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>361.7 406.5 438.3 ... 248.6 307.4</div><input id='attrs-d12e24a4-5aa3-4021-9585-8b17f61efeb9' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-d12e24a4-5aa3-4021-9585-8b17f61efeb9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0e36722e-6061-4e1a-9158-d1155a1db8e0' class='xr-var-data-in' type='checkbox'><label for='data-0e36722e-6061-4e1a-9158-d1155a1db8e0' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[ 361.65468534],
+       [ 406.52710369],
+       [ 438.30191398],
+       [ 454.59975464],
+       [ 454.4588165 ],
+       [ 438.05838089],
+       [ 406.3215244 ],
+       [ 360.5683482 ],
+       [ 302.31165849],
+       [ 233.19747518],
+       [ 155.03260917],
+       [  69.82681896],
+       [ -20.20082369],
+       [-112.66546218],
+       [-205.09583953],
+       [-295.02629688],
+       [-380.08448924],
+       [-458.06787392],
+       [-527.00496177],
+       [-585.19182177],
 ...
-       [-676.85992269],
-       [-684.67825328],
-       [-676.32455817],
-       [-651.18669638],
-       [-609.35978236],
-       [-552.07358784],
-       [-482.02834458],
-       [-403.43315646],
-       [-321.58871543],
-       [-242.00416615],
-       [-169.24143178],
-       [-105.84788997],
-       [ -51.77561093],
-       [  -4.54963462],
-       [  39.81903412],
-       [  85.46405549],
-       [ 135.29817012],
-       [ 190.09433372],
-       [ 248.2655899 ],
-       [ 306.3266377 ]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mech_power</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>359.8 404.2 435.8 ... 248.3 306.3</div><input id='attrs-56eaf2a2-5950-43ce-b186-6e213019e80b' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-56eaf2a2-5950-43ce-b186-6e213019e80b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-60f24352-f8f5-46f4-923e-2ba8a4296d99' class='xr-var-data-in' type='checkbox'><label for='data-60f24352-f8f5-46f4-923e-2ba8a4296d99' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Mechanical power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[ 359.79426435],
-       [ 404.1862278 ],
-       [ 435.82242339],
-       [ 452.2682096 ],
-       [ 452.4117879 ],
-       [ 436.27519359],
-       [ 404.69883137],
-       [ 359.02386273],
-       [ 300.85220166],
-       [ 231.91493394],
-       [ 154.04014517],
-       [  69.18458966],
-       [ -20.5189905 ],
-       [-112.74499593],
-       [-205.01777714],
-       [-294.81556479],
-       [-379.70771926],
-       [-457.47924432],
-       [-526.19879684],
-       [-584.2100862 ],
+       [-678.04415072],
+       [-686.07477464],
+       [-677.97892562],
+       [-653.09140398],
+       [-611.42997049],
+       [-554.16731698],
+       [-483.99613412],
+       [-405.16651406],
+       [-323.04396958],
+       [-243.1984566 ],
+       [-170.23480077],
+       [-106.72609987],
+       [ -52.63482104],
+       [  -5.47181667],
+       [  38.80725226],
+       [  84.43656412],
+       [ 134.44696027],
+       [ 189.69012142],
+       [ 248.56146423],
+       [ 307.4444415 ]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>mech_power</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>361.7 406.5 438.3 ... 248.6 307.4</div><input id='attrs-a2fecbb1-6db5-4aa1-9fa8-7cd985c9c479' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-a2fecbb1-6db5-4aa1-9fa8-7cd985c9c479' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0887ab4d-752a-47da-94ca-f8917b770910' class='xr-var-data-in' type='checkbox'><label for='data-0887ab4d-752a-47da-94ca-f8917b770910' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Mechanical power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[ 361.65468534],
+       [ 406.52710369],
+       [ 438.30191398],
+       [ 454.59975464],
+       [ 454.4588165 ],
+       [ 438.05838089],
+       [ 406.3215244 ],
+       [ 360.5683482 ],
+       [ 302.31165849],
+       [ 233.19747518],
+       [ 155.03260917],
+       [  69.82681896],
+       [ -20.20082369],
+       [-112.66546218],
+       [-205.09583953],
+       [-295.02629688],
+       [-380.08448924],
+       [-458.06787392],
+       [-527.00496177],
+       [-585.19182177],
 ...
-       [-676.85992269],
-       [-684.67825328],
-       [-676.32455817],
-       [-651.18669638],
-       [-609.35978236],
-       [-552.07358784],
-       [-482.02834458],
-       [-403.43315646],
-       [-321.58871543],
-       [-242.00416615],
-       [-169.24143178],
-       [-105.84788997],
-       [ -51.77561093],
-       [  -4.54963462],
-       [  39.81903412],
-       [  85.46405549],
-       [ 135.29817012],
-       [ 190.09433372],
-       [ 248.2655899 ],
-       [ 306.3266377 ]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-554b18b3-d7be-4b05-9705-ec75584e298e' class='xr-section-summary-in' type='checkbox'  ><label for='section-554b18b3-d7be-4b05-9705-ec75584e298e' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-924ec022-1e39-4f50-af7a-d3b378e21c8a' class='xr-index-data-in' type='checkbox'/><label for='index-924ec022-1e39-4f50-af7a-d3b378e21c8a' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Float64Index([  0.0,  0.04,  0.08,  0.12,  0.16,   0.2,  0.24,  0.28,  0.32,
+       [-678.04415072],
+       [-686.07477464],
+       [-677.97892562],
+       [-653.09140398],
+       [-611.42997049],
+       [-554.16731698],
+       [-483.99613412],
+       [-405.16651406],
+       [-323.04396958],
+       [-243.1984566 ],
+       [-170.23480077],
+       [-106.72609987],
+       [ -52.63482104],
+       [  -5.47181667],
+       [  38.80725226],
+       [  84.43656412],
+       [ 134.44696027],
+       [ 189.69012142],
+       [ 248.56146423],
+       [ 307.4444415 ]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1103b410-9249-4f0d-9e68-3e31a0591f03' class='xr-section-summary-in' type='checkbox'  ><label for='section-1103b410-9249-4f0d-9e68-3e31a0591f03' class='xr-section-summary' >Indexes: <span>(2)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-6f846c76-68bf-4d5f-9146-40e812f96786' class='xr-index-data-in' type='checkbox'/><label for='index-6f846c76-68bf-4d5f-9146-40e812f96786' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Float64Index([  0.0,  0.04,  0.08,  0.12,  0.16,   0.2,  0.24,  0.28,  0.32,
                0.36,
               ...
                19.6, 19.64, 19.68, 19.72, 19.76,  19.8, 19.84, 19.88, 19.92,
               19.96],
-             dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;, length=500))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-a774d081-399e-4524-b891-4e4ad607b610' class='xr-index-data-in' type='checkbox'/><label for='index-a774d081-399e-4524-b891-4e4ad607b610' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;PTO_Heave&#x27;], dtype=&#x27;object&#x27;, name=&#x27;dof&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-98a20b4c-6b98-41d8-8f1f-ab4cdf3aa495' class='xr-section-summary-in' type='checkbox'  checked><label for='section-98a20b4c-6b98-41d8-8f1f-ab4cdf3aa495' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2023-03-23 20:06:29.397897</dd></dl></div></li></ul></div></div></div>
+             dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;, length=500))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-370c005b-2d08-4a72-ad9f-7632f9083f1c' class='xr-index-data-in' type='checkbox'/><label for='index-370c005b-2d08-4a72-ad9f-7632f9083f1c' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;PTO_Heave&#x27;], dtype=&#x27;object&#x27;, name=&#x27;dof&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-cea9e318-a6e6-43a1-ba2e-b00bfbbfecb2' class='xr-section-summary-in' type='checkbox'  checked><label for='section-cea9e318-a6e6-43a1-ba2e-b00bfbbfecb2' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2023-04-04 19:49:59.038606</dd></dl></div></li></ul></div></div></div>
 </div>
 </section>
 </section>
@@ -1250,7 +1251,7 @@ Attributes:
 <h2>2. Optimal control for maximum electrical power<a class="headerlink" href="#2.-Optimal-control-for-maximum-electrical-power" title="Permalink to this heading"></a></h2>
 <p>The rest of this tutorial will focus on optimizing for electrical power (new objective function) rather than mechanical, as this is a form of power that is usable and transportable.</p>
 <p>Since we’re still dealing with the same WaveBot as in part 1, we can reuse the BEM and wave data from before. Look back at part 1 if you need a refresher on how to create these data.</p>
-<div><p><img alt="fd875fd0bb0c42ebb4c99bbdb3752cb0" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="5039aeefc15245eb9546b44b28ac50bd" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
 </div><p>The WEC-PTO kinematics remain the same as well (unity). The major difference now is that we consider the dynamics of PTO, since they impact the electrical power and we shall not assume a lossless PTO.</p>
 <p>We will express the PTO’s dynamics in form of a 2-port impedance model, to incoporate the dynamics of the drive-train and the dynamics of the generator. The additional mechanical energy storage through the drive-train is modelled using Newton’s second law and we assume a linear generator using a power-invariant park transform.</p>
 <p>The PTO impedance matrix components are then obtained under open-circuit conditions, i.e. no load current or no WEC velocity, respectively.</p>
@@ -1359,11 +1360,11 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2553894556753696
+            Current function value: -0.2553897185542342
             Iterations: 12
             Function evaluations: 13
             Gradient evaluations: 12
-Optimal average electrical power: -25.538945567536956 W
+Optimal average electrical power: -25.53897185542342 W
 </pre></div></div>
 </div>
 <p>We will compare our optimal results to the unconstrained case to gain some insight into the effect of the constraint on the optimal PTO force. Let’s do the same process as before, but unset the <code class="docutils literal notranslate"><span class="pre">constraints</span></code> parameter in a new <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object.</p>
@@ -1407,11 +1408,11 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -28.894984488337002
-            Iterations: 27
-            Function evaluations: 27
-            Gradient evaluations: 27
-Optimal average electrical power: -28.894984488337002 W
+            Current function value: -28.894566381903026
+            Iterations: 26
+            Function evaluations: 26
+            Gradient evaluations: 26
+Optimal average electrical power: -28.894566381903026 W
 </pre></div></div>
 </div>
 <p>Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of <span class="math notranslate nohighlight">\(600 N\)</span>.</p>
@@ -1442,28 +1443,28 @@ Optimal average electrical power: -28.894984488337002 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7fd091288a00&gt;
+&lt;matplotlib.legend.Legend at 0x7f230cafae90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_42_1.png" src="../_images/_examples_tutorial_1_wavebot_42_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_42_1.png" src="../_images/_examples_tutorial_1_WaveBot_42_1.png" />
 </div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_42_2.png" src="../_images/_examples_tutorial_1_wavebot_42_2.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_42_2.png" src="../_images/_examples_tutorial_1_WaveBot_42_2.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_42_3.png" src="../_images/_examples_tutorial_1_wavebot_42_3.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_42_3.png" src="../_images/_examples_tutorial_1_WaveBot_42_3.png" />
 </div>
 </div>
 <p>The attentive user might have noticed that the amplitude of the position, force and power signals is about half the magnitude of the signals we plotted in the first part of the tutorial. We can see that optimizing for electrical power requires optimal state trajectories with smaller amplitudes. For most WECs the electrical power is the usable form of power, thus the WEC should be designed for electrical power and we can avoid over-designing, which would results from expecting the forces
@@ -1476,7 +1477,7 @@ electrical power, while maintaining a constant hull volume. A constant volume is
 <p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geometry (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in Example 2 and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to setup.
 In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>.</p>
 <p><img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" /></p>
-<div><p><img alt="1b12c44438a7436c8a61466719727ec2" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="e9ad875d48d24e038a6fe1846e704259" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
 </div><section id="Problem-setup">
 <h3>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this heading"></a></h3>
 <p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
@@ -1514,7 +1515,7 @@ In this example, we will do a simple <em>brute force</em> optimization using <co
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_46_0.png" src="../_images/_examples_tutorial_1_wavebot_46_0.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_46_0.png" src="../_images/_examples_tutorial_1_WaveBot_46_0.png" />
 </div>
 </div>
 <p>Next we will define an objective function for our design optimization problem. We use the same workflow illustrated in Part 2 to set up a WaveBot device and solve for the optimal solution, but wrap this in a function definition which can set <code class="docutils literal notranslate"><span class="pre">r2</span></code> and (indirectly) <code class="docutils literal notranslate"><span class="pre">h2</span></code>.</p>
@@ -1654,59 +1655,59 @@ values that we specify.</p>
 
 r2 = 0.05:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25516136314356064
-            Iterations: 11
-            Function evaluations: 14
-            Gradient evaluations: 11
+            Current function value: -0.25516131350068666
+            Iterations: 13
+            Function evaluations: 13
+            Gradient evaluations: 13
 
 r2 = 0.17:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2550999147951821
-            Iterations: 12
-            Function evaluations: 12
-            Gradient evaluations: 12
+            Current function value: -0.2551002630537707
+            Iterations: 13
+            Function evaluations: 14
+            Gradient evaluations: 13
 
 r2 = 0.29:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25530587243366615
-            Iterations: 13
+            Current function value: -0.2553055125621286
+            Iterations: 12
             Function evaluations: 15
-            Gradient evaluations: 13
+            Gradient evaluations: 12
 
 r2 = 0.41:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25547145906210644
+            Current function value: -0.25547153762509617
             Iterations: 12
-            Function evaluations: 13
+            Function evaluations: 15
             Gradient evaluations: 12
 
 r2 = 0.52:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2559472984047905
-            Iterations: 13
-            Function evaluations: 13
-            Gradient evaluations: 13
+            Current function value: -0.25594722843936313
+            Iterations: 11
+            Function evaluations: 12
+            Gradient evaluations: 11
 
 r2 = 0.64:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25450584212836896
+            Current function value: -0.25450579520182287
             Iterations: 11
-            Function evaluations: 11
+            Function evaluations: 14
             Gradient evaluations: 11
 
 r2 = 0.76:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25280646412699315
+            Current function value: -0.25280664906411743
             Iterations: 11
-            Function evaluations: 13
+            Function evaluations: 12
             Gradient evaluations: 11
 
 r2 = 0.88:
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25105750595848003
-            Iterations: 10
-            Function evaluations: 11
-            Gradient evaluations: 10
+            Current function value: -0.25105784725939406
+            Iterations: 11
+            Function evaluations: 13
+            Gradient evaluations: 11
 </pre></div></div>
 </div>
 </section>
@@ -1733,7 +1734,7 @@ Optimization terminated successfully    (Exit mode 0)
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_wavebot_52_0.png" src="../_images/_examples_tutorial_1_wavebot_52_0.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_52_0.png" src="../_images/_examples_tutorial_1_WaveBot_52_0.png" />
 </div>
 </div>
 <p>Note that in this case the magnitude of average power between the different keel radii is rather small, this is because the PTO force constraint is active most of the time, therefore all considered geometries perform similarily. If you remove the PTO constraint and re-run the co-optimization study you will see that the impact of radius on average electrical power is significantly higher.</p>

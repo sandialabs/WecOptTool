@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.core &mdash; WecOptTool 2.2.3 documentation</title>
+  <title>wecopttool.core &mdash; WecOptTool 2.3.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -32,7 +32,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.2
+                2.3
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -368,6 +368,7 @@
         <span class="n">f_add</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TIForceDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">min_damping</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">_default_min_damping</span><span class="p">,</span>
+        <span class="n">dof_names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TWEC</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a WEC object from linear hydrodynamic coefficients</span>
 <span class="sd">        obtained using the boundary element method (BEM) code Capytaine.</span>
@@ -427,6 +428,11 @@
 <span class="sd">        min_damping</span>
 <span class="sd">            Minimum damping level to ensure a stable system.</span>
 <span class="sd">            See :py:func:`wecopttool.check_linear_damping` for more details.</span>
+<span class="sd">        dof_names</span>
+<span class="sd">            Names of the different degrees of freedom (e.g.</span>
+<span class="sd">            :python:`&#39;Heave&#39;`).</span>
+<span class="sd">            If :python:`None` the names</span>
+<span class="sd">            :python:`[&#39;DOF_0&#39;, ..., &#39;DOF_N&#39;]` are used.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -469,7 +475,7 @@
         <span class="n">forces</span> <span class="o">=</span> <span class="n">linear_force_functions</span> <span class="o">|</span> <span class="n">f_add</span>
         <span class="c1"># constraints</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span> <span class="k">if</span> <span class="p">(</span><span class="n">constraints</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="p">[]</span>
-        <span class="k">return</span> <span class="n">WEC</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">inertia_matrix</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">WEC</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">inertia_matrix</span><span class="p">,</span> <span class="n">dof_names</span><span class="o">=</span><span class="n">dof_names</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WEC.from_floating_body"><a class="viewcode-back" href="../../api_docs/wecopttool.WEC.from_floating_body.html#wecopttool.WEC.from_floating_body">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">from_floating_body</span><span class="p">(</span>
@@ -639,7 +645,7 @@
         <span class="k">if</span> <span class="p">(</span><span class="n">ndim</span><span class="o">!=</span><span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">or</span> <span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="n">nfreq</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;&#39;impedance&#39; must have shape &#39;(ndof, ndof, nfreq)&#39;.&quot;</span><span class="p">)</span>
-            
+
         <span class="n">impedance</span> <span class="o">=</span> <span class="n">check_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">,</span> <span class="n">min_damping</span><span class="p">)</span>
 
         <span class="c1"># impedance force</span>
@@ -665,7 +671,7 @@
         <span class="n">wec</span> <span class="o">=</span> <span class="n">WEC</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">forces</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span>
                   <span class="n">inertia_in_forces</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ndof</span><span class="o">=</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">wec</span></div>
-    
+
     <span class="k">def</span> <span class="nf">_resid_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia_in_forces</span><span class="p">:</span>
             <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
@@ -1498,7 +1504,7 @@
 <span class="sd">    Fourier coefficients (excluding the imaginary component of the</span>
 <span class="sd">    2-point wave) as</span>
 <span class="sd">    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.</span>
-<span class="sd">    </span>
+
 <span class="sd">    If :python:`zero_freq = False` (not default), the mean (DC) component</span>
 <span class="sd">    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.</span>
 
@@ -2271,10 +2277,10 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    hydro_data</span>
-<span class="sd">        Dataset with linear hydrodynamic coefficients produced by </span>
+<span class="sd">        Dataset with linear hydrodynamic coefficients produced by</span>
 <span class="sd">        :py:func:`wecopttool.linear_hydrodynamics`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+
     <span class="n">Zi</span> <span class="o">=</span> <span class="p">(</span><span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;inertia_matrix&#39;</span><span class="p">]</span> \
         <span class="o">+</span> <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;added_mass&#39;</span><span class="p">])</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span> \
             <span class="o">+</span> <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;radiation_damping&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;friction&#39;</span><span class="p">]</span> \
