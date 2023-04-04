@@ -19,7 +19,7 @@ sys.path.insert(0, code_root)
 # -- Project information -----------------------------------------------------
 project = 'WecOptTool'
 copyright = (
-    'Copyright 2020 National Technology & Engineering Solutions of Sandia, ' +
+    '2020 National Technology & Engineering Solutions of Sandia, ' +
     'LLC(NTESS).' +
     'Under the terms of Contract DE-NA0003525 with NTESS, the U.S. ' +
     'Government retains certain rights in this software.'
@@ -60,6 +60,7 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
     'https://doi.org/10.2172/1330189',
+    r'https://snl-waterpower.github.io/WecOptTool/.*'
 ]
 
 # -- References (BibTex) -----------------------------------------------------
