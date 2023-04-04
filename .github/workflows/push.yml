@@ -141,8 +141,4 @@ jobs:
     - name: Build documentation
       shell: bash -l {0}
       run: |
-        cd docs
-        make clean
-        make linkcheck
-        make html
-        cd ../
+        python3 docs/build_docs.py
