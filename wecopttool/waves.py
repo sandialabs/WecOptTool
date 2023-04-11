@@ -88,9 +88,12 @@ def elevation_fd(
     omega = freq*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_attr = {'long_name': 'Wave frequency', 'units': 'rad/s'}
+    omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+    freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
     dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
-    coords = [(dims[0], omega, freq_attr), (dims[1], directions, dir_attr)]
+    coords = {'omega': (dims[0], omega, omega_attr),
+              'freq': (dims[0], freq, freq_attr),
+              'direction': (dims[1], directions, dir_attr)}
 
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections])
