@@ -56,15 +56,13 @@ jobs:
       shell: bash -l {0}
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install .[dev]
+        pip3 install wheel coveralls
+        pip3 install .[dev,geometry]
 
     - name: Build documentation
       shell: bash -l {0}
       run: |
-        cd docs
-        make linkcheck
-        make html
-        cd ../
+        python3 docs/build_docs.py
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3

@@ -55,7 +55,7 @@ jobs:
         echo " " >> environment.yml
         echo "dependencies:" >> environment.yml
         echo "  - python=${{ matrix.python-version }}" >> environment.yml
-        echo "  - capytaine=1.4.2" >> environment.yml
+        echo "  - capytaine=1.5" >> environment.yml
         echo "  - wavespectra" >> environment.yml
         cat environment.yml
 
@@ -128,17 +128,17 @@ jobs:
       with:
         python-version: '3.10'  # CHANGE: Python version
 
+    - name: Install dependencies
+      run: sudo apt-get install libglu1 pandoc gifsicle
+      
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install .[dev]
+        pip3 install wheel coveralls
+        pip3 install .[dev,geometry]
 
     - name: Build documentation
       shell: bash -l {0}
       run: |
-        cd docs
-        make clean
-        make linkcheck
-        make html
-        cd ../
+        python3 docs/build_docs.py

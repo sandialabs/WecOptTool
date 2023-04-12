@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wecopttool"
-version = "2.0.1alpha1"
+version = "2.3.1"
 description = "WEC Design Optimization Toolbox"
 readme = "README.md"
 authors = [
@@ -19,15 +19,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "numpy>1.20",
+    "numpy>=1.20",
     "scipy",
-    "matplotlib",
     "xarray",
     "autograd",
-    "capytaine>=1.4",
-    "netCDF4",
-    "meshio",
-    "jupyter",
+    "capytaine",
     "joblib",
     "wavespectra",
 ]
@@ -38,12 +34,18 @@ dev = [
     "sphinx",
     "sphinxcontrib-bibtex",
     "sphinx_rtd_theme",
+    "jupyter",
     "nbsphinx",
     "pandoc",
     "imageio",
     "pygifsicle",
     "jinja2",
     "nbconvert",
+]
+
+geometry = [
+    "matplotlib",
+    "meshio",
     "gmsh",
     "pygmsh",
 ]

@@ -7,6 +7,7 @@ import pytest
 import capytaine as cpy
 import numpy as np
 import wavespectra as ws
+from scipy import signal
 
 import wecopttool as wot
 from wecopttool.core import _default_parameters
@@ -143,7 +144,7 @@ class TestRegularWave:
         # set the single entry to zero
         elev0 = elevation.copy()
         omega = elevation.sel(omega=2*np.pi*freq).omega.values
-        idx = np.where(elevation.omega.values==omega)
+        idx = np.where(elevation.omega.values == omega)
         elev0.values[idx] = 0
         # check that now the entire array is zero.
         assert np.allclose(elev0.values, 0.0+0.0j)
@@ -162,7 +163,7 @@ class TestLongCrestedWave:
         nfreq = 24
         freq = wot.frequency(f1, nfreq, False)
         dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
-        spec = ws.read_ndbc(os.path.join(dir, '41013w2020.txt'))
+        spec = ws.read_ndbc_ascii(os.path.join(dir, '41013w2020.txt'))
         return spec.sel(time=time).interp(freq=freq)
 
     @pytest.fixture(scope="class")
@@ -184,9 +185,39 @@ class TestLongCrestedWave:
     def elevation(self, ndbc_omnidirectional, direction):
         """Complex sea state elevation amplitude [m] indexed by
         frequency and direction."""
-        elev =  wot.waves.long_crested_wave(
+        elev = wot.waves.long_crested_wave(
             ndbc_omnidirectional.efth, direction)
         return elev
+
+    @pytest.fixture(scope="class")
+    def pm_f1(self,):
+        """Fundamental frequency for the Pierson-Moskowitz spectrum."""
+        return 0.05
+
+    @pytest.fixture(scope="class")
+    def pm_nfreq(self,):
+        """Number of frequencies for the Pierson-Moskowitz spectrum."""
+        return 100
+
+    @pytest.fixture(scope="class")
+    def pm_hs(self,):
+        """Significant wave height for Pierson-Moskowitz spectrum."""
+        return 5.0
+
+    @pytest.fixture(scope="class")
+    def pm_spectrum(self, pm_f1, pm_nfreq, pm_hs):
+        """Pierson-Moskowitz spectrum."""
+        Tp = 1.2
+        Hs = pm_hs
+
+        def spectrum_func(f):
+            return wot.waves.pierson_moskowitz_spectrum(f, fp=1/Tp, hs=Hs)
+        spectrum_name = f"Pierson-Moskowitz ({Tp}s, {Hs}m)"
+
+        efth_xr = wot.waves.omnidirectional_spectrum(
+            pm_f1, pm_nfreq, spectrum_func, spectrum_name
+        )
+        return efth_xr
 
     def test_coordinates(self, elevation):
         """Test that the elevation dataArray has the correct
@@ -209,6 +240,28 @@ class TestLongCrestedWave:
         dir_out = elevation.wave_direction.values.item()
         assert np.isclose(dir_out, wot.degrees_to_radians(direction))
 
+    def test_spectrum(self, pm_spectrum, pm_hs):
+        """Test that the constructed spectrum has the expected Hs."""
+        efth = ws.SpecArray(pm_spectrum)
+        assert np.isclose(pm_hs, efth.hs().values)
+
+    def test_time_series(self, pm_spectrum, pm_f1, pm_nfreq):
+        """Test that the created time series has the desired spectrum."""
+        # create time-series
+        direction = 0.0
+        wave = wot.waves.long_crested_wave(pm_spectrum, direction)
+        wave_ts = wot.fd_to_td(wave.values, pm_f1, pm_nfreq, False)
+        # calculate the spectrum from the time-series
+        t = wot.time(pm_f1, pm_nfreq)
+        fs = 1/t[1]
+        nnft = len(t)
+        [_, S_data] = signal.welch(
+            wave_ts.squeeze(), fs=fs, window='boxcar', nperseg=nnft, nfft=nnft,
+            noverlap=0
+        )
+        # check it is equal to the original spectrum
+        assert np.allclose(S_data[1:-1], pm_spectrum.values.squeeze()[:-1])
+
 
 class TestIrregularWave:
     """Test function :python:`waves.irregular_wave`."""
@@ -224,7 +277,7 @@ class TestIrregularWave:
         markers = ('w', 'd', 'i', 'j', 'k')
         dir = os.path.join(os.path.dirname(__file__), 'data', 'ndbc')
         files = [f'41013{i}2020.txt' for i in markers]
-        spec = ws.read_ndbc([os.path.join(dir, file) for file in files])
+        spec = ws.read_ndbc_ascii([os.path.join(dir, file) for file in files])
         return spec.sel(time=time).interp(freq=freq)
 
     @pytest.fixture(scope="class")
@@ -244,7 +297,7 @@ class TestIrregularWave:
     def test_shape(self, ndbc_spectrum, elevation):
         """Test that the elevation dataArray has the correct shape."""
         nfreq = len(ndbc_spectrum.freq)
-        ndir= len(ndbc_spectrum.dir)
+        ndir = len(ndbc_spectrum.dir)
         assert np.squeeze(elevation.values).shape == (nfreq, ndir)
 
     def test_type(self, elevation):
@@ -267,16 +320,13 @@ class TestRandomPhase:
         """Random phase matrix."""
         return wot.waves.random_phase(shape)
 
-
     def test_mat_shape(self, phase_mat, shape):
         """Test correct shape of random phase matrix."""
         assert phase_mat.shape == shape
 
-
     def test_mat_values(self, phase_mat):
         """Test all phases are between [-pi, pi])."""
         assert (np.max(phase_mat) < np.pi) and (np.min(phase_mat) >= -np.pi)
-
 
     def test_float(self,):
         """Test that the function works for a single float instead of a
@@ -289,7 +339,8 @@ class TestRandomPhase:
 # TODO: Move everything below to wavespectra.construct
 class TestWaveSpectra:
     def test_omnidirectional_spectrum(self, f1, nfreq, fp, hs):
-        spectrum_func = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
+        def spectrum_func(
+            f): return wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
         wave_spec = wot.waves.omnidirectional_spectrum(
             f1, nfreq, spectrum_func, "Pierson-Moskowitz")
 
@@ -299,14 +350,16 @@ class TestWaveSpectra:
 
         assert np.allclose(spec_test, wave_spec.values.flatten())
 
-
     def test_spectrum(self, f1, nfreq, fp, hs, ndir):
         s_max = 10
         directions = np.linspace(0, 360, ndir, endpoint=False)
         dm = directions[np.random.randint(0, ndir)]
 
-        spectrum_func = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
-        spread_func = lambda f,d: wot.waves.spread_cos2s(f, d, dm, fp, s_max)
+        def spectrum_func(f): 
+            return wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
+
+        def spread_func(f, d): 
+            return wot.waves.spread_cos2s(f, d, dm, fp, s_max)
         spectrum_name, spread_name = "Pierson-Moskowitz", "Cos2s"
         wave_spec = wot.waves.spectrum(
             f1, nfreq, directions, spectrum_func, spread_func,
@@ -317,16 +370,15 @@ class TestWaveSpectra:
             f1, nfreq, spectrum_func, spectrum_name)
         spec_omni = spec_omni.values.flatten()
         ddir = (wave_spec.dir[1] - wave_spec.dir[0]).values
-        integral_d = wave_spec.sum(dim = 'dir').values * ddir
+        integral_d = wave_spec.sum(dim='dir').values * ddir
 
         # mean direction
         dfreq = (wave_spec.freq[1] - wave_spec.freq[0]).values
-        integral_f = wave_spec.sum(dim = 'freq').values * dfreq
+        integral_f = wave_spec.sum(dim='freq').values * dfreq
 
         assert wave_spec.shape == (nfreq, ndir)  # shape
         assert np.allclose(integral_d, spec_omni, rtol=0.01)
         assert directions[np.argmax(integral_f)] == dm
-
 
     def test_pierson_moskowitz_spectrum(self, f1, nfreq, fp, hs):
         spectrum = wot.waves.pierson_moskowitz_spectrum
@@ -347,8 +399,8 @@ class TestWaveSpectra:
 
         assert isinstance(spec1, float)  # scalar
         assert spec.shape == freqs.shape  # vector shape
-        assert np.isclose(total_variance_calc, total_variance_theory)  # integral
-
+        assert np.isclose(total_variance_calc,
+                          total_variance_theory)  # integral
 
     def test_jonswap_spectrum(self, f1, nfreq, fp, hs):
         spectrum = wot.waves.jonswap_spectrum
@@ -369,7 +421,6 @@ class TestWaveSpectra:
         assert spec.shape == freqs.shape  # vector shape
         assert np.allclose(spec_gamma1, spec_pm)  # reduces to PM
 
-
     def test_spread_cos2s(self, f1, nfreq, fp, ndir):
         """Confirm that energy is spread correctly accross wave directions.
         Integral over all directions of the spread function gives (vector)
@@ -379,19 +430,19 @@ class TestWaveSpectra:
         wdir_mean = directions[np.random.randint(0, ndir)]
         freqs = wot.frequency(f1, nfreq, False)
         s_max = 10
-        spread = wot.waves.spread_cos2s(freq = freqs,
-                                        directions = directions,
-                                        dm = wdir_mean,
-                                        fp = fp,
-                                        s_max = s_max)
+        spread = wot.waves.spread_cos2s(freq=freqs,
+                                        directions=directions,
+                                        dm=wdir_mean,
+                                        fp=fp,
+                                        s_max=s_max)
         ddir = directions[1]-directions[0]
         dfreq = freqs[1] - freqs[0]
         integral_d = np.sum(spread, axis=1)*ddir
         integral_f = np.sum(spread, axis=0)*dfreq
 
         assert directions[np.argmax(integral_f)] == wdir_mean  # mean dir
-        assert np.allclose(integral_d, np.ones((1, nfreq)), rtol=0.01) # omnidir
-
+        assert np.allclose(integral_d, np.ones(
+            (1, nfreq)), rtol=0.01)  # omnidir
 
     def test_general_spectrum(self, f1, nfreq):
         freq = wot.frequency(f1, nfreq, False)
@@ -413,7 +464,6 @@ class TestWaveSpectra:
         assert np.isclose(spec_f1, a_param * np.exp(-b_param))
         assert np.allclose(spec_a0, 0.0)
         assert np.allclose(spec_b0, a_param * freq**(-5))
-
 
     def test_pierson_moskowitz_params(self, fp, hs):
         params = wot.waves.pierson_moskowitz_params(fp, hs)

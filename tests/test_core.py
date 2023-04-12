@@ -44,6 +44,7 @@ def ncomponents(nfreq):
 @pytest.fixture(scope='module')
 def bem_data(f1, nfreq):
     """Synthetic BEM data."""
+    # TODO - start using single BEM solution across entire test suite
     coords = {
         'omega': [2*np.pi*(ifreq+1)*f1 for ifreq in range(nfreq)],
         'influenced_dof': ['DOF_1', 'DOF_2'],
@@ -207,50 +208,50 @@ def nfreq_imp():
 
 
 @pytest.fixture(scope="module")
-def impedance(ndof_imp, nfreq_imp):
-    """Synthetic impedance matrix."""
-    impedance = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-    impedance[0, 0, :] = [0+1j, 0+2j]
-    impedance[1, 0, :] = [1+1j, 11+2j]
-    impedance[0, 1, :] = [2+1j, 22+2j]
-    impedance[1, 1, :] = [3+1j, 33+2j]
-    return impedance
+def rao(ndof_imp, nfreq_imp):
+    """Synthetic RAO transfer matrix."""
+    rao = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
+    rao[0, 0, :] = [0+1j, 0+2j]
+    rao[1, 0, :] = [1+1j, 11+2j]
+    rao[0, 1, :] = [2+1j, 22+2j]
+    rao[1, 1, :] = [3+1j, 33+2j]
+    return rao
 
 
 @pytest.fixture(scope="module")
 def mimo(nfreq_imp):
-    """Correct MIMO matrix corresponding to the synthetic impedance
-    matrix.
+    """Correct MIMO matrix corresponding to the synthetic RAO
+    transfer matrix.
     """
     ncomponents = wot.ncomponents(nfreq_imp)
     mimo = np.zeros([ncomponents*2, ncomponents*2])
     mimo[:ncomponents, :ncomponents] = np.array([
-        [0, 0,  0, 0,  0],
-        [0, 0, -1, 0,  0],
-        [0, 1,  0, 0,  0],
-        [0, 0,  0, 0, -2],
-        [0, 0,  0, 2,  0],
+        [0, 0,  0, 0], #  0
+        [0, 0, -1, 0], #  0
+        [0, 1,  0, 0], #  0
+        [0, 0,  0, 0], # -2
+    #   [0, 0,  0, 2], #  0
     ])
     mimo[ncomponents:, :ncomponents] = np.array([
-        [0, 0,  0,  0,  0],
-        [0, 1, -1,  0,  0],
-        [0, 1,  1,  0,  0],
-        [0, 0,  0, 11, -2],
-        [0, 0,  0,  2, 11],
+        [0, 0,  0,  0], #  0
+        [0, 1, -1,  0], #  0
+        [0, 1,  1,  0], #  0
+        [0, 0,  0, 11], # -2
+    #   [0, 0,  0,  2], # 11
     ])
     mimo[:ncomponents, ncomponents:] = np.array([
-        [0, 0,  0,  0,  0],
-        [0, 2, -1,  0,  0],
-        [0, 1,  2,  0,  0],
-        [0, 0,  0, 22, -2],
-        [0, 0,  0,  2, 22],
-        ])
+        [0, 0,  0,  0], #  0
+        [0, 2, -1,  0], #  0
+        [0, 1,  2,  0], #  0
+        [0, 0,  0, 22], # -2
+    #   [0, 0,  0,  2], # 22
+    ])
     mimo[ncomponents:, ncomponents:] = np.array([
-        [0, 0,  0,  0,  0],
-        [0, 3, -1,  0,  0],
-        [0, 1,  3,  0,  0],
-        [0, 0,  0, 33, -2],
-        [0, 0,  0,  2, 33],
+        [0, 0,  0,  0], #  0
+        [0, 3, -1,  0], #  0
+        [0, 1,  3,  0], #  0
+        [0, 0,  0, 33], # -2
+    #   [0, 0,  0,  2], # 33
     ])
     return mimo
 
@@ -261,11 +262,11 @@ class TestNComponents:
     def test_default(self, ncomponents, nfreq):
         """Test default, which will include a zero-frequency component.
         """
-        assert ncomponents == 2*nfreq + 1
+        assert ncomponents == 2*nfreq
 
     def test_nozero(self, nfreq):
         """Test without a zero-frequency component."""
-        assert wot.ncomponents(nfreq, False) == 2*nfreq
+        assert wot.ncomponents(nfreq, False) == 2*nfreq - 1
 
 
 class TestFrequency:
@@ -383,14 +384,13 @@ class TestTimeMat:
         """Correct/expected time matrix."""
         f = np.array([0, 1, 2])*f1_tm
         w = 2*np.pi * f
-        t = 1/(2*nfreq_tm+1) * 1/f1_tm * np.arange(0, 2*nfreq_tm+1)
+        t = 1/(2*nfreq_tm) * 1/f1_tm * np.arange(0, 2*nfreq_tm)
         c, s = np.cos, np.sin
         mat = np.array([
-            [1,            1,             0,            1,             0],
-            [1, c(w[1]*t[1]), -s(w[1]*t[1]), c(w[2]*t[1]), -s(w[2]*t[1])],
-            [1, c(w[1]*t[2]), -s(w[1]*t[2]), c(w[2]*t[2]), -s(w[2]*t[2])],
-            [1, c(w[1]*t[3]), -s(w[1]*t[3]), c(w[2]*t[3]), -s(w[2]*t[3])],
-            [1, c(w[1]*t[4]), -s(w[1]*t[4]), c(w[2]*t[4]), -s(w[2]*t[4])],
+            [1,            1,             0,            1],
+            [1, c(w[1]*t[1]), -s(w[1]*t[1]), c(w[2]*t[1])],
+            [1, c(w[1]*t[2]), -s(w[1]*t[2]), c(w[2]*t[2])],
+            [1, c(w[1]*t[3]), -s(w[1]*t[3]), c(w[2]*t[3])],
         ])
         return mat
 
@@ -418,7 +418,7 @@ class TestTimeMat:
         """Test the components at time zero of the time matrix with
         sub-steps.
         """
-        assert all(time_mat_sub[0, 1:]==np.array([1, 0]*nfreq))
+        assert all(time_mat_sub[0, 1:]==np.array([1, 0]*nfreq)[:-1])
 
     def test_behavior(self,):
         """Test that when the time matrix multiplies a state-vector it
@@ -428,7 +428,7 @@ class TestTimeMat:
         w = 2*np.pi*f
         time_mat = wot.time_mat(f, 1)
         x = 1.2 + 3.4j
-        X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])
+        X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])[:-1]
         x_t = time_mat @ X
         t = wot.time(f, 1)
         assert np.allclose(x_t.squeeze(), np.real(x*np.exp(1j*w*t)))
@@ -456,11 +456,10 @@ class TestDerivativeMat:
         """Correct/expected derivative matrix."""
         w0 = 2*np.pi*f1_dm
         mat = np.array([
-            [0,  0,   0,    0,     0],
-            [0,  0, -w0,    0,     0],
-            [0, w0,   0,    0,     0],
-            [0,  0,   0,    0, -2*w0],
-            [0,  0,   0, 2*w0,     0],
+            [0,  0,   0,    0],
+            [0,  0, -w0,    0],
+            [0, w0,   0,    0],
+            [0,  0,   0,    0],
         ])
         return mat
 
@@ -481,34 +480,53 @@ class TestDerivativeMat:
         """
         f = 0.1
         w = 2*np.pi*f
-        derivative_mat = wot.derivative_mat(f, 1)
-        x = 1.2 + 3.4j
-        X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])
+        x = np.array([1 + 2j,
+                      3 + 4j,
+                      5 + 6j])
+        derivative_mat = wot.derivative_mat(f, np.size(x))
+        X = np.concatenate([
+            [0.],
+            np.reshape([[np.real(i), np.imag(i)] for i in x[:-1]], -1),
+            [np.real(x[-1])]
+        ])
         V = derivative_mat @ X
-        v = V[1] + 1j*V[2]
-        assert np.allclose(v, 1j*w*x)
+        v = np.sum(V[1::2]) + 1j*np.sum(V[2::2])
+        expected = np.sum(
+            [[(i+1) * 1j * w * x[i]] for i in range(np.size(x)-1)])
+        assert np.allclose(v, expected)
 
 
 class TestMIMOTransferMat:
     """Test function :python:`mimo_transfer_mat`."""
 
-    def test_mimo_transfer_mat(self, impedance, mimo):
+    def test_mimo_transfer_mat(self, rao, mimo):
         """Test the function produces the correct MIMO transfer matrix.
         """
-        calculated = wot.mimo_transfer_mat(impedance, False)
+        calculated = wot.mimo_transfer_mat(rao, False)
         assert np.all(calculated == mimo)
 
     def test_behavior(self,):
         """Test that the MIMO transfer matrix applied to a state vector
         produces the expected output state vector, based on the
-        synthetic impedance.
+        synthetic RAO transfer function.
         """
         # test use/behavior
-        x = 1.2+3.4j
-        X = np.reshape([0, np.real(x), np.imag(x)], [-1,1])
-        z = 2.1+4.3j
-        f = z*x
-        F = np.reshape([0, np.real(f), np.imag(f)], [-1,1])
+        x = np.array([1 + 2j,
+                      3 + 4j])
+        X = np.concatenate([
+            [0.],
+            np.reshape([[np.real(i), np.imag(i)] for i in x[:-1]], -1),
+            [np.real(x[-1])]
+        ])
+        z = np.array([1.5+2.5j,
+                      3.5+4.5j])
+        F = np.concatenate([
+            [0.],
+            np.reshape(
+                [[np.real(z[i]*x[i]), np.imag(z[i]*x[i])] for 
+                i in range(np.size(x)-1)], -1),
+            [np.real(z[-1]) * np.real(x[-1])],
+        ])
         Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
         assert np.allclose(Z_mimo @ X, F)
 
@@ -589,7 +607,7 @@ class TestRealToComplexToReal:
             # DOF 1,  DOF 2
             [  1+0j, 11+ 0j],  # f0
             [  2+3j, 12+13j],  # f1
-            [  4+5j, 14+15j],  # f2
+            [  4   , 14    ],  # f2 (real component only)
         ])
         return response
 
@@ -604,7 +622,6 @@ class TestRealToComplexToReal:
             [  2, 12],  # f1 real
             [  3, 13],  # f1 imag
             [  4, 14],  # f2 real
-            [  5, 15],  # f2 imag
         ])
         return response
 
@@ -644,7 +661,7 @@ class TestRealToComplexToReal:
         """
         complex_1d = np.array([1+0j, 2+3j])
         real_1d_calculated = wot.complex_to_real(complex_1d)
-        real_1d = np.array([[1], [2], [3]])
+        real_1d = np.array([[1], [2]])
         assert np.allclose(real_1d_calculated, real_1d)
 
 
@@ -711,25 +728,25 @@ class TestFDToTDToFD:
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
         calculated = wot.fd_to_td(fd, f1, nfreq)
-        assert calculated.shape==(1+2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
     def test_td_to_fd(self, fd, td, f1, nfreq):
         """Test the :python:`td_to_fd` function outputs."""
         calculated = wot.td_to_fd(td, f1, nfreq)
-        assert calculated.shape==(1+nfreq, 2) and np.allclose(calculated, fd)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd)
 
     def test_fft(self, fd, td, nfreq):
         """Test the :python:`fd_to_td` function outputs when using FFT.
         """
         calculated = wot.fd_to_td(fd)
-        assert calculated.shape==(1+2*nfreq, 2) and np.allclose(calculated, td)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
     def test_fd_to_td_1dof(self, fd_1dof, td_1dof, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs for the 1 DOF
         case.
         """
         calculated = wot.fd_to_td(fd_1dof, f1, nfreq)
-        shape = (1+2*nfreq, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -738,7 +755,7 @@ class TestFDToTDToFD:
         case.
         """
         calculated = wot.td_to_fd(td_1dof.squeeze(), f1, nfreq)
-        shape = (1+nfreq, 1)
+        shape = (nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, fd_1dof)
 
@@ -747,7 +764,7 @@ class TestFDToTDToFD:
         for the 1 DOF.
         """
         calculated = wot.fd_to_td(fd_1dof)
-        shape = (1+2*nfreq, 1)
+        shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
@@ -806,7 +823,7 @@ class TestCheckLinearDamping:
         assert np.allclose(np.diagonal(data_new.friction.values), tol)
 
     def test_only_diagonal_friction(self, data, data_new):
-        """Test that only the diagonal of is changed."""
+        """Test that only the diagonal was changed."""
         data_org = data.copy(deep=True)
         def nodiag(x):
             return x.friction.values - np.diag(np.diagonal(x.friction.values))
@@ -819,6 +836,56 @@ class TestCheckLinearDamping:
         data_new_nofric = data_new.copy(deep=True).drop_vars('friction')
         data_org_nofric = data.copy(deep=True).drop_vars('friction')
         assert data_new_nofric.equals(data_org_nofric)
+
+
+class TestCheckImpedance:
+    """Test functions :python:`hydrodynamic_impedance` and 
+    :python:`check_impedance`."""
+
+    @pytest.fixture(scope="class")
+    def data(self, hydro_data):
+        """Hydrodynamic data structure for this test set."""
+        data = hydro_data.copy(deep=True)
+        data['radiation_damping'] *= 0
+        data['friction'] *= 0
+        data['friction'] += -0.1
+        Zi = wot.hydrodynamic_impedance(data)
+        return Zi
+    
+    def test_hydrodynamic_impedance(self, data, hydro_data):
+        """"Check that shape of impedance is as expected"""
+        assert data.shape == hydro_data.added_mass.shape
+
+    @pytest.fixture(scope="class")
+    def tol(self, data):
+        """Tolerance for function :python:`check_impedance`."""
+        return 0.01
+
+    @pytest.fixture(scope="class")
+    def data_new(self, data, tol):
+        """Hydrodynamic data structure for which the function
+        :python:`check_impedance` has been called.
+        """
+        return wot.check_impedance(data, tol)
+
+    def test_friction(self, data_new, tol):
+        """Test that the modified impedance diagonal has the expected
+        value.
+        """
+        assert np.allclose(np.real(np.diagonal(data_new)), tol)
+
+    def test_only_diagonal_friction(self, data, data_new):
+        """Test that only the diagonal was changed."""
+        data_org = data.copy(deep=True)
+
+        def offdiags(x):
+            return x.values[np.invert(np.eye(x.shape[0], dtype=bool))]
+        assert np.allclose(offdiags(data_new), offdiags(data_org))
+
+    def test_only_friction(self, data, data_new):
+        """Test that only the real part of the impedance was changed.
+        """
+        assert np.allclose(np.imag(data), np.imag(data_new))
 
 
 class TestForceFromImpedanceOrTransferFunction:
@@ -834,7 +901,7 @@ class TestForceFromImpedanceOrTransferFunction:
     @pytest.fixture(scope="class")
     def x_wec(self,):
         """WEC position state vector for a simple synthetic case."""
-        return [0, 1, 1, 1, 1, 0, 2, 2, 2, 2]
+        return [0, 1, 1, 1, 0, 2, 2, 2]
 
     @pytest.fixture(scope="class")
     def force(self, f1, nfreq_imp, ndof_imp):
@@ -842,8 +909,8 @@ class TestForceFromImpedanceOrTransferFunction:
         # amplitude: A  = mimo @ x_wec, calculated manually
         #   reshaped for convenience
         A = np.array([
-            [0, 1,  7, 38, 50],
-            [0, 4, 10, 71, 83],
+            [0, 1,  7, 44],
+            [0, 4, 10, 77],
         ])
         force = np.zeros((wot.ncomponents(nfreq_imp), ndof_imp))
         w = wot.frequency(f1, nfreq_imp) * 2*np.pi
@@ -851,33 +918,33 @@ class TestForceFromImpedanceOrTransferFunction:
         force[:, 0] = (
             A[0, 0] +
             A[0, 1]*np.cos(w[1]*t) - A[0, 2]*np.sin(w[1]*t) +
-            A[0, 3]*np.cos(w[2]*t) - A[0,4]*np.sin(w[2]*t)
+            A[0, 3]*np.cos(w[2]*t)
         )
         force[:, 1] = (
             A[1, 0] +
             A[1, 1]*np.cos(w[1]*t) - A[1, 2]*np.sin(w[1]*t) +
-            A[1, 3]*np.cos(w[2]*t) - A[1, 4]*np.sin(w[2]*t)
+            A[1, 3]*np.cos(w[2]*t)
         )
         return force
 
     def test_from_transfer(
-            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec
+            self, rao, f1, nfreq_imp, ndof_imp, force, x_wec
         ):
         """Test the function :python:`force_from_rao_transfer_function`
         for a small synthetic problem.
         """
-        force_func = wot.force_from_rao_transfer_function(impedance, False)
+        force_func = wot.force_from_rao_transfer_function(rao, False)
         wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
         force_calculated = force_func(wec, x_wec, None, None)
         assert np.allclose(force_calculated, force)
 
     def test_from_impedance(
-            self, impedance, f1, nfreq_imp, ndof_imp, force, x_wec, omega
+            self, rao, f1, nfreq_imp, ndof_imp, force, x_wec, omega
         ):
         """Test the function :python:`force_from_impedance` for a small
         synthetic problem.
         """
-        force_func = wot.force_from_impedance(omega[1:], impedance*1j*omega[1:])
+        force_func = wot.force_from_impedance(omega[1:], rao/(1j*omega[1:]))
         wec = wot.WEC(f1, nfreq_imp, {}, ndof=ndof_imp, inertia_in_forces=True)
         force_calculated = force_func(wec, x_wec, None, None)
         assert np.allclose(force_calculated, force)
@@ -981,7 +1048,7 @@ class TestInertiaStandardForces:
             f1, nfreq, {}, inertia_matrix=data['inertia_matrix'].values)
         waves = wot.waves.regular_wave(
             f1, nfreq, wave_freq, wave_amp, wave_phase_deg)
-        x_wec = np.zeros((nfreq*2+1)*ndof)
+        x_wec = np.zeros((nfreq*2)*ndof)
         x_wec[(index_freq*2-1)*1] = amplitude
         inertia_func = wot.inertia(
             f1, nfreq, inertia_matrix=data['inertia_matrix'].values)
@@ -1276,10 +1343,10 @@ class TestDecomposeState:
 
     def test_function(self,):
         """Test that the function returns expected results."""
-        ndof, nfreq = 1, 2  # ncomponents = ndof*(2*nfreq+1) = 5
-        state = [1, 1, 1, 1, 1, 3.4, 3.5]
-        x_wec = [1, 1, 1, 1, 1]
-        x_opt = [3.4, 3.5]
+        ndof, nfreq = 1, 2  # ncomponents = ndof*(2*nfreq-1)+1 = 4
+        state = [1, 1, 1, 1, 3.4]
+        x_wec = [1, 1, 1, 1]
+        x_opt = [3.4]
         x_w_calc, x_o_calc = wot.decompose_state(state, ndof, nfreq)
         assert np.allclose(x_w_calc, x_wec) and np.allclose(x_o_calc, x_opt)
 
