@@ -652,16 +652,16 @@ class PTO:
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
-        post-processed results for the :py:class:`wecopttool.WEC`
-        object.
+        raw results dictionary produced by :py:func:`scipy.optimize.minimize`.
 
-        >>> res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,
-                                              obj_fun=pto.average_power,
-                                              nstate_opt=2*nfreq+1)
+        >>> res_opt = wec.solve(waves=wave,
+                                obj_fun=pto.average_power,
+                                nstate_opt=2*nfreq+1)
 
         To get the post-processed results for the
         :py:class:`wecopttool.pto.PTO`, you may call
 
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
         >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
 
         For smoother plots, you can set :python:`nsubsteps` to a value
