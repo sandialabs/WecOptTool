@@ -65,7 +65,7 @@ class TestElevationFD:
         """Test that the elevation dataArray has the correct
         coordinates.
         """
-        coordinates = ['wave_direction', 'omega']
+        coordinates = ['wave_direction', 'omega', 'freq']
         for icoord in coordinates:
             assert icoord in elevation.coords, f'missing coordinate: {icoord}'
 
@@ -116,7 +116,7 @@ class TestRegularWave:
         """Test that the elevation dataArray has the correct
         coordinates.
         """
-        coordinates = ['wave_direction', 'omega']
+        coordinates = ['wave_direction', 'omega', 'freq']
         for icoord in coordinates:
             assert icoord in elevation.coords, f'missing coordinate: {icoord}'
 
@@ -223,7 +223,7 @@ class TestLongCrestedWave:
         """Test that the elevation dataArray has the correct
         coordinates.
         """
-        coordinates = ['wave_direction', 'omega']
+        coordinates = ['wave_direction', 'omega', 'freq']
         for icoord in coordinates:
             assert icoord in elevation.coords, f'missing coordinate: {icoord}'
 
@@ -290,7 +290,7 @@ class TestIrregularWave:
         """Test that the elevation dataArray has the correct
         coordinates.
         """
-        coordinates = ['wave_direction', 'omega']
+        coordinates = ['wave_direction', 'omega', 'freq']
         for icoord in coordinates:
             assert icoord in elevation.coords, f'missing coordinate: {icoord}'
 
