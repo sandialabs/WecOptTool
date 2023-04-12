@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves &mdash; WecOptTool 2.3.1 documentation</title>
+  <title>wecopttool.waves &mdash; WecOptTool 2.3.2 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -168,9 +168,12 @@
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
     <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
-    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wave frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
+    <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Radial frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
+    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span><span class="p">}</span>
     <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wave direction&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">}</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">)]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">omega_attr</span><span class="p">),</span>
+              <span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span>
+              <span class="s1">&#39;wave_direction&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">)}</span>
 
     <span class="k">if</span> <span class="n">amplitudes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">])</span>

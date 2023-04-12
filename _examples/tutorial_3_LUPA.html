@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.3.1 documentation</title>
+  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.3.2 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -128,7 +128,7 @@ torque, and maximum rotational speed - irregular waves - mooring system dynamics
 </ol>
 <p><p><img alt="Digital rendering of the LUPA" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793669495_72ba57da99_z.jpg" style="width: 307px;" /> <img alt="Picture of the LUPA floating in the flume in calm water. Both bodies and mooring are visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52792718812_b750791167_k.jpg" style="width: 500px;" /> <img alt="Picture of the LUPA in the dry flume. Both bodies and mooring are visible. A ladder and person next to it gives context of the scale." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276446_9b35889ccd_k.jpg" style="width: 500px;" /></p>
 </p><div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gmsh</span><span class="o">,</span> <span class="nn">pygmsh</span>
@@ -156,7 +156,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <h4>LUPA properties<a class="headerlink" href="#LUPA-properties" title="Permalink to this heading"></a></h4>
 <p>The mass properties of the LUPA have been provided from measurements of the physical device by Oregon State University, as follows:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># provided by OSU</span>
@@ -179,7 +179,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <h4>Mesh creation of the float<a class="headerlink" href="#Mesh-creation-of-the-float" title="Permalink to this heading"></a></h4>
 <p>Here we create the mesh based on the dimensions provided by Oregon State University using <em>pygmsh</em> as in the other tutorials.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mesh</span>
@@ -206,7 +206,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 <p>Again, we will only add the heave DOF for now. The surge and pitch will be added after we combine the two <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> objects.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
@@ -217,7 +217,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 <p>We can now visualize the mesh.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
@@ -241,7 +241,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <p>We now create the spar mesh in the same way as for the float, with the dimensions given by Oregon State University.</p>
 <p><p><img alt="spar dimensions schematic from OSU" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793722023_cd0b2e5d4f_k.jpg" style="width: 700px;" /></p>
 </p><div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mesh</span>
@@ -267,7 +267,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
@@ -277,7 +277,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
@@ -296,7 +296,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -318,7 +318,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 freedom.</p>
 <p>We are using the density of <em>fresh</em> water, <span class="math notranslate nohighlight">\(\rho = 1000 kg/m^3\)</span>, since we are modeling LUPA in a wave flume.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># density of fresh water</span>
@@ -360,11 +360,10 @@ freedom.</p>
 </div>
 <p>We can now visualize the combined mesh.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
-<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">,</span> <span class="n">zmin</span><span class="p">,</span> <span class="n">zmax</span> <span class="o">=</span> <span class="n">lupa_fb</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">axis_aligned_bbox</span>
 <span class="n">scalez</span> <span class="o">=</span> <span class="p">(</span><span class="n">zmax</span><span class="o">-</span><span class="n">zmin</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">xmax</span><span class="o">-</span><span class="n">xmin</span><span class="p">)</span>
@@ -379,7 +378,7 @@ freedom.</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -401,7 +400,7 @@ freedom.</p>
 <p>With the LUPA geometry and physical properties fully defined, we can now run Capytaine to calculate the hydrodynamic and hydrostatic coefficients of the device, as done in previous tutorials. Capytaine can handle generalized modes and will calculate the coefficients for our 4 degrees of freedom. Because we are now using irregular waves, we need significantly more frequencies to capture the entire wave spectrum. The BEM coefficients have been pre-calculated and are saved in a file. To re-run the
 BEM, which takes about 1 hour, simply delete the existing file <code class="docutils literal notranslate"><span class="pre">./data/bem.nc</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># compute hydrodynamic coefficients</span>
@@ -428,12 +427,12 @@ BEM, which takes about 1 hour, simply delete the existing file <code class="docu
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;float__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
+WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;spar__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
 </pre></div></div>
 </div>
 <p>We now visualize the BEM results. An irregular frequency at about 5.25 rad/s is visible in many of the plots, but this should not substantially impact our model as the wave energy at this frequency is fairly low.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot coefficients</span>
@@ -499,12 +498,12 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;flo
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x1ff80198e20&gt;
+&lt;matplotlib.legend.Legend at 0x19eab861270&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -537,7 +536,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;flo
 <p><p><img alt="Schematic of the PTO system showing dimensions and parts." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276361_ff6a78ce4f_k.jpg" style="width: 740px;" /> <img alt="Digital rendering of the LUPA with PTO mechanism visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793518059_5f4b559d2a_h.jpg" style="width: 458px;" /></p>
 </p><p>We start by defining all the manufacturer-specified components.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">conv_d</span> <span class="o">=</span> <span class="mf">0.0254</span>  <span class="c1"># in -&gt; m</span>
@@ -708,7 +707,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;flo
 </div>
 <p>We then define the PTO based on these part specifications. For Part 1, where we are setting up the problem, we will use the mid-size sprocket of diameter 127.3mm (8MX-50S-36).</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># drivetrain</span>
@@ -766,11 +765,11 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;flo
 </section>
 <section id="Constraints">
 <h3>Constraints<a class="headerlink" href="#Constraints" title="Permalink to this heading"></a></h3>
-<p>In this tutorial we include realistic constraints on both the device motions and the generator operation. - The <strong>maximum stroke</strong> (difference in heave between the float and spar) is 0.5m. Although there are end-stops (hard stop), the controller should ensure a soft stop. So, instead of modeling the hard stop we will add a constraint. - The generator has both a <strong>maximum torque</strong> and <strong>maximum speed</strong>. It is important that we do not exceed that during operation. - Generators also have a
+<p>In this tutorial we include realistic constraints on both the device motions and the generator operation. * The <strong>maximum stroke</strong> (difference in heave between the float and spar) is 0.5m. Although there are end-stops (hard stop), the controller should ensure a soft stop. So, instead of modeling the hard stop we will add a constraint. * The generator has both a <strong>maximum torque</strong> and <strong>maximum speed</strong>. It is important that we do not exceed that during operation. * Generators also have a
 <strong>continuous torque</strong> requirement. The RMS torque during operation should not exceed this value or we risk damage to and failure of the machine. The torque can go higher that this (up to the maximum) for brief periods as long as the RMS torque remains below this threshold.</p>
 <p>We enforce all these through constraints on our design optimization problem.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Displacements</span>
@@ -818,7 +817,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;flo
 <h3>Mooring system<a class="headerlink" href="#Mooring-system" title="Permalink to this heading"></a></h3>
 <p>To fully capture the dynamics acting on LUPA in the Large Wave Flume, we must model the mooring system being used to account for the restoring forces acting on the WEC. The LUPA setup uses a 4-line taut mooring system with springs connecting the spar to the wall of the wave flume. The following mooring system properties have been provided by Oregon State University. The initial fairlead coordinates and anchor coordinates are relative to the center of gravity of the combined device:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pretension</span> <span class="o">=</span> <span class="mi">285</span> <span class="c1"># N</span>
@@ -844,10 +843,12 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <div class="math notranslate nohighlight">
 \[\frac{\partial F_{hor}}{\partial h} = \frac{\partial F_{vert}}{\partial l} = \textup{cos} \theta \textup{sin} \theta \left [ K_{axial}- \frac{T}{L}\right ]\]</div>
 <p>where <span class="math notranslate nohighlight">\(l\)</span> and <span class="math notranslate nohighlight">\(h\)</span> are the horizontal and vertical distance between the anchor points and fairlead points, respectively; <span class="math notranslate nohighlight">\(T\)</span> is the pretension; <span class="math notranslate nohighlight">\(\theta\)</span> is the angle between the seabed and the mooring line such that $ <span class="math">\theta `= :nbsphinx-math:</span>textup{tan}`^{-1}(<span class="math">\frac{h}{l}</span>) $; and <span class="math notranslate nohighlight">\(L\)</span> is the stretched length of the mooring line such that $L = <span class="math">\sqrt{l^2 + h^2}</span> $</p>
-<p>When these equations are applied to the linear stiffness equation in each radiating (<span class="math notranslate nohighlight">\(i\)</span>) and influencing (<span class="math notranslate nohighlight">\(j\)</span>) degrees of freedom, $:nbsphinx-math:<cite>boldsymbol{K_{mooring}}</cite> = - <span class="math">\frac{\partial \boldsymbol{F_{mooring}}}{\partial \boldsymbol{X}}</span> = <span class="math">\sum</span><em>{m=1}^{n</em>{lines}} [K_{ij}]^{(m)} = - <span class="math">\sum</span>_{m=1}<sup>{n_{lines}}[:nbsphinx-math:</sup>frac{partial (F_{mooring})_i}{partial X_j}`]`{(m)} $, where <span class="math notranslate nohighlight">\(X\)</span> are the generalized
-displacements of the WEC in each degree of freedom, they yield Equation (27) from the reference above which provides an analytical solution to $:nbsphinx-math:<cite>boldsymbol{K_{mooring}}</cite> $, which translates to the <code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> function below. See the reference above for the full theoretical explanation and derivation of these equations.</p>
+<p>When these equations are applied to the linear stiffness equation in each radiating (<span class="math notranslate nohighlight">\(i\)</span>) and influencing (<span class="math notranslate nohighlight">\(j\)</span>) degrees of freedom:</p>
+<div class="math notranslate nohighlight">
+\[\boldsymbol{K_{mooring}} = - \frac{\partial \boldsymbol{F_{mooring}}}{\partial \boldsymbol{X}} = \sum_{m=1}^{n_{lines}}  [K_{ij}]^{(m)} = - \sum_{m=1}^{n_{lines}}[\frac{\partial (F_{mooring})_i}{\partial X_j}]^{(m)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(X\)</span> are the generalized displacements of the WEC in each degree of freedom, they yield Equation (27) from the reference above which provides an analytical solution to $:nbsphinx-math:<cite>boldsymbol{K_{mooring}}</cite> $, which translates to the <code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> function below. See the reference above for the full theoretical explanation and derivation of these equations.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mooring matrix</span>
@@ -900,7 +901,7 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> defines the 7x7 mooring matrix for a two-body point absorber WEC. Since we are only concerned with the planar components here, we can extract the rows/columns for the heaves, surge, and pitch to obtain the 4x4 matrix we need here.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">M</span> <span class="o">=</span> <span class="n">k_mooring</span><span class="p">(</span><span class="n">init_fair_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">anch_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">pretension</span><span class="p">,</span>
@@ -924,7 +925,7 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
 </div>
 <p>Finally, with some more formatting, we can translate the mooring force into the format expected from WecOptTool by treating the mooring matrix as a transfer function and defining it via the <code class="docutils literal notranslate"><span class="pre">wecopttool.force_from_rao_transfer_function()</span></code> function, which multiplies the position of the WEC by the mooring matrix and return the restoring force.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mooring</span>
@@ -952,7 +953,7 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
 <h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this heading"></a></h3>
 <p>We are now ready to create our full WEC object.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># additional forces</span>
@@ -980,9 +981,9 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
 <section id="Waves">
 <h3>Waves<a class="headerlink" href="#Waves" title="Permalink to this heading"></a></h3>
 <p>Oregon State University has defined two sets of wave testing conditions for the LUPA: one corresponding to the PacWave South site and a scaling factor of 25, and one for the PacWave North site and a scaling factor of 20. For each site/scale they provide four wave conditions to test at the Oregon State Large Wave Flume (LWF): the maximum 90th percentile, maximum percent annual energy, maximum occurrence, and minimum 10th percentile.</p>
-<p>In this tutorial we will use the PacWave South conditions and will design for the maximum occurrence wave. The wave conditions are specified in terms of significant wave height and peak period. We will assume a JONSWAP spectrum.</p>
+<p>In this tutorial we will use the PacWave South conditions scaled to the LWF and will design for the maximum occurrence wave. The wave conditions are specified in terms of significant wave height and peak period. We will assume a JONSWAP spectrum.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">waves</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1000,10 +1001,10 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
     <span class="s1">&#39;south_max_annual&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.13</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">2.35</span><span class="p">},</span>
     <span class="s1">&#39;south_max_occurrence&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.07</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">1.90</span><span class="p">},</span>
     <span class="s1">&#39;south_min_10&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.04</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">1.48</span><span class="p">},</span>
-    <span class="s1">&#39;north_max_90&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">4.90</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">15.46</span><span class="p">},</span>
-    <span class="s1">&#39;north_max_annual&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">3.25</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">11.76</span><span class="p">},</span>
-    <span class="s1">&#39;north_max_occurrence&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">1.75</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">9.52</span><span class="p">},</span>
-    <span class="s1">&#39;north_min_10&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">1.00</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">7.39</span><span class="p">},</span>
+    <span class="s1">&#39;north_max_90&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">3.46</span><span class="p">},</span>
+    <span class="s1">&#39;north_max_annual&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">2.63</span><span class="p">},</span>
+    <span class="s1">&#39;north_max_occurrence&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.09</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">2.13</span><span class="p">},</span>
+    <span class="s1">&#39;north_min_10&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">1.68</span><span class="p">},</span>
 <span class="p">}</span>
 
 <span class="k">def</span> <span class="nf">irregular_wave</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">tp</span><span class="p">):</span>
@@ -1017,53 +1018,42 @@ displacements of the WEC in each degree of freedom, they yield Equation (27) fro
 </pre></div>
 </div>
 </div>
-<p>We now plot the wave spectra in order to verify that our frequency array is sufficient to capture our target waves (note the dual y-axis here; PacWave South has much smaller significant wave heights than PacWave North, so the PacWave South lines are scaled to see them in adequate detail). The peak frequency for the PacWave South maximum occurrence is cut off some, so we would want to sample more wave frequencies (i.e. increase <code class="docutils literal notranslate"><span class="pre">nfreq</span></code>) in a formal analysis to properly capture this. However,
-this is sufficient for purposes of this tutorial.</p>
+<p>We now plot the wave spectra in order to verify that our frequency array is sufficient to capture our target waves. The peak frequency for the PacWave South maximum occurrence is cut off somewhat, so we would want to sample more wave frequencies (i.e. increase <code class="docutils literal notranslate"><span class="pre">nfreq</span></code>) in a formal analysis to properly capture this. However, this is sufficient for purposes of this tutorial.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
-<span class="n">twinax</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
 <span class="n">plt1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;south_max_90&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;South, 90th percentile&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW South, 90th percentile&#39;</span><span class="p">)</span>
 <span class="n">plt2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;south_max_annual&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;South, Max Annual&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW South, Max Annual&#39;</span><span class="p">)</span>
 <span class="n">plt3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;south_max_occurrence&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;South, Max Occurrence&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW South, Max Occurrence&#39;</span><span class="p">)</span>
 <span class="n">plt4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;south_min_10&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;South, 10th percentile&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;north_max_occurrence&#39;</span><span class="p">]))</span><span class="o">/</span><span class="mi">5</span><span class="p">])</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f1</span><span class="o">*</span><span class="n">nfreq</span><span class="p">])</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">)</span>
-
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C0&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW South, 10th percentile&#39;</span><span class="p">)</span>
 <span class="n">plt5</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;north_max_90&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">twinax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;North, 90th percentile&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW North, 90th percentile&#39;</span><span class="p">)</span>
 <span class="n">plt6</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;north_max_annual&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">twinax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;North, Max Annual&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dotted&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW North, Max Annual&#39;</span><span class="p">)</span>
 <span class="n">plt7</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;north_max_occurrence&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">twinax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;North, Max Occurrence&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW North, Max Occurrence&#39;</span><span class="p">)</span>
 <span class="n">plt8</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves</span><span class="p">[</span><span class="s1">&#39;north_min_10&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-    <span class="n">ax</span><span class="o">=</span><span class="n">twinax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;North, 10th percentile&#39;</span><span class="p">)</span>
-<span class="n">twinax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">f1</span><span class="o">*</span><span class="n">nfreq</span><span class="p">])</span>
-<span class="n">twinax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">twinax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-<span class="n">twinax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">)</span>
-<span class="n">twinax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PW North, 10th percentile&#39;</span><span class="p">)</span>
 
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;PacWave wave spectra&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;PacWave wave spectra, LWF scale&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
 <span class="n">plts</span> <span class="o">=</span> <span class="n">plt1</span> <span class="o">+</span> <span class="n">plt2</span> <span class="o">+</span> <span class="n">plt3</span> <span class="o">+</span> <span class="n">plt4</span> <span class="o">+</span> <span class="n">plt5</span> <span class="o">+</span> <span class="n">plt6</span> <span class="o">+</span> <span class="n">plt7</span> <span class="o">+</span> <span class="n">plt8</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">plts</span><span class="p">,</span> <span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">pl</span> <span class="ow">in</span> <span class="n">plts</span><span class="p">],</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">plts</span><span class="p">,</span> <span class="p">[</span><span class="n">pl</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span> <span class="k">for</span> <span class="n">pl</span> <span class="ow">in</span> <span class="n">plts</span><span class="p">],</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x1ff806c4fd0&gt;
+&lt;matplotlib.legend.Legend at 0x19ea8a32e90&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
