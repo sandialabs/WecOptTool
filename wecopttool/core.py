@@ -874,7 +874,7 @@ class WEC:
         force_da_list = []
         for name, force in self.forces.items():
             force_td_tmp = force(self, x_wec, x_opt, waves)
-            force_fd = self.td_to_fd(force_td_tmp, fft=True)
+            force_fd = self.td_to_fd(force_td_tmp)
             force_da = DataArray(data=force_fd,
                                  dims=["omega", "influenced_dof"],
                                  coords={
@@ -1213,7 +1213,7 @@ class WEC:
     def td_to_fd(
         self,
         td: ndarray,
-        fft: Optional[bool] = True,
+        fft: Optional[bool] = False,
         ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
 
@@ -1680,7 +1680,7 @@ def fd_to_td(
 
 def td_to_fd(
     td: ArrayLike,
-    fft: Optional[bool] = True,
+    fft: Optional[bool] = False,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
@@ -1705,13 +1705,20 @@ def td_to_fd(
     fd_to_td
     """
     td= atleast_2d(td)
+    td_dc = np.expand_dims(td[0, :], axis=0)
+    td_nodc = td[1:, :]
     n = td.shape[0]
-    if fft:
-        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
-    else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
     if not zero_freq:
-        fd = fd[1:, :]
+        if fft:
+            fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+        else:
+            fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    else:
+        if fft:
+            fd_nodc = np.fft.rfft(td*2, n=n, axis=0, norm='forward')[1:, :]
+        else:
+            fd_nodc = np.dot(dft(n, 'n')[1:n//2+1, 1:], td_nodc*2)
+        fd = np.concatenate((td_dc, fd_nodc))
     return fd
 
 
