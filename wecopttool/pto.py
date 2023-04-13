@@ -126,13 +126,28 @@ class PTO:
         self._force = force
 
         # power
-        self._impedance = impedance
-        self._loss = loss
         if impedance is not None:
+            check_1 = impedance.shape[0] == impedance.shape[1] == 2*self.ndof
+            check_2 = len(impedance.shape) == 3
+            if not (check_1 and check_2):
+                raise TypeError(
+                    "Impedance should have size [2*ndof, 2*ndof, nfreq]"
+                )
+            for i in range(impedance.shape[2]-1):
+                check_3 = (
+                    np.allclose(np.real(impedance[:, :, i+1]), np.real(impedance[:, :, 0]))
+                )
+                if not check_3:
+                    raise ValueError(
+                        "Real component of impedance must be constant for " +
+                        "all frequencies."
+                    )
             impedance_abcd = _make_abcd(impedance, ndof)
             self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
         else:
             self._transfer_mat = None
+        self._impedance = impedance
+        self._loss = loss
 
     @property
     def ndof(self) -> int:
