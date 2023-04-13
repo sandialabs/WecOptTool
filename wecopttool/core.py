@@ -1705,20 +1705,14 @@ def td_to_fd(
     fd_to_td
     """
     td= atleast_2d(td)
-    td_dc = np.expand_dims(td[0, :], axis=0)
-    td_nodc = td[1:, :]
     n = td.shape[0]
-    if not zero_freq:
-        if fft:
-            fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
-        else:
-            fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    if fft:
+        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
     else:
-        if fft:
-            fd_nodc = np.fft.rfft(td*2, n=n, axis=0, norm='forward')[1:, :]
-        else:
-            fd_nodc = np.dot(dft(n, 'n')[1:n//2+1, 1:], td_nodc*2)
-        fd = np.concatenate((td_dc, fd_nodc))
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
+    if not zero_freq:
+        fd = fd[1:, :]
     return fd
 
 
