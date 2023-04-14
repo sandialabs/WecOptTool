@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.3.2 documentation</title>
+  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.4.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -38,7 +38,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.3
+                2.4
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -128,7 +128,7 @@ torque, and maximum rotational speed - irregular waves - mooring system dynamics
 </ol>
 <p><p><img alt="Digital rendering of the LUPA" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793669495_72ba57da99_z.jpg" style="width: 307px;" /> <img alt="Picture of the LUPA floating in the flume in calm water. Both bodies and mooring are visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52792718812_b750791167_k.jpg" style="width: 500px;" /> <img alt="Picture of the LUPA in the dry flume. Both bodies and mooring are visible. A ladder and person next to it gives context of the scale." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276446_9b35889ccd_k.jpg" style="width: 500px;" /></p>
 </p><div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gmsh</span><span class="o">,</span> <span class="nn">pygmsh</span>
@@ -156,7 +156,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <h4>LUPA properties<a class="headerlink" href="#LUPA-properties" title="Permalink to this heading"></a></h4>
 <p>The mass properties of the LUPA have been provided from measurements of the physical device by Oregon State University, as follows:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># provided by OSU</span>
@@ -179,7 +179,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <h4>Mesh creation of the float<a class="headerlink" href="#Mesh-creation-of-the-float" title="Permalink to this heading"></a></h4>
 <p>Here we create the mesh based on the dimensions provided by Oregon State University using <em>pygmsh</em> as in the other tutorials.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mesh</span>
@@ -206,7 +206,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 <p>Again, we will only add the heave DOF for now. The surge and pitch will be added after we combine the two <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> objects.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
@@ -217,7 +217,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 <p>We can now visualize the mesh.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
@@ -241,7 +241,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <p>We now create the spar mesh in the same way as for the float, with the dimensions given by Oregon State University.</p>
 <p><p><img alt="spar dimensions schematic from OSU" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793722023_cd0b2e5d4f_k.jpg" style="width: 700px;" /></p>
 </p><div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mesh</span>
@@ -267,7 +267,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
@@ -277,7 +277,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
@@ -296,7 +296,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -318,7 +318,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 freedom.</p>
 <p>We are using the density of <em>fresh</em> water, <span class="math notranslate nohighlight">\(\rho = 1000 kg/m^3\)</span>, since we are modeling LUPA in a wave flume.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># density of fresh water</span>
@@ -360,7 +360,7 @@ freedom.</p>
 </div>
 <p>We can now visualize the combined mesh.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># show</span>
@@ -378,7 +378,7 @@ freedom.</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -400,7 +400,7 @@ freedom.</p>
 <p>With the LUPA geometry and physical properties fully defined, we can now run Capytaine to calculate the hydrodynamic and hydrostatic coefficients of the device, as done in previous tutorials. Capytaine can handle generalized modes and will calculate the coefficients for our 4 degrees of freedom. Because we are now using irregular waves, we need significantly more frequencies to capture the entire wave spectrum. The BEM coefficients have been pre-calculated and are saved in a file. To re-run the
 BEM, which takes about 1 hour, simply delete the existing file <code class="docutils literal notranslate"><span class="pre">./data/bem.nc</span></code>.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># compute hydrodynamic coefficients</span>
@@ -427,12 +427,12 @@ BEM, which takes about 1 hour, simply delete the existing file <code class="docu
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;spar__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
+WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;float__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
 </pre></div></div>
 </div>
 <p>We now visualize the BEM results. An irregular frequency at about 5.25 rad/s is visible in many of the plots, but this should not substantially impact our model as the wave energy at this frequency is fairly low.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># plot coefficients</span>
@@ -498,12 +498,12 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x19eab861270&gt;
+&lt;matplotlib.legend.Legend at 0x1e91f5d3370&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -536,7 +536,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 <p><p><img alt="Schematic of the PTO system showing dimensions and parts." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276361_ff6a78ce4f_k.jpg" style="width: 740px;" /> <img alt="Digital rendering of the LUPA with PTO mechanism visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793518059_5f4b559d2a_h.jpg" style="width: 458px;" /></p>
 </p><p>We start by defining all the manufacturer-specified components.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">conv_d</span> <span class="o">=</span> <span class="mf">0.0254</span>  <span class="c1"># in -&gt; m</span>
@@ -707,7 +707,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 </div>
 <p>We then define the PTO based on these part specifications. For Part 1, where we are setting up the problem, we will use the mid-size sprocket of diameter 127.3mm (8MX-50S-36).</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># drivetrain</span>
@@ -765,11 +765,15 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 </section>
 <section id="Constraints">
 <h3>Constraints<a class="headerlink" href="#Constraints" title="Permalink to this heading"></a></h3>
-<p>In this tutorial we include realistic constraints on both the device motions and the generator operation. * The <strong>maximum stroke</strong> (difference in heave between the float and spar) is 0.5m. Although there are end-stops (hard stop), the controller should ensure a soft stop. So, instead of modeling the hard stop we will add a constraint. * The generator has both a <strong>maximum torque</strong> and <strong>maximum speed</strong>. It is important that we do not exceed that during operation. * Generators also have a
-<strong>continuous torque</strong> requirement. The RMS torque during operation should not exceed this value or we risk damage to and failure of the machine. The torque can go higher that this (up to the maximum) for brief periods as long as the RMS torque remains below this threshold.</p>
+<p>In this tutorial we include realistic constraints on both the device motions and the generator operation:</p>
+<ul class="simple">
+<li><p>The <strong>maximum stroke</strong> (difference in heave between the float and spar) is 0.5m. Although there are end-stops (hard stop), the controller should ensure a soft stop. So, instead of modeling the hard stop we will add a constraint.</p></li>
+<li><p>The generator has both a <strong>maximum torque</strong> and <strong>maximum speed</strong>. It is important that we do not exceed that during operation.</p></li>
+<li><p>Generators also have a <strong>continuous torque</strong> requirement. The RMS torque during operation should not exceed this value or we risk damage to and failure of the machine. The torque can go higher that this (up to the maximum) for brief periods as long as the RMS torque remains below this threshold.</p></li>
+</ul>
 <p>We enforce all these through constraints on our design optimization problem.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Displacements</span>
@@ -817,7 +821,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 <h3>Mooring system<a class="headerlink" href="#Mooring-system" title="Permalink to this heading"></a></h3>
 <p>To fully capture the dynamics acting on LUPA in the Large Wave Flume, we must model the mooring system being used to account for the restoring forces acting on the WEC. The LUPA setup uses a 4-line taut mooring system with springs connecting the spar to the wall of the wave flume. The following mooring system properties have been provided by Oregon State University. The initial fairlead coordinates and anchor coordinates are relative to the center of gravity of the combined device:</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pretension</span> <span class="o">=</span> <span class="mi">285</span> <span class="c1"># N</span>
@@ -846,9 +850,9 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <p>When these equations are applied to the linear stiffness equation in each radiating (<span class="math notranslate nohighlight">\(i\)</span>) and influencing (<span class="math notranslate nohighlight">\(j\)</span>) degrees of freedom:</p>
 <div class="math notranslate nohighlight">
 \[\boldsymbol{K_{mooring}} = - \frac{\partial \boldsymbol{F_{mooring}}}{\partial \boldsymbol{X}} = \sum_{m=1}^{n_{lines}}  [K_{ij}]^{(m)} = - \sum_{m=1}^{n_{lines}}[\frac{\partial (F_{mooring})_i}{\partial X_j}]^{(m)}\]</div>
-<p>where <span class="math notranslate nohighlight">\(X\)</span> are the generalized displacements of the WEC in each degree of freedom, they yield Equation (27) from the reference above which provides an analytical solution to $:nbsphinx-math:<cite>boldsymbol{K_{mooring}}</cite> $, which translates to the <code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> function below. See the reference above for the full theoretical explanation and derivation of these equations.</p>
+<p>where <span class="math notranslate nohighlight">\(X\)</span> are the generalized displacements of the WEC in each degree of freedom, they yield Equation (27) from the reference above which provides an analytical solution to the mooring stiffness matrix, which translates to the <code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> function below. See the reference above for the full theoretical explanation and derivation of these equations.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mooring matrix</span>
@@ -901,7 +905,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">k_mooring</span></code> defines the 7x7 mooring matrix for a two-body point absorber WEC. Since we are only concerned with the planar components here, we can extract the rows/columns for the heaves, surge, and pitch to obtain the 4x4 matrix we need here.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">M</span> <span class="o">=</span> <span class="n">k_mooring</span><span class="p">(</span><span class="n">init_fair_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">anch_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">pretension</span><span class="p">,</span>
@@ -925,7 +929,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 <p>Finally, with some more formatting, we can translate the mooring force into the format expected from WecOptTool by treating the mooring matrix as a transfer function and defining it via the <code class="docutils literal notranslate"><span class="pre">wecopttool.force_from_rao_transfer_function()</span></code> function, which multiplies the position of the WEC by the mooring matrix and return the restoring force.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mooring</span>
@@ -945,7 +949,11 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 <section id="Pre-tension-of-spar">
 <h4>Pre-tension of spar<a class="headerlink" href="#Pre-tension-of-spar" title="Permalink to this heading"></a></h4>
-<p>The spar is positively buoyant at its equilibrium position and relies on pre-tension from the mooring. The mooring matrix above only captures the restoring forces from the mooring lines, not the pretension itself. Here we have two choices: 1. We can ignore this fact. WecOptTool asssumes equilibrium so the pre-tension force is implied. 2. Explicitly model the buoyancy, gravity, and pre-tension forces as done in Tutorial 2.</p>
+<p>The spar is positively buoyant at its equilibrium position and relies on pre-tension from the mooring. The mooring matrix above only captures the restoring forces from the mooring lines, not the pretension itself. Here we have two choices:</p>
+<ol class="arabic simple">
+<li><p>We can ignore this fact. WecOptTool asssumes equilibrium so the pre-tension force is implied.</p></li>
+<li><p>Explicitly model the buoyancy, gravity, and pre-tension forces as done in Tutorial 2.</p></li>
+</ol>
 <p>In Tutorial 2 we had constraints on the mooring/tether line (minimum tension, never slack) and therefore it was important to explicitly model these forces. In this case we do not have such constraints and will simply allow to pre-tension force to be implied. This does not affect the solution.</p>
 </section>
 </section>
@@ -953,7 +961,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this heading"></a></h3>
 <p>We are now ready to create our full WEC object.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># additional forces</span>
@@ -983,7 +991,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <p>Oregon State University has defined two sets of wave testing conditions for the LUPA: one corresponding to the PacWave South site and a scaling factor of 25, and one for the PacWave North site and a scaling factor of 20. For each site/scale they provide four wave conditions to test at the Oregon State Large Wave Flume (LWF): the maximum 90th percentile, maximum percent annual energy, maximum occurrence, and minimum 10th percentile.</p>
 <p>In this tutorial we will use the PacWave South conditions scaled to the LWF and will design for the maximum occurrence wave. The wave conditions are specified in terms of significant wave height and peak period. We will assume a JONSWAP spectrum.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">waves</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1020,7 +1028,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 <p>We now plot the wave spectra in order to verify that our frequency array is sufficient to capture our target waves. The peak frequency for the PacWave South maximum occurrence is cut off somewhat, so we would want to sample more wave frequencies (i.e. increase <code class="docutils literal notranslate"><span class="pre">nfreq</span></code>) in a formal analysis to properly capture this. However, this is sufficient for purposes of this tutorial.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -1048,12 +1056,12 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x19ea8a32e90&gt;
+&lt;matplotlib.legend.Legend at 0x1e91eed5150&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1069,7 +1077,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <p>We now solve the inner optimization for optimal control strategy for a fixed design.</p>
 <p>In a formal design case, it is good practice to first test the setup with a regular wave case to confirm the WEC is responding as expected. We have performed this step, but skip it here for the sake of brevity. To run the regular wave, change the wave selection in the code below.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Objective function</span>
@@ -1077,10 +1085,9 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <span class="n">nstate_opt</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">ncomponents</span>
 
 <span class="c1"># Solve</span>
-<span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">scale_obj</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">250</span><span class="p">}</span>
+<span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1e1</span>
+<span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1e-2</span>
 
 <span class="n">results</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
     <span class="n">waves</span><span class="p">[</span><span class="s1">&#39;south_max_occurrence&#39;</span><span class="p">],</span>
@@ -1090,7 +1097,6 @@ is common here, the symmetry of the taut lines in this current system allows us 
     <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
     <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
     <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
-    <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">fun</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
@@ -1103,15 +1109,15 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.4194641213969943
-            Iterations: 122
-            Function evaluations: 122
-            Gradient evaluations: 122
-Optimal average electrical power: -1.4194641213969943 W
+            Current function value: -0.014191909462674275
+            Iterations: 54
+            Function evaluations: 57
+            Gradient evaluations: 54
+Optimal average electrical power: -1.4191909462674275 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Post-process</span>
@@ -1133,7 +1139,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 <li><p><strong>Power</strong> - As expected, the greatest power absorption aligns with the times of greatest PTO velocity and peak torque magnitude.</p></li>
 </ul>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig_res1</span><span class="p">,</span> <span class="n">ax_res1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
@@ -1232,12 +1238,12 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[75]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-20.117317056098255, 2.5115737847707647)
+(-14.925286193158321, 3.208332931302654)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1250,7 +1256,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 <p>We can also look at all four degrees of freedom and make sure the relationships between the forces in each direction are reasonable. We can see that the PTO and radiation forces are generally in phase in the heave direction, but inversely related for the spar. We also see that the mooring response is inversely propotional to the radiation forces of the spar (with a more delayed restoring response in pitch than in surge/heave), and that the mooring correctly has no effect on the float, which it
 doesn’t connect to.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[58]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Forces</span>
@@ -1280,7 +1286,7 @@ doesn’t connect to.</p>
 </div>
 </div>
 <div class="nboutput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[58]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1303,7 +1309,7 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
 <h3>Setup<a class="headerlink" href="#Setup" title="Permalink to this heading"></a></h3>
 <p>With our model working as expected, we can now iterate on this model with varying sprocket sizing to identify the optimal size. As with previous tutorials, we wrap the code from Part 1 into a function and iterate on our chosen design parameter (i.e. each key of the <code class="docutils literal notranslate"><span class="pre">sprockets</span></code> dictionary earlier corresponds to the <code class="docutils literal notranslate"><span class="pre">x</span></code> argument of <code class="docutils literal notranslate"><span class="pre">design_obj_fun</span></code>)</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[50]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -1391,7 +1397,6 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
         <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
         <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
         <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
-        <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">results</span><span class="o">.</span><span class="n">fun</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">results</span><span class="o">.</span><span class="n">fun</span>
@@ -1400,7 +1405,7 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
 </div>
 <p>Given there are only 22 sprockets, we will continue to use a brute force algorithm. Note that the code below will likely take several hours to run.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[51]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">global</span> <span class="n">n</span><span class="p">;</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1428,10 +1433,10 @@ Run 1 of 22: Sprocket 8MX-32S-36
    Sprocket moment of inertia: 0.0008428015143936001 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6592064563577282
-            Iterations: 152
-            Function evaluations: 152
-            Gradient evaluations: 152
+            Current function value: -0.016585602312791173
+            Iterations: 62
+            Function evaluations: 63
+            Gradient evaluations: 62
 Optimal average electrical power: -1.66 W
 
 Run 2 of 22: Sprocket 8MX-33S-36
@@ -1440,10 +1445,10 @@ Run 2 of 22: Sprocket 8MX-33S-36
    Sprocket moment of inertia: 0.00092708166583296 kg-m^2
    Sprocket design: AF
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.652768453411451
-            Iterations: 151
-            Function evaluations: 151
-            Gradient evaluations: 151
+            Current function value: -0.016519692994827292
+            Iterations: 61
+            Function evaluations: 62
+            Gradient evaluations: 61
 Optimal average electrical power: -1.65 W
 
 Run 3 of 22: Sprocket 8MX-34S-36
@@ -1452,10 +1457,10 @@ Run 3 of 22: Sprocket 8MX-34S-36
    Sprocket moment of inertia: 0.00109564196871168 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.644860383259833
-            Iterations: 150
-            Function evaluations: 150
-            Gradient evaluations: 150
+            Current function value: -0.016444153104930418
+            Iterations: 60
+            Function evaluations: 61
+            Gradient evaluations: 60
 Optimal average electrical power: -1.64 W
 
 Run 4 of 22: Sprocket 8MX-35S-36
@@ -1464,10 +1469,10 @@ Run 4 of 22: Sprocket 8MX-35S-36
    Sprocket moment of inertia: 0.0012220621958707201 kg-m^2
    Sprocket design: AF
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6356752257676985
-            Iterations: 145
-            Function evaluations: 145
-            Gradient evaluations: 145
+            Current function value: -0.016352920101612985
+            Iterations: 67
+            Function evaluations: 67
+            Gradient evaluations: 67
 Optimal average electrical power: -1.64 W
 
 Run 5 of 22: Sprocket 8MX-36S-36
@@ -1476,10 +1481,10 @@ Run 5 of 22: Sprocket 8MX-36S-36
    Sprocket moment of inertia: 0.0013484824230297601 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.625468668219284
-            Iterations: 148
-            Function evaluations: 148
-            Gradient evaluations: 148
+            Current function value: -0.016252262038005758
+            Iterations: 63
+            Function evaluations: 64
+            Gradient evaluations: 63
 Optimal average electrical power: -1.63 W
 
 Run 6 of 22: Sprocket 8MX-37S-36
@@ -1488,10 +1493,10 @@ Run 6 of 22: Sprocket 8MX-37S-36
    Sprocket moment of inertia: 0.0016434629530675201 kg-m^2
    Sprocket design: AF
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.614225433208982
-            Iterations: 144
-            Function evaluations: 144
-            Gradient evaluations: 144
+            Current function value: -0.016138010770997652
+            Iterations: 59
+            Function evaluations: 60
+            Gradient evaluations: 59
 Optimal average electrical power: -1.61 W
 
 Run 7 of 22: Sprocket 8MX-38S-36
@@ -1500,10 +1505,10 @@ Run 7 of 22: Sprocket 8MX-38S-36
    Sprocket moment of inertia: 0.0016856030287872002 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.602012805525603
-            Iterations: 141
-            Function evaluations: 141
-            Gradient evaluations: 141
+            Current function value: -0.016013558725172287
+            Iterations: 60
+            Function evaluations: 61
+            Gradient evaluations: 60
 Optimal average electrical power: -1.60 W
 
 Run 8 of 22: Sprocket 8MX-39S-36
@@ -1512,10 +1517,10 @@ Run 8 of 22: Sprocket 8MX-39S-36
    Sprocket moment of inertia: 0.00202272363454464 kg-m^2
    Sprocket design: AF
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.589170277692247
-            Iterations: 142
-            Function evaluations: 142
-            Gradient evaluations: 142
+            Current function value: -0.01588814712051896
+            Iterations: 60
+            Function evaluations: 61
+            Gradient evaluations: 60
 Optimal average electrical power: -1.59 W
 
 Run 9 of 22: Sprocket 8MX-40S-36
@@ -1524,10 +1529,10 @@ Run 9 of 22: Sprocket 8MX-40S-36
    Sprocket moment of inertia: 0.00206486371026432 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5753763320991796
-            Iterations: 125
-            Function evaluations: 126
-            Gradient evaluations: 125
+            Current function value: -0.01575184579968206
+            Iterations: 59
+            Function evaluations: 59
+            Gradient evaluations: 59
 Optimal average electrical power: -1.58 W
 
 Run 10 of 22: Sprocket 8MX-41S-36
@@ -1536,10 +1541,10 @@ Run 10 of 22: Sprocket 8MX-41S-36
    Sprocket moment of inertia: 0.00240198431602176 kg-m^2
    Sprocket design: AF
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5614952937736728
-            Iterations: 136
-            Function evaluations: 136
-            Gradient evaluations: 136
+            Current function value: -0.015611132455507366
+            Iterations: 60
+            Function evaluations: 61
+            Gradient evaluations: 60
 Optimal average electrical power: -1.56 W
 
 Run 11 of 22: Sprocket 8MX-42S-36
@@ -1548,10 +1553,10 @@ Run 11 of 22: Sprocket 8MX-42S-36
    Sprocket moment of inertia: 0.00257054461890048 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.546582520737082
-            Iterations: 123
-            Function evaluations: 123
-            Gradient evaluations: 123
+            Current function value: -0.015463338138173917
+            Iterations: 59
+            Function evaluations: 60
+            Gradient evaluations: 59
 Optimal average electrical power: -1.55 W
 
 Run 12 of 22: Sprocket 8MX-45S-36
@@ -1560,10 +1565,10 @@ Run 12 of 22: Sprocket 8MX-45S-36
    Sprocket moment of inertia: 0.0037926068147712 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5006181601386888
-            Iterations: 124
-            Function evaluations: 124
-            Gradient evaluations: 124
+            Current function value: -0.015003129758772826
+            Iterations: 57
+            Function evaluations: 58
+            Gradient evaluations: 57
 Optimal average electrical power: -1.50 W
 
 Run 13 of 22: Sprocket 8MX-48S-36
@@ -1572,10 +1577,10 @@ Run 13 of 22: Sprocket 8MX-48S-36
    Sprocket moment of inertia: 0.00480396863204352 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.4522573429296173
-            Iterations: 122
-            Function evaluations: 122
-            Gradient evaluations: 122
+            Current function value: -0.014519940778063272
+            Iterations: 57
+            Function evaluations: 59
+            Gradient evaluations: 57
 Optimal average electrical power: -1.45 W
 
 Run 14 of 22: Sprocket 8MX-50S-36
@@ -1584,10 +1589,10 @@ Run 14 of 22: Sprocket 8MX-50S-36
    Sprocket moment of inertia: 0.00602603082791424 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.4193469716492342
-            Iterations: 114
-            Function evaluations: 115
-            Gradient evaluations: 114
+            Current function value: -0.014191113158647293
+            Iterations: 54
+            Function evaluations: 56
+            Gradient evaluations: 54
 Optimal average electrical power: -1.42 W
 
 Run 15 of 22: Sprocket 8MX-53S-36
@@ -1596,10 +1601,10 @@ Run 15 of 22: Sprocket 8MX-53S-36
    Sprocket moment of inertia: 0.0071216727966259205 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.3701197864601093
-            Iterations: 113
-            Function evaluations: 114
-            Gradient evaluations: 113
+            Current function value: -0.013698680076710202
+            Iterations: 52
+            Function evaluations: 55
+            Gradient evaluations: 52
 Optimal average electrical power: -1.37 W
 
 Run 16 of 22: Sprocket 8MX-56S-36
@@ -1608,10 +1613,10 @@ Run 16 of 22: Sprocket 8MX-56S-36
    Sprocket moment of inertia: 0.00931295673404928 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.321406039788901
-            Iterations: 104
-            Function evaluations: 104
-            Gradient evaluations: 104
+            Current function value: -0.013209906732714924
+            Iterations: 47
+            Function evaluations: 49
+            Gradient evaluations: 47
 Optimal average electrical power: -1.32 W
 
 Run 17 of 22: Sprocket 8MX-60S-36
@@ -1620,10 +1625,10 @@ Run 17 of 22: Sprocket 8MX-60S-36
    Sprocket moment of inertia: 0.01483330665332736 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.2578404321143195
-            Iterations: 91
-            Function evaluations: 91
-            Gradient evaluations: 91
+            Current function value: -0.01257581791973581
+            Iterations: 49
+            Function evaluations: 50
+            Gradient evaluations: 49
 Optimal average electrical power: -1.26 W
 
 Run 18 of 22: Sprocket 8MX-63S-36
@@ -1632,10 +1637,10 @@ Run 18 of 22: Sprocket 8MX-63S-36
    Sprocket moment of inertia: 0.023429882100142085 kg-m^2
    Sprocket design: AF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.211746567802885
-            Iterations: 90
-            Function evaluations: 90
-            Gradient evaluations: 90
+            Current function value: -0.012114113122306633
+            Iterations: 48
+            Function evaluations: 51
+            Gradient evaluations: 48
 Optimal average electrical power: -1.21 W
 
 Run 19 of 22: Sprocket 8MX-67S-36
@@ -1644,10 +1649,10 @@ Run 19 of 22: Sprocket 8MX-67S-36
    Sprocket moment of inertia: 0.01293700324594176 kg-m^2
    Sprocket design: DF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.1526132663828128
-            Iterations: 84
-            Function evaluations: 84
-            Gradient evaluations: 84
+            Current function value: -0.01152470200131875
+            Iterations: 53
+            Function evaluations: 55
+            Gradient evaluations: 53
 Optimal average electrical power: -1.15 W
 
 Run 20 of 22: Sprocket 8MX-71S-36
@@ -1656,10 +1661,10 @@ Run 20 of 22: Sprocket 8MX-71S-36
    Sprocket moment of inertia: 0.015381127637683201 kg-m^2
    Sprocket design: DF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.0963894050269907
-            Iterations: 78
-            Function evaluations: 79
-            Gradient evaluations: 78
+            Current function value: -0.010963042292003936
+            Iterations: 54
+            Function evaluations: 56
+            Gradient evaluations: 54
 Optimal average electrical power: -1.10 W
 
 Run 21 of 22: Sprocket 8MX-75S-36
@@ -1668,10 +1673,10 @@ Run 21 of 22: Sprocket 8MX-75S-36
    Sprocket moment of inertia: 0.01782525202942464 kg-m^2
    Sprocket design: DF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.0434416238967041
-            Iterations: 78
-            Function evaluations: 79
-            Gradient evaluations: 78
+            Current function value: -0.010432414008925257
+            Iterations: 53
+            Function evaluations: 56
+            Gradient evaluations: 53
 Optimal average electrical power: -1.04 W
 
 Run 22 of 22: Sprocket 8MX-80S-36
@@ -1680,10 +1685,10 @@ Run 22 of 22: Sprocket 8MX-80S-36
    Sprocket moment of inertia: 0.05065237101505536 kg-m^2
    Sprocket design: BF-1
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.9816991628368595
-            Iterations: 78
-            Function evaluations: 79
-            Gradient evaluations: 78
+            Current function value: -0.009813383489812089
+            Iterations: 55
+            Function evaluations: 58
+            Gradient evaluations: 55
 Optimal average electrical power: -0.98 W
 </pre></div></div>
 </div>
@@ -1693,7 +1698,7 @@ Optimal average electrical power: -0.98 W
 <p>The power generation for all the sprockets are plotted below, with the three sprockets possessed by Oregon State University called out. Comparing the results across the range of sprocket sizes, it is clear that power generation is maximized when sprocket dimensions are minimized. Thus, the 8MX-32S-36 sprocket is the best sprocket selection for LUPA for the selected wave case.</p>
 <p>The motivation to include an interchangeable sprocket in LUPA is to make it versatile across different locations and wave conditions. The optimal sprocket could be different when tested with a more or less severe wave climate, or a different mooring configuration. Try different <code class="docutils literal notranslate"><span class="pre">wave_cases</span></code> keys or modify the mooring system parameters (<code class="docutils literal notranslate"><span class="pre">init_fair_coords</span></code>, <code class="docutils literal notranslate"><span class="pre">anch_coords</span></code>, <code class="docutils literal notranslate"><span class="pre">line_ax_stiff</span></code>, and <code class="docutils literal notranslate"><span class="pre">pretension</span></code>) and see how the WEC response changes and which sprocket generates the most power.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[52]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">spr_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sprockets</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
@@ -1704,7 +1709,7 @@ Optimal average electrical power: -0.98 W
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[53]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig1</span><span class="p">,</span> <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
