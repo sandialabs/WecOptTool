@@ -131,7 +131,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[:n, :n] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -141,9 +141,8 @@ class TestSupportFunctions:
         r0 = np.real(imp[0])
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
-        i1 = np.imag(imp[1])
         expected[:n, n:] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -154,7 +153,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[n:, :n] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -165,7 +164,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[n:, n:] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -262,3 +261,34 @@ class TestControllers:
         x_opt = [pid_p, pid_i, pid_d]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
+
+
+    def test_wavebot_p_cc(wec,resonant_wave):
+        """Check that power from proportional damping controller can match
+        theoretical limit at the natural resonance.
+        """
+
+        # remove constraints
+        wec.constraints = []
+
+        # update PTO
+        controller = wot.pto.controller_pid
+        pto = wot.pto.PTO(ndof, kinematics, controller)
+        obj_fun = pto.average_power
+        nstate_opt = pto.nstate
+        wec.f_add = {'PTO': pto.force_on_wec}
+
+        # set bounds such that damping must be negative
+        # lb = np.concatenate([-1 * np.inf * np.ones(wec.nstate_wec), 
+        #                         -1 * np.inf * np.ones(nstate_opt)])
+        # ub = np.concatenate([1 * np.inf * np.ones(wec.nstate_wec), 
+        #                         0 * np.ones(nstate_opt)])
+        # bounds = Bounds(lb, ub)
+
+        _, fdom, _, xopt, average_power, _ = wec.solve(resonant_wave, obj_fun, nstate_opt,
+            optim_options={'maxiter': 1000, 'ftol': 1e-8}, scale_x_opt=1e3,
+            bounds=bounds)
+        plim = power_limit(fdom['excitation_force'][1:, 0],
+                            wec.hydro.Zi[:, 0, 0]).item()
+
+        assert pytest.approx(average_power, 0.03) == plim
