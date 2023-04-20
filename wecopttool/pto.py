@@ -829,7 +829,6 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
     z_21 = impedance[ndof:, :ndof, :]  # Vu
     z_22 = impedance[ndof:, ndof:, :]  # Vi
     z_12_inv = np.linalg.inv(z_12.T).T
-    #add the real components as zer frequency
 
     mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
     abcd_11 = -1 * mmult(z_12_inv, z_11)
