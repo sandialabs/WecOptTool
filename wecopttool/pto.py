@@ -126,13 +126,28 @@ class PTO:
         self._force = force
 
         # power
-        self._impedance = impedance
-        self._loss = loss
         if impedance is not None:
+            check_1 = impedance.shape[0] == impedance.shape[1] == 2*self.ndof
+            check_2 = len(impedance.shape) == 3
+            if not (check_1 and check_2):
+                raise TypeError(
+                    "Impedance should have size [2*ndof, 2*ndof, nfreq]"
+                )
+            for i in range(impedance.shape[2]-1):
+                check_3 = (
+                    np.allclose(np.real(impedance[:, :, i+1]), np.real(impedance[:, :, 0]))
+                )
+                if not check_3:
+                    raise ValueError(
+                        "Real component of impedance must be constant for " +
+                        "all frequencies."
+                    )
             impedance_abcd = _make_abcd(impedance, ndof)
             self._transfer_mat = _make_mimo_transfer_mat(impedance_abcd, ndof)
         else:
             self._transfer_mat = None
+        self._impedance = impedance
+        self._loss = loss
 
     @property
     def ndof(self) -> int:
@@ -427,7 +442,7 @@ class PTO:
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[ndarray, ndarray]:
-        """Calculate the power variables (flow q and effort e) time-series 
+        """Calculate the power variables (flow q and effort e) time-series
         in each PTO DOF for a given system state.
 
         Parameters
@@ -446,7 +461,7 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        # convert q1 (PTO velocity), e1 (PTO force) 
+        # convert q1 (PTO velocity), e1 (PTO force)
         # to q2 (flow variable), e2 (effort variable)
         if self.impedance is not None:
             q1_td = self.velocity(wec, x_wec, x_opt, waves)
@@ -493,10 +508,17 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        q2_td, e2_td = self.power_variables(wec, x_wec, 
+        q2_td, e2_td = self.power_variables(wec, x_wec,
                                             x_opt, waves, nsubsteps)
         # power
         power_out = q2_td * e2_td
+        if self.impedance is not None:
+            z_12 = self.impedance[:self.ndof, self.ndof:, 0] # Fi
+            z_22 = self.impedance[self.ndof:, self.ndof:, 0] # Vi
+            z_12_inv = np.linalg.inv(z_12.T).T
+            x_opt_0 = vec_to_dofmat(x_opt, self.ndof)[0:1, :]
+            transduced_flow = np.dot(np.real(z_12_inv), x_opt_0.T)
+            power_out = power_out + (np.dot(np.real(z_22), transduced_flow**2)).T
         if self.loss is not None:
             power_out = power_out + self.loss(q2_td, e2_td)
         return power_out
@@ -566,8 +588,8 @@ class PTO:
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
     ) -> float:
-        """Calculate the transduced flow variable time-series in each PTO DOF 
-        for a given system state. Equals the PTO velocity if no impedance 
+        """Calculate the transduced flow variable time-series in each PTO DOF
+        for a given system state. Equals the PTO velocity if no impedance
         is defined.
 
         Examples for PTO impedance and corresponding flow variables:
@@ -579,7 +601,7 @@ class PTO:
         - Generator: winding impedance: flow = electric current
 
         - Drive-train and Generator combined: flow = electric current
-        
+
         Parameters
         ----------
         wec
@@ -596,9 +618,9 @@ class PTO:
             A value of :python:`1` corresponds to the default step
             length.
         """
-        q2_td, _ = self.power_variables(wec, x_wec, 
+        q2_td, _ = self.power_variables(wec, x_wec,
                                         x_opt, waves, nsubsteps)
-        return q2_td   
+        return q2_td
 
     def transduced_effort(self,
         wec: TWEC,
@@ -607,8 +629,8 @@ class PTO:
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
     ) -> float:
-        """Calculate the transduced flow variable time-series in each PTO DOF 
-        for a given system state. Equals the PTO force if no impedance 
+        """Calculate the transduced flow variable time-series in each PTO DOF
+        for a given system state. Equals the PTO force if no impedance
         is defined.
 
         Examples for PTO impedance and corresponding effort variables:
@@ -638,7 +660,7 @@ class PTO:
             length.
         """
         _, e2_td = self.power_variables(wec, x_wec, x_opt, waves, nsubsteps)
-        return e2_td  
+        return e2_td
 
     def post_process(self,
         wec: TWEC,
@@ -719,7 +741,7 @@ class PTO:
         # mechanical power
         mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
                                               nsubsteps)
-        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])    
+        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
 
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
@@ -744,7 +766,7 @@ class PTO:
                 'acc': (['omega','dof'], acc_fd, acc_attr),
                 'force': (['omega','dof'], force_fd, force_attr),
                 'power': (['omega','dof'], power_fd, power_attr),
-                'mech_power': (['omega','dof'], 
+                'mech_power': (['omega','dof'],
                                 mech_power_fd, mech_power_attr)
             },
             coords={
@@ -770,7 +792,7 @@ class PTO:
                 'dof':('dof', self.names, dof_attr)},
             attrs={"time_created_utc": create_time}
             )
-        
+
         if self.impedance is not None:
         #transduced flow and effort variables
             q2_td, e2_td = self.power_variables(wec, x_wec, x_opt,
@@ -778,9 +800,9 @@ class PTO:
             q2_fd = wec.td_to_fd(q2_td[::nsubsteps])
             e2_fd = wec.td_to_fd(e2_td[::nsubsteps])
 
-            q2_attr = {'long_name': 'Transduced Flow', 
+            q2_attr = {'long_name': 'Transduced Flow',
                        'units': 'A or m^3/s or rad/s or m/s'}
-            e2_attr = {'long_name': 'Transduced Effort', 
+            e2_attr = {'long_name': 'Transduced Effort',
                        'units': 'V or N/m^2 or Nm or Ns'}
 
             results_td = results_td.assign({
