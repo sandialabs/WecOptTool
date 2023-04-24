@@ -512,13 +512,6 @@ class PTO:
                                             x_opt, waves, nsubsteps)
         # power
         power_out = q2_td * e2_td
-        if self.impedance is not None:
-            z_12 = self.impedance[:self.ndof, self.ndof:, 0] # Fi
-            z_22 = self.impedance[self.ndof:, self.ndof:, 0] # Vi
-            z_12_inv = np.linalg.inv(z_12.T).T
-            x_opt_0 = vec_to_dofmat(x_opt, self.ndof)[0:1, :]
-            transduced_flow = np.dot(np.real(z_12_inv), x_opt_0.T)
-            power_out = power_out + (np.dot(np.real(z_22), transduced_flow**2)).T
         if self.loss is not None:
             power_out = power_out + self.loss(q2_td, e2_td)
         return power_out
@@ -867,7 +860,8 @@ def _make_mimo_transfer_mat(
             im = np.imag(Zp)
             # Exclude the sine component of the 2-point wave
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
-            blocks = [0.0] + blocks + [re[-1]]
+            # re[0] added for the zero frequency power loss (DC), could be re[n]
+            blocks = [re[0]] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
