@@ -58,10 +58,19 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
                      'app.add_role',]
 
 linkcheck_ignore = [
-    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy',
+    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#',
     'https://doi.org/10.2172/1330189',
-    r'https://snl-waterpower.github.io/WecOptTool/.*'
+    'https://snl-waterpower.github.io/WecOptTool/*',
 ]
+
+linkcheck_request_headers = {
+    'https://doi.org/10.1109/TSTE.2014.2371536': {
+        'User-Agent': 'my-app/0.0.1'
+    },
+    'https://doi.org/10.1109/9.467672': {
+        'User-Agent': 'my-app/0.0.1'
+    },
+}
 
 # -- References (BibTex) -----------------------------------------------------
 bibtex_bibfiles = ['wecopttool_refs.bib']
