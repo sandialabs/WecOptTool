@@ -434,8 +434,10 @@ class TestTimeMat:
         assert np.allclose(x_t.squeeze(), np.real(x*np.exp(1j*w*t)))
 
 
-class TestDerivativeMat:
-    """Test function :python:`derivative_mat`."""
+class TestDerivativeMats:
+    """Test functions :python:`derivative_mat`
+    and :python:`derivative2_mat`.
+    """
 
     @pytest.fixture(scope="class")
     def f1_dm(self,):
@@ -462,18 +464,40 @@ class TestDerivativeMat:
             [0,  0,   0,    0],
         ])
         return mat
+    
+    @pytest.fixture(scope="class")
+    def derivative2_mat(self, f1_dm):
+        """Correct/expected second derivative matrix."""
+        w0 = 2*np.pi*f1_dm
+        mat = np.array([
+            [0,      0,      0,          0],
+            [0, -w0**2,      0,          0],
+            [0,      0, -w0**2,          0],
+            [0,      0,      0, -(2*w0)**2],
+        ])
+        return mat
 
     def test_derivative_mat(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the default created derivative matrix."""
         calculated = wot.derivative_mat(f1_dm, nfreq_dm)
         assert calculated==approx(derivative_mat)
 
-    def test_no_mean(self, derivative_mat, f1_dm, nfreq_dm):
+    def test_derivative2_mat(self, derivative2_mat, f1_dm, nfreq_dm):
+        """Test the default created second derivative matrix."""
+        calculated = wot.derivative2_mat(f1_dm, nfreq_dm)
+        assert calculated==approx(derivative2_mat)
+
+    def test_dmat_no_mean(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the derivative matrix without the mean component."""
         calculated = wot.derivative_mat(f1_dm, nfreq_dm, False)
         assert calculated==approx(derivative_mat[1:, 1:])
 
-    def test_behavior(self,):
+    def test_d2mat_no_mean(self, derivative2_mat, f1_dm, nfreq_dm):
+        """Test the second derivative matrix without the mean component."""
+        calculated = wot.derivative2_mat(f1_dm, nfreq_dm, False)
+        assert calculated==approx(derivative2_mat[1:, 1:])
+
+    def test_dmat_behavior(self,):
         """Test that when the derivative matrix multiplies a
         state-vector it results in the correct state-vector for the
         derivative of the input response.
@@ -494,6 +518,28 @@ class TestDerivativeMat:
         expected = np.sum(
             [[(i+1) * 1j * w * x[i]] for i in range(np.size(x)-1)])
         assert np.allclose(v, expected)
+
+    def test_d2mat_behavior(self,):
+        """Test that when the second derivative matrix multiplies a
+        state-vector it results in the correct state-vector for the
+        second derivative of the input response.
+        """
+        f = 0.1
+        w = 2*np.pi*f
+        x = np.array([1 + 2j,
+                        3 + 4j,
+                        5 + 6j])
+        derivative2_mat = wot.derivative2_mat(f, np.size(x))
+        X = np.concatenate([
+            [0.],
+            np.reshape([[np.real(i), np.imag(i)] for i in x[:-1]], -1),
+            [np.real(x[-1])]
+        ])
+        V = derivative2_mat @ X
+        v = np.sum(V[1::2]) + 1j*np.sum(V[2::2])
+        expected = np.sum(
+            [[-(i * w)**2 * x[i]] for i in range(np.size(x)-1)]
+            + np.real(np.size(x) * w)**2 * x[-1])
 
 
 class TestMIMOTransferMat:
@@ -730,9 +776,9 @@ class TestFDToTDToFD:
         calculated = wot.fd_to_td(fd, f1, nfreq)
         assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
-    def test_td_to_fd(self, fd, td, f1, nfreq):
+    def test_td_to_fd(self, fd, td, nfreq):
         """Test the :python:`td_to_fd` function outputs."""
-        calculated = wot.td_to_fd(td, f1, nfreq)
+        calculated = wot.td_to_fd(td)
         assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd)
 
     def test_fft(self, fd, td, nfreq):
@@ -750,11 +796,11 @@ class TestFDToTDToFD:
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
-    def test_td_to_fd_1dof(self, fd_1dof, td_1dof, f1, nfreq):
+    def test_td_to_fd_1dof(self, fd_1dof, td_1dof, nfreq):
         """Test the :python:`td_to_fd` function outputs for the 1 DOF
         case.
         """
-        calculated = wot.td_to_fd(td_1dof.squeeze(), f1, nfreq)
+        calculated = wot.td_to_fd(td_1dof.squeeze())
         shape = (nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, fd_1dof)
