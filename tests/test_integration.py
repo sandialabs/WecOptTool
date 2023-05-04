@@ -57,7 +57,7 @@ def pi_controller_pto():
 def fb():
     """Capytaine FloatingBody object"""
     try:
-        import wot.geom as geom
+        import wecopttool.geom as geom
     except ImportError:
         pytest.skip(
             'Skipping integration tests due to missing optional geometry ' +
@@ -67,7 +67,6 @@ def fb():
     mesh_size_factor = 0.5
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-
     fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb

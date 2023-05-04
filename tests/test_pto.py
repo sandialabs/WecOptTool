@@ -131,7 +131,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[:n, :n] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -141,9 +141,8 @@ class TestSupportFunctions:
         r0 = np.real(imp[0])
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
-        i1 = np.imag(imp[1])
         expected[:n, n:] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -154,7 +153,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[n:, :n] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
@@ -165,7 +164,7 @@ class TestSupportFunctions:
         i0 = np.imag(imp[0])
         r1 = np.real(imp[1])
         expected[n:, n:] = np.array([
-            [0, 0,    0, 0],
+            [r0, 0,    0, 0],
             [0, r0, -i0, 0],
             [0, i0,  r0, 0],
             [0, 0,    0, r1],
