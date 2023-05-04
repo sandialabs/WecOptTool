@@ -1228,7 +1228,7 @@ class WEC:
     def td_to_fd(
         self,
         td: ndarray,
-        fft: Optional[bool] = False,
+        fft: Optional[bool] = True,
         ) -> ndarray:
         """Convert a time-domain array to frequency-domain.
 
