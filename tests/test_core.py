@@ -715,7 +715,7 @@ class TestFDToTDToFD:
     """Test functions :python:`fd_to_td` and :python:`td_to_fd`."""
 
     @pytest.fixture(scope="class")
-    def components(self, nfreq):
+    def components(self):
         """Values of the two non-zero components of the response."""
         a0r, a0i = 1, 2
         a1r, a1i = 3, 4
@@ -723,7 +723,11 @@ class TestFDToTDToFD:
 
     @pytest.fixture(scope="class")
     def idx(self, nfreq):
-        return np.random.randint(1, nfreq)
+        return np.random.randint(1, nfreq-1)
+    
+    @pytest.fixture(scope="class")
+    def dc(self):
+        return np.random.randint(1, 5)
 
     @pytest.fixture(scope="class")
     def fd(self, nfreq, components, idx):
@@ -771,6 +775,51 @@ class TestFDToTDToFD:
         wt  = 2*np.pi*freq[idx]*time
         return a0r*np.cos(wt) - a0i*np.sin(wt)
 
+    @pytest.fixture(scope="class")
+    def fd_topfreq(self, nfreq, components):
+        """Sample frequency domain response with the nonzero components
+        in the highest (Nyquist) frequency."""
+        (a0r, _, a1r, _) = components
+        fd = np.zeros([nfreq+1, 2], dtype=complex)
+        fd[-1, 0] = a0r + 0j
+        fd[-1, 1] = a1r + 0j
+        return fd
+    
+    @pytest.fixture(scope="class")
+    def td_topfreq(self, nfreq, f1, components):
+        """Corresponding sample time domain response for the frequency
+        vector with a nonzero top (Nyquist) frequency."""
+        freq = wot.frequency(f1, nfreq)
+        time = wot.time(f1, nfreq)
+        wt  = 2*np.pi*freq[-1]*time
+        (a0r, a0i, a1r, a1i) = components
+        td = np.zeros([len(time), 2])
+        td[:, 0] = a0r*np.cos(wt) - a0i*np.sin(wt)
+        td[:, 1] = a1r*np.cos(wt) - a1i*np.sin(wt)
+        return td
+    
+    @pytest.fixture(scope="class")
+    def fd_nzmean(self, nfreq, components, idx, dc):
+        """Sample frequency domain response with a nonzero mean."""
+        (a0r, a0i, a1r, a1i) = components
+        fd = np.zeros([nfreq+1, 2], dtype=complex)
+        fd[0, :] = dc
+        fd[idx, 0] = a0r + a0i*1j
+        fd[idx, 1] = a1r + a1i*1j
+        return fd
+
+    @pytest.fixture(scope="class")
+    def td_nzmean(self, nfreq, f1, components, idx, dc):
+        """Corresponding sample time domain response with a nonzero mean."""
+        freq = wot.frequency(f1, nfreq)
+        time = wot.time(f1, nfreq)
+        wt  = 2*np.pi*freq[idx]*time
+        (a0r, a0i, a1r, a1i) = components
+        td = np.zeros([len(time), 2])
+        td[:, 0] = a0r*np.cos(wt) - a0i*np.sin(wt) + dc
+        td[:, 1] = a1r*np.cos(wt) - a1i*np.sin(wt) + dc
+        return td
+
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
         calculated = wot.fd_to_td(fd, f1, nfreq)
@@ -813,6 +862,34 @@ class TestFDToTDToFD:
         shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
+
+    def test_fd_to_td_nzmean(self, fd_nzmean, td_nzmean, f1, nfreq):
+        """Test the :python: `td_to_fd` function outputs with a 
+        nonzero mean value.
+        """
+        calculated = wot.fd_to_td(fd_nzmean, f1, nfreq)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td_nzmean)
+
+    def test_td_to_fd_nzmean(self, fd_nzmean, td_nzmean, nfreq):
+        """Test the :python: `td_to_fd` function outputs with a
+        nonzero mean value.
+        """
+        calculated = wot.td_to_fd(td_nzmean)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd_nzmean)
+
+    def test_fd_to_td_nzmean(self, fd_nzmean, td_nzmean, f1, nfreq):
+        """Test the :python: `td_to_fd` function outputs with the top (Nyquist)
+        frequency vector.
+        """
+        calculated = wot.fd_to_td(fd_nzmean, f1, nfreq)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td_nzmean)
+
+    def test_td_to_fd_topfreq(self, fd_topfreq, td_topfreq, nfreq):
+        """Test the :python: `td_to_fd` function outputs for the
+        Nyquist frequency.
+        """
+        calculated = wot.td_to_fd(td_topfreq)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd_topfreq)
 
 
 class TestReadWriteNetCDF:
