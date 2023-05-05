@@ -101,5 +101,5 @@ with tempfile.TemporaryDirectory() as tmpdirname:
         frames = np.stack([iio.imread(filename) for filename in fnames[key]],
                           axis=0)
         gif_path = os.path.join(odir, f"{gif_name}_{key}.gif")
-        iio.imwrite(gif_path, frames)
+        iio.imwrite(gif_path, frames, loop=0)
         optimize(gif_path)
