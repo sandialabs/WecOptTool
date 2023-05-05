@@ -895,8 +895,8 @@ def controller_unstructured(
         A value of :python:`1` corresponds to the default step
         length.
     """
-    x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
     tmat = pto._tmat(wec, nsubsteps)
+    x_opt = np.reshape(x_opt[:len(tmat[0])*pto.ndof], (-1, pto.ndof), order='F')
     return np.dot(tmat, x_opt)
 
 
