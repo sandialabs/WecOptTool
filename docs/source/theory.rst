@@ -82,7 +82,7 @@ To control this process, the user must specify an equally spaced frequency array
 When creating this frequency array, consider
 
     * Exciting frequencies of the wave and, if you expect a nonlinear response, superharmonics of the exciting frequencies
-    * Power absorption occurs at two times the exciting frequencies
+    * Power absorption occurs at two times the exciting frequencies (only important for visualization)
     * The fundamental frequency is also the frequency step (:math:`f_1=\Delta f`); set this sufficiently small to resolve the wave spectra and frequency response functios of interest
 
 Automatic differentiation
@@ -147,6 +147,16 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w = K^T f_p \\
     :label: conservation_energy
 
+Troubleshooting
+---------------
+The following bullets provide some good general troubleshooting steps.
+
+    * Check that you observe the expected behavior of the hydrodynamic coefficients for high frequencies
+        * Added mass assymptotes to finite value
+        * Radiation damping assymptotes to zero
+    * Check for irregular frequencies in the hydrodynamics, if necessary alter the mesh and frequencies to avoid/remove these
+    * Check that the hydrostatic stiffness and mass properties match your hand calculations
+    * Check that absorbed power is less than or equal to the theoretical maximum
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd
