@@ -310,8 +310,7 @@ class PTO:
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
-        vel_wec = np.dot(wec.derivative_mat, pos_wec)
-        acc_wec = np.dot(wec.derivative_mat, vel_wec)
+        acc_wec = np.dot(wec.derivative2_mat, pos_wec)
         return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def force_on_wec(self,
@@ -896,8 +895,8 @@ def controller_unstructured(
         A value of :python:`1` corresponds to the default step
         length.
     """
-    x_opt = np.reshape(x_opt, (-1, pto.ndof), order='F')
     tmat = pto._tmat(wec, nsubsteps)
+    x_opt = np.reshape(x_opt[:len(tmat[0])*pto.ndof], (-1, pto.ndof), order='F')
     return np.dot(tmat, x_opt)
 
 
