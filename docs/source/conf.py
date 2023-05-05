@@ -20,9 +20,9 @@ sys.path.insert(0, code_root)
 project = 'WecOptTool'
 copyright = (
     '2020 National Technology & Engineering Solutions of Sandia, ' +
-    'LLC(NTESS).' +
+    'LLC(NTESS). ' +
     'Under the terms of Contract DE-NA0003525 with NTESS, the U.S. ' +
-    'Government retains certain rights in this software.'
+    'Government retains certain rights in this software'
 )
 author = 'Sandia National Laboratories'
 version = '.'.join(__version_info__[:2])
