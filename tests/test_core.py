@@ -434,8 +434,10 @@ class TestTimeMat:
         assert np.allclose(x_t.squeeze(), np.real(x*np.exp(1j*w*t)))
 
 
-class TestDerivativeMat:
-    """Test function :python:`derivative_mat`."""
+class TestDerivativeMats:
+    """Test functions :python:`derivative_mat`
+    and :python:`derivative2_mat`.
+    """
 
     @pytest.fixture(scope="class")
     def f1_dm(self,):
@@ -462,18 +464,40 @@ class TestDerivativeMat:
             [0,  0,   0,    0],
         ])
         return mat
+    
+    @pytest.fixture(scope="class")
+    def derivative2_mat(self, f1_dm):
+        """Correct/expected second derivative matrix."""
+        w0 = 2*np.pi*f1_dm
+        mat = np.array([
+            [0,      0,      0,          0],
+            [0, -w0**2,      0,          0],
+            [0,      0, -w0**2,          0],
+            [0,      0,      0, -(2*w0)**2],
+        ])
+        return mat
 
     def test_derivative_mat(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the default created derivative matrix."""
         calculated = wot.derivative_mat(f1_dm, nfreq_dm)
         assert calculated==approx(derivative_mat)
 
-    def test_no_mean(self, derivative_mat, f1_dm, nfreq_dm):
+    def test_derivative2_mat(self, derivative2_mat, f1_dm, nfreq_dm):
+        """Test the default created second derivative matrix."""
+        calculated = wot.derivative2_mat(f1_dm, nfreq_dm)
+        assert calculated==approx(derivative2_mat)
+
+    def test_dmat_no_mean(self, derivative_mat, f1_dm, nfreq_dm):
         """Test the derivative matrix without the mean component."""
         calculated = wot.derivative_mat(f1_dm, nfreq_dm, False)
         assert calculated==approx(derivative_mat[1:, 1:])
 
-    def test_behavior(self,):
+    def test_d2mat_no_mean(self, derivative2_mat, f1_dm, nfreq_dm):
+        """Test the second derivative matrix without the mean component."""
+        calculated = wot.derivative2_mat(f1_dm, nfreq_dm, False)
+        assert calculated==approx(derivative2_mat[1:, 1:])
+
+    def test_dmat_behavior(self,):
         """Test that when the derivative matrix multiplies a
         state-vector it results in the correct state-vector for the
         derivative of the input response.
@@ -494,6 +518,28 @@ class TestDerivativeMat:
         expected = np.sum(
             [[(i+1) * 1j * w * x[i]] for i in range(np.size(x)-1)])
         assert np.allclose(v, expected)
+
+    def test_d2mat_behavior(self,):
+        """Test that when the second derivative matrix multiplies a
+        state-vector it results in the correct state-vector for the
+        second derivative of the input response.
+        """
+        f = 0.1
+        w = 2*np.pi*f
+        x = np.array([1 + 2j,
+                        3 + 4j,
+                        5 + 6j])
+        derivative2_mat = wot.derivative2_mat(f, np.size(x))
+        X = np.concatenate([
+            [0.],
+            np.reshape([[np.real(i), np.imag(i)] for i in x[:-1]], -1),
+            [np.real(x[-1])]
+        ])
+        V = derivative2_mat @ X
+        v = np.sum(V[1::2]) + 1j*np.sum(V[2::2])
+        expected = np.sum(
+            [[-(i * w)**2 * x[i]] for i in range(np.size(x)-1)]
+            + np.real(np.size(x) * w)**2 * x[-1])
 
 
 class TestMIMOTransferMat:
@@ -669,7 +715,7 @@ class TestFDToTDToFD:
     """Test functions :python:`fd_to_td` and :python:`td_to_fd`."""
 
     @pytest.fixture(scope="class")
-    def components(self, nfreq):
+    def components(self):
         """Values of the two non-zero components of the response."""
         a0r, a0i = 1, 2
         a1r, a1i = 3, 4
@@ -677,7 +723,11 @@ class TestFDToTDToFD:
 
     @pytest.fixture(scope="class")
     def idx(self, nfreq):
-        return np.random.randint(1, nfreq)
+        return np.random.randint(1, nfreq-1)
+    
+    @pytest.fixture(scope="class")
+    def dc(self):
+        return np.random.randint(1, 5)
 
     @pytest.fixture(scope="class")
     def fd(self, nfreq, components, idx):
@@ -725,14 +775,59 @@ class TestFDToTDToFD:
         wt  = 2*np.pi*freq[idx]*time
         return a0r*np.cos(wt) - a0i*np.sin(wt)
 
+    @pytest.fixture(scope="class")
+    def fd_topfreq(self, nfreq, components):
+        """Sample frequency domain response with the nonzero components
+        in the highest (Nyquist) frequency."""
+        (a0r, _, a1r, _) = components
+        fd = np.zeros([nfreq+1, 2], dtype=complex)
+        fd[-1, 0] = a0r + 0j
+        fd[-1, 1] = a1r + 0j
+        return fd
+    
+    @pytest.fixture(scope="class")
+    def td_topfreq(self, nfreq, f1, components):
+        """Corresponding sample time domain response for the frequency
+        vector with a nonzero top (Nyquist) frequency."""
+        freq = wot.frequency(f1, nfreq)
+        time = wot.time(f1, nfreq)
+        wt  = 2*np.pi*freq[-1]*time
+        (a0r, a0i, a1r, a1i) = components
+        td = np.zeros([len(time), 2])
+        td[:, 0] = a0r*np.cos(wt) - a0i*np.sin(wt)
+        td[:, 1] = a1r*np.cos(wt) - a1i*np.sin(wt)
+        return td
+    
+    @pytest.fixture(scope="class")
+    def fd_nzmean(self, nfreq, components, idx, dc):
+        """Sample frequency domain response with a nonzero mean."""
+        (a0r, a0i, a1r, a1i) = components
+        fd = np.zeros([nfreq+1, 2], dtype=complex)
+        fd[0, :] = dc
+        fd[idx, 0] = a0r + a0i*1j
+        fd[idx, 1] = a1r + a1i*1j
+        return fd
+
+    @pytest.fixture(scope="class")
+    def td_nzmean(self, nfreq, f1, components, idx, dc):
+        """Corresponding sample time domain response with a nonzero mean."""
+        freq = wot.frequency(f1, nfreq)
+        time = wot.time(f1, nfreq)
+        wt  = 2*np.pi*freq[idx]*time
+        (a0r, a0i, a1r, a1i) = components
+        td = np.zeros([len(time), 2])
+        td[:, 0] = a0r*np.cos(wt) - a0i*np.sin(wt) + dc
+        td[:, 1] = a1r*np.cos(wt) - a1i*np.sin(wt) + dc
+        return td
+
     def test_fd_to_td(self, fd, td, f1, nfreq):
         """Test the :python:`fd_to_td` function outputs."""
         calculated = wot.fd_to_td(fd, f1, nfreq)
         assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td)
 
-    def test_td_to_fd(self, fd, td, f1, nfreq):
+    def test_td_to_fd(self, fd, td, nfreq):
         """Test the :python:`td_to_fd` function outputs."""
-        calculated = wot.td_to_fd(td, f1, nfreq)
+        calculated = wot.td_to_fd(td)
         assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd)
 
     def test_fft(self, fd, td, nfreq):
@@ -750,11 +845,11 @@ class TestFDToTDToFD:
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
-    def test_td_to_fd_1dof(self, fd_1dof, td_1dof, f1, nfreq):
+    def test_td_to_fd_1dof(self, fd_1dof, td_1dof, nfreq):
         """Test the :python:`td_to_fd` function outputs for the 1 DOF
         case.
         """
-        calculated = wot.td_to_fd(td_1dof.squeeze(), f1, nfreq)
+        calculated = wot.td_to_fd(td_1dof.squeeze())
         shape = (nfreq+1, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, fd_1dof)
@@ -767,6 +862,34 @@ class TestFDToTDToFD:
         shape = (2*nfreq, 1)
         calc_flat = calculated.squeeze()
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
+
+    def test_fd_to_td_nzmean(self, fd_nzmean, td_nzmean, f1, nfreq):
+        """Test the :python: `td_to_fd` function outputs with a 
+        nonzero mean value.
+        """
+        calculated = wot.fd_to_td(fd_nzmean, f1, nfreq)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td_nzmean)
+
+    def test_td_to_fd_nzmean(self, fd_nzmean, td_nzmean, nfreq):
+        """Test the :python: `td_to_fd` function outputs with a
+        nonzero mean value.
+        """
+        calculated = wot.td_to_fd(td_nzmean)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd_nzmean)
+
+    def test_fd_to_td_nzmean(self, fd_nzmean, td_nzmean, f1, nfreq):
+        """Test the :python: `td_to_fd` function outputs with the top (Nyquist)
+        frequency vector.
+        """
+        calculated = wot.fd_to_td(fd_nzmean, f1, nfreq)
+        assert calculated.shape==(2*nfreq, 2) and np.allclose(calculated, td_nzmean)
+
+    def test_td_to_fd_topfreq(self, fd_topfreq, td_topfreq, nfreq):
+        """Test the :python: `td_to_fd` function outputs for the
+        Nyquist frequency.
+        """
+        calculated = wot.td_to_fd(td_topfreq)
+        assert calculated.shape==(nfreq+1, 2) and np.allclose(calculated, fd_topfreq)
 
 
 class TestReadWriteNetCDF:

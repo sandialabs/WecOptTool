@@ -310,8 +310,7 @@ class PTO:
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
-        vel_wec = np.dot(wec.derivative_mat, pos_wec)
-        acc_wec = np.dot(wec.derivative_mat, vel_wec)
+        acc_wec = np.dot(wec.derivative2_mat, pos_wec)
         return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def force_on_wec(self,
