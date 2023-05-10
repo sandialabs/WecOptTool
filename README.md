@@ -1,4 +1,4 @@
-[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml)
+[![Test-WecOptTool](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml)
 [![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
 
 # WecOptTool
@@ -48,14 +48,14 @@ To run the tutorials, first download the notebook files and then, from the direc
 Using `git` to obtain the notebooks this can be done by running
 
 ```bash
-git clone https://github.com/SNL-WaterPower/WecOptTool.git
+git clone https://github.com/sandialabs/WecOptTool.git
 cd WecOptTool/examples
 jupyter notebook
 ```
 
 ## Getting help
-To report bugs, use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
-For general discussion, use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
+To report bugs, use WecOptTool's [issues page](https://github.com/sandialabs/WecOptTool/issues).
+For general discussion, use WecOptTool's [discussion page](https://github.com/sandialabs/WecOptTool/discussions)
 
 ## Contributing
-If you are interested in contributing to WecOptTool, see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).
+If you are interested in contributing to WecOptTool, see our [contribution guidelines](https://github.com/sandialabs/WecOptTool/blob/main/.github/CONTRIBUTING.md).

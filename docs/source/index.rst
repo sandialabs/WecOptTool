@@ -35,7 +35,7 @@ The developers would also like to acknowledge benefit from past collaborations w
 
 Sandia National Laboratories is a multi-mission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.
 
-.. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool
+.. _GitHub repository: https://github.com/sandialabs/WecOptTool
 .. _Data Only Greater: https://www.dataonlygreater.com
 .. _Oregon State University Design Engineering Lab: https://design.engr.oregonstate.edu
 .. _Sandia National Laboratories: https://www.sandia.gov
