@@ -1,5 +1,5 @@
 [![Test-WecOptTool](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml)
-[![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/sandialabs/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/WecOptTool?branch=main)
 
 # WecOptTool
 The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies with constrained optimal control.
