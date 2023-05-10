@@ -13,4 +13,4 @@ Only the latest version is supported.
 
 ## Reporting a Vulnerability
 
-Report security vulnerability concerns through the [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues) or email the developers directly.
+Report security vulnerability concerns through the [issues page](https://github.com/sandialabs/WecOptTool/issues) or email the developers directly.
