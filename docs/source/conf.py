@@ -60,7 +60,7 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#',
     'https://doi.org/10.2172/1330189',
-    'https://snl-waterpower.github.io/WecOptTool/*',
+    'https://sandialabs.github.io/WecOptTool/*',
 ]
 
 linkcheck_request_headers = {

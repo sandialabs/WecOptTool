@@ -1,5 +1,5 @@
-[![Test-WecOptTool](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/SNL-WaterPower/WecOptTool/actions/workflows/push.yml)
-[![Coverage Status](https://coveralls.io/repos/github/SNL-WaterPower/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/SNL-WaterPower/WecOptTool?branch=main)
+[![Test-WecOptTool](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml/badge.svg)](https://github.com/sandialabs/WecOptTool/actions/workflows/push.yml)
+[![Coverage Status](https://coveralls.io/repos/github/sandialabs/WecOptTool/badge.svg?branch=main)](https://coveralls.io/github/sandialabs/WecOptTool?branch=main)
 
 # WecOptTool
 The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users to perform wave energy converter (WEC) device design optimization studies with constrained optimal control.
@@ -7,7 +7,7 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 **NOTE:** If you are looking for the WecOptTool code used in previous published work (MATLAB version) please see [WecOptTool-MATLAB](https://github.com/SNL-WaterPower/WecOptTool-MATLAB).
 
 ## Project Information
-Refer to [WecOptTool documentation](https://snl-waterpower.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
+Refer to [WecOptTool documentation](https://sandialabs.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
 WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
@@ -48,14 +48,14 @@ To run the tutorials, first download the notebook files and then, from the direc
 Using `git` to obtain the notebooks this can be done by running
 
 ```bash
-git clone https://github.com/SNL-WaterPower/WecOptTool.git
+git clone https://github.com/sandialabs/WecOptTool.git
 cd WecOptTool/examples
 jupyter notebook
 ```
 
 ## Getting help
-To report bugs, use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
-For general discussion, use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
+To report bugs, use WecOptTool's [issues page](https://github.com/sandialabs/WecOptTool/issues).
+For general discussion, use WecOptTool's [discussion page](https://github.com/sandialabs/WecOptTool/discussions)
 
 ## Contributing
-If you are interested in contributing to WecOptTool, see our [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md).
+If you are interested in contributing to WecOptTool, see our [contribution guidelines](https://github.com/sandialabs/WecOptTool/blob/main/.github/CONTRIBUTING.md).

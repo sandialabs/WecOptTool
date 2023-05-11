@@ -1,7 +1,7 @@
 """
 WEC Design Optimization Toolbox (*WecOptTool*) developed by
 Sandia National Laboratories. See
-`snl-waterpower.github.io/WecOptTool/ <https://snl-waterpower.github.io/WecOptTool/>`_.
+`sandialabs.github.io/WecOptTool/ <https://sandialabs.github.io/WecOptTool/>`_.
 
 The top-level :python:`wecopttool` module contains:
 
