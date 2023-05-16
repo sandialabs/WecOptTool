@@ -822,7 +822,7 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
         Size 2*n_dof.
     ndof
         Number of degrees of freedom.
-    # """
+    """
     z_11 = impedance[:ndof, :ndof, :]  # Fu
     z_12 = impedance[:ndof, ndof:, :]  # Fi
     z_21 = impedance[ndof:, :ndof, :]  # Vu
