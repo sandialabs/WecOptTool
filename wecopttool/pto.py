@@ -822,7 +822,7 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
         Size 2*n_dof.
     ndof
         Number of degrees of freedom.
-    """
+    # """
     z_11 = impedance[:ndof, :ndof, :]  # Fu
     z_12 = impedance[:ndof, ndof:, :]  # Fi
     z_21 = impedance[ndof:, :ndof, :]  # Vu
@@ -834,7 +834,10 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
     abcd_12 = z_12_inv
     abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
     abcd_22 = mmult(z_22, z_12_inv)
-    return np.block([[[abcd_11], [abcd_12]], [[abcd_21], [abcd_22]]])
+
+    row_1 = np.hstack([abcd_11, abcd_12])
+    row_2 = np.hstack([abcd_21, abcd_22])
+    return np.vstack([row_1, row_2])
 
 
 def _make_mimo_transfer_mat(
@@ -850,7 +853,6 @@ def _make_mimo_transfer_mat(
     ndof
         Number of degrees of freedom.
     """
-    elem = [[None]*2*ndof for _ in range(2*ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(2*ndof):
         for jdof in range(2*ndof):
@@ -861,8 +863,15 @@ def _make_mimo_transfer_mat(
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             # re[0] added for the zero frequency power loss (DC), could be re[n]
             blocks = [re[0]] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+            if jdof==0:
+                row = block_diag(*blocks)
+            else:
+                row = np.hstack([row, block_diag(*blocks)])
+        if idof==0:
+            mat = row
+        else:
+            mat = np.vstack([mat, row])
+    return mat
 
 
 # controllers
