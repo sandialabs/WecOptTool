@@ -21,6 +21,7 @@ __all__ = [
     "time",
     "time_mat",
     "derivative_mat",
+    "derivative2_mat",
     "mimo_transfer_mat",
     "vec_to_dofmat",
     "dofmat_to_vec",
@@ -208,6 +209,7 @@ class WEC:
         self._time = time(f1, nfreq)
         self._time_mat = time_mat(f1, nfreq)
         self._derivative_mat = derivative_mat(f1, nfreq)
+        self._derivative2_mat = derivative2_mat(f1, nfreq)
         self._forces = forces
         constraints = list(constraints) if (constraints is not None) else []
         self._constraints = constraints
@@ -896,7 +898,7 @@ class WEC:
         force_da_list = []
         for name, force in self.forces.items():
             force_td_tmp = force(self, x_wec, x_opt, waves)
-            force_fd = self.td_to_fd(force_td_tmp, fft=True)
+            force_fd = self.td_to_fd(force_td_tmp)
             force_da = DataArray(data=force_fd,
                                  dims=["omega", "influenced_dof"],
                                  coords={
@@ -919,7 +921,7 @@ class WEC:
         vel = self.derivative_mat @ pos
         vel_fd = real_to_complex(vel)
 
-        acc = self.derivative_mat @ vel
+        acc = self.derivative2_mat @ pos
         acc_fd = real_to_complex(acc)
 
         fd_state = Dataset(
@@ -1066,6 +1068,19 @@ class WEC:
         :python:`derivative_mat @ x`.
         """
         return self._derivative_mat
+
+    @property
+    def derivative2_mat(self) -> ndarray:
+        """Matrix to create Fourier coefficients of the second derivative of
+        some quantity.
+
+        For some array of Fourier coefficients :python:`x`
+        (excluding the sine component of the highest freequency), size
+        :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
+        second derivative of :python:`x` are obtained via
+        :python:`derivative2_mat @ x`.
+        """
+        return self._derivative2_mat
 
     @property
     def dt(self) -> float:
@@ -1425,6 +1440,42 @@ def derivative_mat(
     return deriv_mat[:-1, :-1] # remove 2pt wave sine component
 
 
+def derivative2_mat(
+    f1: float,
+    nfreq: int,
+    zero_freq: Optional[bool] = True,
+) -> ndarray:
+    """Assemble the second derivative matrix that converts the state vector of
+    a response to the state vector of its second derivative.
+
+    For a state :math:`x` consisting of the mean (DC) component
+    followed by the real and imaginary components of the Fourier
+    coefficients (excluding the imaginary component of the 2-point wave) as
+    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
+    the state of its second derivative is given as :math:`(DD)x`, where
+    :math:`DD` is the second derivative matrix.
+
+    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
+
+    If :python:`zero_freq = False` (not default), the mean (DC) component
+    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
+
+    Parameters
+    ---------
+    f1
+        Fundamental frequency :python:`f1` [:math:`Hz`].
+    nfreq
+        Number of frequencies.
+    zero_freq
+        Whether the first frequency should be zero.
+    """
+    vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
+    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    if zero_freq:
+        diagonal = np.concatenate(([0.0], diagonal))
+    return np.diag(diagonal)
+
+
 def mimo_transfer_mat(
     transfer_mat: ArrayLike,
     zero_freq: Optional[bool] = True,
@@ -1732,6 +1783,7 @@ def td_to_fd(
         fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
     else:
         fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
+    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
     if not zero_freq:
         fd = fd[1:, :]
     return fd

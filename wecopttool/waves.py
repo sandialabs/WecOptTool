@@ -56,7 +56,8 @@ def elevation_fd(
     directions: Union[float, ArrayLike],
     amplitudes: Optional[ArrayLike] = None,
     phases: Optional[ArrayLike] = None,
-    attr: Optional[Mapping] = None
+    attr: Optional[Mapping] = None,
+    seed: Optional[float] = None,
 ) -> DataArray:
     """Construct the complex wave elevation
     :py:class:`xarray.DataArray`.
@@ -81,6 +82,9 @@ def elevation_fd(
     attr:
         Additional attributes (metadata) to include in the
         :py:class:`xarray.DataArray`.
+    seed
+        Seed for random number generator. Used for reproducibility.
+        Generally should not be used except for testing.
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
@@ -88,15 +92,18 @@ def elevation_fd(
     omega = freq*2*np.pi
 
     dims = ('omega', 'wave_direction')
-    freq_attr = {'long_name': 'Wave frequency', 'units': 'rad/s'}
+    omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+    freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
     dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
-    coords = [(dims[0], omega, freq_attr), (dims[1], directions, dir_attr)]
+    coords = {'omega': (dims[0], omega, omega_attr),
+              'freq': (dims[0], freq, freq_attr),
+              'wave_direction': (dims[1], directions, dir_attr)}
 
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections])
 
     if phases is None:
-        phases = random_phase([nfreq, ndirections])
+        phases = random_phase([nfreq, ndirections],seed)
     else:
         phases = degrees_to_radians(phases, False)
 
@@ -178,6 +185,7 @@ def regular_wave(
 def long_crested_wave(
     efth: DataArray,
     direction: Optional[float] = 0.0,
+    seed: Optional[float] = None,
 ) -> DataArray:
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
@@ -197,7 +205,9 @@ def long_crested_wave(
         used by :py:class:`wavespectra.SpecArray`.
     direction
         Direction (in degrees) of the long-crested wave.
-
+    seed
+        Seed for random number generator. Used for reproducibility.
+        Generally should not be used except for testing.
     """
     f1, nfreq = frequency_parameters(efth.freq.values, False)
     df = f1
@@ -211,10 +221,11 @@ def long_crested_wave(
         'Direction (degrees)': direction,
     }
 
-    return elevation_fd(f1, nfreq, direction, amplitudes, None, attr)
+    return elevation_fd(f1, nfreq, direction, amplitudes, None, attr, seed)
 
 
-def irregular_wave(efth: DataArray) -> DataArray:
+def irregular_wave(efth: DataArray,
+                   seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
     The omnidirectional spectrum is in the
@@ -232,6 +243,9 @@ def irregular_wave(efth: DataArray) -> DataArray:
     efth
         Wave spectrum in units of m^2/Hz/deg, in the format used by
         :py:class:`wavespectra.SpecArray`.
+    seed
+        Seed for random number generator. Used for reproducibility.
+        Generally should not be used except for testing.
     """
     f1, nfreq = frequency_parameters(efth.freq.values, False)
     directions = efth.dir.values
@@ -244,7 +258,7 @@ def irregular_wave(efth: DataArray) -> DataArray:
 
     attr = {'Wave type': 'Irregular'}
 
-    return elevation_fd(f1, nfreq, directions, amplitudes, None, attr)
+    return elevation_fd(f1, nfreq, directions, amplitudes, None, attr, seed)
 
 
 def random_phase(

@@ -1,5 +1,5 @@
 ## Description
-Concise description of the pull request with references to any [issues](https://github.com/SNL-WaterPower/WecOptTool/issues).
+Concise description of the pull request with references to any [issues](https://github.com/sandialabs/WecOptTool/issues).
 
 ## Type of PR
 - [ ] Bug fix
@@ -8,8 +8,8 @@ Concise description of the pull request with references to any [issues](https://
 - [ ] Other: (specify)
 
 ## Checklist for PR
-- [ ] Authors read the [contribution guidelines](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/CONTRIBUTING.md)
-- [ ] The pull request is from an issue branch (not main) on *your* fork, to the [main branch in WecOptTool](https://github.com/SNL-WaterPower/WecOptTool).
+- [ ] Authors read the [contribution guidelines](https://github.com/sandialabs/WecOptTool/blob/main/.github/CONTRIBUTING.md)
+- [ ] The pull request is from an issue branch (not main) on *your* fork, to the [main branch in WecOptTool](https://github.com/sandialabs/WecOptTool).
 - [ ] The authors have given the admins edit access
 - [ ] All changes adhere to the style guide including PEP8, Docstrings, and Type Hints.
 - [ ] Modified the documentation if applicable

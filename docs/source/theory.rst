@@ -127,10 +127,10 @@ Here, the kinematics matrix, :math:`K`, is defined as the linear transformation 
     p = K x
     :label: kinematics
 
-The relationship :math:`p(x)` is typically referred to as the *forward kinematics*.
+The relationship :math:`p(x)` is typically referred to as the *backward kinematics*, in the field of robotics. If the WEC were considered to be a robot it's hydrodynamic body would be equivalent to an endeffector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
 The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
-Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
+Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the inverse Jacobian of :math:`p(x)` at :math:`x=0`.
 
 The transpose of :math:`K` is used to transform the PTO forces in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
 
