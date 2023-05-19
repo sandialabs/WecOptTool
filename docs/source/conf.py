@@ -70,6 +70,9 @@ linkcheck_request_headers = {
     'https://doi.org/10.1109/9.467672': {
         'User-Agent': 'my-app/0.0.1'
     },
+    'https://doi.org/10.1080/17445302.2015.1089052': {
+        'User-Agent': 'my-app/0.0.1'
+    },
 }
 
 # -- References (BibTex) -----------------------------------------------------
