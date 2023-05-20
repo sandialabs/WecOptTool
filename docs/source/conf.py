@@ -61,6 +61,7 @@ linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#',
     'https://doi.org/10.2172/1330189',
     'https://sandialabs.github.io/WecOptTool/*',
+    'https://doi.org/10.1080/17445302.2015.1089052',
 ]
 
 linkcheck_request_headers = {
@@ -68,9 +69,6 @@ linkcheck_request_headers = {
         'User-Agent': 'my-app/0.0.1'
     },
     'https://doi.org/10.1109/9.467672': {
-        'User-Agent': 'my-app/0.0.1'
-    },
-    'https://doi.org/10.1080/17445302.2015.1089052': {
         'User-Agent': 'my-app/0.0.1'
     },
 }
