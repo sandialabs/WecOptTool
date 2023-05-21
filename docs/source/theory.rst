@@ -152,6 +152,7 @@ Troubleshooting
 If your simlation is not behaving as expected, consider some of the general troubleshooting steps below:
 
     * Check that the hydrodynamic coefficients are displaying expected behavior for high frequencies:
+    
         * Added mass asymptotes to finite value
         * Radiation damping asymptotes to zero
     * Check for irregular frequencies in the hydrodynamics. If necessary, alter the mesh and frequencies to avoid/remove these
