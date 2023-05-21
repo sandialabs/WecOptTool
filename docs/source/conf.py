@@ -90,11 +90,21 @@ def all_but_ipynb(dir, contents):
             result += [c]
     return result
 
+def all_but_nc(dir, contents):
+    result = []
+    for c in contents:
+        if not c.endswith(".nc"):
+            result += [c]
+    return result
+
 shutil.rmtree(os.path.join(
     project_root,  "docs/source/_examples"), ignore_errors=True)
 shutil.copytree(os.path.join(project_root,  "examples"),
                 os.path.join(project_root,  "docs/source/_examples"),
                 ignore=all_but_ipynb)
+shutil.copytree(os.path.join(project_root, "examples/data"),
+                os.path.join(project_root, "docs/source/_examples/data"),
+                ignore=all_but_nc)
 
 # -- API documentation -------------------------------------------------------
 napoleon_numpy_docstring = True
