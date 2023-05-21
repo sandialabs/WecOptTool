@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC.solve &mdash; WecOptTool 2.4.0 documentation</title>
+  <title>wecopttool.WEC.solve &mdash; WecOptTool 2.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -35,7 +35,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.4
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -60,6 +60,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.html#wecopttool.WEC"><code class="docutils literal notranslate"><span class="pre">WEC</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.constraints.html">wecopttool.WEC.constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.derivative2_mat.html">wecopttool.WEC.derivative2_mat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.derivative_mat.html">wecopttool.WEC.derivative_mat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.dof_names.html">wecopttool.WEC.dof_names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.dt.html">wecopttool.WEC.dt</a></li>
@@ -104,6 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative2_mat.html">wecopttool.derivative2_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative_mat.html">wecopttool.derivative_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.dofmat_to_vec.html">wecopttool.dofmat_to_vec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
@@ -167,11 +169,12 @@
 <dt class="sig sig-object py" id="wecopttool.WEC.solve">
 <span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_fun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nstate_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_wec_0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_opt_0</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x_wec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_x_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_obj</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optim_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_wec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_opt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.WEC.solve" title="Permalink to this definition"></a></dt>
 <dd><p>Simulate WEC dynamics using a pseudo-spectral solution
-method.</p>
+method and returns the raw results dictionary produced by
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>waves</strong> (<em>Dataset</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.3.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> with the structure and elements
+<li><p><strong>waves</strong> (<em>Dataset</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.5.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> with the structure and elements
 shown by <a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a>.</p></li>
 <li><p><strong>obj_fun</strong> (<em>StateFunction</em>) – Objective function to minimize for pseudo-spectral solution,
 must have signature <code class="code highlight python docutils literal highlight-python"><span class="n">fun</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span></code>
@@ -207,16 +210,8 @@ provides status reports at each iteration via logging at the
 INFO level.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>res_fd</em> – Dynamic responses in the frequency-domain.</p></li>
-<li><p><em>res_td</em> – Dynamic responses in the time-domain.</p></li>
-<li><p><em>res</em> – Results produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></li>
-</ul>
-</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><strong>ValueError</strong></a> – If <code class="code highlight python docutils literal highlight-python"><span class="n">scale_x_opt</span></code> is a scalar and
     <code class="code highlight python docutils literal highlight-python"><span class="n">nstate_opt</span></code> is not provided.</p></li>
 <li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><strong>Exception</strong></a> – If the optimizer fails for any reason other than maximum
@@ -224,10 +219,24 @@ INFO level.</p></li>
     See <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/optimize.html#module-scipy.optimize" title="(in SciPy v1.10.1)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy.optimize</span></code></a> for exit mode details.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><em>tuple</em>[Dataset, Dataset, <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.10.1)"><em>OptimizeResult</em></a>]</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><em>tuple</em>[Dataset, Dataset, <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.10.1)"><em>OptimizeResult</em></a>]</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<p>The <a class="reference internal" href="#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a> method only returns the
+raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res_opt</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">waves</span><span class="o">=</span><span class="n">wave</span><span class="p">,</span>
+<span class="go">                        obj_fun=pto.average_power,</span>
+<span class="go">                        nstate_opt=2*nfreq+1)</span>
+</pre></div>
+</div>
+<p>To get the post-processed results for the
+<a class="reference internal" href="wecopttool.pto.PTO.html#wecopttool.pto.PTO" title="wecopttool.pto.PTO"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.pto.PTO</span></code></a>, you may call</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res_wec_fd</span><span class="p">,</span> <span class="n">res_wec_td</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span><span class="n">res_opt</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res_pto_fd</span><span class="p">,</span> <span class="n">res_pto_td</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span><span class="n">res_opt</span><span class="p">)</span>
+</pre></div>
+</div>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-obj docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a></p>
@@ -247,7 +256,7 @@ INFO level.</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

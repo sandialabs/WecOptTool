@@ -75,13 +75,23 @@ At first the solution will not be correct, but as the optimization algorithm ite
 Practical concerns
 ------------------
 
+Frequencies
+^^^^^^^^^^^
+The solution to :eq:`optim_prob` will be found by projecting the time-domain trajectories into the frequency domain (see further discussion in :doc:`implementation`).
+To control this process, the user must specify an equally spaced frequency array (see :py:func:`wecopttool.frequency`).
+When creating this frequency array, consider:
+
+    * Exciting frequencies of the wave and, if you expect a nonlinear response, superharmonics of the exciting frequencies
+    * Power absorption occurs at two times the exciting frequencies (only important for visualization)
+    * The fundamental frequency is also the frequency step (:math:`f_1=\Delta f`); set this sufficiently small to resolve the wave spectra and frequency response functios of interest
+
 Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` will often be quite large.
 For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`.
 To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Autograd`_.
-In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the `Autograd`_ replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
-Note that `Autograd`_ does not support all of `NumPy`_ (see the `Autograd documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
+In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Autograd replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
+Note that Autograd does not support all of NumPy (see the `Autograd documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
 
 Scaling
 ^^^^^^^
@@ -117,10 +127,10 @@ Here, the kinematics matrix, :math:`K`, is defined as the linear transformation 
     p = K x
     :label: kinematics
 
-The relationship :math:`p(x)` is typically referred to as the *forward kinematics*.
+The relationship :math:`p(x)` is typically referred to as the *backward kinematics*, in the field of robotics. If the WEC were considered to be a robot it's hydrodynamic body would be equivalent to an endeffector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
 The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
-Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the Jacobian of :math:`p(x)` at :math:`x=0`.
+Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the inverse Jacobian of :math:`p(x)` at :math:`x=0`.
 
 The transpose of :math:`K` is used to transform the PTO forces in PTO frame, :math:`f_p`, to the PTO forces on the WEC, :math:`f_w`:
 
@@ -137,6 +147,17 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w = K^T f_p \\
     :label: conservation_energy
 
+Troubleshooting
+---------------
+If your simlation is not behaving as expected, consider some of the general troubleshooting steps below:
+
+    * Check that the hydrodynamic coefficients are displaying expected behavior for high frequencies:
+    
+        * Added mass asymptotes to finite value
+        * Radiation damping asymptotes to zero
+    * Check for irregular frequencies in the hydrodynamics. If necessary, alter the mesh and frequencies to avoid/remove these
+    * Check that the hydrostatic stiffness and mass properties match your hand calculations
+    * Check that absorbed power is less than or equal to the theoretical maximum
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
 .. _Autograd: https://github.com/HIPS/autograd

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC &mdash; WecOptTool 2.4.0 documentation</title>
+  <title>wecopttool.WEC &mdash; WecOptTool 2.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -37,7 +37,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.4
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -65,6 +65,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.constraints.html">wecopttool.WEC.constraints</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.derivative2_mat.html">wecopttool.WEC.derivative2_mat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.derivative_mat.html">wecopttool.WEC.derivative_mat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.dof_names.html">wecopttool.WEC.dof_names</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.dt.html">wecopttool.WEC.dt</a></li>
@@ -106,6 +107,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative2_mat.html">wecopttool.derivative2_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative_mat.html">wecopttool.derivative_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.dofmat_to_vec.html">wecopttool.dofmat_to_vec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
@@ -276,64 +278,67 @@ If <code class="code highlight python docutils literal highlight-python"><span c
 <tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.constraints.html#wecopttool.WEC.constraints" title="wecopttool.WEC.constraints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.constraints</span></code></a></p></td>
 <td><p>List of constraints.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.derivative_mat.html#wecopttool.WEC.derivative_mat" title="wecopttool.WEC.derivative_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.derivative_mat</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.derivative2_mat.html#wecopttool.WEC.derivative2_mat" title="wecopttool.WEC.derivative2_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.derivative2_mat</span></code></a></p></td>
+<td><p>Matrix to create Fourier coefficients of the second derivative of some quantity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.derivative_mat.html#wecopttool.WEC.derivative_mat" title="wecopttool.WEC.derivative_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.derivative_mat</span></code></a></p></td>
 <td><p>Matrix to create Fourier coefficients of the derivative of some quantity.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.dof_names.html#wecopttool.WEC.dof_names" title="wecopttool.WEC.dof_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.dof_names</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.dof_names.html#wecopttool.WEC.dof_names" title="wecopttool.WEC.dof_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.dof_names</span></code></a></p></td>
 <td><p>Names of the different degrees of freedom.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.dt.html#wecopttool.WEC.dt" title="wecopttool.WEC.dt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.dt</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.dt.html#wecopttool.WEC.dt" title="wecopttool.WEC.dt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.dt</span></code></a></p></td>
 <td><p>Time spacing [s].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.f1.html#wecopttool.WEC.f1" title="wecopttool.WEC.f1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.f1</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.f1.html#wecopttool.WEC.f1" title="wecopttool.WEC.f1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.f1</span></code></a></p></td>
 <td><p>Fundamental frequency <code class="code highlight python docutils literal highlight-python"><span class="n">f1</span></code> [<span class="math notranslate nohighlight">\(Hz\)</span>].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.forces.html#wecopttool.WEC.forces" title="wecopttool.WEC.forces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.forces</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.forces.html#wecopttool.WEC.forces" title="wecopttool.WEC.forces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.forces</span></code></a></p></td>
 <td><p>Dictionary of forces.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.frequency.html#wecopttool.WEC.frequency" title="wecopttool.WEC.frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.frequency</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.frequency.html#wecopttool.WEC.frequency" title="wecopttool.WEC.frequency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.frequency</span></code></a></p></td>
 <td><p>Frequency vector [<span class="math notranslate nohighlight">\(Hz\)</span>].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.inertia.html#wecopttool.WEC.inertia" title="wecopttool.WEC.inertia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.inertia.html#wecopttool.WEC.inertia" title="wecopttool.WEC.inertia"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia</span></code></a></p></td>
 <td><p>Function representing the inertial term <span class="math notranslate nohighlight">\(ma\)</span> in the WEC's dynamics equation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.inertia_in_forces.html#wecopttool.WEC.inertia_in_forces" title="wecopttool.WEC.inertia_in_forces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia_in_forces</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.inertia_in_forces.html#wecopttool.WEC.inertia_in_forces" title="wecopttool.WEC.inertia_in_forces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia_in_forces</span></code></a></p></td>
 <td><p>Whether inertial &quot;forces&quot; are included in the <code class="code highlight python docutils literal highlight-python"><span class="n">forces</span></code> dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.inertia_matrix.html#wecopttool.WEC.inertia_matrix" title="wecopttool.WEC.inertia_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia_matrix</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.inertia_matrix.html#wecopttool.WEC.inertia_matrix" title="wecopttool.WEC.inertia_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.inertia_matrix</span></code></a></p></td>
 <td><p>Inertia (mass) matrix.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.ncomponents.html#wecopttool.WEC.ncomponents" title="wecopttool.WEC.ncomponents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.ncomponents</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.ncomponents.html#wecopttool.WEC.ncomponents" title="wecopttool.WEC.ncomponents"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.ncomponents</span></code></a></p></td>
 <td><p>Number of Fourier components (<code class="code highlight python docutils literal highlight-python"><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span></code>) for each degree of freedom.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.ndof.html#wecopttool.WEC.ndof" title="wecopttool.WEC.ndof"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.ndof</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.ndof.html#wecopttool.WEC.ndof" title="wecopttool.WEC.ndof"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.ndof</span></code></a></p></td>
 <td><p>Number of degrees of freedom.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.nfreq.html#wecopttool.WEC.nfreq" title="wecopttool.WEC.nfreq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nfreq</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.nfreq.html#wecopttool.WEC.nfreq" title="wecopttool.WEC.nfreq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nfreq</span></code></a></p></td>
 <td><p>Number of frequencies, not including the zero-frequency.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.nstate_wec.html#wecopttool.WEC.nstate_wec" title="wecopttool.WEC.nstate_wec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nstate_wec</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.nstate_wec.html#wecopttool.WEC.nstate_wec" title="wecopttool.WEC.nstate_wec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nstate_wec</span></code></a></p></td>
 <td><p>Length of the WEC dynamics state vector consisting of the Fourier coefficient of the position of each degree of freedom.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.nt.html#wecopttool.WEC.nt" title="wecopttool.WEC.nt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nt</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.nt.html#wecopttool.WEC.nt" title="wecopttool.WEC.nt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.nt</span></code></a></p></td>
 <td><p>Number of timesteps.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.omega.html#wecopttool.WEC.omega" title="wecopttool.WEC.omega"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.omega</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.omega.html#wecopttool.WEC.omega" title="wecopttool.WEC.omega"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.omega</span></code></a></p></td>
 <td><p>Radial frequency vector [rad/s].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.period.html#wecopttool.WEC.period" title="wecopttool.WEC.period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.period</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.period.html#wecopttool.WEC.period" title="wecopttool.WEC.period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.period</span></code></a></p></td>
 <td><p>Period vector [s].</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.tf.html#wecopttool.WEC.tf" title="wecopttool.WEC.tf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.tf</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.tf.html#wecopttool.WEC.tf" title="wecopttool.WEC.tf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.tf</span></code></a></p></td>
 <td><p>Final time (repeat period) [s].</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.time.html#wecopttool.WEC.time" title="wecopttool.WEC.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.time</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.time.html#wecopttool.WEC.time" title="wecopttool.WEC.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.time</span></code></a></p></td>
 <td><p>Time vector [s], size '(2*nfreq, ndof)', not containing the end time 'tf'.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.time_mat.html#wecopttool.WEC.time_mat" title="wecopttool.WEC.time_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.time_mat</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.time_mat.html#wecopttool.WEC.time_mat" title="wecopttool.WEC.time_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.time_mat</span></code></a></p></td>
 <td><p>Matrix to create time-series from Fourier coefficients.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.w1.html#wecopttool.WEC.w1" title="wecopttool.WEC.w1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.w1</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.w1.html#wecopttool.WEC.w1" title="wecopttool.WEC.w1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WEC.w1</span></code></a></p></td>
 <td><p>Fundamental radial frequency [rad/s].</p></td>
 </tr>
 </tbody>
@@ -363,7 +368,7 @@ If <code class="code highlight python docutils literal highlight-python"><span c
 <td><p>Post-process the results from <a class="reference internal" href="wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a></p></td>
-<td><p>Simulate WEC dynamics using a pseudo-spectral solution method.</p></td>
+<td><p>Simulate WEC dynamics using a pseudo-spectral solution method and returns the raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.WEC.td_to_fd.html#wecopttool.WEC.td_to_fd" title="wecopttool.WEC.td_to_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">td_to_fd</span></code></a></p></td>
 <td><p>Convert a time-domain array to frequency-domain.</p></td>
@@ -392,7 +397,7 @@ If <code class="code highlight python docutils literal highlight-python"><span c
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

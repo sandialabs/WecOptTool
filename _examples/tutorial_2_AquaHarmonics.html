@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 2 - AquaHarmonics &mdash; WecOptTool 2.4.0 documentation</title>
+  <title>Tutorial 2 - AquaHarmonics &mdash; WecOptTool 2.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -38,7 +38,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.4
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -205,7 +205,7 @@
 </section>
 <section id="Hydrodynamics">
 <h4>Hydrodynamics<a class="headerlink" href="#Hydrodynamics" title="Permalink to this heading"></a></h4>
-<p>Next we will run the boundary element model (BEM) <a class="reference external" href="https://github.com/capytaine/capytaine">Capytaine</a> to obtain the hydrodynamic coefficients for the hull. Before running the BEM solver, we must specify a set of frequencies at which to perform the calculations. For <code class="docutils literal notranslate"><span class="pre">WecOptTool</span></code>, these must be a regularly spaced frequency array. We will also save the results to a file so that they can be used later, in Part 2, without re-running the BEM solver.</p>
+<p>Next we will run the boundary element model (BEM) <a class="reference external" href="https://github.com/capytaine/capytaine">Capytaine</a> to obtain the hydrodynamic coefficients for the hull. Before running the BEM solver, we must specify a set of frequencies at which to perform the calculations. For <code class="docutils literal notranslate"><span class="pre">WecOptTool</span></code>, these must be a regularly spaced frequency array.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -215,12 +215,6 @@
 <span class="n">freq</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># False -&gt; no zero frequency</span>
 
 <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">g</span><span class="o">=</span><span class="n">g</span><span class="p">)</span>
-
-<span class="c1"># save results for use in Part 2</span>
-<span class="n">out_dir</span> <span class="o">=</span> <span class="s2">&quot;results_tutorial_2&quot;</span>
-<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">bem_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out_dir</span><span class="p">,</span><span class="s2">&quot;bem_data.nc&quot;</span><span class="p">)</span>
-<span class="n">wot</span><span class="o">.</span><span class="n">write_netcdf</span><span class="p">(</span><span class="n">bem_file</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1054,11 +1048,11 @@ Coordinates:
 Data variables:
     pos             (influenced_dof, time) float64 0.435 0.483 ... 0.3068 0.3758
     vel             (influenced_dof, time) float64 0.2582 0.1993 ... 0.3103
-    acc             (influenced_dof, time) float64 -0.2681 -0.2963 ... -0.2292
-    force           (influenced_dof, type, time) float64 466.6 ... -9.81e+04
+    acc             (influenced_dof, time) float64 -0.2545 -0.2963 ... -0.2292
+    force           (influenced_dof, type, time) float64 489.4 ... -4.905e+04
     wave_elev       (wave_direction, time) float64 0.433 0.3886 ... 0.4668
 Attributes:
-    time_created_utc:  2023-04-14 16:16:14.389333</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-ad980606-16fe-4d4d-9dbe-c57b5008d6cb' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-ad980606-16fe-4d4d-9dbe-c57b5008d6cb' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>influenced_dof</span>: 1</li><li><span class='xr-has-index'>time</span>: 80</li><li><span class='xr-has-index'>type</span>: 9</li><li><span class='xr-has-index'>wave_direction</span>: 1</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-5b6b24e4-b954-46f8-91c1-754651287f69' class='xr-section-summary-in' type='checkbox'  checked><label for='section-5b6b24e4-b954-46f8-91c1-754651287f69' class='xr-section-summary' >Coordinates: <span>(7)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>influenced_dof</span></div><div class='xr-var-dims'>(influenced_dof)</div><div class='xr-var-dtype'>&lt;U5</div><div class='xr-var-preview xr-preview'>&#x27;DOF_0&#x27;</div><input id='attrs-fd8c7616-d8ec-45fe-a256-03031d47d337' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-fd8c7616-d8ec-45fe-a256-03031d47d337' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-36de661e-0980-4cb4-8c82-8f93814fb916' class='xr-var-data-in' type='checkbox'><label for='data-36de661e-0980-4cb4-8c82-8f93814fb916' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;DOF_0&#x27;], dtype=&#x27;&lt;U5&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.2083 0.4167 ... 16.25 16.46</div><input id='attrs-ccdef90a-732e-45c0-84a5-d45502af06a1' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-ccdef90a-732e-45c0-84a5-d45502af06a1' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-215dcabb-695a-4e6c-9742-dfee2b3fee09' class='xr-var-data-in' type='checkbox'><label for='data-215dcabb-695a-4e6c-9742-dfee2b3fee09' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.      ,  0.208333,  0.416667,  0.625   ,  0.833333,  1.041667,
+    time_created_utc:  2023-05-21 07:20:07.866517</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-9ea1b9d3-0003-41b4-9895-2548f377134d' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-9ea1b9d3-0003-41b4-9895-2548f377134d' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>influenced_dof</span>: 1</li><li><span class='xr-has-index'>time</span>: 80</li><li><span class='xr-has-index'>type</span>: 9</li><li><span class='xr-has-index'>wave_direction</span>: 1</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-03453efd-881f-4ab5-9dcd-c355eb6d16d4' class='xr-section-summary-in' type='checkbox'  checked><label for='section-03453efd-881f-4ab5-9dcd-c355eb6d16d4' class='xr-section-summary' >Coordinates: <span>(7)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>influenced_dof</span></div><div class='xr-var-dims'>(influenced_dof)</div><div class='xr-var-dtype'>&lt;U5</div><div class='xr-var-preview xr-preview'>&#x27;DOF_0&#x27;</div><input id='attrs-8f032656-992c-4d03-bd11-ab996e3d98ae' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8f032656-992c-4d03-bd11-ab996e3d98ae' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f4f9d6a2-0c82-41d8-9058-4828b8778944' class='xr-var-data-in' type='checkbox'><label for='data-f4f9d6a2-0c82-41d8-9058-4828b8778944' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;DOF_0&#x27;], dtype=&#x27;&lt;U5&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.2083 0.4167 ... 16.25 16.46</div><input id='attrs-284a55fa-66c3-4c6f-b9ee-d38e8ae01160' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-284a55fa-66c3-4c6f-b9ee-d38e8ae01160' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-f6210fc7-32fd-4aee-809b-535b41810f2e' class='xr-var-data-in' type='checkbox'><label for='data-f6210fc7-32fd-4aee-809b-535b41810f2e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.      ,  0.208333,  0.416667,  0.625   ,  0.833333,  1.041667,
         1.25    ,  1.458333,  1.666667,  1.875   ,  2.083333,  2.291667,
         2.5     ,  2.708333,  2.916667,  3.125   ,  3.333333,  3.541667,
         3.75    ,  3.958333,  4.166667,  4.375   ,  4.583333,  4.791667,
@@ -1071,8 +1065,8 @@ Attributes:
        12.5     , 12.708333, 12.916667, 13.125   , 13.333333, 13.541667,
        13.75    , 13.958333, 14.166667, 14.375   , 14.583333, 14.791667,
        15.      , 15.208333, 15.416667, 15.625   , 15.833333, 16.041667,
-       16.25    , 16.458333])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>omega</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>7.54</div><input id='attrs-c3fe35d3-1f51-4131-a608-22fdad944339' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-c3fe35d3-1f51-4131-a608-22fdad944339' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-24468399-52ac-4f6f-a81e-3ea5f587d8f9' class='xr-var-data-in' type='checkbox'><label for='data-24468399-52ac-4f6f-a81e-3ea5f587d8f9' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Radial frequency</dd><dt><span>units :</span></dt><dd>rad/s</dd></dl></div><div class='xr-var-data'><pre>array(7.53982237)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>freq</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.2</div><input id='attrs-995eaf3f-a1f7-468c-9a39-c6b81c853519' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-995eaf3f-a1f7-468c-9a39-c6b81c853519' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-72bb55be-ac16-4c48-ae43-b426229dce42' class='xr-var-data-in' type='checkbox'><label for='data-72bb55be-ac16-4c48-ae43-b426229dce42' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Frequency</dd><dt><span>units :</span></dt><dd>Hz</dd></dl></div><div class='xr-var-data'><pre>array(1.2)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>period</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.8333</div><input id='attrs-7b668f06-5e3d-47a8-9053-4d759a482bd2' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7b668f06-5e3d-47a8-9053-4d759a482bd2' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-016ee38e-694d-4976-a429-52971a4fde50' class='xr-var-data-in' type='checkbox'><label for='data-016ee38e-694d-4976-a429-52971a4fde50' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Period</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array(0.83333333)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;radiation&#x27; ... &#x27;gravity&#x27;</div><input id='attrs-e2ce1140-7306-4101-a136-d97a3548c650' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-e2ce1140-7306-4101-a136-d97a3548c650' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-d5aff20f-0faf-4b9d-bb18-90f5600edf53' class='xr-var-data-in' type='checkbox'><label for='data-d5aff20f-0faf-4b9d-bb18-90f5600edf53' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Type</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;radiation&#x27;, &#x27;friction&#x27;, &#x27;hydrostatics&#x27;, &#x27;Froude_Krylov&#x27;, &#x27;diffraction&#x27;,
-       &#x27;PTO&#x27;, &#x27;PTO_passive&#x27;, &#x27;buoyancy&#x27;, &#x27;gravity&#x27;], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>wave_direction</span></div><div class='xr-var-dims'>(wave_direction)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0</div><input id='attrs-257b3ef3-60b8-4cbb-874d-d12021a7c0d9' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-257b3ef3-60b8-4cbb-874d-d12021a7c0d9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-320bc2db-d46f-418f-9323-36a19f556282' class='xr-var-data-in' type='checkbox'><label for='data-320bc2db-d46f-418f-9323-36a19f556282' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Wave direction</dd><dt><span>units :</span></dt><dd>rad</dd></dl></div><div class='xr-var-data'><pre>array([0.])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-397a8b37-b204-4edc-9ccb-8f1569feafdd' class='xr-section-summary-in' type='checkbox'  checked><label for='section-397a8b37-b204-4edc-9ccb-8f1569feafdd' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.435 0.483 ... 0.3068 0.3758</div><input id='attrs-8aa7276e-2fb0-409d-aa0a-1c327b883f2d' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8aa7276e-2fb0-409d-aa0a-1c327b883f2d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-380efc54-bbdc-4c23-9409-b45b111ebf58' class='xr-var-data-in' type='checkbox'><label for='data-380efc54-bbdc-4c23-9409-b45b111ebf58' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.43496706,  0.48297249,  0.51811287,  0.53861047,  0.54321164,
+       16.25    , 16.458333])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>omega</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>7.54</div><input id='attrs-ed7273f9-cb3e-44ce-b0c9-bbafe541a32a' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-ed7273f9-cb3e-44ce-b0c9-bbafe541a32a' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-4373f50b-fd19-45e2-978a-26a3b19f8453' class='xr-var-data-in' type='checkbox'><label for='data-4373f50b-fd19-45e2-978a-26a3b19f8453' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Radial frequency</dd><dt><span>units :</span></dt><dd>rad/s</dd></dl></div><div class='xr-var-data'><pre>array(7.53982237)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>freq</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.2</div><input id='attrs-6e042195-1821-44a2-9fa4-c149d50284f9' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-6e042195-1821-44a2-9fa4-c149d50284f9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-442f30c6-b4f6-45aa-a55e-c490f3afaae8' class='xr-var-data-in' type='checkbox'><label for='data-442f30c6-b4f6-45aa-a55e-c490f3afaae8' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Frequency</dd><dt><span>units :</span></dt><dd>Hz</dd></dl></div><div class='xr-var-data'><pre>array(1.2)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>period</span></div><div class='xr-var-dims'>()</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.8333</div><input id='attrs-23bfe6df-64c8-4e91-b463-3c8b9777d589' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-23bfe6df-64c8-4e91-b463-3c8b9777d589' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-26a269dd-e796-44b9-bf23-3813af9ba907' class='xr-var-data-in' type='checkbox'><label for='data-26a269dd-e796-44b9-bf23-3813af9ba907' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Period</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array(0.83333333)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>object</div><div class='xr-var-preview xr-preview'>&#x27;radiation&#x27; ... &#x27;gravity&#x27;</div><input id='attrs-61c604ca-6690-44f7-abeb-1aaa392f8df5' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-61c604ca-6690-44f7-abeb-1aaa392f8df5' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0fcb2cf0-bcd4-4b5e-983f-3c7bced8082f' class='xr-var-data-in' type='checkbox'><label for='data-0fcb2cf0-bcd4-4b5e-983f-3c7bced8082f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Type</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;radiation&#x27;, &#x27;friction&#x27;, &#x27;hydrostatics&#x27;, &#x27;Froude_Krylov&#x27;, &#x27;diffraction&#x27;,
+       &#x27;PTO&#x27;, &#x27;PTO_passive&#x27;, &#x27;buoyancy&#x27;, &#x27;gravity&#x27;], dtype=object)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>wave_direction</span></div><div class='xr-var-dims'>(wave_direction)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0</div><input id='attrs-885822ae-ec0a-4535-9c01-e1b2394eb61d' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-885822ae-ec0a-4535-9c01-e1b2394eb61d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5bf0345b-5440-43b4-9e70-a278aaf78851' class='xr-var-data-in' type='checkbox'><label for='data-5bf0345b-5440-43b4-9e70-a278aaf78851' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Wave direction</dd><dt><span>units :</span></dt><dd>rad</dd></dl></div><div class='xr-var-data'><pre>array([0.])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-35d92923-2117-4b4b-84db-b46092007b2f' class='xr-section-summary-in' type='checkbox'  checked><label for='section-35d92923-2117-4b4b-84db-b46092007b2f' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.435 0.483 ... 0.3068 0.3758</div><input id='attrs-296caadc-03c4-4c5c-9b71-0e562cebcd04' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-296caadc-03c4-4c5c-9b71-0e562cebcd04' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a6638b33-ecf5-4d3e-9984-3c3909475814' class='xr-var-data-in' type='checkbox'><label for='data-a6638b33-ecf5-4d3e-9984-3c3909475814' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.43496706,  0.48297249,  0.51811287,  0.53861047,  0.54321164,
          0.53056852,  0.49971254,  0.45282837,  0.39659977,  0.338833  ,
          0.28339754,  0.2288065 ,  0.17091999,  0.10635783,  0.0344978 ,
         -0.04223809, -0.12001119, -0.19596103, -0.26867082, -0.33642409,
@@ -1087,7 +1081,7 @@ Attributes:
         -0.39654316, -0.44656645, -0.48586366, -0.51378705, -0.52879963,
         -0.52982654, -0.51734209, -0.4921162 , -0.45409447, -0.40358613,
         -0.34239482, -0.27263959, -0.19552677, -0.11239468, -0.02588805,
-         0.06111138,  0.146792  ,  0.22955439,  0.3068166 ,  0.37584386]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.2582 0.1993 ... 0.3529 0.3103</div><input id='attrs-5f473aae-8954-4e4f-85e3-4faafccc27e8' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-5f473aae-8954-4e4f-85e3-4faafccc27e8' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a0a3a9c9-9f49-4c52-8e80-a097d81ff7dd' class='xr-var-data-in' type='checkbox'><label for='data-a0a3a9c9-9f49-4c52-8e80-a097d81ff7dd' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.25824549,  0.19934265,  0.13471544,  0.06294567, -0.01806615,
+         0.06111138,  0.146792  ,  0.22955439,  0.3068166 ,  0.37584386]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.2582 0.1993 ... 0.3529 0.3103</div><input id='attrs-eb0c0d63-f4d8-46ff-9be3-6e5ec5b05c0f' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-eb0c0d63-f4d8-46ff-9be3-6e5ec5b05c0f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-db2e7cdd-c7d6-40b1-8fc8-d16157f02544' class='xr-var-data-in' type='checkbox'><label for='data-db2e7cdd-c7d6-40b1-8fc8-d16157f02544' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.25824549,  0.19934265,  0.13471544,  0.06294567, -0.01806615,
         -0.10616053, -0.19026975, -0.25235645, -0.27890964, -0.27423941,
         -0.26119895, -0.26468498, -0.29208796, -0.33003519, -0.35954122,
         -0.37202004, -0.37047017, -0.35950441, -0.33901849, -0.30721965,
@@ -1102,62 +1096,62 @@ Attributes:
         -0.2651922 , -0.21639249, -0.16225307, -0.10263051, -0.03870917,
          0.02652981,  0.09077937,  0.15336719,  0.21332187,  0.2681833 ,
          0.31562127,  0.35498319,  0.38616254,  0.40787074,  0.41834318,
-         0.41730133,  0.40588766,  0.38467161,  0.3529237 ,  0.31027678]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-0.2681 -0.2963 ... -0.1789 -0.2292</div><input id='attrs-6c56452b-8095-4a32-8b8a-d7b7b4778b0d' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-6c56452b-8095-4a32-8b8a-d7b7b4778b0d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-8314ab0c-cc40-4368-8e5e-66ce00423fdb' class='xr-var-data-in' type='checkbox'><label for='data-8314ab0c-cc40-4368-8e5e-66ce00423fdb' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[-0.26808182, -0.29634876, -0.32535483, -0.36574605, -0.41069726,
-        -0.42605386, -0.36594979, -0.21800588, -0.04021672,  0.06525438,
-         0.0381753 , -0.07784505, -0.17305858, -0.17454257, -0.10181626,
-        -0.02139772,  0.03200527,  0.07371791,  0.12486056,  0.17933714,
-         0.22028675,  0.24754015,  0.27288467,  0.29790271,  0.31243027,
-         0.3123448 ,  0.30499292,  0.29523339,  0.2776086 ,  0.24709247,
-         0.20866927,  0.16953966,  0.12809305,  0.07849691,  0.02265408,
-        -0.03079303, -0.0786651 , -0.12665755, -0.1786723 , -0.22884814,
-        -0.26819878, -0.29667704, -0.32547214, -0.36573302, -0.41079509,
-        -0.42615019, -0.36584838, -0.21782705, -0.04014882,  0.06526581,
-         0.03817103, -0.07803317, -0.17341437, -0.17467842, -0.10156041,
-        -0.02115431,  0.03192406,  0.07367387,  0.12523877,  0.17974733,
-         0.22015283,  0.24715998,  0.27301704,  0.29845368,  0.31253528,
-         0.31181581,  0.3046572 ,  0.29553653,  0.27788297,  0.24675681,
-         0.20825073,  0.16972563,  0.12848917,  0.0782882 ,  0.02203192,
-        -0.03090937, -0.0781317 , -0.12629871, -0.17892937, -0.22918327]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(influenced_dof, type, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>466.6 584.6 ... -9.81e+04 -9.81e+04</div><input id='attrs-ab6a78f4-9e41-451c-a6a0-499451e02e63' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-ab6a78f4-9e41-451c-a6a0-499451e02e63' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-c3e6ec25-b839-4a08-80d3-4032e2e1f487' class='xr-var-data-in' type='checkbox'><label for='data-c3e6ec25-b839-4a08-80d3-4032e2e1f487' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[[ 4.66641304e+02,  5.84586673e+02,  7.01977560e+02,
-          7.45685457e+02,  7.95651300e+02,  8.85055117e+02,
-          8.43319588e+02,  5.54654770e+02,  2.04159380e+02,
-          5.36659046e+01,  1.15796897e+02,  2.31561055e+02,
-          3.14123001e+02,  3.37311238e+02,  2.45034842e+02,
-          5.66019465e+01, -8.25481110e+01, -1.11738802e+02,
-         -1.60949346e+02, -3.12156063e+02, -4.45202190e+02,
-         -4.67210199e+02, -4.87393367e+02, -5.97600421e+02,
-         -6.87777980e+02, -6.58709240e+02, -6.13478113e+02,
-         -6.51180846e+02, -6.71136739e+02, -5.73511630e+02,
-         -4.58003561e+02, -4.28253755e+02, -3.90710049e+02,
-         -2.44715898e+02, -8.51200855e+01, -1.82061845e+01,
-          4.13445772e+01,  1.93815137e+02,  3.53964274e+02,
-          4.19913906e+02,  4.66840060e+02,  5.85152556e+02,
-          7.02194712e+02,  7.45687176e+02,  7.95846529e+02,
-          8.85256728e+02,  8.43191594e+02,  5.54388486e+02,
-          2.04063807e+02,  5.36497745e+01,  1.15797938e+02,
-          2.31869277e+02,  3.14717038e+02,  3.37544255e+02,
-          2.44621574e+02,  5.62198616e+01, -8.23847712e+01,
-         -1.11652516e+02, -1.61594759e+02, -3.12873638e+02,
+         0.41730133,  0.40588766,  0.38467161,  0.3529237 ,  0.31027678]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(influenced_dof, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>-0.2545 -0.2963 ... -0.1925 -0.2292</div><input id='attrs-ad69533b-cef3-445a-8b25-95ca1b4f916f' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-ad69533b-cef3-445a-8b25-95ca1b4f916f' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-399b97e7-8740-49be-9ef7-c92c882a4bc1' class='xr-var-data-in' type='checkbox'><label for='data-399b97e7-8740-49be-9ef7-c92c882a4bc1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[-0.25452225, -0.29634876, -0.3389144 , -0.36574605, -0.39713768,
+        -0.42605386, -0.37950937, -0.21800588, -0.02665715,  0.06525438,
+         0.02461573, -0.07784505, -0.15949901, -0.17454257, -0.11537583,
+        -0.02139772,  0.04556485,  0.07371791,  0.11130099,  0.17933714,
+         0.23384632,  0.24754015,  0.25932509,  0.29790271,  0.32598985,
+         0.3123448 ,  0.29143335,  0.29523339,  0.29116817,  0.24709247,
+         0.19510969,  0.16953966,  0.14165262,  0.07849691,  0.00909451,
+        -0.03079303, -0.06510552, -0.12665755, -0.19223188, -0.22884814,
+        -0.2546392 , -0.29667704, -0.33903171, -0.36573302, -0.39723552,
+        -0.42615019, -0.37940795, -0.21782705, -0.02658925,  0.06526581,
+         0.02461145, -0.07803317, -0.1598548 , -0.17467842, -0.11511998,
+        -0.02115431,  0.04548363,  0.07367387,  0.11167919,  0.17974733,
+         0.2337124 ,  0.24715998,  0.25945747,  0.29845368,  0.32609485,
+         0.31181581,  0.29109762,  0.29553653,  0.29144254,  0.24675681,
+         0.19469116,  0.16972563,  0.14204874,  0.0782882 ,  0.00847234,
+        -0.03090937, -0.06457212, -0.12629871, -0.19248895, -0.22918327]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(influenced_dof, type, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>489.4 584.6 ... -4.905e+04</div><input id='attrs-cf67629e-7f09-4215-83a0-138cf05bad9d' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-cf67629e-7f09-4215-83a0-138cf05bad9d' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ababa740-ad28-4821-9d38-74445f38e76d' class='xr-var-data-in' type='checkbox'><label for='data-ababa740-ad28-4821-9d38-74445f38e76d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[[ 4.89437783e+02,  5.84586673e+02,  6.79181081e+02,
+          7.45685457e+02,  8.18447779e+02,  8.85055117e+02,
+          8.20523108e+02,  5.54654770e+02,  2.26955860e+02,
+          5.36659046e+01,  9.30004177e+01,  2.31561055e+02,
+          3.36919481e+02,  3.37311238e+02,  2.22238362e+02,
+          5.66019465e+01, -5.97516313e+01, -1.11738802e+02,
+         -1.83745826e+02, -3.12156063e+02, -4.22405710e+02,
+         -4.67210199e+02, -5.10189846e+02, -5.97600421e+02,
+         -6.64981500e+02, -6.58709240e+02, -6.36274592e+02,
+         -6.51180846e+02, -6.48340259e+02, -5.73511630e+02,
+         -4.80800040e+02, -4.28253755e+02, -3.67913569e+02,
+         -2.44715898e+02, -1.07916565e+02, -1.82061845e+01,
+          6.41410569e+01,  1.93815137e+02,  3.31167794e+02,
+          4.19913906e+02,  4.89636540e+02,  5.85152556e+02,
+          6.79398233e+02,  7.45687176e+02,  8.18643009e+02,
+          8.85256728e+02,  8.20395115e+02,  5.54388486e+02,
+          2.26860287e+02,  5.36497745e+01,  9.30014580e+01,
+          2.31869277e+02,  3.37513518e+02,  3.37544255e+02,
+          2.21825094e+02,  5.62198616e+01, -5.95882914e+01,
+         -1.11652516e+02, -1.84391239e+02, -3.12873638e+02,
 ...
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04, -9.81000000e+04,
-         -9.81000000e+04, -9.81000000e+04]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>wave_elev</span></div><div class='xr-var-dims'>(wave_direction, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.433 0.3886 ... 0.4891 0.4668</div><input id='attrs-0c6dfc94-cb91-47b3-b103-24bf55dde1df' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-0c6dfc94-cb91-47b3-b103-24bf55dde1df' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-48784e28-0d80-4a55-b9d8-b5138cbeb2bb' class='xr-var-data-in' type='checkbox'><label for='data-48784e28-0d80-4a55-b9d8-b5138cbeb2bb' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Wave elevation</dd><dt><span>units :</span></dt><dd>m</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.4330127 ,  0.38857298,  0.3345653 ,  0.27231952,  0.20336832,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04, -4.90500000e+04,
+         -4.90500000e+04, -4.90500000e+04]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>wave_elev</span></div><div class='xr-var-dims'>(wave_direction, time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.433 0.3886 ... 0.4891 0.4668</div><input id='attrs-a96854ae-01ae-4ff2-834a-59a1b322fb01' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-a96854ae-01ae-4ff2-834a-59a1b322fb01' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-2e0c58bb-371e-4cf4-ae90-073d58fc1113' class='xr-var-data-in' type='checkbox'><label for='data-2e0c58bb-371e-4cf4-ae90-073d58fc1113' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Wave elevation</dd><dt><span>units :</span></dt><dd>m</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.4330127 ,  0.38857298,  0.3345653 ,  0.27231952,  0.20336832,
          0.12940952,  0.05226423, -0.02616798, -0.10395585, -0.17918397,
         -0.25      , -0.3146602 , -0.37157241, -0.41933528, -0.45677273,
         -0.48296291, -0.49726095, -0.49931477, -0.4890738 , -0.46679021,
@@ -1172,36 +1166,36 @@ Attributes:
         -0.4330127 , -0.38857298, -0.3345653 , -0.27231952, -0.20336832,
         -0.12940952, -0.05226423,  0.02616798,  0.10395585,  0.17918397,
          0.25      ,  0.3146602 ,  0.37157241,  0.41933528,  0.45677273,
-         0.48296291,  0.49726095,  0.49931477,  0.4890738 ,  0.46679021]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-deef3215-3458-49b3-8a5f-4d669c443979' class='xr-section-summary-in' type='checkbox'  ><label for='section-deef3215-3458-49b3-8a5f-4d669c443979' class='xr-section-summary' >Indexes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>influenced_dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-e49340d8-b360-4eec-b6f5-0ea54f6b5328' class='xr-index-data-in' type='checkbox'/><label for='index-e49340d8-b360-4eec-b6f5-0ea54f6b5328' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;DOF_0&#x27;], dtype=&#x27;object&#x27;, name=&#x27;influenced_dof&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-dffa391e-c5f7-433e-8554-f2a593087cbe' class='xr-index-data-in' type='checkbox'/><label for='index-dffa391e-c5f7-433e-8554-f2a593087cbe' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Float64Index([                0.0, 0.20833333333333334,  0.4166666666666667,
-                            0.625,  0.8333333333333334,  1.0416666666666667,
-                             1.25,  1.4583333333333335,  1.6666666666666667,
-                            1.875,  2.0833333333333335,   2.291666666666667,
-                              2.5,  2.7083333333333335,   2.916666666666667,
-                            3.125,  3.3333333333333335,   3.541666666666667,
-                             3.75,  3.9583333333333335,   4.166666666666667,
-                            4.375,   4.583333333333334,   4.791666666666667,
-                              5.0,   5.208333333333334,   5.416666666666667,
-                            5.625,   5.833333333333334,   6.041666666666667,
-                             6.25,   6.458333333333334,   6.666666666666667,
-                            6.875,   7.083333333333334,   7.291666666666667,
-                              7.5,   7.708333333333334,   7.916666666666667,
-                            8.125,   8.333333333333334,   8.541666666666668,
-                             8.75,   8.958333333333334,   9.166666666666668,
-                            9.375,   9.583333333333334,   9.791666666666668,
-                             10.0,  10.208333333333334,  10.416666666666668,
-                           10.625,  10.833333333333334,  11.041666666666668,
-                            11.25,  11.458333333333334,  11.666666666666668,
-                           11.875,  12.083333333333334,  12.291666666666668,
-                             12.5,  12.708333333333334,  12.916666666666668,
-                           13.125,  13.333333333333334,  13.541666666666668,
-                            13.75,  13.958333333333334,  14.166666666666668,
-                           14.375,  14.583333333333334,  14.791666666666668,
-                             15.0,  15.208333333333334,  15.416666666666668,
-                           15.625,  15.833333333333334,  16.041666666666668,
-                            16.25,  16.458333333333336],
-             dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>type</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-41363fe3-578b-46ce-b341-d120294aa074' class='xr-index-data-in' type='checkbox'/><label for='index-41363fe3-578b-46ce-b341-d120294aa074' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;radiation&#x27;, &#x27;friction&#x27;, &#x27;hydrostatics&#x27;, &#x27;Froude_Krylov&#x27;, &#x27;diffraction&#x27;,
+         0.48296291,  0.49726095,  0.49931477,  0.4890738 ,  0.46679021]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-0181d415-c467-495b-be80-d67e341bbc08' class='xr-section-summary-in' type='checkbox'  ><label for='section-0181d415-c467-495b-be80-d67e341bbc08' class='xr-section-summary' >Indexes: <span>(4)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>influenced_dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-2a8712a2-4262-4422-9908-2269fe468d6a' class='xr-index-data-in' type='checkbox'/><label for='index-2a8712a2-4262-4422-9908-2269fe468d6a' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;DOF_0&#x27;], dtype=&#x27;object&#x27;, name=&#x27;influenced_dof&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-e433ac5b-7f49-4ac4-9263-c16641413bf6' class='xr-index-data-in' type='checkbox'/><label for='index-e433ac5b-7f49-4ac4-9263-c16641413bf6' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([                0.0, 0.20833333333333334,  0.4166666666666667,
+                     0.625,  0.8333333333333334,  1.0416666666666667,
+                      1.25,  1.4583333333333335,  1.6666666666666667,
+                     1.875,  2.0833333333333335,   2.291666666666667,
+                       2.5,  2.7083333333333335,   2.916666666666667,
+                     3.125,  3.3333333333333335,   3.541666666666667,
+                      3.75,  3.9583333333333335,   4.166666666666667,
+                     4.375,   4.583333333333334,   4.791666666666667,
+                       5.0,   5.208333333333334,   5.416666666666667,
+                     5.625,   5.833333333333334,   6.041666666666667,
+                      6.25,   6.458333333333334,   6.666666666666667,
+                     6.875,   7.083333333333334,   7.291666666666667,
+                       7.5,   7.708333333333334,   7.916666666666667,
+                     8.125,   8.333333333333334,   8.541666666666668,
+                      8.75,   8.958333333333334,   9.166666666666668,
+                     9.375,   9.583333333333334,   9.791666666666668,
+                      10.0,  10.208333333333334,  10.416666666666668,
+                    10.625,  10.833333333333334,  11.041666666666668,
+                     11.25,  11.458333333333334,  11.666666666666668,
+                    11.875,  12.083333333333334,  12.291666666666668,
+                      12.5,  12.708333333333334,  12.916666666666668,
+                    13.125,  13.333333333333334,  13.541666666666668,
+                     13.75,  13.958333333333334,  14.166666666666668,
+                    14.375,  14.583333333333334,  14.791666666666668,
+                      15.0,  15.208333333333334,  15.416666666666668,
+                    15.625,  15.833333333333334,  16.041666666666668,
+                     16.25,  16.458333333333336],
+      dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>type</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-c2efe42c-2a63-4813-acac-bffacb4f817d' class='xr-index-data-in' type='checkbox'/><label for='index-c2efe42c-2a63-4813-acac-bffacb4f817d' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;radiation&#x27;, &#x27;friction&#x27;, &#x27;hydrostatics&#x27;, &#x27;Froude_Krylov&#x27;, &#x27;diffraction&#x27;,
        &#x27;PTO&#x27;, &#x27;PTO_passive&#x27;, &#x27;buoyancy&#x27;, &#x27;gravity&#x27;],
-      dtype=&#x27;object&#x27;, name=&#x27;type&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>wave_direction</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-d42070c1-052e-4c53-b950-b5ed9bb1d8bd' class='xr-index-data-in' type='checkbox'/><label for='index-d42070c1-052e-4c53-b950-b5ed9bb1d8bd' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Float64Index([0.0], dtype=&#x27;float64&#x27;, name=&#x27;wave_direction&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-cfb508ab-bc72-4962-b22a-20bbd33ff6d9' class='xr-section-summary-in' type='checkbox'  checked><label for='section-cfb508ab-bc72-4962-b22a-20bbd33ff6d9' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2023-04-14 16:16:14.389333</dd></dl></div></li></ul></div></div></div>
+      dtype=&#x27;object&#x27;, name=&#x27;type&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>wave_direction</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-af0c36fa-4837-4e27-bb77-ebf914a762bc' class='xr-index-data-in' type='checkbox'/><label for='index-af0c36fa-4837-4e27-bb77-ebf914a762bc' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([0.0], dtype=&#x27;float64&#x27;, name=&#x27;wave_direction&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-7d5ee602-69a0-4663-8715-0cc61112ae5e' class='xr-section-summary-in' type='checkbox'  checked><label for='section-7d5ee602-69a0-4663-8715-0cc61112ae5e' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2023-05-21 07:20:07.866517</dd></dl></div></li></ul></div></div></div>
 </div>
 <section id="Time-histories">
 <h4>Time histories<a class="headerlink" href="#Time-histories" title="Permalink to this heading"></a></h4>
@@ -1366,9 +1360,6 @@ design will be found (as in <a class="reference external" href="#1.-Optimal-cont
     <span class="n">mass_ratio</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">mass_var</span> <span class="o">=</span> <span class="n">mass_ratio</span> <span class="o">*</span> <span class="n">max_mass</span>
 
-    <span class="c1">#BEM</span>
-    <span class="n">bem_data</span> <span class="o">=</span> <span class="n">bem_file</span>
-
     <span class="c1"># update WEC</span>
     <span class="n">wec_mass</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
         <span class="n">bem_data</span><span class="p">,</span>
@@ -1461,7 +1452,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5249564633500574
+            Current function value: -1.524956800238242
             Iterations: 32
             Function evaluations: 32
             Gradient evaluations: 32
@@ -1485,7 +1476,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.537041236470391
+            Current function value: -1.5370414186673214
             Iterations: 37
             Function evaluations: 37
             Gradient evaluations: 37
@@ -1509,10 +1500,10 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5492106153782392
-            Iterations: 47
-            Function evaluations: 47
-            Gradient evaluations: 47
+            Current function value: -1.5492091566911441
+            Iterations: 42
+            Function evaluations: 42
+            Gradient evaluations: 42
 * Mass: 3365.75 kg
 * Optimal average electrical power: -1.55 kW
 
@@ -1533,10 +1524,10 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5614618769688557
-            Iterations: 82
-            Function evaluations: 82
-            Gradient evaluations: 82
+            Current function value: -1.5614618472291037
+            Iterations: 84
+            Function evaluations: 84
+            Gradient evaluations: 84
 * Mass: 4038.90 kg
 * Optimal average electrical power: -1.56 kW
 
@@ -1557,10 +1548,10 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.5655079157075096
-            Iterations: 102
-            Function evaluations: 103
-            Gradient evaluations: 102
+            Current function value: -1.5655080279707734
+            Iterations: 92
+            Function evaluations: 92
+            Gradient evaluations: 92
 * Mass: 4712.05 kg
 * Optimal average electrical power: -1.57 kW
 
@@ -1581,10 +1572,10 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.4268756928431392
-            Iterations: 114
-            Function evaluations: 114
-            Gradient evaluations: 114
+            Current function value: -1.4268757660813909
+            Iterations: 113
+            Function evaluations: 113
+            Gradient evaluations: 113
 * Mass: 5385.20 kg
 * Optimal average electrical power: -1.43 kW
 
@@ -1605,19 +1596,19 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.9997855372001945
-            Iterations: 75
-            Function evaluations: 75
-            Gradient evaluations: 75
+            Current function value: -0.9997859696705713
+            Iterations: 99
+            Function evaluations: 99
+            Gradient evaluations: 99
 * Mass: 6058.35 kg
 * Optimal average electrical power: -1.00 kW
 
 Run 8 of 8: Mass ratio: 1.00
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -3.978756699239475e-15
-            Iterations: 4
-            Function evaluations: 4
-            Gradient evaluations: 4
+            Current function value: -4.28882975922515e-15
+            Iterations: 2
+            Function evaluations: 3
+            Gradient evaluations: 2
 * Mass: 6731.50 kg
 * Optimal average electrical power: -0.00 kW
 </pre></div></div>
@@ -1672,7 +1663,7 @@ side of the plot shows the minimum absolute line tension. We can see that for ma
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f78744ddfc0&gt;
+&lt;matplotlib.legend.Legend at 0x7f6bff558910&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1697,7 +1688,7 @@ side of the plot shows the minimum absolute line tension. We can see that for ma
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

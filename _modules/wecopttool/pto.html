@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.pto &mdash; WecOptTool 2.4.0 documentation</title>
+  <title>wecopttool.pto &mdash; WecOptTool 2.5.0 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -32,7 +32,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.4
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
@@ -390,8 +390,7 @@
 <span class="sd">            length.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pos_wec</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
-        <span class="n">vel_wec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">pos_wec</span><span class="p">)</span>
-        <span class="n">acc_wec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">vel_wec</span><span class="p">)</span>
+        <span class="n">acc_wec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative2_mat</span><span class="p">,</span> <span class="n">pos_wec</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fkinematics</span><span class="p">(</span><span class="n">acc_wec</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PTO.force_on_wec"><a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec">[docs]</a>    <span class="k">def</span> <span class="nf">force_on_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -592,13 +591,6 @@
                                             <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="c1"># power</span>
         <span class="n">power_out</span> <span class="o">=</span> <span class="n">q2_td</span> <span class="o">*</span> <span class="n">e2_td</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">impedance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">z_12</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impedance</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># Fi</span>
-            <span class="n">z_22</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">impedance</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1"># Vi</span>
-            <span class="n">z_12_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">z_12</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
-            <span class="n">transduced_flow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">z_12_inv</span><span class="p">),</span> <span class="n">x_opt_0</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-            <span class="n">power_out</span> <span class="o">=</span> <span class="n">power_out</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">z_22</span><span class="p">),</span> <span class="n">transduced_flow</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">power_out</span> <span class="o">=</span> <span class="n">power_out</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">q2_td</span><span class="p">,</span> <span class="n">e2_td</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">power_out</span></div>
@@ -754,16 +746,16 @@
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
 <span class="sd">        The :py:meth:`wecopttool.WEC.solve` method only returns the</span>
-<span class="sd">        post-processed results for the :py:class:`wecopttool.WEC`</span>
-<span class="sd">        object.</span>
+<span class="sd">        raw results dictionary produced by :py:func:`scipy.optimize.minimize`.</span>
 
-<span class="sd">        &gt;&gt;&gt; res_wec_fd, res_wec_td, res_opt = wec.solve(waves=wave,</span>
-<span class="sd">                                              obj_fun=pto.average_power,</span>
-<span class="sd">                                              nstate_opt=2*nfreq+1)</span>
+<span class="sd">        &gt;&gt;&gt; res_opt = wec.solve(waves=wave,</span>
+<span class="sd">                                obj_fun=pto.average_power,</span>
+<span class="sd">                                nstate_opt=2*nfreq+1)</span>
 
 <span class="sd">        To get the post-processed results for the</span>
 <span class="sd">        :py:class:`wecopttool.pto.PTO`, you may call</span>
 
+<span class="sd">        &gt;&gt;&gt; res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)</span>
 <span class="sd">        &gt;&gt;&gt; res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)</span>
 
 <span class="sd">        For smoother plots, you can set :python:`nsubsteps` to a value</span>
@@ -922,7 +914,10 @@
     <span class="n">abcd_12</span> <span class="o">=</span> <span class="n">z_12_inv</span>
     <span class="n">abcd_21</span> <span class="o">=</span> <span class="n">z_21</span> <span class="o">-</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_22</span><span class="p">,</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_12_inv</span><span class="p">,</span> <span class="n">z_11</span><span class="p">))</span>
     <span class="n">abcd_22</span> <span class="o">=</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_22</span><span class="p">,</span> <span class="n">z_12_inv</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[[</span><span class="n">abcd_11</span><span class="p">],</span> <span class="p">[</span><span class="n">abcd_12</span><span class="p">]],</span> <span class="p">[[</span><span class="n">abcd_21</span><span class="p">],</span> <span class="p">[</span><span class="n">abcd_22</span><span class="p">]]])</span>
+
+    <span class="n">row_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">abcd_11</span><span class="p">,</span> <span class="n">abcd_12</span><span class="p">])</span>
+    <span class="n">row_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">abcd_21</span><span class="p">,</span> <span class="n">abcd_22</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">row_1</span><span class="p">,</span> <span class="n">row_2</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">_make_mimo_transfer_mat</span><span class="p">(</span>
@@ -938,7 +933,6 @@
 <span class="sd">    ndof</span>
 <span class="sd">        Number of degrees of freedom.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">elem</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span><span class="p">)]</span>
     <span class="k">def</span> <span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
     <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">ndof</span><span class="p">):</span>
@@ -947,9 +941,17 @@
             <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
             <span class="c1"># Exclude the sine component of the 2-point wave</span>
             <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">im</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
-            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span> <span class="o">+</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
-            <span class="n">elem</span><span class="p">[</span><span class="n">idof</span><span class="p">][</span><span class="n">jdof</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span>
+            <span class="c1"># re[0] added for the zero frequency power loss (DC), could be re[n]</span>
+            <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">blocks</span> <span class="o">+</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">jdof</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">row</span><span class="p">,</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">idof</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">row</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mat</span><span class="p">,</span> <span class="n">row</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">mat</span>
 
 
 <span class="c1"># controllers</span>
@@ -982,8 +984,8 @@
 <span class="sd">        A value of :python:`1` corresponds to the default step</span>
 <span class="sd">        length.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pto</span><span class="o">.</span><span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
     <span class="n">tmat</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">_tmat</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">tmat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">pto</span><span class="o">.</span><span class="n">ndof</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pto</span><span class="o">.</span><span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmat</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span></div>
 
 
@@ -1121,7 +1123,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

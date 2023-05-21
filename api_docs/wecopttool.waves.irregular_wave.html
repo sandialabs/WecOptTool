@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves.irregular_wave &mdash; WecOptTool 2.4.0 documentation</title>
+  <title>wecopttool.waves.irregular_wave &mdash; WecOptTool 2.5.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -35,7 +35,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.4
+                2.5
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -82,6 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative2_mat.html">wecopttool.derivative2_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.derivative_mat.html">wecopttool.derivative_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.dofmat_to_vec.html">wecopttool.dofmat_to_vec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
@@ -143,7 +144,7 @@
 <h1>wecopttool.waves.irregular_wave<a class="headerlink" href="#wecopttool-waves-irregular-wave" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.waves.irregular_wave">
-<span class="sig-name descname"><span class="pre">irregular_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/waves.html#irregular_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.irregular_wave" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">irregular_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/waves.html#irregular_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.irregular_wave" title="Permalink to this definition"></a></dt>
 <dd><p>Create a complex frequency-domain wave elevation from a spectrum.</p>
 <p>The omnidirectional spectrum is in the
 <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v3.13.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a> format.</p>
@@ -160,8 +161,12 @@ e.g. reading from buoy data. Use interpolation as
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>efth</strong> (<em>DataArray</em>) – Wave spectrum in units of m^2/Hz/deg, in the format used by
-<a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v3.13.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>efth</strong> (<em>DataArray</em>) – Wave spectrum in units of m^2/Hz/deg, in the format used by
+<a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v3.13.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> | </em><em>None</em>) – Seed for random number generator. Used for reproducibility.
+Generally should not be used except for testing.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>DataArray</p>
@@ -182,7 +187,7 @@ e.g. reading from buoy data. Use interpolation as
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS).Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software..</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
