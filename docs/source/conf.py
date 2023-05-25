@@ -20,9 +20,9 @@ sys.path.insert(0, code_root)
 project = 'WecOptTool'
 copyright = (
     '2020 National Technology & Engineering Solutions of Sandia, ' +
-    'LLC(NTESS).' +
+    'LLC(NTESS). ' +
     'Under the terms of Contract DE-NA0003525 with NTESS, the U.S. ' +
-    'Government retains certain rights in this software.'
+    'Government retains certain rights in this software'
 )
 author = 'Sandia National Laboratories'
 version = '.'.join(__version_info__[:2])
@@ -60,7 +60,8 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
 linkcheck_ignore = [
     'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#',
     'https://doi.org/10.2172/1330189',
-    'https://snl-waterpower.github.io/WecOptTool/*',
+    'https://sandialabs.github.io/WecOptTool/*',
+    'https://doi.org/10.1080/17445302.2015.1089052',
 ]
 
 linkcheck_request_headers = {
@@ -89,11 +90,21 @@ def all_but_ipynb(dir, contents):
             result += [c]
     return result
 
+def all_but_nc(dir, contents):
+    result = []
+    for c in contents:
+        if not c.endswith(".nc"):
+            result += [c]
+    return result
+
 shutil.rmtree(os.path.join(
     project_root,  "docs/source/_examples"), ignore_errors=True)
 shutil.copytree(os.path.join(project_root,  "examples"),
                 os.path.join(project_root,  "docs/source/_examples"),
                 ignore=all_but_ipynb)
+shutil.copytree(os.path.join(project_root, "examples/data"),
+                os.path.join(project_root, "docs/source/_examples/data"),
+                ignore=all_but_nc)
 
 # -- API documentation -------------------------------------------------------
 napoleon_numpy_docstring = True

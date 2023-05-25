@@ -19,7 +19,7 @@ The tutorials each have two parts, which are similar in structure to the second 
     - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study.
     - :doc:`_examples/tutorial_3_LUPA`: Two part example with multiple bodies, multiple degrees of freedom, irregular waves, a mooring system, and realistic constraints.
 
-.. _GitHub repository: https://github.com/SNL-WaterPower/WecOptTool/tree/main/examples
+.. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
 .. _WaveBot: https://doi.org/10.3390/en10040472
 .. _AquaHarmonics: https://aquaharmonics.com/technology/
 .. _LUPA: https://pmec-osu.github.io/LUPA/

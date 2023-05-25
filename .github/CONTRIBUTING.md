@@ -42,7 +42,7 @@ Autograd does not support all NumPy and SciPy functionalities, see [autograd doc
   1. Create a fork of WecOptTool
   2. Create a branch for the specific issue
   3. Add desired code modifications. For enhancements add to documentation. Add or modify a test. Make sure all tests pass and documentation builds. Follow style guide above.
-  4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/SNL-WaterPower/WecOptTool/releases) for the next version. Start the PR title with an all caps label followed by a colon, e.g., "BUG FIX: ...", "NEW FEATURE: ...", "DOCUMENTATION: ...", etc.
+  4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/sandialabs/WecOptTool/releases) for the next version. Start the PR title with an all caps label followed by a colon, e.g., "BUG FIX: ...", "NEW FEATURE: ...", "DOCUMENTATION: ...", etc.
 
 ## Tests
 There are a series of unit and integration tests defined in the `tests` directory.
@@ -56,7 +56,7 @@ pytest
 This project uses [GitHub Actions](https://docs.github.com/en/actions/learn-github-actions) to run tests on pull requests.
 
 ## Documentation:
-See [Documentation](https://snl-waterpower.github.io/WecOptTool/).
+See [Documentation](https://sandialabs.github.io/WecOptTool/).
 
 ### Editing the documentation
 The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/), and the [Napoleon extension](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) for automatic code documentation.
@@ -83,9 +83,9 @@ To achieve this click `clear outputs` and `save` in that order.
 Alternatively create a pre-commit hook that strips the results.
 
 ## Issue tracking
-To report bugs use WecOptTool's [issues page](https://github.com/SNL-WaterPower/WecOptTool/issues).
-For general discussion use WecOptTool's [discussion page](https://github.com/SNL-WaterPower/WecOptTool/discussions)
+To report bugs use WecOptTool's [issues page](https://github.com/sandialabs/WecOptTool/issues).
+For general discussion use WecOptTool's [discussion page](https://github.com/sandialabs/WecOptTool/discussions)
 
 
 ## Releasing (developers only)
-See [releasing instructions](https://github.com/SNL-WaterPower/WecOptTool/blob/main/.github/RELEASING.md).
+See [releasing instructions](https://github.com/sandialabs/WecOptTool/blob/main/.github/RELEASING.md).
