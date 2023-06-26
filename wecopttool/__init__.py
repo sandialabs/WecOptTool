@@ -33,6 +33,7 @@ from wecopttool.core import *
 from wecopttool import waves
 from wecopttool import hydrostatics
 from wecopttool import pto
+from wecopttool import utilities
 
 try:
   from wecopttool import geom
