@@ -2273,13 +2273,33 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     hydro_data
         Dataset with linear hydrodynamic coefficients produced by
         :py:func:`wecopttool.linear_hydrodynamics`.
+
+    
+    Examples
+    ----------
+    The :py:fun:`wecopttool.run_bem` function only returns the
+        boundary elemet results for the given :py:meth:`capytaine`
+        floating body :python:`fb` and the frequency vector :python:`meth`
+
+    >>> bem_data = wot.run_bem(fb, freq)
+
+    The user needs to define the inertial and hydrostatic stiffness properties
+    :python:`inertia_matrix` and :python:`hydrostatic_stiffness` to use 
+    :py:func:`wecopttool.linear_hydrodynamics`, followed by the check 
+    :py:func:`wecopttool.check_linear_damping`.
+
+    >>> hydro_data = wot.linear_hydrodynamics(bem_data, 
+                                              inertia_matrix,
+                                              hydrostatic_stiffness)
+    >>> hydro_data = wot.check_linear_damping(hydro_data)
+    >>> impedance = wot.hydrodynamic_impedance(hydro_data)
     """
 
-    Zi = (hydro_data['inertia_matrix'] \
+    intrinsic_impedance = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi
+    return intrinsic_impedance
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
