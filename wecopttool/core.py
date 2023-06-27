@@ -505,7 +505,7 @@ class WEC:
     def from_impedance(
         freqs: ArrayLike,
         impedance: ArrayLike,
-        exc_coeff: ArrayLike,
+        exc_coeff: Dataset,
         hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -1951,7 +1951,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike,
+def force_from_waves(force_coeff: Dataset,
                      ) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
@@ -2039,7 +2039,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     }
 
     for name, value in excitation_coefficients.items():
-        linear_force_functions[name] = force_from_waves(value)
+        linear_force_functions[name] = force_from_waves(value.to_dataset())
 
     return linear_force_functions
 
@@ -2246,8 +2246,6 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     omega_e = exc_coeff['omega'].values
     dir_w = waves['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
 
     wave_elev_fd = np.expand_dims(waves.values, -1)
 
@@ -2262,7 +2260,11 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    
+    exc_coeff = exc_coeff.to_array().squeeze('variable').transpose(
+        'omega', 'wave_direction', 'influenced_dof').values
+    
+    return np.sum(wave_elev_fd*exc_coeff[:,sub_ind,:], axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
