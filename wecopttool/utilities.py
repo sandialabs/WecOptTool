@@ -51,14 +51,15 @@ def natural_frequency(impedance: DataArray, freq: ArrayLike
         Index of natural frequencies.
     """
 
-    #TODO: Only calculate for the dofs that have natural restoring force,
-    #heave, roll, pitch, but issue is that dofs might not necessairly be called\
-    #  'Heave', 'Roll', 'Pitch', otherwise can print warning that results for other dofs are meaningless
+    restoring_dofs = ['Heave','Roll','Pitch']
+    indeces = [np.abs(impedance.loc[rdof,idof]).argmin(dim = 'omega') 
+                for rdof in impedance.radiating_dof 
+                for idof in impedance.influenced_dof 
+                if rdof == idof  #considering modes to be independent
+                and any([df in str(rdof.values) for df in restoring_dofs])]
+    f_n = [freq[indx.values] for indx in indeces]
 
-    ind = np.diag(np.abs(impedance).argmin(dim = 'omega'))
-    f_n = freq[ind]
-
-    return f_n, ind
+    return f_n, indeces
 
 
 def plot_hydrodynamic_coefficients(bem_data):
