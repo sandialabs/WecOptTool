@@ -620,7 +620,7 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[TStateFunction] = None,
-        ) -> tuple[Dataset, Dataset, OptimizeResult]:
+        ) -> OptimizeResult:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by 
         :py:func:`scipy.optimize.minimize`.
