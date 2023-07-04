@@ -9,7 +9,7 @@ from wecopttool import __version__, __version_info__
 
 # -- Path setup --------------------------------------------------------------
 project_root = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "../.."))
+    os.path.join(os.path.dirname(__file__), "../../.."))
 sys.path.insert(0, project_root)
 
 code_root = os.path.abspath(
