@@ -9,7 +9,8 @@ __all__ = [
     "intrinsic_impedance"
     "natural_frequency",
     "plot_bem_results",
-    "plot_bode_intrinsic_impedance"
+    "plot_bode_intrinsic_impedance",
+    "add_zerofreq_to_xr"
 ]
 
 
@@ -21,7 +22,7 @@ import numpy as np
 from xarray import DataArray
 from numpy.typing import ArrayLike
 # from autograd.numpy import ndarray
-from xarray import DataArray, Dataset
+from xarray import DataArray, concat
 import matplotlib.pyplot as plt
 
 # from wecopttool.core import linear_hydrodynamics
@@ -138,8 +139,8 @@ def plot_hydrodynamic_coefficients(bem_data):
     fig_ex.legend(ex_handles, ex_labels, loc=(0.08, 0), ncol=2, frameon=False)
 
 
-def plot_bode_intrinsic_impedance(impedance: DataArray):
-    """Find the natural frequency based on the lowest magnitude impedance.
+def plot_bode_impedance(impedance: DataArray, title: str):
+    """Plot Bode graph from wecoptool impedance data array.
 
     Parameters
     ----------
@@ -154,11 +155,11 @@ def plot_bode_intrinsic_impedance(impedance: DataArray):
     influenced_dofs = impedance.influenced_dof.values
     mag = 20.0 * np.log10(np.abs(impedance))
     phase = np.rad2deg(np.unwrap(np.angle(impedance)))
-    freq = impedance.omega.values   #TODO: freq units?!
+    freq = impedance.omega.values/2/np.pi   
     fig, axes = plt.subplots(2*len(radiating_dofs), len(influenced_dofs),
                                 tight_layout=True, sharex=True, 
                                 figsize=(3*len(radiating_dofs), 3*len(influenced_dofs)), squeeze=False)
-    fig.suptitle('Impedance Bode Plots \n Mag (dB), Phase (deg)', fontweight='bold')
+    fig.suptitle(title + ' Bode Plots \n Mag (dB), Phase (deg)', fontweight='bold')
 
     sp_idx = 0
     for i, rdof in enumerate(radiating_dofs):
@@ -182,3 +183,13 @@ def plot_bode_intrinsic_impedance(impedance: DataArray):
                 axes[i, j].set_title(f'{idof}', fontsize=10)
             else:
                 axes[i, j].set_title('')
+
+def add_zerofreq_to_xr(data):
+    """Add a zero-frequency component to an :python:`xarray.Dataset`.  
+      Frequency variable must be called :python:`omega`.    """    
+    if not np.isclose(data.coords['omega'][0].values, 0):
+        tmp = data.isel(omega=0).copy(deep=True) * 0   
+        tmp['omega'] = tmp['omega'] * 0                      
+        data = concat([tmp, data], dim='omega')
+    return data
+
