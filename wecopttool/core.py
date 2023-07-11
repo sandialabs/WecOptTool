@@ -1860,10 +1860,11 @@ def check_linear_damping(
         new_damping = iradiation.where(
             iradiation+ifriction>min_damping, other=min_damping)
         dof = hydro_data_new.influenced_dof.values[idof]
-        _log.warning(
-            f'Linear damping for DOF "{dof}" has negative or close to ' +
-            'zero terms. Shifting up damping terms to a minimum of ' +
-            f'{min_damping} N/(m/s)')
+        if (new_damping==min_damping).any():
+            _log.warning(
+                f'Linear damping for DOF "{dof}" has negative or close to ' +
+                'zero terms. Shifting up damping terms to a minimum of ' +
+                f'{min_damping} N/(m/s)')
         hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
