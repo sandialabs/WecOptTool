@@ -21,7 +21,7 @@ The tutorials each have two parts, which are similar in structure to the second 
 
 The fourth tutorial uses the `Pioneer` WEC model, which includes a unique pitch resonator PTO system. This tutorial illustrates how to use WecOptTool to implement and optimize control strategies for less common PTO archetypes.
 
-    - :doc:`_examples/tutorial_4_Pioneer`: One part examples with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
+    - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
 
 .. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
 .. _WaveBot: https://doi.org/10.3390/en10040472
