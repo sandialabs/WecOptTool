@@ -1863,7 +1863,7 @@ def check_linear_damping(
         _log.warning(
             f'Linear damping for DOF "{dof}" has negative or close to ' +
             'zero terms. Shifting up damping terms to a minimum of ' +
-            f'{min_damping} N/(m/s')
+            f'{min_damping} N/(m/s)')
         hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
