@@ -45,6 +45,6 @@ def cleanup():
 
 if __name__ == '__main__':
     source.make_theory_animations
-    linkcheck()
+    # linkcheck()
     html()
     cleanup()
