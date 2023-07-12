@@ -944,22 +944,24 @@ class TestCheckLinearDamping:
         """Hydrodynamic data structure for which the function
         :python:`check_linear_damping` has been called.
         """
+        # TODO: clean this up when fixing the dim order discrepancy
+        data['radiation_damping'] = data['radiation_damping'].transpose('omega', ...)
         return wot.check_linear_damping(data, tol, False)
 
-    def test_friction(self, data_new, tol):
+    def test_friction(self, data_new_uniform, tol):
         """Test that the modified friction diagonal has the expected
         value for a uniform shift.
         """
         assert np.allclose(np.diagonal(data_new_uniform.friction.values), tol)
 
-    def test_only_diagonal_friction(self, data, data_new):
+    def test_only_diagonal_friction(self, data, data_new_uniform):
         """Test that only the diagonal was changed for a uniform shift."""
         data_org = data.copy(deep=True)
         def nodiag(x):
             return x.friction.values - np.diag(np.diagonal(x.friction.values))
         assert np.allclose(nodiag(data_new_uniform), nodiag(data_org))
 
-    def test_only_friction(self, data, data_new):
+    def test_only_friction(self, data, data_new_uniform):
         """Test that only the friction is changed in the hydrodynamic
         data for a uniform shift.
         """
@@ -968,7 +970,7 @@ class TestCheckLinearDamping:
         data_org_nofric = data.copy(deep=True).drop_vars('friction')
         assert data_new_nofric.equals(data_org_nofric)
 
-    def test_damping(self, data_new, tol):
+    def test_damping(self, data_new_nonuniform, tol):
         """Test that the modified radiation damping diagonal has the expected
         value for a non-uniform shift.
         """
@@ -977,7 +979,7 @@ class TestCheckLinearDamping:
                         axis1=1, axis2=2),
                         tol)
 
-    def test_only_diagonal_damping(self, data, data_new):
+    def test_only_diagonal_damping(self, data_new_nonuniform):
         """Test that no off-diagonal radiation damping terms are nonzero
         for a non-uniform shift.
         """
@@ -987,7 +989,7 @@ class TestCheckLinearDamping:
             np.count_nonzero(data_new_nonuniform.radiation_damping.values)
         )
 
-    def test_only_rd(self, data, data_new):
+    def test_only_rd(self, data, data_new_nonuniform):
         """Test that only the radiation damping is changed in the hydrodynamic
         data for a non-uniform shift.
         """
@@ -996,7 +998,7 @@ class TestCheckLinearDamping:
         data_org_nord = data.copy(deep=True).drop_vars('radiation_damping')
         assert data_new_nord.equals(data_org_nord)
         
-        
+
 class TestCheckImpedance:
     """Test functions :python:`hydrodynamic_impedance` and 
     :python:`check_impedance`."""
