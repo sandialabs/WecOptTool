@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC.from_bem &mdash; WecOptTool 2.5.0 documentation</title>
+  <title>wecopttool.WEC.from_bem &mdash; WecOptTool 2.6.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -12,6 +12,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
@@ -35,7 +37,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.5
+                2.6
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -167,7 +169,7 @@
 <h1>wecopttool.WEC.from_bem<a class="headerlink" href="#wecopttool-wec-from-bem" title="Permalink to this heading"></a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="wecopttool.WEC.from_bem">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">from_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inertia_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.from_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.WEC.from_bem" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">from_bem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inertia_matrix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hydrostatic_stiffness</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_add</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniform_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dof_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.from_bem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.WEC.from_bem" title="Permalink to this definition"></a></dt>
 <dd><p>Create a WEC object from linear hydrodynamic coefficients
 obtained using the boundary element method (BEM) code Capytaine.</p>
 <p>The <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code> can be a dataset or the name of a
@@ -195,12 +197,12 @@ separately.</p>
 <li><p><strong>bem_data</strong> (<em>Dataset</em><em> | </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.11)"><em>Path</em></a>) – Linear hydrodynamic coefficients obtained using the boundary
 element method (BEM) code Capytaine, with sign convention
 corrected.</p></li>
-<li><p><strong>inertia_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>ndarray</em></a><em> | </em><em>None</em>) – Inertia matrix of size <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
+<li><p><strong>inertia_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>ndarray</em></a><em> | </em><em>None</em>) – Inertia matrix of size <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
 <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> if included in <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code>.</p></li>
-<li><p><strong>hydrostatic_stiffness</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>ndarray</em></a><em> | </em><em>None</em>) – Linear hydrostatic restoring coefficient of size
+<li><p><strong>hydrostatic_stiffness</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>ndarray</em></a><em> | </em><em>None</em>) – Linear hydrostatic restoring coefficient of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">nodf</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
 <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> if included in <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code>.</p></li>
-<li><p><strong>friction</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>ndarray</em></a><em> | </em><em>None</em>) – Linear friction, in addition to radiation damping, of size
+<li><p><strong>friction</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>ndarray</em></a><em> | </em><em>None</em>) – Linear friction, in addition to radiation damping, of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">nodf</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
 <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> if included in <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code> or to set
 to zero.</p></li>
@@ -210,10 +212,14 @@ to zero.</p></li>
 forces in the time-domain of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>constraints</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.11)"><em>Mapping</em></a><em>] </em><em>| </em><em>None</em>) – List of constraints, see documentation for
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.11.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
 options of constraints dictionaries.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code>: empty list <code class="code highlight python docutils literal highlight-python"><span class="p">[]</span></code>.</p></li>
 <li><p><strong>min_damping</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> | </em><em>None</em>) – Minimum damping level to ensure a stable system.
+See <a class="reference internal" href="wecopttool.check_linear_damping.html#wecopttool.check_linear_damping" title="wecopttool.check_linear_damping"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.check_linear_damping()</span></code></a> for more details.</p></li>
+<li><p><strong>uniform_shift</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em> | </em><em>None</em>) – Boolean determining whether damping corrections shifts the damping
+values uniformly for all frequencies or only for frequencies below
+<code class="code highlight python docutils literal highlight-python"><span class="n">min_damping</span></code>.
 See <a class="reference internal" href="wecopttool.check_linear_damping.html#wecopttool.check_linear_damping" title="wecopttool.check_linear_damping"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.check_linear_damping()</span></code></a> for more details.</p></li>
 <li><p><strong>dof_names</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>] </em><em>| </em><em>None</em>) – Names of the different degrees of freedom (e.g.
 <code class="code highlight python docutils literal highlight-python"><span class="s1">&#39;Heave&#39;</span></code>).

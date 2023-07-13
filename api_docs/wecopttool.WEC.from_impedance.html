@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC.from_impedance &mdash; WecOptTool 2.5.0 documentation</title>
+  <title>wecopttool.WEC.from_impedance &mdash; WecOptTool 2.6.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -12,6 +12,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
@@ -37,7 +39,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.5
+                2.6
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -188,7 +190,7 @@ Note that the impedance is not defined at <span class="math notranslate nohighli
 <li><p><strong>impedance</strong> (<em>ArrayLike</em>) – Complex impedance of size <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>exc_coeff</strong> (<em>ArrayLike</em>) – Complex excitation transfer function of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">)</span></code>.</p></li>
-<li><p><strong>hydrostatic_stiffness</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>ndarray</em></a>) – Linear hydrostatic restoring coefficient of size
+<li><p><strong>hydrostatic_stiffness</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>ndarray</em></a>) – Linear hydrostatic restoring coefficient of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>f_add</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>StateFunction</em><em>] </em><em>| </em><em>None</em>) – Dictionary with entries <code class="code highlight python docutils literal highlight-python"><span class="p">{</span><span class="s1">&#39;force_name&#39;</span><span class="p">:</span> <span class="n">fun</span><span class="p">}</span></code>, where
 <code class="code highlight python docutils literal highlight-python"><span class="n">fun</span></code> has a  signature
@@ -196,7 +198,7 @@ Note that the impedance is not defined at <span class="math notranslate nohighli
 forces in the time-domain of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>constraints</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.11)"><em>Mapping</em></a><em>] </em><em>| </em><em>None</em>) – List of constraints, see documentation for
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.10.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.11.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
 options of constraints dictionaries.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code>: empty list <code class="code highlight python docutils literal highlight-python"><span class="p">[]</span></code>.</p></li>
 <li><p><strong>min_damping</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> | </em><em>None</em>) – Minimum damping level to ensure a stable system.

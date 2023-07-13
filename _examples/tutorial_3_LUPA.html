@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.5.0 documentation</title>
+  <title>Tutorial 3 - LUPA &mdash; WecOptTool 2.6.0 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -13,6 +13,8 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
@@ -22,7 +24,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="References" href="../references.html" />
+    <link rel="next" title="Tutorial 4 - Pioneer" href="tutorial_4_Pioneer.html" />
     <link rel="prev" title="Tutorial 2 - AquaHarmonics" href="tutorial_2_AquaHarmonics.html" /> 
 </head>
 
@@ -38,7 +40,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.5
+                2.6
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -83,6 +85,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_4_Pioneer.html">Tutorial 4 - Pioneer</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
@@ -130,8 +133,8 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 <p>A secondary goal is for this notebook to serve as a tool for those who are planning to run experiments with the LUPA device, to inform their experiment design.</p>
 <p>As with previous tutorials, this tutorial consists of two parts, with the second section building upon the first.</p>
 <ol class="arabic simple">
-<li><p><a class="reference external" href="#1.-Optimal-control-of-a-two-body-WEC">Optimal control of a two-body WEC</a></p></li>
-<li><p><a class="reference external" href="#2.-Control-co-design-of-the-PTO-sprocket-sizing-for-maximum-electrical-power">Control co-design of the PTO sprocket sizing for maximum electrical power</a></p></li>
+<li><p><a class="reference internal" href="#1.-Optimal-control-of-a-two-body-WEC"><span class="std std-ref">Optimal control of a two-body WEC</span></a></p></li>
+<li><p><a class="reference internal" href="#2.-Control-co-design-of-the-PTO-sprocket-sizing-for-maximum-electrical-power"><span class="std std-ref">Control co-design of the PTO sprocket sizing for maximum electrical power</span></a></p></li>
 </ol>
 <p><p><img alt="Digital rendering of the LUPA" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793669495_72ba57da99_z.jpg" style="width: 307px;" /> <img alt="Picture of the LUPA floating in the flume in calm water. Both bodies and mooring are visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52792718812_b750791167_k.jpg" style="width: 500px;" /> <img alt="Picture of the LUPA in the dry flume. Both bodies and mooring are visible. A ladder and person next to it gives context of the scale." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276446_9b35889ccd_k.jpg" style="width: 500px;" /></p>
 </p><div class="nbinput nblast docutils container">
@@ -439,7 +442,7 @@ BEM, which takes about 1 hour, simply move or delete the existing <code class="d
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;spar__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
+WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;spar__Heave&#39;, &#39;float__Heave&#39;} are detected and respective inertia coefficients are assigned as NaN.
 </pre></div></div>
 </div>
 <p>We now visualize the BEM results. An irregular frequency at about 5.25 rad/s is visible in many of the plots, but this should not substantially impact our model as the wave energy at this frequency is fairly low.</p>
@@ -515,7 +518,7 @@ WARNING:capytaine.bodies.bodies:Non-rigid dofs: {&#39;float__Heave&#39;, &#39;sp
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f8321873520&gt;
+&lt;matplotlib.legend.Legend at 0x7fd0bf2cc4c0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1073,7 +1076,7 @@ is common here, the symmetry of the taut lines in this current system allows us 
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f83216dab60&gt;
+&lt;matplotlib.legend.Legend at 0x7fd0bf382e30&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1121,11 +1124,11 @@ is common here, the symmetry of the taut lines in this current system allows us 
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011851234925473209
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
-Optimal average electrical power: -1.1851234925473209 W
+            Current function value: -0.011851345734120588
+            Iterations: 56
+            Function evaluations: 57
+            Gradient evaluations: 56
+Optimal average electrical power: -1.1851345734120589 W
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1254,9 +1257,9 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 <span class="n">ax_res1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="n">ax_res1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mf">1.5</span><span class="p">)</span>
 
 <span class="c1">## Power</span>
-<span class="p">(</span><span class="n">pto_tdom</span><span class="p">[</span><span class="s1">&#39;mech_power&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+<span class="p">(</span><span class="n">pto_tdom</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;mech&#39;</span><span class="p">,:,:])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
     <span class="n">ax</span><span class="o">=</span><span class="n">ax_res1</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C8&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mech. power&#39;</span><span class="p">)</span>
-<span class="p">(</span><span class="n">pto_tdom</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+<span class="p">(</span><span class="n">pto_tdom</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;elec&#39;</span><span class="p">,:,:])</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
     <span class="n">ax</span><span class="o">=</span><span class="n">ax_res1</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C5&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Elec. power&quot;</span><span class="p">)</span>
 <span class="n">ax_res1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower center&#39;</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">ax_res1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Power generation&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
@@ -1272,7 +1275,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-16.677713194518507, 2.6825210084578677)
+(-19.728963329103603, 2.542377852822784)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1541,7 +1544,7 @@ WEC response changes and which sprocket generates the most power.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="tutorial_2_AquaHarmonics.html" class="btn btn-neutral float-left" title="Tutorial 2 - AquaHarmonics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial_4_Pioneer.html" class="btn btn-neutral float-right" title="Tutorial 4 - Pioneer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
