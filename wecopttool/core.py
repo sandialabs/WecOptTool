@@ -290,6 +290,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        uniform_shift: Optional[bool] = True,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -350,6 +351,11 @@ class WEC:
         min_damping
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_linear_damping` for more details.
+        uniform_shift
+            Boolean determining whether damping corrections shifts the damping
+            values uniformly for all frequencies or only for frequencies below
+            :python:`min_damping`.
+            See :py:func:`wecopttool.check_linear_damping` for more details.
         dof_names
             Names of the different degrees of freedom (e.g.
             :python:`'Heave'`).
@@ -389,7 +395,8 @@ class WEC:
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
-            hydro_data = check_linear_damping(hydro_data, min_damping)
+            hydro_data = check_linear_damping(
+                hydro_data, min_damping, uniform_shift)
 
         # forces in the dynamics equations
         linear_force_functions = standard_forces(hydro_data)
@@ -1834,12 +1841,13 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
+    uniform_shift: Optional[bool] = True,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
-    Shifts the :python:`friction` up if necessary.
-    Returns the (possibly) updated Dataset with
+    Shifts the :python:`friction` or :python:`radiation_damping` up
+    if necessary. Returns the (possibly) updated Dataset with
     :python:`damping` :math:`>=` :python:`min_damping`.
 
     Parameters
@@ -1848,6 +1856,14 @@ def check_linear_damping(
         Linear hydrodynamic data.
     min_damping
         Minimum threshold for damping. Default is 1e-6.
+    uniform_shift
+        Boolean that determines whether the damping correction for each
+        degree of freedom is frequency dependent or not. If :python:`True`,
+        the damping correction is applied to :python:`friction` and shifts the
+        damping for all frequencies. If :python:`False`, the damping correction
+        is applied to :python:`radiation_damping` and only shifts the 
+        damping for frequencies with negative damping values. Default is
+        :python:`True`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1857,15 +1873,26 @@ def check_linear_damping(
     for idof in range(ndof):
         iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
-        dmin = (iradiation+ifriction).min()
-        if dmin <= 0.0 + min_damping:
+        if uniform_shift:
+            dmin = (iradiation+ifriction).min()
+            if dmin <= 0.0 + min_damping:
+                dof = hydro_data_new.influenced_dof.values[idof]
+                delta = min_damping-dmin
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close ' +
+                    'to zero terms. Shifting up via linear friction of ' +
+                    f'{delta.values} N/(m/s).')
+                hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+        else:
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            delta = min_damping-dmin
-            _log.warning(
-                f'Linear damping for DOF "{dof}" has negative or close to ' +
-                'zero terms. Shifting up via linear friction of ' +
-                f'{delta.values} N/(m/s).')
-            hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+            if (new_damping==min_damping).any():
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close to ' +
+                    'zero terms. Shifting up damping terms to a minimum of ' +
+                    f'{min_damping} N/(m/s)')
+            hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
 

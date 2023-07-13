@@ -19,6 +19,10 @@ The tutorials each have two parts, which are similar in structure to the second 
     - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study.
     - :doc:`_examples/tutorial_3_LUPA`: Two part example with multiple bodies, multiple degrees of freedom, irregular waves, a mooring system, and realistic constraints.
 
+The fourth tutorial uses the `Pioneer` WEC model, which includes a unique pitch resonator PTO system. This tutorial illustrates how to use WecOptTool to implement and optimize control strategies for less common PTO archetypes.
+
+    - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
+
 .. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
 .. _WaveBot: https://doi.org/10.3390/en10040472
 .. _AquaHarmonics: https://aquaharmonics.com/technology/
@@ -31,3 +35,4 @@ The tutorials each have two parts, which are similar in structure to the second 
     _examples/tutorial_1_WaveBot
     _examples/tutorial_2_AquaHarmonics
     _examples/tutorial_3_LUPA
+    _examples/tutorial_4_Pioneer
