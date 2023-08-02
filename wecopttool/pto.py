@@ -60,7 +60,7 @@ class PTO:
         loss: Optional[TLOSS] = None,
         names: Optional[list[str]] = None,
     ) -> None:
-        """Create a PTO object.
+        """Create a PTO object
 
         The :py:class:`wecopttool.pto.PTO` class describes the
         kinematics, control logic, impedance and/or non-linear power
