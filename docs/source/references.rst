@@ -4,4 +4,5 @@ References
     :style: unsrt
 
     Falnes2002
-    Michelen2023
+    Grasberger:2023aa
+    Strofer:2023vw

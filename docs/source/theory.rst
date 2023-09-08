@@ -3,8 +3,7 @@ Theory & Practice
 
 .. note::
     This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
-    For a more detailed explanation, please see :cite:`Bacelli2014Optimal,Bacelli2014Numerical,Coe2020Initial`.
-    A journal paper will be available soon.
+    For a more detailed explanation, please see :cite:`Michelen2023,Bacelli2014Optimal,Bacelli2014Numerical`.
 
 
 Basic concept
