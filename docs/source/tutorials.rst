@@ -8,18 +8,15 @@ The tutorial has three sequential parts of increased complexity.
 The first and second parts solve only the inner optimization loop for optimal mechanical and electrical power, respectively.
 The third part builds on the second to solve a design optimization problem, using both the inner and outer optimization loops, and is more reflective of the optimization problems WecOptTool is designed to solve.
 
-
     - :doc:`_examples/tutorial_1_WaveBot`: Three part example of using the inner and outer optimization loops for a simple control co-design study.
 
-
-The second and third tutorials uses the `AquaHarmonics`_ and `LUPA`_ WECs respectively, and provides more robust optimization examples illustrating more complex cases of the WEC body, power take-off, applied forces, and constraints.
-The tutorials each have two parts, which are similar in structure to the second and third parts of Tutorial 1.
-
+The second and third tutorials use the `AquaHarmonics`_ and `LUPA`_ WECs, respectively, and provide more robust optimization examples illustrating more complex cases of the WEC body, power take-off, applied forces, and constraints.
+These tutorials each have two parts, which are similar in structure to the second and third parts of Tutorial 1.
 
     - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study.
     - :doc:`_examples/tutorial_3_LUPA`: Two part example with multiple bodies, multiple degrees of freedom, irregular waves, a mooring system, and realistic constraints.
 
-The fourth tutorial uses the `Pioneer` WEC model, which includes a unique pitch resonator PTO system. This tutorial illustrates how to use WecOptTool to implement and optimize control strategies for less common PTO archetypes.
+The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch resonator PTO system. This tutorial illustrates how to use WecOptTool to implement and optimize control strategies for less common PTO archetypes.
 
     - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
 
