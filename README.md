@@ -11,9 +11,16 @@ Refer to [WecOptTool documentation](https://sandialabs.github.io/WecOptTool/) fo
 
 ## Getting started
 WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
-It is strongly recommended you create a dedicated virtual environment (e.g., using `conda`, `venv`, etc.) before installing `wecopttool`.
+It is strongly recommended you create a dedicated virtual environment (e.g., using [`conda`](https://www.anaconda.com/), `venv`, etc.) before installing `wecopttool`.
 
-**Option 1** - using `Conda`:
+```bash
+conda create -n wot pip
+conda activate wot
+```
+
+From your dedicated environment, you can install WecOptTool via either `conda` or `pip`
+
+**Option 1** - using `conda`:
 
 ```bash
 conda install -c conda-forge wecopttool
