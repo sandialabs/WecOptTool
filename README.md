@@ -20,7 +20,7 @@ conda activate wot
 
 From your dedicated environment, you can install WecOptTool via either `conda` or `pip`
 
-**Option 1** - using `conda`:
+**Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):
 
 ```bash
 conda install -c conda-forge wecopttool
