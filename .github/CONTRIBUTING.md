@@ -76,6 +76,21 @@ The documentation uses the Jupyter notebook tutorials in the `examples` director
 When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
 We recommend installing pandoc using its Anaconda distribution: `conda install -c conda-forge pandoc`.
 
+**NOTE:** it may be expedient at times to:
+
+ 1. **Avoid running the tutorial notebooks:** Add [`nbsphinx_execute = 'never'`](https://nbsphinx.readthedocs.io/en/0.9.3/configuration.html#nbsphinx_execute) to `docs/source/conf.py`
+ 2. **Disable the link check operation:** Comment out the `linkcheck` call in `docs/build_docs.py`
+
+```python
+if __name__ == '__main__':
+    source.make_theory_animations
+    # linkcheck()
+    html()
+    cleanup()
+```
+
+Make sure not to commit these changes!
+
 ### Editing the tutorials
 The tutorials are used as part of the Documentation.
 Before pushing any changes make sure that the saved version of the notebooks are clear (no cells run and no results).
