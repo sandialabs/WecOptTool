@@ -62,6 +62,7 @@ linkcheck_ignore = [
     'https://doi.org/10.2172/1330189',
     'https://sandialabs.github.io/WecOptTool/*',
     'https://doi.org/10.1080/17445302.2015.1089052',
+    'https://digitalops.sandia.gov/*',
 ]
 
 linkcheck_request_headers = {
