@@ -1309,6 +1309,7 @@ def frequency(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
+    precision: Optional[int] = 10,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
@@ -1329,7 +1330,10 @@ def frequency(
         Number of frequencies.
     zero_freq
         Whether to include the zero-frequency.
+    precision
+        Controls rounding of fundamental frequency.
     """
+    f1 = np.floor(f1*10**precision) / 10**precision
     freq = np.arange(0, nfreq+1)*f1
     freq = freq[1:] if not zero_freq else freq
     return freq
