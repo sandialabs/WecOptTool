@@ -923,6 +923,9 @@ def controller_pid(
     proportional: Optional[bool] = True,
     integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
+    saturation: Optional[FloatOrArray] = None,
+    saturation_positive: Optional[FloatOrArray] = None,
+    saturation_negative: Optional[FloatOrArray] = None,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
@@ -950,9 +953,17 @@ def controller_pid(
         True to include integral gain
     derivative
         True to include derivative gain
+    saturation
+        Maximum and minimum (-1*saturation) control value
+    saturation_positive
+        Maximum control value, if different magnitude than minimum value
+    saturation_negative
+        Minimum control value, if different magnitude than maximum value
     """
     ndof = pto.ndof
     force_td = np.zeros([wec.nt*nsubsteps, ndof])
+
+    # PID force
     idx = 0
 
     def update_force_td(response):
@@ -970,6 +981,38 @@ def controller_pid(
     if derivative:
         acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
         update_force_td(acc_td)
+
+    # Saturation
+    bsat = saturation is not None
+    bsat_p = saturation_positive is not None
+    bsat_n = saturation_negative is not None
+    if bsat:
+        if bsat_p or bsat_n:
+            raise ValueError("Cannot use both `saturation` and " +
+                             "`saturation_positive` or `saturation_negative`.")
+        saturation = np.array(saturation)
+        assert len(saturation) == ndof
+        f_min, f_max = -1*saturation, saturation
+
+    if bsat_p:
+        saturation_positive = np.array(saturation_positive)
+        assert len(saturation_positive) == ndof
+        f_max = saturation_positive
+    else:
+        f_max = np.ones(ndof) * np.infty
+
+    if bsat_n:
+        saturation_negative = np.array(saturation_negative)
+        assert len(saturation_negative) == ndof
+        f_min = saturation_negative
+    else:
+        f_min = np.ones(ndof) * -1*np.infty
+
+
+    if bsat or bsat_p or bsat_n:
+
+        force_td = np.clip(force_td, f_min, f_max)
+
     return force_td
 
 
