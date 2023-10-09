@@ -924,6 +924,7 @@ def controller_pid(
     integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
     saturation: Optional[FloatOrArray] = None,
+    diagonal_only: bool = False,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
@@ -953,6 +954,9 @@ def controller_pid(
     saturation
         Maximum and minimum control value.
         Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
     """
     ndof = pto.ndof
     force_td_tmp = np.zeros([wec.nt*nsubsteps, ndof])
@@ -962,9 +966,15 @@ def controller_pid(
 
     def update_force_td(response):
         nonlocal idx, force_td_tmp
-        gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-        force_td_tmp = force_td_tmp + gain*response
+        if diagonal_only:
+            gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
+            force_td_tmp = force_td_tmp + gain*response
+        else:
+            gain = np.reshape(x_opt[idx*ndof*ndof:(idx+1)*ndof*ndof], [ndof, ndof])
+            force_td_tmp = force_td_tmp + np.dot(response, gain.T)
+
         idx = idx + 1
+        return
 
     if proportional:
         vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
@@ -1008,6 +1018,7 @@ def controller_pi(
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
     saturation: Optional[FloatOrArray] = None,
+    diagonal_only: bool = False,
 ) -> ndarray:
     """Proportional-integral (PI) controller that returns a time
     history of PTO forces.
@@ -1031,9 +1042,12 @@ def controller_pi(
     saturation
         Maximum and minimum control value.
         Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
     """
     force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                              True, True, False, saturation)
+                              True, True, False, saturation, diagonal_only)
     return force_td
 
 
@@ -1045,6 +1059,7 @@ def controller_p(
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
     saturation: Optional[FloatOrArray] = None,
+    diagonal_only: bool = False,
 ) -> ndarray:
     """Proportional (P) controller that returns a time history of
     PTO forces.
@@ -1068,7 +1083,42 @@ def controller_p(
     saturation
         Maximum and minimum control value. Can be symmetric ([ndof]) or
         asymmetric ([ndof, 2]).
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
     """
     force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                               True, False, False, saturation)
+                               True, False, False, saturation, diagonal_only)
     return force_td
+
+
+# utilities
+def nstate_unstructured(nfreq:int, ndof:int) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nfreq
+        Number of frequencies.
+    ndof
+        Number of degrees of freedom.
+    """
+    return 2*nfreq*ndof
+
+
+def nstate_pid(nterm:int, ndof:int, diagonal_only:bool=False) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nterm
+        Number of terms (e.g. 2 for PI, 1 for P, 3 for PID).
+    ndof
+        Number of degrees of freedom.
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
+    """
+    return nterm*ndof if only_diagonal else nterm*ndof*ndof
