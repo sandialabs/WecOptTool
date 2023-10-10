@@ -282,4 +282,3 @@ class TestControllers:
         x_opt = [pid_p, pid_i, pid_d]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
-        return calculated
