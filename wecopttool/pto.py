@@ -925,6 +925,7 @@ def controller_pid(
     derivative: Optional[bool] = True,
     saturation: Optional[FloatOrArray] = None,
     diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
@@ -957,6 +958,8 @@ def controller_pid(
     diagonal_only
         Wether to consider off-diagonal feedback
         (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
     ndof = pto.ndof
     force_td_tmp = np.zeros([wec.nt*nsubsteps, ndof])
@@ -967,11 +970,20 @@ def controller_pid(
     def update_force_td(response):
         nonlocal idx, force_td_tmp
         if diagonal_only:
-            gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-            force_td_tmp = force_td_tmp + gain*response
+            gain = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+        elif symmetric:
+            gain = np.zeros([ndof, ndof])
+            n = int(ndof*((ndof+1)/2))
+            v = x_opt[idx*n:(idx+1)*n]
+            iend = 0
+            for i in range(ndof):
+                istart, iend = iend, (iend + ndof-i)
+                gain += np.diag(v[istart:iend], i)
         else:
-            gain = np.reshape(x_opt[idx*ndof*ndof:(idx+1)*ndof*ndof], [ndof, ndof])
-            force_td_tmp = force_td_tmp + np.dot(response, gain.T)
+            n = ndof * ndof
+            gain = np.reshape(x_opt[idx*n:(idx+1)*n], [ndof, ndof])
+
+        force_td_tmp = force_td_tmp + np.dot(response, gain.T)
 
         idx = idx + 1
         return
@@ -1019,6 +1031,7 @@ def controller_pi(
     nsubsteps: Optional[int] = 1,
     saturation: Optional[FloatOrArray] = None,
     diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional-integral (PI) controller that returns a time
     history of PTO forces.
@@ -1045,9 +1058,13 @@ def controller_pi(
     diagonal_only
         Wether to consider off-diagonal feedback
         (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                              True, True, False, saturation, diagonal_only)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, True, False, saturation, diagonal_only, symmetric,
+    )
     return force_td
 
 
@@ -1060,6 +1077,7 @@ def controller_p(
     nsubsteps: Optional[int] = 1,
     saturation: Optional[FloatOrArray] = None,
     diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional (P) controller that returns a time history of
     PTO forces.
@@ -1086,14 +1104,18 @@ def controller_p(
     diagonal_only
         Wether to consider off-diagonal feedback
         (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                               True, False, False, saturation, diagonal_only)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, False, False, saturation, diagonal_only, symmetric,
+    )
     return force_td
 
 
 # utilities
-def nstate_unstructured(nfreq:int, ndof:int) -> int:
+def nstate_unstructured(nfreq: int, ndof: int) -> int:
     """
     Number of states needed to represent an unstructured controller.
 
@@ -1107,7 +1129,12 @@ def nstate_unstructured(nfreq:int, ndof:int) -> int:
     return 2*nfreq*ndof
 
 
-def nstate_pid(nterm:int, ndof:int, diagonal_only:bool=False) -> int:
+def nstate_pid(
+        nterm: int,
+        ndof: int,
+        diagonal_only: bool=False,
+        symmetric: bool=True
+) -> int:
     """
     Number of states needed to represent an unstructured controller.
 
@@ -1120,5 +1147,8 @@ def nstate_pid(nterm:int, ndof:int, diagonal_only:bool=False) -> int:
     diagonal_only
         Wether to consider off-diagonal feedback
         (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
-    return nterm*ndof if diagonal_only else nterm*ndof*ndof
+    nmult = 1 if diagonal_only else (((ndof+1)/2) if symmetric else ndof)
+    return int(nterm*ndof*nmult)
