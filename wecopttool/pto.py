@@ -1121,4 +1121,4 @@ def nstate_pid(nterm:int, ndof:int, diagonal_only:bool=False) -> int:
         Wether to consider off-diagonal feedback
         (e.g. heave force as a gain on pitch motions).
     """
-    return nterm*ndof if only_diagonal else nterm*ndof*ndof
+    return nterm*ndof if diagonal_only else nterm*ndof*ndof
