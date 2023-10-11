@@ -32,8 +32,6 @@ conda install -c conda-forge wecopttool
 pip install wecopttool
 ```
 
-This approach is not recommended for Windows users since compiling `capytaine` on Windows requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
-
 **Geometry module and tutorials**
 
 To use our geometry examples, including for running the tutorials, you will need to install some additional dependencies. 
