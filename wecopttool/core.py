@@ -629,7 +629,7 @@ class WEC:
         callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
-        method and returns the raw results dictionary produced by 
+        method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
 
         Parameters
@@ -692,7 +692,7 @@ class WEC:
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
             See :py:mod:`scipy.optimize` for exit mode details.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -801,10 +801,11 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
+                max_x_opt = np.nan if x_opt.size==0 else np.max(np.abs(x_opt))
                 _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{np.max(np.abs(x_opt)):.2e}, "
-                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
+                          + f"{max_x_opt:.2e}, "
+                          + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
@@ -867,7 +868,7 @@ class WEC:
             Dynamic responses in the frequency-domain.
         results_td
             Dynamic responses in the time-domain.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -1861,7 +1862,7 @@ def check_linear_damping(
         degree of freedom is frequency dependent or not. If :python:`True`,
         the damping correction is applied to :python:`friction` and shifts the
         damping for all frequencies. If :python:`False`, the damping correction
-        is applied to :python:`radiation_damping` and only shifts the 
+        is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
         :python:`True`.
     """
