@@ -801,7 +801,7 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
-                max_x_opt = np.nan if x_opt.size==0 else np.max(np.abs(x_opt))
+                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
                 _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
                           + f"{max_x_opt:.2e}, "
