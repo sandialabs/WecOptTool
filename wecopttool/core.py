@@ -601,7 +601,21 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[0])
         return wec
 
-    def _resid_fun(self, x_wec, x_opt, waves):
+    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+        ) -> float:
+        """
+        Return the residual of the dynamic equation (r = m⋅a-Σf).
+
+        Parameters
+        ----------
+        x_wec
+            WEC state vector.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        """
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
@@ -629,7 +643,7 @@ class WEC:
         callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
-        method and returns the raw results dictionary produced by 
+        method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
 
         Parameters
@@ -692,7 +706,7 @@ class WEC:
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
             See :py:mod:`scipy.optimize` for exit mode details.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -767,7 +781,7 @@ class WEC:
         def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            return self._resid_fun(x_wec, x_opt, waves)
+            return self.residual(x_wec, x_opt, waves)
 
         eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
@@ -801,13 +815,14 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
-                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
                           + f"{np.max(np.abs(x_opt)):.2e}, "
                           + f"{np.max(obj_fun_scaled(x)):.2e}]")
         else:
             def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
+                x_s = x/scale
+                x_wec, x_opt = self.decompose_state(x_s)
                 return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
@@ -867,7 +882,7 @@ class WEC:
             Dynamic responses in the frequency-domain.
         results_td
             Dynamic responses in the time-domain.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -1861,7 +1876,7 @@ def check_linear_damping(
         degree of freedom is frequency dependent or not. If :python:`True`,
         the damping correction is applied to :python:`friction` and shifts the
         damping for all frequencies. If :python:`False`, the damping correction
-        is applied to :python:`radiation_damping` and only shifts the 
+        is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
         :python:`True`.
     """
