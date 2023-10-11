@@ -2376,8 +2376,7 @@ def subset_close(
         :py:func:`numpy.isclose`.
     equal_nan
         Whether to compare NaNs as equal. Passed to
-        :py:func:`numpy.isclose` and
-        :py:func:`numpy.array_equal`.
+        :py:func:`numpy.isclose`.
 
     Returns
     -------
