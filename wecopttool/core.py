@@ -601,7 +601,21 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[0])
         return wec
 
-    def _resid_fun(self, x_wec, x_opt, waves):
+    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+        ) -> float:
+        """
+        Return the residual of the dynamic equation (r = m⋅a-Σf).
+
+        Parameters
+        ----------
+        x_wec
+            WEC state vector.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        """
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
@@ -767,7 +781,7 @@ class WEC:
         def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            return self._resid_fun(x_wec, x_opt, waves)
+            return self.residual(x_wec, x_opt, waves)
 
         eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
@@ -802,13 +816,14 @@ class WEC:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
                 max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
-                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
                           + f"{max_x_opt:.2e}, "
                           + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
+                x_s = x/scale
+                x_wec, x_opt = self.decompose_state(x_s)
                 return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
