@@ -1,7 +1,7 @@
 # Installation for users
 
 ## Software requirements
-WecOptTool is support on Windows, MacOS, and Linux. It requires Python 3.8 or higher. [Xcode](https://developer.apple.com/xcode/) may also be required on Mac.
+WecOptTool is supported on Windows, MacOS, and Linux. It requires Python 3.8 or higher. [Xcode](https://developer.apple.com/xcode/) may also be required on Mac.
 
 
 ## Creating a virtual environment
