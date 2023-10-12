@@ -10,7 +10,7 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 Refer to [WecOptTool documentation](https://sandialabs.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
-WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
+WecOptTool requires Python >= 3.8. Python 3.10 & 3.11 are supported.
 It is strongly recommended you create a dedicated virtual environment (e.g., using `conda`, `venv`, etc.) before installing `wecopttool`.
 
 **Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):

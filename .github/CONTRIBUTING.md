@@ -10,7 +10,7 @@ Community contributions are welcomed! 🎊
 
 Using `conda` this looks like:
 ```bash
-conda create -n wecopttool python=3.10
+conda create -n wecopttool python=3.11
 conda activate wecopttool
 conda install -c conda-forge capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
@@ -22,7 +22,7 @@ And using `pip`:
 ```bash
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
-python3.10 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e .[dev]
 ```

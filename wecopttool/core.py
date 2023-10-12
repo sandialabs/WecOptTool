@@ -815,10 +815,11 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
+                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
                 _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{np.max(np.abs(x_opt)):.2e}, "
-                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
+                          + f"{max_x_opt:.2e}, "
+                          + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
                 x_s = x/scale
@@ -2416,18 +2417,16 @@ def subset_close(
         raise ValueError("Elements in set_b not unique")
 
     ind = []
-    tmp_result = [False for _ in range(len(set_a))]
-    for subset_element in set_a:
-        for set_element in set_b:
-            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
-                tmp_set_ind = np.where(
-                    np.isclose(set_element, set_b , rtol, atol, equal_nan))
-                tmp_subset_ind = np.where(
-                    np.isclose(subset_element, set_a , rtol, atol,
-                               equal_nan))
-                ind.append( int(tmp_set_ind[0]) )
-                tmp_result[ int(tmp_subset_ind[0]) ] = True
-    subset = all(tmp_result)
+    for el in set_a:
+        a_in_b = np.isclose(set_b, el,
+                            rtol=rtol, atol=atol, equal_nan=equal_nan)
+        if np.sum(a_in_b) == 1:
+            ind.append(np.flatnonzero(a_in_b)[0])
+        if np.sum(a_in_b) > 1:
+            _log.warning('Multiple matching elements in subset, ' +
+                         'selecting closest match.')
+            ind.append(np.argmin(np.abs(a_in_b - el)))
+    subset = len(set_a) == len(ind)
     ind = ind if subset else []
     return subset, ind
 
