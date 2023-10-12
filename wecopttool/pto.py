@@ -979,6 +979,8 @@ def controller_pid(
             for i in range(ndof):
                 istart, iend = iend, (iend + ndof-i)
                 gain += np.diag(v[istart:iend], i)
+                if i>0:
+                    gain += np.diag(v[istart:iend], -i)
         else:
             n = ndof * ndof
             gain = np.reshape(x_opt[idx*n:(idx+1)*n], [ndof, ndof])
