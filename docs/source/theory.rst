@@ -3,14 +3,13 @@ Theory & Practice
 
 .. note::
     This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
-    For a more detailed explanation, please see :cite:`Bacelli2014Optimal,Bacelli2014Numerical,Coe2020Initial`.
-    A journal paper will be available soon.
+    For a more detailed explanation, please see :cite:`Michelen2023,Bacelli2014Optimal,Bacelli2014Numerical`.
 
 
 Basic concept
 -------------
 
-WecOptTool uses a pseudo-spectral method :cite:`Elnagar1995pseudospectral` to perform two tasks synchronously:
+WecOptTool uses a pseudo-spectral method :cite:`Elnagar1995pseudospectral` to perform two tasks simultaneously:
 
     1. Optimize the solution for the desired objective function (e.g. power generation)
     2. Simulate the wave energy converter (WEC) dynamics
@@ -83,7 +82,7 @@ When creating this frequency array, consider:
 
     * Exciting frequencies of the wave and, if you expect a nonlinear response, superharmonics of the exciting frequencies
     * Power absorption occurs at two times the exciting frequencies (only important for visualization)
-    * The fundamental frequency is also the frequency step (:math:`f_1=\Delta f`); set this sufficiently small to resolve the wave spectra and frequency response functios of interest
+    * The fundamental frequency is also the frequency step (:math:`f_1=\Delta f`); set this sufficiently small to resolve the wave spectra and frequency response functions of interest
 
 Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -127,7 +126,7 @@ Here, the kinematics matrix, :math:`K`, is defined as the linear transformation 
     p = K x
     :label: kinematics
 
-The relationship :math:`p(x)` is typically referred to as the *backward kinematics*, in the field of robotics. If the WEC were considered to be a robot it's hydrodynamic body would be equivalent to an endeffector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
+The relationship :math:`p(x)` is typically referred to as the *backward kinematics*, in the field of robotics. If the WEC were considered to be a robot it's hydrodynamic body would be equivalent to an end effector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
 The matrix :math:`K` has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
 Equation :eq:`kinematics` represents a linearization of :math:`p(x)` about the mean :math:`x=0` position, with the matrix :math:`K` being the inverse Jacobian of :math:`p(x)` at :math:`x=0`.
@@ -138,7 +137,7 @@ The transpose of :math:`K` is used to transform the PTO forces in PTO frame, :ma
     f_w = K^T f_p
     :label: k
 
-This relationship can be derived from conservation of energy in both frames, and using the definition in Equation :eq:`kinematics`:
+This relationship can be derived from conservation of energy in both frames, and using the definition in :eq:`kinematics`:
 
 .. math::
     f_w^T x = f_p^T p \\
@@ -149,7 +148,7 @@ This relationship can be derived from conservation of energy in both frames, and
 
 Troubleshooting
 ---------------
-If your simlation is not behaving as expected, consider some of the general troubleshooting steps below:
+If your simulation is not behaving as expected, consider some of the general troubleshooting steps below:
 
     * Check that the hydrodynamic coefficients are displaying expected behavior for high frequencies:
     
