@@ -20,7 +20,7 @@ conda create -n wot pip
 conda activate wot
 ```
 
-From your dedicated environment, you can install WecOptTool via either `conda` or `pip`
+From your dedicated environment, you can install WecOptTool via `conda`, `pip`, or `mamba`:
 
 **Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):
 
@@ -32,6 +32,12 @@ conda install -c conda-forge wecopttool
 
 ```bash
 pip install wecopttool
+```
+
+**Option 3** - using `Mamba`:
+
+```bash
+mamba install wecopttool
 ```
 
 **Geometry module and tutorials**
