@@ -924,8 +924,6 @@ def controller_pid(
     integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
     saturation: Optional[FloatOrArray] = None,
-    diagonal_only: bool = False,
-    symmetric: bool = True,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
