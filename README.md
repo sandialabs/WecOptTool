@@ -10,14 +10,19 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 Refer to [WecOptTool documentation](https://sandialabs.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
-**If you are brand new to Python and/or want detailed installation instructions, [click here](https://github.com/sandialabs/WecOptTool/blob/main/INSTALLATION.md).**
+**If you are brand new to Python and/or want detailed installation instructions, [click here](https://github.com/sandialabs/WecOptTool/INSTALLATION.md).**
 
-WecOptTool requires Python >= 3.8. Python 3.10 & 3.11 are supported.
-It is strongly recommended you create a dedicated virtual environment (e.g., using [`conda`](https://www.anaconda.com/), [`mamba`](https://mamba.readthedocs.io/en/latest/), `venv`, etc.) before installing WecOptTool.
+WecOptTool requires Python >= 3.8. Python 3.9 & 3.10 are supported.
+It is strongly recommended you create a dedicated virtual environment (e.g., using [`conda`](https://www.anaconda.com/), [`mamba`](https://mamba.readthedocs.io/en/latest/), `venv`, etc.) before installing `wecopttool`.
+
+```bash
+conda create -n wot pip
+conda activate wot
+```
 
 From your dedicated environment, you can install WecOptTool via `conda`, `pip`, or `mamba`:
 
-**Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):
+**Option 1** - using `Conda`:
 
 ```bash
 conda install -c conda-forge wecopttool
