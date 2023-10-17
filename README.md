@@ -17,7 +17,7 @@ It is strongly recommended you create a dedicated virtual environment (e.g., usi
 
 From your dedicated environment, you can install WecOptTool via `conda`, `pip`, or `mamba`:
 
-**Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):
+**Option 1** - using `Conda`:
 
 ```bash
 conda install -c conda-forge wecopttool
