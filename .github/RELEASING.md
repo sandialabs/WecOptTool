@@ -24,7 +24,7 @@ For details see the [Python packaging user guide](https://packaging.python.org/e
 
 The PyPI package is created and uploaded automatically to [TestPyPI](https://test.pypi.org/) and [PyPI](https://pypi.org/) on every GitHub release.
 This is done sequentially, so that if *TestPyPi* fails the package is not pushed to `PyPi`.
-See the [GitHub workflow](https://github.com/sandialabs/WecOptTool/blob/main/.github/workflows/publish-to-pypi.yml).
+See the [GitHub release workflow](https://github.com/sandialabs/WecOptTool/blob/main/.github/workflows/release.yml).
 
 **NOTE:** While GitHub lets you delete a release and then create a new one with the same name, PyPI does not. You can delete releases but you cannot upload a package with the same version as a previous one (even a deleted one).
 

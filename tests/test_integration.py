@@ -44,7 +44,7 @@ def p_controller_pto():
 
 @pytest.fixture(scope='module')
 def pi_controller_pto():
-    """Basic PTO: proportional-integral (PI) controller, 1 DOF, mechanical 
+    """Basic PTO: proportional-integral (PI) controller, 1 DOF, mechanical
     power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
@@ -181,7 +181,7 @@ def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
                          [Bounds(lb=kplim, ub=0), ((kplim, 0),)])
 def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
                       p_controller_pto):
-    """Confirm that bounds are not violated and scale correctly when 
+    """Confirm that bounds are not violated and scale correctly when
     passing bounds argument as both as Bounds object and a tuple"""
 
     # replace unstructured controller with propotional controller
@@ -212,9 +212,9 @@ def test_same_wec_init(wec_from_bem,
     x_wec_0 = np.random.randn(wec_from_bem.nstate_wec)
     np.random.seed(1)
     x_opt_0 = np.random.randn(wec_from_bem.nstate_wec)
-    bem_res = wec_from_bem._resid_fun(x_wec_0, x_opt_0, waves)
-    fb_res = wec_from_floatingbody._resid_fun(x_wec_0, x_opt_0, waves)
-    imp_res = wec_from_impedance._resid_fun(x_wec_0, x_opt_0, waves)
+    bem_res = wec_from_bem.residual(x_wec_0, x_opt_0, waves)
+    fb_res = wec_from_floatingbody.residual(x_wec_0, x_opt_0, waves)
+    imp_res = wec_from_impedance.residual(x_wec_0, x_opt_0, waves)
 
     assert fb_res == approx(bem_res, rel=0.01)
     assert imp_res == approx(bem_res, rel=0.01)
@@ -249,7 +249,7 @@ class TestTheoreticalPowerLimits:
                                         mass,
                                         hstiff,
                                         hydro_impedance):
-        """Proportional controller should match optimum for natural resonant 
+        """Proportional controller should match optimum for natural resonant
         wave"""
 
         f_add = {"PTO": p_controller_pto.force_on_wec}
@@ -320,7 +320,7 @@ class TestTheoreticalPowerLimits:
                                                     mass,
                                                     hstiff,
                                                     hydro_impedance):
-        """Unstructured (numerical optimal) controller matches optimal for any 
+        """Unstructured (numerical optimal) controller matches optimal for any
         irregular wave when unconstrained"""
 
         f_add = {"PTO": pto.force_on_wec}
