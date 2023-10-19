@@ -923,6 +923,8 @@ def controller_pid(
     proportional: Optional[bool] = True,
     integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
+    diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
@@ -945,21 +947,43 @@ def controller_pid(
             A value of :python:`1` corresponds to the default step
             length.
     proportional
-        True to include proportional gain
+        True to include proportional gain.
     integral
-        True to include integral gain
+        True to include integral gain.
     derivative
-        True to include derivative gain
+        True to include derivative gain.
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
     ndof = pto.ndof
-    force_td = np.zeros([wec.nt*nsubsteps, ndof])
+    force_td_tmp = np.zeros([wec.nt*nsubsteps, ndof])
     idx = 0
 
     def update_force_td(response):
-        nonlocal idx, force_td
-        gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-        force_td = force_td + gain*response
+        nonlocal idx, force_td_tmp
+        if diagonal_only:
+            gain = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+        elif symmetric:
+            gain = np.zeros([ndof, ndof])
+            n = int(ndof*((ndof+1)/2))
+            v = x_opt[idx*n:(idx+1)*n]
+            iend = 0
+            for i in range(ndof):
+                istart, iend = iend, (iend + ndof-i)
+                gain += np.diag(v[istart:iend], i)
+                if i>0:
+                    gain += np.diag(v[istart:iend], -i)
+        else:
+            n = ndof * ndof
+            gain = np.reshape(x_opt[idx*n:(idx+1)*n], [ndof, ndof])
+
+        force_td_tmp = force_td_tmp + np.dot(response, gain.T)
+
         idx = idx + 1
+        return
 
     if proportional:
         vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
@@ -970,6 +994,9 @@ def controller_pid(
     if derivative:
         acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
         update_force_td(acc_td)
+
+    force_td = force_td_tmp
+
     return force_td
 
 
@@ -980,6 +1007,8 @@ def controller_pi(
     x_opt: ndarray,
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
+    diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional-integral (PI) controller that returns a time
     history of PTO forces.
@@ -1001,9 +1030,16 @@ def controller_pi(
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
             length.
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                              True, True, False)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, True, False, diagonal_only, symmetric,
+    )
     return force_td
 
 
@@ -1014,6 +1050,8 @@ def controller_p(
     x_opt: ndarray,
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
+    diagonal_only: bool = False,
+    symmetric: bool = True,
 ) -> ndarray:
     """Proportional (P) controller that returns a time history of
     PTO forces.
@@ -1034,7 +1072,54 @@ def controller_p(
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                               True, False, False)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, False, False, diagonal_only, symmetric,
+    )
     return force_td
+
+
+# utilities
+def nstate_unstructured(nfreq: int, ndof: int) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nfreq
+        Number of frequencies.
+    ndof
+        Number of degrees of freedom.
+    """
+    return 2*nfreq*ndof
+
+
+def nstate_pid(
+        nterm: int,
+        ndof: int,
+        diagonal_only: bool=False,
+        symmetric: bool=True,
+) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nterm
+        Number of terms (e.g. 2 for PI, 1 for P, 3 for PID).
+    ndof
+        Number of degrees of freedom.
+    diagonal_only
+        Wether to consider off-diagonal feedback
+        (e.g. heave force as a gain on pitch motions).
+    symmetric
+        If using off-diagonals, whether to enforce symmetry.
+    """
+    nmult = 1 if diagonal_only else (((ndof+1)/2) if symmetric else ndof)
+    return int(nterm*ndof*nmult)
