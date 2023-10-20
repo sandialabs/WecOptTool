@@ -18,9 +18,6 @@ This allows for the optimization study (e.g., to find the WEC geometry that resu
 The code is written to support arbitrary optimization studies, control strategies, and constraints.
 The code is written as a Python package and the source code can be found in the `GitHub repository`_.
 
-.. note::
-    A MATLAB version of WecOptTool was previously released and, while no longer being developed, is still available on GitHub: `WecOptTool-MATLAB`_.
-
 Getting Started
 ===============
 See installation instructions in the `GitHub repository`_.
@@ -32,6 +29,9 @@ Developers
 WecOptTool is developed by `Sandia National Laboratories`_.
 The developers would like to acknowledge funding support from the US Department of Energy's Water Power Technologies Office.
 The developers would also like to acknowledge benefit from past collaborations with `Data Only Greater`_ and the `Oregon State University Design Engineering Lab`_.
+
+.. note::
+    A MATLAB version of WecOptTool was previously released and, while no longer being developed, is still available on GitHub: `WecOptTool-MATLAB`_.
 
 Sandia National Laboratories is a multi-mission laboratory managed and operated by National Technology and Engineering Solutions of Sandia, LLC., a wholly owned subsidiary of Honeywell International, Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.
 

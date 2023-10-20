@@ -290,6 +290,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        uniform_shift: Optional[bool] = True,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -350,6 +351,11 @@ class WEC:
         min_damping
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_linear_damping` for more details.
+        uniform_shift
+            Boolean determining whether damping corrections shifts the damping
+            values uniformly for all frequencies or only for frequencies below
+            :python:`min_damping`.
+            See :py:func:`wecopttool.check_linear_damping` for more details.
         dof_names
             Names of the different degrees of freedom (e.g.
             :python:`'Heave'`).
@@ -389,7 +395,8 @@ class WEC:
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
-            hydro_data = check_linear_damping(hydro_data, min_damping)
+            hydro_data = check_linear_damping(
+                hydro_data, min_damping, uniform_shift)
 
         # forces in the dynamics equations
         linear_force_functions = standard_forces(hydro_data)
@@ -594,7 +601,21 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[0])
         return wec
 
-    def _resid_fun(self, x_wec, x_opt, waves):
+    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+        ) -> float:
+        """
+        Return the residual of the dynamic equation (r = m⋅a-Σf).
+
+        Parameters
+        ----------
+        x_wec
+            WEC state vector.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        """
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
@@ -622,7 +643,7 @@ class WEC:
         callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
-        method and returns the raw results dictionary produced by 
+        method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
 
         Parameters
@@ -685,7 +706,7 @@ class WEC:
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
             See :py:mod:`scipy.optimize` for exit mode details.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -760,7 +781,7 @@ class WEC:
         def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            return self._resid_fun(x_wec, x_opt, waves)
+            return self.residual(x_wec, x_opt, waves)
 
         eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
@@ -794,13 +815,15 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
-                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
+                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{np.max(np.abs(x_opt)):.2e}, "
-                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
+                          + f"{max_x_opt:.2e}, "
+                          + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
+                x_s = x/scale
+                x_wec, x_opt = self.decompose_state(x_s)
                 return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
@@ -860,7 +883,7 @@ class WEC:
             Dynamic responses in the frequency-domain.
         results_td
             Dynamic responses in the time-domain.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -1049,7 +1072,7 @@ class WEC:
         """Matrix to create time-series from Fourier coefficients.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the time series is obtained via
         :python:`time_mat @ x`, also size
         :python:`(2*nfreq, ndof)`.
@@ -1062,7 +1085,7 @@ class WEC:
         some quantity.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
         derivative of :python:`x` are obtained via
         :python:`derivative_mat @ x`.
@@ -1075,7 +1098,7 @@ class WEC:
         some quantity.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
         second derivative of :python:`x` are obtained via
         :python:`derivative2_mat @ x`.
@@ -1834,12 +1857,13 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
+    uniform_shift: Optional[bool] = True,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
-    Shifts the :python:`friction` up if necessary.
-    Returns the (possibly) updated Dataset with
+    Shifts the :python:`friction` or :python:`radiation_damping` up
+    if necessary. Returns the (possibly) updated Dataset with
     :python:`damping` :math:`>=` :python:`min_damping`.
 
     Parameters
@@ -1848,6 +1872,14 @@ def check_linear_damping(
         Linear hydrodynamic data.
     min_damping
         Minimum threshold for damping. Default is 1e-6.
+    uniform_shift
+        Boolean that determines whether the damping correction for each
+        degree of freedom is frequency dependent or not. If :python:`True`,
+        the damping correction is applied to :python:`friction` and shifts the
+        damping for all frequencies. If :python:`False`, the damping correction
+        is applied to :python:`radiation_damping` and only shifts the
+        damping for frequencies with negative damping values. Default is
+        :python:`True`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1857,15 +1889,26 @@ def check_linear_damping(
     for idof in range(ndof):
         iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
-        dmin = (iradiation+ifriction).min()
-        if dmin <= 0.0 + min_damping:
+        if uniform_shift:
+            dmin = (iradiation+ifriction).min()
+            if dmin <= 0.0 + min_damping:
+                dof = hydro_data_new.influenced_dof.values[idof]
+                delta = min_damping-dmin
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close ' +
+                    'to zero terms. Shifting up via linear friction of ' +
+                    f'{delta.values} N/(m/s).')
+                hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+        else:
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            delta = min_damping-dmin
-            _log.warning(
-                f'Linear damping for DOF "{dof}" has negative or close to ' +
-                'zero terms. Shifting up via linear friction of ' +
-                f'{delta.values} N/(m/s).')
-            hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+            if (new_damping==min_damping).any():
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close to ' +
+                    'zero terms. Shifting up damping terms to a minimum of ' +
+                    f'{min_damping} N/(m/s)')
+            hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
 
@@ -2394,18 +2437,16 @@ def subset_close(
         raise ValueError("Elements in set_b not unique")
 
     ind = []
-    tmp_result = [False for _ in range(len(set_a))]
-    for subset_element in set_a:
-        for set_element in set_b:
-            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
-                tmp_set_ind = np.where(
-                    np.isclose(set_element, set_b , rtol, atol, equal_nan))
-                tmp_subset_ind = np.where(
-                    np.isclose(subset_element, set_a , rtol, atol,
-                               equal_nan))
-                ind.append( int(tmp_set_ind[0]) )
-                tmp_result[ int(tmp_subset_ind[0]) ] = True
-    subset = all(tmp_result)
+    for el in set_a:
+        a_in_b = np.isclose(set_b, el,
+                            rtol=rtol, atol=atol, equal_nan=equal_nan)
+        if np.sum(a_in_b) == 1:
+            ind.append(np.flatnonzero(a_in_b)[0])
+        if np.sum(a_in_b) > 1:
+            _log.warning('Multiple matching elements in subset, ' +
+                         'selecting closest match.')
+            ind.append(np.argmin(np.abs(a_in_b - el)))
+    subset = len(set_a) == len(ind)
     ind = ind if subset else []
     return subset, ind
 

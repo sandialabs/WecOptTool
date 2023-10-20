@@ -20,7 +20,7 @@ sys.path.insert(0, code_root)
 project = 'WecOptTool'
 copyright = (
     '2020 National Technology & Engineering Solutions of Sandia, ' +
-    'LLC(NTESS). ' +
+    'LLC (NTESS). ' +
     'Under the terms of Contract DE-NA0003525 with NTESS, the U.S. ' +
     'Government retains certain rights in this software'
 )
@@ -62,6 +62,7 @@ linkcheck_ignore = [
     'https://doi.org/10.2172/1330189',
     'https://sandialabs.github.io/WecOptTool/*',
     'https://doi.org/10.1080/17445302.2015.1089052',
+    'https://digitalops.sandia.gov/*',
 ]
 
 linkcheck_request_headers = {
@@ -69,6 +70,9 @@ linkcheck_request_headers = {
         'User-Agent': 'my-app/0.0.1'
     },
     'https://doi.org/10.1109/9.467672': {
+        'User-Agent': 'my-app/0.0.1'
+    },
+    'https://doi.org/10.1109/TSTE.2023.3272868': {
         'User-Agent': 'my-app/0.0.1'
     },
 }
