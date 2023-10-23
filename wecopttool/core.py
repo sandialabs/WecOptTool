@@ -16,8 +16,8 @@ from __future__ import annotations
 
 __all__ = [
     "WEC",
-    "ncomponents",
-    "frequency",
+    "ncomponents", #
+    "frequency", #
     "time",
     "time_mat",
     "derivative_mat",
@@ -48,8 +48,8 @@ __all__ = [
     "subset_close",
     "scale_dofs",
     "decompose_state",
-    "frequency_parameters",
-    "time_results",
+    "frequency_parameters", #
+    "time_results", #
 ]
 
 
@@ -390,8 +390,8 @@ class WEC:
             inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
-        f1, nfreq = frequency_parameters(
-            hydro_data.omega.values/(2*np.pi), False)
+        f1, nfreq, nfreq_start = frequency_parameters(
+            hydro_data.omega.values/(2*np.pi))
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
@@ -566,7 +566,7 @@ class WEC:
             If :python:`impedance` does not have the correct size:
             :python:`(ndof, ndof, nfreq)`.
         """
-        f1, nfreq = frequency_parameters(freqs, False)
+        f1, nfreq, nfreq_start = frequency_parameters(freqs)
 
         # impedance matrix shape
         shape = impedance.shape
@@ -1299,43 +1299,45 @@ class WEC:
 
 def ncomponents(
     nfreq : int,
-    zero_freq: Optional[bool] = True,
+    nfreq_start: Optional[int] = 0,
 ) -> int:
-    """Number of Fourier components (:python:`2*nfreq`) for each
-    DOF. The sine component of the highest frequency (the 2-point wave)
-    is excluded as it will always evaluate to zero.
+    """Number of Fourier components for each DOF.
 
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the number of components is reduced by 1.
+    For most frequencies this is two compenents per frequency.
+    However, the sine component of the highest frequency
+    (the 2-point wave) is excluded as it will always evaluate to zero,
+    i.e., :python:`2*nfreq-1`.
+    If the first frequency is :python:`0`, an additional (DC) compoenent
+    is added, i.e., :python:`2*nfreq`.
 
     Parameters
     ----------
     nfreq
         Number of frequencies.
-    zero_freq
-        Whether to include the zero-frequency.
+    nfreq_start
+        Frequency index at which to start.
     """
-    ncomp = 2*nfreq - 1
-    if zero_freq:
-        ncomp = ncomp + 1
-    return ncomp
+    return 2*nfreq if (nfreq_start==0) else 2*nfreq-1
 
 
 def frequency(
     f1: float,
     nfreq: int,
-    zero_freq: Optional[bool] = True,
+    nfreq_start: Optional[int] = 0,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
-    The array includes :python:`0` and has length of :python:`nfreq+1`.
-    :python:`f1` is fundamental frequency (1st harmonic).
-
-    Returns the frequency array, e.g.,
-    :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
-
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`0` is excluded, and the vector length is reduced by 1.
+    Returns the frequency array
+    :python:`[f1*n_start, f1*(nfreq_start+1), ..., f1*(nfreq_start+nfreq-1)]`.
+    :python:`f1` is fundamental frequency (1st harmonic) and
+    :python:`n_start` allows the vector starting at a frequency other
+    than :python:`0`.
+    In particular, :python:`nfreq_start=0` includes the mean (DC)
+    component, while :python:`nfreq_start=1` excludes it (zero-mean).
+    Larger values of :python:`nfreq_start` can be useful in reducing the
+    computational cost when there is little or no energy in the lower
+    frequency components, specially when using a very fine
+    discretization (small f1).
 
     Parameters
     ----------
@@ -1343,12 +1345,10 @@ def frequency(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
-    zero_freq
-        Whether to include the zero-frequency.
+    nfreq_start
+        Frequency index at which to start.
     """
-    freq = np.arange(0, nfreq+1)*f1
-    freq = freq[1:] if not zero_freq else freq
-    return freq
+    return np.arange(nfreq_start, nfreq_start+nfreq)*f1
 
 
 def time(
@@ -2491,61 +2491,44 @@ def decompose_state(
 
 
 def frequency_parameters(
-    freqs: ArrayLike,
-    zero_freq: bool = True,
+    freqs: ArrayLike
 ) -> tuple[float, int]:
-    """Return the fundamental frequency and the number of frequencies
-    in a frequency array.
+    """Return the fundamental frequency, the number of frequencies, and
+    first frequency in a frequency array.
 
     This function can be used as a check for inputs to other functions
     since it raises an error if the frequency vector does not have
-    the correct format :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`
-    (or :python:`freqs = [f1, 2*f1, ..., nfreq*f1]` if
-    :python:`zero_freq = False`).
+    the correct format (equally spaced).
 
     Parameters
     ----------
     freqs
         The frequency array, starting at zero and having equal spacing.
-    zero_freq
-        Whether the first frequency should be zero.
 
     Returns
     -------
     f1
-        Fundamental frequency :python:`f1` [:math:`Hz`]
+        Fundamental frequency :python:`f1` [:math:`Hz`].
+        This is also the spacing.
     nfreq
         Number of frequencies (not including zero frequency),
         i.e., :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
+    nfreq_start
+        Frequency at which to start vector.
 
     Raises
     ------
     ValueError
         If the frequency vector is not evenly spaced.
-    ValueError
-        If the zero-frequency was expected but not included or not
-        expected but included.
     """
-    if np.isclose(freqs[0], 0.0):
-        if zero_freq:
-            freqs0 = freqs[:]
-        else:
-            raise ValueError('Zero frequency was included.')
-    else:
-        if zero_freq:
-            raise ValueError(
-                'Frequency array must start with the zero frequency.')
-        else:
-            freqs0 = np.concatenate([[0.0,], freqs])
-
-    f1 = freqs0[1]
-    nfreq = len(freqs0) - 1
-    f_check = np.arange(0, f1*(nfreq+0.5), f1)
-    if not np.allclose(f_check, freqs0):
-        raise ValueError("Frequency array 'omega' must be evenly spaced by" +
-                         "the fundamental frequency " +
-                         "(i.e., 'omega = [0, f1, 2*f1, ..., nfreq*f1]')")
-    return f1, nfreq
+    f1 = freqs[1] - freqs[0]
+    nfreq_start = int(freqs[0]/f1)
+    nfreq = len(freqs)
+    f_check = np.arange(nfreq_start, nfreq_start+nfreq, f1)
+    if not np.allclose(f_check, freqs):
+        raise ValueError("Frequency array must be evenly spaced by" +
+                         "the fundamental frequency ")
+    return f1, nfreq, nfreq_start
 
 
 def time_results(fd: DataArray, time: DataArray) -> ndarray:
