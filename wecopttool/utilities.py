@@ -33,7 +33,8 @@ _log = logging.getLogger(__name__)
 
 def natural_frequency(impedance: DataArray, freq: ArrayLike
                       ) -> tuple[ArrayLike, int]:
-    """Find the natural frequency based on the lowest magnitude impedance.
+    """Find the natural frequency based on the lowest magnitude impedance,
+       for restoring degrees of freedom (Heave, Roll, Pitch).
 
     Parameters
     ----------
@@ -139,7 +140,10 @@ def plot_hydrodynamic_coefficients(bem_data):
     fig_ex.legend(ex_handles, ex_labels, loc=(0.08, 0), ncol=2, frameon=False)
 
 
-def plot_bode_impedance(impedance: DataArray, title: str):
+def plot_bode_impedance(impedance: DataArray, 
+                        title: Optional[str]= None,
+                        plot_natural_freq: Optional[bool] = False,
+):
     """Plot Bode graph from wecoptool impedance data array.
 
     Parameters
@@ -159,7 +163,8 @@ def plot_bode_impedance(impedance: DataArray, title: str):
     fig, axes = plt.subplots(2*len(radiating_dofs), len(influenced_dofs),
                                 tight_layout=True, sharex=True, 
                                 figsize=(3*len(radiating_dofs), 3*len(influenced_dofs)), squeeze=False)
-    fig.suptitle(title + ' Bode Plots \n Mag (dB), Phase (deg)', fontweight='bold')
+    fig.suptitle(title + ' Bode Plots', fontweight='bold')
+    fn, fn_indx = natural_frequency(impedance=impedance,freq=freq)
 
     sp_idx = 0
     for i, rdof in enumerate(radiating_dofs):
@@ -169,7 +174,9 @@ def plot_bode_impedance(impedance: DataArray, title: str):
             axes[2*i+1, j].semilogx(freq, phase[i, j, :])    # Bode phase plot
             axes[2*i, j].grid(True, which = 'both')
             axes[2*i+1, j].grid(True, which = 'both')
-
+            # if i == j and plot_natural_freq:
+            #     axes[2*i, j].axvline(freq[fn_indx.sel(radiating_dofs=rdof,
+            #                                         influenced_dofs=idof)])
             if i == len(radiating_dofs)-1:
                 axes[2*i+1, j].set_xlabel(f'Frequency (Hz)', fontsize=10)
             else:
@@ -183,6 +190,7 @@ def plot_bode_impedance(impedance: DataArray, title: str):
                 axes[i, j].set_title(f'{idof}', fontsize=10)
             else:
                 axes[i, j].set_title('')
+    return fig, axes
 
 def add_zerofreq_to_xr(data):
     """Add a zero-frequency component to an :python:`xarray.Dataset`.  
