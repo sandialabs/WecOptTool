@@ -55,8 +55,10 @@ def mass(lx, ly, lz, rho):
 @pytest.fixture()
 def fb(lx, ly, lz):
     """Simple constant density rectangular barge."""
-    rect = cpy.RectangularParallelepiped(
-        (lx, ly, lz), resolution=(100, 100, 10), center=(0.0, 0.0, 0.0,))
+    rect_mesh = cpy.mesh_parallelepiped(
+            size=(lx, ly, lz), resolution=(100, 100, 10), center=(0.0, 0.0, 0.0,)
+        )
+    rect = cpy.FloatingBody(rect_mesh, name="rect")
     rect.add_all_rigid_body_dofs()
     rect.center_of_mass = None
     fb.mass = None

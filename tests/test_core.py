@@ -1260,9 +1260,10 @@ class TestRunBEM:
         """Test that the function at least runs and returns correct
         data type.
         """
-        rect = cpy.RectangularParallelepiped(
+        rect_mesh = cpy.mesh_parallelepiped(
             size=(5.0, 5.0, 2.0), resolution=(10, 10, 10), center=(0.0, 0.0, 0.0,)
         )
+        rect = cpy.FloatingBody(rect_mesh, name="rect")
         rect.add_translation_dof(name="Heave")
         bem_data = wot.run_bem(fb=rect, freq=[0.1, 0.2], wave_dirs=[0,])
         assert type(bem_data) == xr.Dataset
