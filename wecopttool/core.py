@@ -609,7 +609,7 @@ class WEC:
         callback: Optional[TStateFunction] = None,
         ) -> tuple[Dataset, Dataset, OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
-        method and returns the raw results dictionary produced by 
+        method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
 
         Parameters
