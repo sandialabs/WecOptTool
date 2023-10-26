@@ -313,7 +313,7 @@ class WEC:
         results in the correct convention. The results can be saved
         using :py:func:`wecopttool.write_netcdf`. 
         :py:func:`wecopttool.run_bem` also computes the hydrostatics
-        which should be included in bem_data.
+        hydrostatic stiffness which should be included in bem_data.
 
         Parameters
         ----------
