@@ -1333,7 +1333,8 @@ def frequency(
     precision
         Controls rounding of fundamental frequency.
     """
-    f1 = np.floor(f1*10**precision) / 10**precision
+    if precision is not None:
+        f1 = np.floor(f1*10**precision) / 10**precision
     freq = np.arange(0, nfreq+1)*f1
     freq = freq[1:] if not zero_freq else freq
     return freq
