@@ -1839,7 +1839,7 @@ def check_linear_damping(
         degree of freedom is frequency dependent or not. If :python:`True`,
         the damping correction is applied to :python:`friction` and shifts the
         damping for all frequencies. If :python:`False`, the damping correction
-        is applied to :python:`radiation_damping` and only shifts the 
+        is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
         :python:`True`.
     """
