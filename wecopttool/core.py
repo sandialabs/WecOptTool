@@ -312,7 +312,7 @@ class WEC:
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
         using :py:func:`wecopttool.write_netcdf`. 
-        :py:func:`wecopttool.run_bem` also computes the hydrostatics
+        :py:func:`wecopttool.run_bem` also computes the inertia and 
         hydrostatic stiffness which should be included in bem_data.
 
         Parameters
