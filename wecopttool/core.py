@@ -2123,11 +2123,9 @@ def run_bem(
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     wec_im = set_fb_centers(wec_im, rho=rho)
-    if not hasattr(wec_im, 'inertia_matrix') and not hasattr(wec_im, 'hydrostatic_stiffness'):
-        wec_im.compute_hydrostatics(rho=rho, g=g)
-    elif not hasattr(wec_im, 'inertia_matrix'):
+    if not hasattr(wec_im, 'inertia_matrix'):
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho, g=g)
-    elif not hasattr(wec_im, 'hydrostatic_stiffness'):
+    if not hasattr(wec_im, 'hydrostatic_stiffness'):
         wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho, g=g)
     bem_data = solver.fill_dataset(
         test_matrix, wec_im, n_jobs=njobs, **write_info)
