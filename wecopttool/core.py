@@ -2173,7 +2173,6 @@ def linear_hydrodynamics(
         :python:`None` if included in :python:`bem_data` or to set to zero.
     """
     dims = ['radiating_dof', 'influenced_dof']
-    
     hydro_data = bem_data.copy(deep=True)
     
     if friction is not None:
