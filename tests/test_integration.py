@@ -344,3 +344,85 @@ class TestTheoreticalPowerLimits:
                          ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-3)
+
+    def test_saturated_pi_controller(self,
+                                    bem,
+                                    regular_wave,
+                                    mass,
+                                    hstiff,
+                                    pto,
+                                    nfreq):
+
+
+        pto_tmp = pto
+        pto = {}
+        wec = {}
+        nstate_opt = {}
+        
+        # Constraint
+        f_max = 1e3
+
+        nstate_opt['us'] = 2*nfreq
+        pto['us'] = pto_tmp
+        def const_f_pto(wec, x_wec, x_opt, waves): # Format for scipy.optimize.minimize
+            f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
+                                       nsubsteps=4)
+            return f_max - np.abs(f.flatten())
+        wec['us'] = wot.WEC.from_bem(bem, mass, hstiff,
+                                     f_add={"PTO": pto['us'].force_on_wec},
+                                     constraints=[{'type': 'ineq',
+                                                   'fun': const_f_pto, }])
+        
+        
+        ndof = 1
+        nstate_opt['pi'] = 2
+        def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+            return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
+                                         nsubsteps, 
+                                         saturation=[-f_max, f_max])
+        pto['pi'] = wot.pto.PTO(ndof=ndof,
+                                kinematics=np.eye(ndof),
+                                controller=saturated_pi,)
+        wec['pi'] = wot.WEC.from_bem(bem, mass, hstiff, 
+                                     f_add={"PTO": pto['pi'].force_on_wec},
+                                     constraints=[])
+        
+        res = {}
+        pto_fdom = {}
+        pto_tdom = {}
+        for key in wec.keys():
+            res[key] = wec[key].solve(waves=regular_wave,
+                            obj_fun=pto[key].average_power,
+                            nstate_opt=nstate_opt[key],
+                            x_wec_0=1e-1*np.ones(wec[key].nstate_wec),
+                            # x_opt_0=[-1e3, 1e4],
+                            # scale_x_wec=1e2,
+                            # scale_x_opt=1e-3,
+                            # scale_obj=1e-2,
+                            optim_options={'maxiter': 200},
+                            # bounds_opt=((-1e4, 0), (0, 2e4),)
+                            )
+            
+            nsubstep_postprocess = 4
+            pto_fdom[key], pto_tdom[key] = pto[key].post_process(wec[key], 
+                                                                 res[key], 
+                                                                 regular_wave, 
+                                                                 nsubstep_postprocess)
+        
+        assert 0==0 # replace this eventually
+        
+        
+        
+        # res = wec.solve(waves=regular_wave,
+        #                 obj_fun=pto.average_power,
+        #                 nstate_opt=2,
+        #                 x_wec_0=1e-1*np.ones(wec.nstate_wec),
+        #                 x_opt_0=[-1e3, 1e4],
+        #                 scale_x_wec=1e2,
+        #                 scale_x_opt=1e-3,
+        #                 scale_obj=1e-2,
+        #                 optim_options={'maxiter': 50},
+        #                 bounds_opt=((-1e4, 0), (0, 2e4),)
+        #                 )
+
+        # res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
