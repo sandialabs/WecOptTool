@@ -1047,7 +1047,7 @@ class WEC:
         some quantity.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
         derivative of :python:`x` are obtained via
         :python:`derivative_mat @ x`.
