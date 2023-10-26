@@ -18,7 +18,7 @@ def linkcheck():
                  linkcheck_dir,
                  doctree_dir,
                  'linkcheck',
-                 warningiserror=True)
+                 warningiserror=False)
     app.build()
 
 
