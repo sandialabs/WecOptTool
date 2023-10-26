@@ -846,7 +846,6 @@ class WEC:
             Dynamic responses in the frequency-domain.
         results_td
             Dynamic responses in the time-domain.
-            
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
