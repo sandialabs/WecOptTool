@@ -145,7 +145,7 @@ def wec_from_impedance(bem, pto, fb):
 @pytest.fixture(scope='module')
 def resonant_wave(f1, nfreq, fb, bem):
     """Regular wave at natural frequency of the WEC"""
-    hd = wot.linear_hydrodynamics(bem)
+    hd = wot.add_linear_friction(bem)
     Zi = wot.hydrodynamic_impedance(hd)
     wn = Zi['omega'][np.abs(Zi).argmin(dim='omega')].item()
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
@@ -234,7 +234,7 @@ class TestTheoreticalPowerLimits:
     @pytest.fixture(scope='class')
     def hydro_impedance(self, bem):
         """Intrinsic hydrodynamic impedance"""
-        hd = wot.linear_hydrodynamics(bem)
+        hd = wot.add_linear_friction(bem)
         hd = wot.check_linear_damping(hd)
         Zi = wot.hydrodynamic_impedance(hd)
         return Zi

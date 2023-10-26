@@ -81,7 +81,7 @@ def hydro_data(bem_data):
     in addition to the coefficients in `bem_data`."""
     ndof = len(bem_data.influenced_dof)
     friction = np.ones([ndof, ndof])
-    data = wot.linear_hydrodynamics(
+    data = wot.add_linear_friction(
         bem_data, friction
     )
     return data
@@ -1303,12 +1303,12 @@ class TestChangeBEMConvention:
 
 
 class TestLinearHydrodynamics:
-    """Test function :python:`linear_hydrodynamics`."""
+    """Test function :python:`add_linear_friction`."""
 
     def test_values(self, bem_data, hydro_data):
         """Test the function returns expected values."""
         mat = np.array([[1, 1], [1, 1]])
-        calculated = wot.linear_hydrodynamics(bem_data, mat)
+        calculated = wot.add_linear_friction(bem_data, mat)
         xr.testing.assert_allclose(calculated, hydro_data)
 
 
