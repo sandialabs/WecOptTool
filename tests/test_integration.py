@@ -184,7 +184,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
     """Confirm that bounds are not violated and scale correctly when
     passing bounds argument as both as Bounds object and a tuple"""
 
-    # replace unstructured controller with propotional controller
+    # replace unstructured controller with proportional controller
     wec_from_bem.forces['PTO'] = p_controller_pto.force_on_wec
 
     res = wec_from_bem.solve(waves=regular_wave,
