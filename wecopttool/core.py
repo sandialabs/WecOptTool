@@ -40,7 +40,7 @@ __all__ = [
     "standard_forces",
     "run_bem",
     "change_bem_convention",
-    "linear_hydrodynamics",
+    "add_linear_friction",
     "wave_excitation",
     "hydrodynamic_impedance",
     "atleast_2d",
@@ -50,7 +50,7 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
-    "set_properties",
+    "set_fb_centers",
 ]
 
 
@@ -320,7 +320,7 @@ class WEC:
         bem_data
             Linear hydrodynamic coefficients obtained using the boundary
             element method (BEM) code Capytaine, with sign convention
-            corrected. Also includes hydrostatics.
+            corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
             :python:`(nodf, ndof)`.
@@ -353,13 +353,13 @@ class WEC:
 
         See Also
         --------
-        run_bem, linear_hydrodynamics, change_bem_convention,
+        run_bem, add_linear_friction, change_bem_convention,
         write_netcdf, check_linear_damping
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
         # add friction
-        hydro_data = linear_hydrodynamics(bem_data, friction)
+        hydro_data = add_linear_friction(bem_data, friction)
         inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
@@ -568,28 +568,28 @@ class WEC:
         return wec
 
     def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
-            ) -> float:
-            """
-            Return the residual of the dynamic equation (r = m⋅a-Σf).
+        ) -> float:
+        """
+        Return the residual of the dynamic equation (r = m⋅a-Σf).
 
-            Parameters
-            ----------
-            x_wec
-                WEC state vector.
-            x_opt
-                Optimization (control) state.
-            waves
-                :py:class:`xarray.Dataset` with the structure and elements
-                shown by :py:mod:`wecopttool.waves`.
-            """
-            if not self.inertia_in_forces:
-                ri = self.inertia(self, x_wec, x_opt, waves)
-            else:
-                ri = np.zeros([self.ncomponents, self.ndof])
-            # forces, -Σf
-            for f in self.forces.values():
-                ri = ri - f(self, x_wec, x_opt, waves)
-            return self.dofmat_to_vec(ri)
+        Parameters
+        ----------
+        x_wec
+            WEC state vector.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        """
+        if not self.inertia_in_forces:
+            ri = self.inertia(self, x_wec, x_opt, waves)
+        else:
+            ri = np.zeros([self.ncomponents, self.ndof])
+        # forces, -Σf
+        for f in self.forces.values():
+            ri = ri - f(self, x_wec, x_opt, waves)
+        return self.dofmat_to_vec(ri)
 
     # solve
     def solve(self,
@@ -780,13 +780,15 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
-                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
+                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{np.max(np.abs(x_opt)):.2e}, "
-                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
+                          + f"{max_x_opt:.2e}, "
+                          + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
+                x_s = x/scale
+                x_wec, x_opt = self.decompose_state(x_s)
                 return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
@@ -2120,13 +2122,13 @@ def run_bem(
                       'wavenumber': False,
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
-    wec_im = set_properties(wec_im, rho=rho)
+    wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix') and not hasattr(wec_im, 'hydrostatic_stiffness'):
-        wec_im.compute_hydrostatics(rho=rho)
+        wec_im.compute_hydrostatics(rho=rho, g=g)
     elif not hasattr(wec_im, 'inertia_matrix'):
-        wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
+        wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho, g=g)
     elif not hasattr(wec_im, 'hydrostatic_stiffness'):
-        wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho)
+        wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho, g=g)
     bem_data = solver.fill_dataset(
         test_matrix, wec_im, n_jobs=njobs, **write_info)
     return change_bem_convention(bem_data)
@@ -2153,7 +2155,7 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     return bem_data
 
 
-def linear_hydrodynamics(
+def add_linear_friction(
     bem_data: Dataset,
     friction: Optional[ArrayLike] = None
 ) -> Dataset:
@@ -2166,7 +2168,7 @@ def linear_hydrodynamics(
     bem_data
         Linear hydrodynamic coefficients obtained using the boundary
         element method (BEM) code Capytaine, with sign convention
-        corrected. Also includes hydrostatics.
+        corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
         :python:`(nodf, ndof)`.
@@ -2251,7 +2253,7 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     ----------
     hydro_data
         Dataset with linear hydrodynamic coefficients produced by
-        :py:func:`wecopttool.linear_hydrodynamics`.
+        :py:func:`wecopttool.add_linear_friction`.
     """
 
     Zi = (hydro_data['inertia_matrix'] \
@@ -2353,20 +2355,16 @@ def subset_close(
         raise ValueError("Elements in set_b not unique")
 
     ind = []
-    tmp_result = [False for _ in range(len(set_a))]
-    for subset_element in set_a:
-        for set_element in set_b:
-            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
-                tmp_set_ind = np.where(
-                    np.isclose(set_element, set_b , rtol, atol, equal_nan))
-                tmp_subset_ind = np.where(
-                    np.isclose(subset_element, set_a , rtol, atol,
-                               equal_nan))
-                ind.append( int(tmp_set_ind[0]) )
-                tmp_result[ int(tmp_subset_ind[0]) ] = True
-    subset = all(tmp_result)
-    ind = ind if subset else []
-    return subset, ind
+    for el in set_a:
+        a_in_b = np.isclose(set_b, el,
+                            rtol=rtol, atol=atol, equal_nan=equal_nan)
+        if np.sum(a_in_b) == 1:
+            ind.append(np.flatnonzero(a_in_b)[0])
+        if np.sum(a_in_b) > 1:
+            _log.warning('Multiple matching elements in subset, ' +
+                         'selecting closest match.')
+            ind.append(np.argmin(np.abs(a_in_b - el)))
+    subset = len(set_a) == len(ind)
 
 
 def scale_dofs(scale_list: Iterable[float], ncomponents: int) -> ndarray:
@@ -2504,7 +2502,7 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     return out
 
 
-def set_properties(
+def set_fb_centers(
     fb: FloatingBody,
     rho: float = _default_parameters["rho"],
 ) -> FloatingBody:
