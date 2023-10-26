@@ -672,6 +672,7 @@ class WEC:
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
             See :py:mod:`scipy.optimize` for exit mode details.
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
