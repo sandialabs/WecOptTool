@@ -1034,7 +1034,7 @@ class WEC:
         """Matrix to create time-series from Fourier coefficients.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the time series is obtained via
         :python:`time_mat @ x`, also size
         :python:`(2*nfreq, ndof)`.
