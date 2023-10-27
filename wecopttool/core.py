@@ -1900,13 +1900,13 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
         dmin = np.min(np.real(Zi_diag[:, dof]))
         if dmin < min_damping:
             delta = min_damping - dmin
-            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
                 + np.abs(delta)
             _log.warning(
                 f'Real part of impedance for {dof} has negative or close to ' +
@@ -2265,7 +2265,7 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi
+    return Zi.transpose('omega', ...)
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
@@ -2539,4 +2539,3 @@ def set_fb_centers(
                 f'{property} already defined as {getattr(fb, property)}.')
             
     return fb
-
