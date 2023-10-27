@@ -55,17 +55,22 @@ def bem_data(f1, nfreq):
     ndof = 2; ndir = 3;
     radiation_dims = ['radiating_dof', 'influenced_dof', 'omega']
     excitation_dims = ['influenced_dof', 'wave_direction', 'omega']
+    hydrostatics_dims = ['radiating_dof', 'influenced_dof']
 
     added_mass = np.ones([ndof, ndof, nfreq])
     radiation_damping = np.ones([ndof, ndof, nfreq])
     diffraction_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
     Froude_Krylov_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
+    inertia_matrix = np.ones([ndof, ndof])
+    hydrostatic_stiffness = np.ones([ndof, ndof])
 
     data_vars = {
         'added_mass': (radiation_dims, added_mass),
         'radiation_damping': (radiation_dims, radiation_damping),
         'diffraction_force': (excitation_dims, diffraction_force),
-        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
+        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force),
+        'inertia_matrix': (hydrostatics_dims, inertia_matrix),
+        'hydrostatic_stiffness': (hydrostatics_dims, hydrostatic_stiffness)
     }
     return xr.Dataset(data_vars=data_vars, coords=coords)
 
@@ -75,11 +80,9 @@ def hydro_data(bem_data):
     """Synthetic hydro-data containing inertia, stiffness, and friction
     in addition to the coefficients in `bem_data`."""
     ndof = len(bem_data.influenced_dof)
-    inertia_matrix = np.ones([ndof, ndof])
-    stiffness = np.ones([ndof, ndof])
     friction = np.ones([ndof, ndof])
-    data = wot.linear_hydrodynamics(
-        bem_data, inertia_matrix, stiffness, friction
+    data = wot.add_linear_friction(
+        bem_data, friction
     )
     return data
 
@@ -1300,12 +1303,12 @@ class TestChangeBEMConvention:
 
 
 class TestLinearHydrodynamics:
-    """Test function :python:`linear_hydrodynamics`."""
+    """Test function :python:`add_linear_friction`."""
 
     def test_values(self, bem_data, hydro_data):
         """Test the function returns expected values."""
         mat = np.array([[1, 1], [1, 1]])
-        calculated = wot.linear_hydrodynamics(bem_data, mat, mat, mat)
+        calculated = wot.add_linear_friction(bem_data, mat)
         xr.testing.assert_allclose(calculated, hydro_data)
 
 
