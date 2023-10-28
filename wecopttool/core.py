@@ -2041,7 +2041,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     linear_force_functions = dict()
     for name, (value, zero_freq) in rao_transfer_functions.items():
-        value = value.transpose("radiating_dof", "influenced_dof", "omega")
+        value = value.transpose("omega", "radiating_dof", "influenced_dof")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
             force_from_rao_transfer_function(value, zero_freq))
@@ -2265,7 +2265,7 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi.transpose('omega', ...)
+    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
