@@ -2032,7 +2032,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     rao_transfer_functions['friction'] = (1j*w*Bf, False)
 
     # include zero_freq in hydrostatics
-    hs = ((K + 0j).expand_dims({"omega": B.omega}))
+    hs = ((K + 0j).expand_dims({"omega": B.omega}, 0))
     tmp = hs.isel(omega=0).copy(deep=True)
     tmp['omega'] = tmp['omega'] * 0
     hs = xr.concat([tmp, hs], dim='omega') #, data_vars='minimal')
@@ -2231,8 +2231,7 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     omega_e = exc_coeff['omega'].values
     dir_w = waves['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
+    exc_coeff = exc_coeff.values
 
     wave_elev_fd = np.expand_dims(waves.values, -1)
 

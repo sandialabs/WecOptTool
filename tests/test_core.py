@@ -947,8 +947,6 @@ class TestCheckLinearDamping:
         """Hydrodynamic data structure for which the function
         :python:`check_linear_damping` has been called.
         """
-        # TODO: clean this up when fixing the dim order discrepancy
-        data['radiation_damping'] = data['radiation_damping'].transpose('omega', ...)
         return wot.check_linear_damping(data, tol, False)
 
     def test_friction(self, data_new_uniform, tol):
