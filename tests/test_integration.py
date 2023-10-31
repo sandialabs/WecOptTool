@@ -120,10 +120,9 @@ def wec_from_floatingbody(f1, nfreq, fb, pto):
 @pytest.fixture(scope='module')
 def wec_from_impedance(bem, pto, fb):
     """Simple WEC: 1 DOF, no constraints."""
-    bemc = bem.copy().transpose(
-        "radiating_dof", "influenced_dof", "omega", "wave_direction")
+    bemc = bem.copy()
     omega = bemc['omega'].values
-    w = np.expand_dims(omega, [0, 1])
+    w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
     B = bemc['radiation_damping'].values
     fb.center_of_mass = [0, 0, 0]

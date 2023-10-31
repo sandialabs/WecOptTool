@@ -503,7 +503,7 @@ class WEC:
             Frequency vector [:math:`Hz`] not including the zero frequency,
             :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
         impedance
-            Complex impedance of size :python:`(ndof, ndof, nfreq)`.
+            Complex impedance of size :python:`(nfreq, ndof, ndof)`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`(ndof, nfreq)`.
@@ -537,17 +537,18 @@ class WEC:
         # impedance matrix shape
         shape = impedance.shape
         ndim = impedance.ndim
-        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
+        if (ndim!=3) or (shape[1]!=shape[2]) or (shape[0]!=nfreq):
             raise ValueError(
-                "'impedance' must have shape '(ndof, ndof, nfreq)'.")
+                "'impedance' must have shape '(nfreq, ndof, ndof)'.")
 
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
         omega = freqs * 2*np.pi
-        transfer_func = impedance * (1j*omega)
+        omega0 = np.expand_dims(omega, [1,2])
+        transfer_func = impedance * (1j*omega0)
         transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
-        transfer_func = np.concatenate([transfer_func0, transfer_func], 2)
+        transfer_func = np.concatenate([transfer_func0, transfer_func], axis=0)
         transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
         force_impedance = force_from_rao_transfer_function(transfer_func)
 
@@ -564,7 +565,7 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0])
+                  inertia_in_forces=True, ndof=shape[1])
         return wec
 
     def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
@@ -1481,7 +1482,7 @@ def mimo_transfer_mat(
     For example, it can be an impedance matrix or an RAO transfer
     matrix.
     The input complex impedance matrix has shape
-    :python`(ndof, ndof, nfreq)`.
+    :python`(nfreq, ndof, ndof)`.
 
     Returns the 2D real matrix that transform the state representation
     of the input variable variable to the state representation of the
@@ -1502,20 +1503,20 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    ndof = transfer_mat.shape[0]
-    assert transfer_mat.shape[1] == ndof
+    ndof = transfer_mat.shape[1]
+    assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
-                Zp0 = transfer_mat[idof, jdof, 0]
+                Zp0 = transfer_mat[0, idof, jdof]
                 assert np.all(np.isreal(Zp0))
                 Zp0 = np.real(Zp0)
-                Zp = transfer_mat[idof, jdof, 1:]
+                Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
-                Zp = transfer_mat[idof, jdof, :]
+                Zp = transfer_mat[:, idof, jdof]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
@@ -1900,13 +1901,13 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
         dmin = np.min(np.real(Zi_diag[:, dof]))
         if dmin < min_damping:
             delta = min_damping - dmin
-            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
                 + np.abs(delta)
             _log.warning(
                 f'Real part of impedance for {dof} has negative or close to ' +
@@ -1997,8 +1998,8 @@ def inertia(
     inertia_matrix
         Inertia matrix.
     """
-    omega = np.reshape(frequency(f1, nfreq, False)*2*np.pi, [1,1,-1])
-    inertia_matrix = np.expand_dims(inertia_matrix, -1)
+    omega = np.expand_dims(frequency(f1, nfreq, False)*2*np.pi, [1,2])
+    inertia_matrix = np.expand_dims(inertia_matrix, 0)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_rao_transfer_function(
         rao_transfer_function, False)
@@ -2018,8 +2019,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     hydro_data
         Linear hydrodynamic data.
     """
-    hydro_data = hydro_data.transpose(
-         "omega", "wave_direction", "radiating_dof", "influenced_dof")
 
     # intrinsic impedance
     w = hydro_data['omega']
@@ -2033,7 +2032,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     rao_transfer_functions['friction'] = (1j*w*Bf, False)
 
     # include zero_freq in hydrostatics
-    hs = ((K + 0j).expand_dims({"omega": B.omega}))
+    hs = ((K + 0j).expand_dims({"omega": B.omega}, 0))
     tmp = hs.isel(omega=0).copy(deep=True)
     tmp['omega'] = tmp['omega'] * 0
     hs = xr.concat([tmp, hs], dim='omega') #, data_vars='minimal')
@@ -2041,7 +2040,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     linear_force_functions = dict()
     for name, (value, zero_freq) in rao_transfer_functions.items():
-        value = value.transpose("radiating_dof", "influenced_dof", "omega")
+        value = value.transpose("omega", "radiating_dof", "influenced_dof")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
             force_from_rao_transfer_function(value, zero_freq))
@@ -2232,8 +2231,7 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     omega_e = exc_coeff['omega'].values
     dir_w = waves['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
+    exc_coeff = exc_coeff.values
 
     wave_elev_fd = np.expand_dims(waves.values, -1)
 
@@ -2265,7 +2263,7 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi
+    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
@@ -2539,4 +2537,3 @@ def set_fb_centers(
                 f'{property} already defined as {getattr(fb, property)}.')
             
     return fb
-
