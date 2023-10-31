@@ -1963,8 +1963,7 @@ def force_from_impedance(
     --------
     force_from_rao_transfer_function,
     """
-    omega0 = np.expand_dims(omega, [1,2])
-    return force_from_rao_transfer_function(impedance*(1j*omega0), False)
+    return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
 def force_from_waves(force_coeff: ArrayLike,
@@ -2000,7 +1999,7 @@ def inertia(
         Inertia matrix.
     """
     omega = np.expand_dims(frequency(f1, nfreq, False)*2*np.pi, [1,2])
-    inertia_matrix = np.expand_dims(inertia_matrix, -1)
+    inertia_matrix = np.expand_dims(inertia_matrix, 0)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_rao_transfer_function(
         rao_transfer_function, False)

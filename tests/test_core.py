@@ -213,11 +213,11 @@ def nfreq_imp():
 @pytest.fixture(scope="module")
 def rao(ndof_imp, nfreq_imp):
     """Synthetic RAO transfer matrix."""
-    rao = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-    rao[0, 0, :] = [0+1j, 0+2j]
-    rao[1, 0, :] = [1+1j, 11+2j]
-    rao[0, 1, :] = [2+1j, 22+2j]
-    rao[1, 1, :] = [3+1j, 33+2j]
+    rao = np.empty([nfreq_imp, ndof_imp, ndof_imp], dtype=complex)
+    rao[:, 0, 0] = [0+1j, 0+2j]
+    rao[:, 1, 0] = [1+1j, 11+2j]
+    rao[:, 0, 1] = [2+1j, 22+2j]
+    rao[:, 1, 1] = [3+1j, 33+2j]
     return rao
 
 
@@ -576,7 +576,7 @@ class TestMIMOTransferMat:
                 i in range(np.size(x)-1)], -1),
             [np.real(z[-1]) * np.real(x[-1])],
         ])
-        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
+        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [-1, 1,1]), False)
         assert np.allclose(Z_mimo @ X, F)
 
 
