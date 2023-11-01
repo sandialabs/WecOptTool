@@ -1283,7 +1283,7 @@ def ncomponents(
     nfreq_start
         Frequency index at which to start.
     """
-    return 2*nfreq if (nfreq_start==0) else 2*nfreq-1
+    return 2*nfreq-2 if (nfreq_start==0) else 2*nfreq-1
 
 
 def frequency(
