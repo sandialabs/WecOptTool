@@ -18,10 +18,10 @@ __all__ = [
     "WEC",
     "ncomponents", #
     "frequency", #
-    "time",
-    "time_mat",
-    "derivative_mat",
-    "derivative2_mat",
+    "time", #
+    "time_mat", #
+    "derivative_mat", #
+    "derivative2_mat", #
     "mimo_transfer_mat",
     "vec_to_dofmat",
     "dofmat_to_vec",
@@ -50,7 +50,7 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
-    "set_fb_centers",
+    "set_fb_centers", #
 ]
 
 
@@ -1263,6 +1263,11 @@ class WEC:
         return td_to_fd(td, fft, True)
 
 
+# TODO: directly create the submatrix needed.
+#       Currently creating the full matrix and returning a submatrix.
+#       functions: time_mat,
+
+
 def ncomponents(
     nfreq : int,
     nfreq_start: Optional[int] = 0,
@@ -1372,7 +1377,6 @@ def time_mat(
     nfreq: int,
     nfreq_start: Optional[int] = 0,
     nsubsteps: Optional[int] = 1,
-    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
@@ -1383,11 +1387,6 @@ def time_mat(
     :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
     the response vector in the time-domain (:math:`x(t)`) is given as
     :math:`Mx`, where :math:`M` is the time matrix.
-
-    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
-
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Parameters
     ---------
@@ -1400,8 +1399,6 @@ def time_mat(
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
-    zero_freq
-        Whether the first frequency should be zero.
     """
     t = time(f1, nfreq, nfreq_start, nsubsteps)
     omega = frequency(f1, nfreq+nfreq_start, nfreq_start=0) * 2*np.pi
@@ -1411,15 +1408,13 @@ def time_mat(
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
     time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
-    # if not zero_freq:
-        # time_mat = time_mat[:, 1:]
     return time_mat[:, nfreq_start:]
 
 
 def derivative_mat(
     f1: float,
     nfreq: int,
-    zero_freq: Optional[bool] = True,
+    nfreq_start: Optional[int] = 0,
 ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
@@ -1431,47 +1426,38 @@ def derivative_mat(
     the state of its derivative is given as :math:`Dx`, where
     :math:`D` is the derivative matrix.
 
-    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
-
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
-
     Parameters
     ---------
     f1
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
-    zero_freq
-        Whether the first frequency should be zero.
+    nfreq_start
+        Frequency index at which to start.
     """
     def block(n): return np.array([[0, -1], [1, 0]]) * n*f1 * 2*np.pi
-    blocks = [block(n+1) for n in range(nfreq)]
-    if zero_freq:
-        blocks = [0.0] + blocks
-    deriv_mat = block_diag(*blocks)
-    return deriv_mat[:-1, :-1] # remove 2pt wave sine component
+    if nfreq_start==0:
+        blocks = [0.0] + [block(n) for n in range(1, nfreq)]
+    else:
+        blocks = [block(n) for n in range(nfreq_start, nfreq+nfreq_start)]
+    deriv_mat = block_diag(*blocks)[:-1, :-1] # remove 2pt wave sine component
+    return deriv_mat
 
 
 def derivative2_mat(
     f1: float,
     nfreq: int,
-    zero_freq: Optional[bool] = True,
+    nfreq_start: Optional[int] = 0,
 ) -> ndarray:
-    """Assemble the second derivative matrix that converts the state vector of
-    a response to the state vector of its second derivative.
+    """Assemble the second derivative matrix that converts the state
+    vector of a response to the state vector of its second derivative.
 
     For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
-    coefficients (excluding the imaginary component of the 2-point wave) as
-    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
-    the state of its second derivative is given as :math:`(DD)x`, where
-    :math:`DD` is the second derivative matrix.
-
-    The time matrix has size :python:`(nfreq*2, nfreq*2)`.
-
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
+    coefficients (excluding the imaginary component of the 2-point wave)
+    as :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`, the state of its
+    second derivative is given as :math:`(DD)x`, where :math:`DD` is the
+    second derivative matrix.
 
     Parameters
     ---------
@@ -1479,13 +1465,18 @@ def derivative2_mat(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
-    zero_freq
-        Whether the first frequency should be zero.
+    nfreq_start
+        Frequency index at which to start.
     """
-    vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
-    if zero_freq:
-        diagonal = np.concatenate(([0.0], diagonal))
+    if nfreq_start==0:
+        vals = [((n)*f1 * 2*np.pi)**2 for n in range(1, nfreq)]
+        diagonal = np.concatenate((
+            [0.0],
+            np.squeeze(np.repeat(-np.ones(nfreq-1) * vals, 2))[:-1], # remove 2pt wave sine
+        ))
+    else:
+        vals = [((n)*f1 * 2*np.pi)**2 for n in range(nfreq_start, nfreq+nfreq_start)]
+        diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
     return np.diag(diagonal)
 
 
