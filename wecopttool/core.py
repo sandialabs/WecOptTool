@@ -1266,6 +1266,8 @@ class WEC:
 def ncomponents(
     nfreq : int,
     nfreq_start: Optional[int] = 0,
+    total: Optional[bool] = False,
+    zero_freq_total: Optional[bool] = True,
 ) -> int:
     """Number of Fourier components for each DOF.
 
@@ -1282,8 +1284,18 @@ def ncomponents(
         Number of frequencies.
     nfreq_start
         Frequency index at which to start.
+    total
+        Whether to return the total number of frequencies as if it
+        started at f=0.
+    zero_freq_total
+        Whether to include the zero (DC) component when `total=True`.
     """
-    return 2*nfreq-2 if (nfreq_start==0) else 2*nfreq-1
+    if total:
+        nfreq = nfreq + nfreq_start
+        ncomp = 2*nfreq-2 if zero_freq_total else 2*nfreq-3
+    else:
+        ncomp = 2*nfreq-2 if (nfreq_start==0) else 2*nfreq-1
+    return ncomp
 
 
 def frequency(
@@ -1350,13 +1362,15 @@ def time(
     """
     if nsubsteps < 1:
         raise ValueError("'nsubsteps' must be 1 or greater")
-    nsteps = nsubsteps * ncomponents(nfreq)
+    ncomp = ncomponents(nfreq, nfreq_start, total=True, zero_freq_total=True)
+    nsteps = nsubsteps * ncomp
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
 
 def time_mat(
     f1: float,
     nfreq: int,
+    nfreq_start: Optional[int] = 0,
     nsubsteps: Optional[int] = 1,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
@@ -1381,23 +1395,25 @@ def time_mat(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
+    nfreq_start
+        Frequency index at which to start.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
     zero_freq
         Whether the first frequency should be zero.
     """
-    t = time(f1, nfreq, nsubsteps)
-    omega = frequency(f1, nfreq) * 2*np.pi
+    t = time(f1, nfreq, nfreq_start, nsubsteps)
+    omega = frequency(f1, nfreq+nfreq_start, nfreq_start=0) * 2*np.pi
     wt = np.outer(t, omega[1:])
-    ncomp = ncomponents(nfreq)
+    ncomp = ncomponents(nfreq, nfreq_start, total=True, zero_freq_total=True)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
     time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
-    if not zero_freq:
-        time_mat = time_mat[:, 1:]
-    return time_mat
+    # if not zero_freq:
+        # time_mat = time_mat[:, 1:]
+    return time_mat[:, nfreq_start:]
 
 
 def derivative_mat(
