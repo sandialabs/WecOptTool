@@ -1263,11 +1263,6 @@ class WEC:
         return td_to_fd(td, fft, True)
 
 
-# TODO: directly create the submatrix needed.
-#       Currently creating the full matrix and returning a submatrix.
-#       functions: time_mat,
-
-
 def ncomponents(
     nfreq : int,
     nfreq_start: Optional[int] = 0,
@@ -1406,14 +1401,19 @@ def time_mat(
         A value of :python:`1` corresponds to the default step length.
     """
     t = time(f1, nfreq, nfreq_start, nsubsteps)
-    omega = frequency(f1, nfreq+nfreq_start, nfreq_start=0) * 2*np.pi
-    wt = np.outer(t, omega[1:])
-    ncomp = ncomponents(nfreq, nfreq_start, total=True, zero_freq_total=True)
-    time_mat = np.empty((nsubsteps*ncomp, ncomp))
-    time_mat[:, 0] = 1.0
-    time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
-    return time_mat[:, nfreq_start:]
+    omega = frequency(f1, nfreq, nfreq_start) * 2*np.pi
+    ncomp = ncomponents(nfreq, nfreq_start)
+    time_mat = np.empty((nsubsteps*len(t), ncomp))
+    if nfreq_start==0:
+        wt = np.outer(t, omega[1:])
+        time_mat[:, 0] = 1.0
+        c0, s0 = 1,2
+    else:
+        wt = np.outer(t, omega)
+        c0,s0 = 0,1
+    time_mat[:, c0::2] = np.cos(wt)
+    time_mat[:, s0::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
+    return time_mat
 
 
 def derivative_mat(
