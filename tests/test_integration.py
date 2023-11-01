@@ -343,7 +343,6 @@ class TestTheoreticalPowerLimits:
                                     pto,
                                     nfreq):
 
-
         pto_tmp = pto
         pto = {}
         wec = {}
@@ -377,6 +376,17 @@ class TestTheoreticalPowerLimits:
                                      f_add={"PTO": pto['pi'].force_on_wec},
                                      constraints=[])
         
+        x_opt_0 = {'us': None,
+                   'pi': [-1e3, 1e4]}
+        scale_x_wec = {'us': 1e2,
+                       'pi': 1e2}
+        scale_x_opt = {'us': 1e-2,
+                       'pi': 1e-3}
+        scale_obj = {'us': 1e-2,
+                     'pi': 1e-2}
+        bounds_opt = {'us': None,
+                      'pi': ((-1e4, 0), (0, 2e4),)}
+        
         res = {}
         pto_fdom = {}
         pto_tdom = {}
@@ -385,12 +395,12 @@ class TestTheoreticalPowerLimits:
                             obj_fun=pto[key].average_power,
                             nstate_opt=nstate_opt[key],
                             x_wec_0=1e-1*np.ones(wec[key].nstate_wec),
-                            # x_opt_0=[-1e3, 1e4],
-                            # scale_x_wec=1e2,
-                            # scale_x_opt=1e-3,
-                            # scale_obj=1e-2,
+                            x_opt_0=x_opt_0[key],
+                            scale_x_wec=scale_x_wec[key],
+                            scale_x_opt=scale_x_opt[key],
+                            scale_obj=scale_obj[key],
                             optim_options={'maxiter': 200},
-                            # bounds_opt=((-1e4, 0), (0, 2e4),)
+                            bounds_opt=bounds_opt[key]
                             )
             
             nsubstep_postprocess = 4
@@ -400,20 +410,3 @@ class TestTheoreticalPowerLimits:
                                                                  nsubstep_postprocess)
         
         assert 0==0 # replace this eventually
-        
-        
-        
-        # res = wec.solve(waves=regular_wave,
-        #                 obj_fun=pto.average_power,
-        #                 nstate_opt=2,
-        #                 x_wec_0=1e-1*np.ones(wec.nstate_wec),
-        #                 x_opt_0=[-1e3, 1e4],
-        #                 scale_x_wec=1e2,
-        #                 scale_x_opt=1e-3,
-        #                 scale_obj=1e-2,
-        #                 optim_options={'maxiter': 50},
-        #                 bounds_opt=((-1e4, 0), (0, 2e4),)
-        #                 )
-
-        # res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
-
