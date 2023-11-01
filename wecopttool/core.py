@@ -1325,6 +1325,7 @@ def frequency(
 def time(
     f1: float,
     nfreq: int,
+    nfreq_start: Optional[int] = 0,
     nsubsteps: Optional[int] = 1,
 ) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
@@ -1341,6 +1342,8 @@ def time(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
+    nfreq_start
+        Frequency index at which to start.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
