@@ -1280,8 +1280,9 @@ def ncomponents(
     However, the sine component of the highest frequency
     (the 2-point wave) is excluded as it will always evaluate to zero,
     i.e., :python:`2*nfreq-1`.
-    If the first frequency is :python:`0`, an additional (DC) compoenent
-    is added, i.e., :python:`2*nfreq`.
+    If the first frequency is :python:`nfreq_start=0`, that frequency
+    only has one component (DC) and the total number of components is
+    :python:`2*nfreq`.
 
     Parameters
     ----------
@@ -1321,7 +1322,7 @@ def frequency(
     Larger values of :python:`nfreq_start` can be useful in reducing the
     computational cost when there is little or no energy in the lower
     frequency components, specially when using a very fine
-    discretization (small f1).
+    discretization (small :python:`f1`).
 
     Parameters
     ----------
@@ -1349,9 +1350,9 @@ def time(
 
     Returns the 1D time vector, in seconds, starting at time
     :python:`0`, and not containing the end time :python:`tf=1/f1`.
-    The time vector has length :python:`(2*nfreq)*nsubsteps`.
+    The time vector has length :python:`2*(nfreq+nfreq_start)*nsubsteps`.
     The timestep length is :python:`dt = dt_default * 1/nsubsteps`,
-    where :python:`dt_default=tf/(2*nfreq)`.
+    where :python:`dt_default=tf/(2*(nfreq+nfreq_start))`.
 
     Parameters
     ----------
@@ -1382,11 +1383,15 @@ def time_mat(
     time-series.
 
     For a state :math:`x` consisting of the mean (DC) component
-    followed by the real and imaginary components of the Fourier
-    coefficients (excluding the imaginary component of the 2-point wave) as
+    (if :python:`nfreq_start=0`) followed by the real and imaginary
+    components of the Fourier coefficients (excluding the imaginary
+    component of the 2-point wave) as
     :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
     the response vector in the time-domain (:math:`x(t)`) is given as
     :math:`Mx`, where :math:`M` is the time matrix.
+    If :python:`nfreq_start>0` the state vector does not include the
+    DC component and starts at components for frequency
+    :python:`nfreq_start*f1`.
 
     Parameters
     ---------
@@ -1421,10 +1426,13 @@ def derivative_mat(
 
     For a state :math:`x` consisting of the mean (DC) component
     followed by the real and imaginary components of the Fourier
-    coefficients (excluding the imaginary component of the 2-point wave) as
-    :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
-    the state of its derivative is given as :math:`Dx`, where
-    :math:`D` is the derivative matrix.
+    coefficients (excluding the imaginary component of the 2-point wave)
+    as :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`, the state of its
+    derivative is given as :math:`Dx`, where :math:`D` is the derivative
+    matrix.
+    If :python:`nfreq_start>0` the state vector does not include the
+    DC component and starts at components for frequency
+    :python:`nfreq_start*f1`.
 
     Parameters
     ---------
@@ -1458,6 +1466,9 @@ def derivative2_mat(
     as :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`, the state of its
     second derivative is given as :math:`(DD)x`, where :math:`DD` is the
     second derivative matrix.
+    If :python:`nfreq_start>0` the state vector does not include the
+    DC component and starts at components for frequency
+    :python:`nfreq_start*f1`.
 
     Parameters
     ---------
@@ -1497,10 +1508,12 @@ def mimo_transfer_mat(
     of the input variables to the state representation of the output
     variables.
     Here, a state representation :python:`x` consists of the mean (DC)
-    component (if included) followed by the real and imaginary c
-    omponents of the Fourier coefficients (excluding the imaginary
+    component (if included) followed by the real and imaginary
+    components of the Fourier coefficients (excluding the imaginary
     component of the 2-point wave) as
     :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
+    For multiple degrees of freedom, the state vector is stacked, as
+    :python:`[[x1], [x2], ...]`.
 
     Parameters
     ----------
