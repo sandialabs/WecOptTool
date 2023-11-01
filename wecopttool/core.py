@@ -40,7 +40,7 @@ __all__ = [
     "standard_forces",
     "run_bem",
     "change_bem_convention",
-    "linear_hydrodynamics",
+    "add_linear_friction",
     "wave_excitation",
     "hydrodynamic_impedance",
     "atleast_2d",
@@ -50,6 +50,7 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
+    "set_fb_centers",
 ]
 
 
@@ -284,8 +285,6 @@ class WEC:
     @staticmethod
     def from_bem(
         bem_data: Union[Dataset, Union[str, Path]],
-        inertia_matrix: Optional[ndarray] = None,
-        hydrostatic_stiffness: Optional[ndarray] = None,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -312,26 +311,16 @@ class WEC:
         :py:func:`wecopttool.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
-        using :py:func:`wecopttool.write_netcdf`.
-
-        In addition to the Capytaine results, if the dataset contains
-        the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
-        or :python:`friction` these do not need to be provided
-        separately.
+        using :py:func:`wecopttool.write_netcdf`. 
+        :py:func:`wecopttool.run_bem` also computes the inertia and 
+        hydrostatic stiffness which should be included in bem_data.
 
         Parameters
         ----------
         bem_data
             Linear hydrodynamic coefficients obtained using the boundary
             element method (BEM) code Capytaine, with sign convention
-            corrected.
-        inertia_matrix
-           Inertia matrix of size :python:`(ndof, ndof)`.
-           :python:`None` if included in :python:`bem_data`.
-        hydrostatic_stiffness
-            Linear hydrostatic restoring coefficient of size
-            :python:`(nodf, ndof)`.
-            :python:`None` if included in :python:`bem_data`.
+            corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
             :python:`(nodf, ndof)`.
@@ -362,32 +351,16 @@ class WEC:
             If :python:`None` the names
             :python:`['DOF_0', ..., 'DOF_N']` are used.
 
-        Raises
-        ------
-        ValueError
-            If either :python:`inertia_matrix` or
-            :python:`hydrostatic_stiffness` are :python:`None` and is
-            not included in :python:`bem_data`.
-            See :py:func:`wecopttool.linear_hydrodynamics`.
-        ValueError
-            If any of :python:`inertia_matrix`,
-            :python:`hydrostatic_stiffness`, or :python:`stiffness` are
-            both provided and included in :python:`bem_data` but have
-            different values.
-            See :py:func:`wecopttool.linear_hydrodynamics`.
-
         See Also
         --------
-        run_bem, linear_hydrodynamics, change_bem_convention,
+        run_bem, add_linear_friction, change_bem_convention,
         write_netcdf, check_linear_damping
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
-        # add inertia_matrix, hydrostatic stiffness, and friction
-        hydro_data = linear_hydrodynamics(
-            bem_data, inertia_matrix, hydrostatic_stiffness, friction)
-        if inertia_matrix is None:
-            inertia_matrix = hydro_data['inertia_matrix'].values
+        # add friction
+        hydro_data = add_linear_friction(bem_data, friction)
+        inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
         f1, nfreq = frequency_parameters(
@@ -411,8 +384,6 @@ class WEC:
         fb: cpy.FloatingBody,
         f1: float,
         nfreq: int,
-        inertia_matrix: ndarray,
-        hydrostatic_stiffness: ndarray,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -454,11 +425,6 @@ class WEC:
         nfreq
             Number of frequencies (not including zero frequency),
             i.e., :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
-        inertia_matrix
-           Inertia matrix of size :python:`(ndof, ndof)`.
-        hydrostatic_stiffness
-            Linear hydrostatic restoring coefficient of size
-            :python:`(ndof, ndof)`.
         friction
             Linear friction, in addition to radiation damping, of size
             :python:`(ndof, ndof)`.
@@ -504,7 +470,7 @@ class WEC:
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
-            bem_data, inertia_matrix, hydrostatic_stiffness, friction, f_add,
+            bem_data, friction, f_add,
             constraints, min_damping=min_damping)
         return wec
 
@@ -537,7 +503,7 @@ class WEC:
             Frequency vector [:math:`Hz`] not including the zero frequency,
             :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
         impedance
-            Complex impedance of size :python:`(ndof, ndof, nfreq)`.
+            Complex impedance of size :python:`(nfreq, ndof, ndof)`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`(ndof, nfreq)`.
@@ -571,17 +537,18 @@ class WEC:
         # impedance matrix shape
         shape = impedance.shape
         ndim = impedance.ndim
-        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
+        if (ndim!=3) or (shape[1]!=shape[2]) or (shape[0]!=nfreq):
             raise ValueError(
-                "'impedance' must have shape '(ndof, ndof, nfreq)'.")
+                "'impedance' must have shape '(nfreq, ndof, ndof)'.")
 
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
         omega = freqs * 2*np.pi
-        transfer_func = impedance * (1j*omega)
+        omega0 = np.expand_dims(omega, [1,2])
+        transfer_func = impedance * (1j*omega0)
         transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
-        transfer_func = np.concatenate([transfer_func0, transfer_func], 2)
+        transfer_func = np.concatenate([transfer_func0, transfer_func], axis=0)
         transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
         force_impedance = force_from_rao_transfer_function(transfer_func)
 
@@ -598,7 +565,7 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0])
+                  inertia_in_forces=True, ndof=shape[1])
         return wec
 
     def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
@@ -1325,6 +1292,7 @@ def frequency(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
+    precision: Optional[int] = 10,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
@@ -1345,7 +1313,11 @@ def frequency(
         Number of frequencies.
     zero_freq
         Whether to include the zero-frequency.
+    precision
+        Controls rounding of fundamental frequency.
     """
+    if precision is not None:
+        f1 = np.floor(f1*10**precision) / 10**precision
     freq = np.arange(0, nfreq+1)*f1
     freq = freq[1:] if not zero_freq else freq
     return freq
@@ -1510,7 +1482,7 @@ def mimo_transfer_mat(
     For example, it can be an impedance matrix or an RAO transfer
     matrix.
     The input complex impedance matrix has shape
-    :python`(ndof, ndof, nfreq)`.
+    :python`(nfreq, ndof, ndof)`.
 
     Returns the 2D real matrix that transform the state representation
     of the input variable variable to the state representation of the
@@ -1531,20 +1503,20 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    ndof = transfer_mat.shape[0]
-    assert transfer_mat.shape[1] == ndof
+    ndof = transfer_mat.shape[1]
+    assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
-                Zp0 = transfer_mat[idof, jdof, 0]
+                Zp0 = transfer_mat[0, idof, jdof]
                 assert np.all(np.isreal(Zp0))
                 Zp0 = np.real(Zp0)
-                Zp = transfer_mat[idof, jdof, 1:]
+                Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
-                Zp = transfer_mat[idof, jdof, :]
+                Zp = transfer_mat[:, idof, jdof]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
@@ -1929,13 +1901,13 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
         dmin = np.min(np.real(Zi_diag[:, dof]))
         if dmin < min_damping:
             delta = min_damping - dmin
-            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
                 + np.abs(delta)
             _log.warning(
                 f'Real part of impedance for {dof} has negative or close to ' +
@@ -2026,8 +1998,8 @@ def inertia(
     inertia_matrix
         Inertia matrix.
     """
-    omega = np.reshape(frequency(f1, nfreq, False)*2*np.pi, [1,1,-1])
-    inertia_matrix = np.expand_dims(inertia_matrix, -1)
+    omega = np.expand_dims(frequency(f1, nfreq, False)*2*np.pi, [1,2])
+    inertia_matrix = np.expand_dims(inertia_matrix, 0)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_rao_transfer_function(
         rao_transfer_function, False)
@@ -2047,8 +2019,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     hydro_data
         Linear hydrodynamic data.
     """
-    hydro_data = hydro_data.transpose(
-         "omega", "wave_direction", "radiating_dof", "influenced_dof")
 
     # intrinsic impedance
     w = hydro_data['omega']
@@ -2062,7 +2032,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     rao_transfer_functions['friction'] = (1j*w*Bf, False)
 
     # include zero_freq in hydrostatics
-    hs = ((K + 0j).expand_dims({"omega": B.omega}))
+    hs = ((K + 0j).expand_dims({"omega": B.omega}, 0))
     tmp = hs.isel(omega=0).copy(deep=True)
     tmp['omega'] = tmp['omega'] * 0
     hs = xr.concat([tmp, hs], dim='omega') #, data_vars='minimal')
@@ -2070,7 +2040,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     linear_force_functions = dict()
     for name, (value, zero_freq) in rao_transfer_functions.items():
-        value = value.transpose("radiating_dof", "influenced_dof", "omega")
+        value = value.transpose("omega", "radiating_dof", "influenced_dof")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
             force_from_rao_transfer_function(value, zero_freq))
@@ -2152,12 +2122,17 @@ def run_bem(
         # radiation only problem, no diffraction or excitation
         test_matrix = test_matrix.drop_vars('wave_direction')
     if write_info is None:
-        write_info = {'hydrostatics': False,
+        write_info = {'hydrostatics': True,
                       'mesh': False,
                       'wavelength': False,
                       'wavenumber': False,
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    wec_im = set_fb_centers(wec_im, rho=rho)
+    if not hasattr(wec_im, 'inertia_matrix'):
+        wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
+    if not hasattr(wec_im, 'hydrostatic_stiffness'):
+        wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho, g=g)
     bem_data = solver.fill_dataset(
         test_matrix, wec_im, n_jobs=njobs, **write_info)
     return change_bem_convention(bem_data)
@@ -2184,14 +2159,11 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     return bem_data
 
 
-def linear_hydrodynamics(
+def add_linear_friction(
     bem_data: Dataset,
-    inertia_matrix: Optional[ArrayLike] = None,
-    hydrostatic_stiffness: Optional[ArrayLike] = None,
     friction: Optional[ArrayLike] = None
 ) -> Dataset:
-    """Add rigid body inertia_matrix, hydrostatic stiffness, and linear
-    friction to BEM data.
+    """Add linear friction to BEM data.
 
     Returns the Dataset with the additional information added.
 
@@ -2200,62 +2172,32 @@ def linear_hydrodynamics(
     bem_data
         Linear hydrodynamic coefficients obtained using the boundary
         element method (BEM) code Capytaine, with sign convention
-        corrected.
-    inertia_matrix
-        Inertia matrix of size :python:`(ndof, ndof)`.
-        :python:`None` if included in :python:`bem_data`.
-    hydrostatic_stiffness
-        Linear hydrostatic restoring coefficient of size
-        :python:`(nodf, ndof)`.
-        :python:`None` if included in :python:`bem_data`.
+        corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
         :python:`(nodf, ndof)`.
         :python:`None` if included in :python:`bem_data` or to set to zero.
-
-    Raises
-    ------
-    ValueError
-        If either :python:`inertia_matrix` or
-        :python:`hydrostatic_stiffness` are :python:`None` and is not
-        included in :python:`bem_data`.
-    ValueError
-        If any of :python:`inertia_matrix`,
-        :python:`hydrostatic_stiffness`, or :python:`friction` are both
-        provided and included in :python:`bem_data` but have different
-        values.
     """
-    vars = {'inertia_matrix': inertia_matrix, 'friction': friction,
-            'hydrostatic_stiffness': hydrostatic_stiffness}
-
     dims = ['radiating_dof', 'influenced_dof']
-
     hydro_data = bem_data.copy(deep=True)
-
-    for name, data in vars.items():
-        org = name in hydro_data.variables.keys()
-        new = data is not None
-        if new and org:
+    
+    if friction is not None:
+        if 'friction' in hydro_data.variables.keys():
             if not np.allclose(data, hydro_data.variables[name]):
                 raise ValueError(
-                    f'BEM data already has variable "{name}" ' +
-                    'with diferent values')
-            else :
+                        f'Variable "friction" is already in BEM data ' +
+                        f'with different values.')
+            else:
                 _log.warning(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
-        elif (not new) and (not org):
-            if name=='friction':
-                ndof = len(hydro_data["influenced_dof"])
-                hydro_data[name] = (dims, np.zeros([ndof, ndof]))
-            else:
-                raise ValueError(
-                    f'Variable "{name}" is not in BEM data and ' +
-                    'was not provided.')
-        elif new:
-            data = atleast_2d(data)
-            hydro_data[name] = (dims, data)
-
+        else:
+            data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction)
+    elif friction is None:
+        ndof = len(hydro_data["influenced_dof"])
+        hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
+            
     return hydro_data
 
 
@@ -2289,8 +2231,7 @@ def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
     omega_e = exc_coeff['omega'].values
     dir_w = waves['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
+    exc_coeff = exc_coeff.values
 
     wave_elev_fd = np.expand_dims(waves.values, -1)
 
@@ -2315,14 +2256,14 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     ----------
     hydro_data
         Dataset with linear hydrodynamic coefficients produced by
-        :py:func:`wecopttool.linear_hydrodynamics`.
+        :py:func:`wecopttool.add_linear_friction`.
     """
 
     Zi = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi
+    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
@@ -2564,3 +2505,35 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         out = out + \
             np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
+
+
+def set_fb_centers(
+    fb: FloatingBody,
+    rho: float = _default_parameters["rho"],
+) -> FloatingBody:
+    """Sets default properties if not provided by the user:
+        - `center_of_mass` is set to the geometric centroid
+        - `rotation_center` is set to the center of mass
+    """
+    valid_properties = ['center_of_mass', 'rotation_center']
+    
+    for property in valid_properties:
+        if not hasattr(fb, property):
+            setattr(fb, property, None)
+        if getattr(fb, property) is None:
+            if property == 'center_of_mass':
+                def_val = fb.center_of_buoyancy
+                log_str = (
+                    "Using the geometric centroid as the center of gravity (COG).")
+            elif property == 'rotation_center':
+                def_val = fb.center_of_mass
+                log_str = (
+                    "Using the center of gravity (COG) as the rotation center " +
+                    "for hydrostatics.")
+            setattr(fb, property, def_val)
+            _log.warning(log_str)
+        elif getattr(fb, property) is not None:
+            _log.warning(
+                f'{property} already defined as {getattr(fb, property)}.')
+            
+    return fb
