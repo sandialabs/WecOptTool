@@ -10,10 +10,14 @@ The Wave Energy Converter Design Optimization Toolbox (WecOptTool) allows users 
 Refer to [WecOptTool documentation](https://sandialabs.github.io/WecOptTool/) for more information, including project overview, tutorials, theory, and API documentation.
 
 ## Getting started
-WecOptTool requires Python >= 3.8. Python 3.10 & 3.11 are supported.
-It is strongly recommended you create a dedicated virtual environment (e.g., using `conda`, `venv`, etc.) before installing `wecopttool`.
+**If you are brand new to Python and/or want detailed installation instructions, [click here](https://github.com/sandialabs/WecOptTool/blob/main/INSTALLATION.md).**
 
-**Option 1** - using `Conda` (requires having `conda-forge` added as a channel in your environment, see instructions [here](https://conda-forge.org/docs/user/introduction.html#how-can-i-install-packages-from-conda-forge)):
+WecOptTool requires Python >= 3.8. Python 3.10 & 3.11 are supported.
+It is strongly recommended you create a dedicated virtual environment (e.g., using [`conda`](https://www.anaconda.com/), [`mamba`](https://mamba.readthedocs.io/en/latest/), `venv`, etc.) before installing WecOptTool.
+
+From your dedicated environment, you can install WecOptTool via `conda`, `pip`, or `mamba`:
+
+**Option 1** - using `Conda`:
 
 ```bash
 conda install -c conda-forge wecopttool
@@ -25,7 +29,11 @@ conda install -c conda-forge wecopttool
 pip install wecopttool
 ```
 
-This approach is not recommended for Windows users since compiling `capytaine` on Windows requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+**Option 3** - using `Mamba`:
+
+```bash
+mamba install wecopttool
+```
 
 **Geometry module and tutorials**
 

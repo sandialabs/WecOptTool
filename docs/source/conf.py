@@ -20,7 +20,7 @@ sys.path.insert(0, code_root)
 project = 'WecOptTool'
 copyright = (
     '2020 National Technology & Engineering Solutions of Sandia, ' +
-    'LLC(NTESS). ' +
+    'LLC (NTESS). ' +
     'Under the terms of Contract DE-NA0003525 with NTESS, the U.S. ' +
     'Government retains certain rights in this software'
 )
@@ -56,25 +56,6 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
                      'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these
                      'app.add_directive',
                      'app.add_role',]
-
-linkcheck_ignore = [
-    'https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#',
-    'https://doi.org/10.2172/1330189',
-    'https://sandialabs.github.io/WecOptTool/*',
-    'https://doi.org/10.1080/17445302.2015.1089052',
-]
-
-linkcheck_request_headers = {
-    'https://doi.org/10.1109/TSTE.2014.2371536': {
-        'User-Agent': 'my-app/0.0.1'
-    },
-    'https://doi.org/10.1109/9.467672': {
-        'User-Agent': 'my-app/0.0.1'
-    },
-    'https://doi.org/10.1109/TSTE.2023.3272868': {
-        'User-Agent': 'my-app/0.0.1'
-    },
-}
 
 # -- References (BibTex) -----------------------------------------------------
 bibtex_bibfiles = ['wecopttool_refs.bib']
