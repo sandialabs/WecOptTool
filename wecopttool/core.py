@@ -48,8 +48,8 @@ __all__ = [
     "subset_close",
     "scale_dofs",
     "decompose_state",
-    "frequency_parameters",
-    "time_results",
+    "frequency_parameters", #
+    "time_results", #
     "set_fb_centers", #
 ]
 
@@ -2427,6 +2427,7 @@ def decompose_state(
     state: ndarray,
     ndof: int,
     nfreq: int,
+    nfreq_start: Optional[int] = 0,
 ) -> tuple[ndarray, ndarray]:
     """Split the state vector into the WEC dynamics state and the
     optimization (control) state.
@@ -2444,6 +2445,8 @@ def decompose_state(
         Number of degrees of freedom for the WEC dynamics.
     nfreq
         Number of frequencies.
+    nfreq_start
+        Frequency index at which frequency vector starts.
 
     Returns
     -------
@@ -2452,12 +2455,13 @@ def decompose_state(
     state_opt
         Optimization (control) state.
     """
-    nstate_wec = ndof * ncomponents(nfreq)
+    nstate_wec = ndof * ncomponents(nfreq, nfreq_start)
     return state[:nstate_wec], state[nstate_wec:]
 
 
 def frequency_parameters(
-    freqs: ArrayLike
+    freqs: ArrayLike,
+    precision: Optional[int] = 10,
 ) -> tuple[float, int]:
     """Return the fundamental frequency, the number of frequencies, and
     first frequency in a frequency array.
@@ -2469,7 +2473,9 @@ def frequency_parameters(
     Parameters
     ----------
     freqs
-        The frequency array, starting at zero and having equal spacing.
+        The frequency array with equal spacing.
+    precision
+        Controls rounding of fundamental frequency.
 
     Returns
     -------
@@ -2477,10 +2483,9 @@ def frequency_parameters(
         Fundamental frequency :python:`f1` [:math:`Hz`].
         This is also the spacing.
     nfreq
-        Number of frequencies (not including zero frequency),
-        i.e., :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
+        Number of frequencies.
     nfreq_start
-        Frequency at which to start vector.
+        Frequency (index) at which vector starts.
 
     Raises
     ------
@@ -2488,11 +2493,16 @@ def frequency_parameters(
         If the frequency vector is not evenly spaced.
     """
     f1 = freqs[1] - freqs[0]
-    nfreq_start = int(freqs[0]/f1)
+    if precision is not None:
+        f1 = np.floor(f1*10**precision) / 10**precision
+    nfreq_start = round(freqs[0]/f1)
+    assert np.isclose(nfreq_start, freqs[0]/f1)
     nfreq = len(freqs)
-    f_check = np.arange(nfreq_start, nfreq_start+nfreq, f1)
+    f_check = np.arange(nfreq_start, nfreq_start+nfreq)*f1
     if not np.allclose(f_check, freqs):
-        raise ValueError("Frequency array must be evenly spaced by" +
+        print(f_check)
+        print(freqs)
+        raise ValueError("Frequency array must be evenly spaced by " +
                          "the fundamental frequency ")
     return f1, nfreq, nfreq_start
 
