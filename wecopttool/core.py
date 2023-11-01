@@ -22,9 +22,9 @@ __all__ = [
     "time_mat", #
     "derivative_mat", #
     "derivative2_mat", #
-    "mimo_transfer_mat",
-    "vec_to_dofmat",
-    "dofmat_to_vec",
+    "mimo_transfer_mat", #
+    "vec_to_dofmat", #
+    "dofmat_to_vec", #
     "real_to_complex",
     "complex_to_real",
     "fd_to_td",
@@ -1494,23 +1494,21 @@ def mimo_transfer_mat(
     :python`(ndof, ndof, nfreq)`.
 
     Returns the 2D real matrix that transform the state representation
-    of the input variable variable to the state representation of the
-    output variable.
+    of the input variables to the state representation of the output
+    variables.
     Here, a state representation :python:`x` consists of the mean (DC)
-    component followed by the real and imaginary components of the
-    Fourier coefficients (excluding the imaginary component of the
-    2-point wave) as
+    component (if included) followed by the real and imaginary c
+    omponents of the Fourier coefficients (excluding the imaginary
+    component of the 2-point wave) as
     :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
-
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
     Parameters
     ----------
     transfer_mat
         Complex transfer matrix.
     zero_freq
-        Whether the first frequency should be zero.
+        Whether the first elements :python:`tranfser_mat[:,:,0]`
+        correspond to frequency zero.
     """
     ndof = transfer_mat.shape[0]
     assert transfer_mat.shape[1] == ndof
@@ -1520,16 +1518,18 @@ def mimo_transfer_mat(
         for jdof in range(ndof):
             if zero_freq:
                 Zp0 = transfer_mat[idof, jdof, 0]
-                assert np.all(np.isreal(Zp0))
+                if not np.all(np.isreal(Zp0)):
+                    raise ValueError("Zero frequency component must be real.")
                 Zp0 = np.real(Zp0)
                 Zp = transfer_mat[idof, jdof, 1:]
             else:
-                Zp0 = [0.0]
                 Zp = transfer_mat[idof, jdof, :]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
-            blocks = [Zp0] + blocks + [re[-1]]
+            blocks = blocks + [re[-1]]
+            if zero_freq:
+                blocks = [Zp0] + blocks
             elem[idof][jdof] = block_diag(*blocks)
     return np.block(elem)
 
