@@ -16,15 +16,15 @@ from __future__ import annotations
 
 __all__ = [
     "WEC",
-    "ncomponents", #
-    "frequency", #
-    "time", #
-    "time_mat", #
-    "derivative_mat", #
-    "derivative2_mat", #
-    "mimo_transfer_mat", #
-    "vec_to_dofmat", #
-    "dofmat_to_vec", #
+    "ncomponents",
+    "frequency",
+    "time",
+    "time_mat",
+    "derivative_mat",
+    "derivative2_mat",
+    "mimo_transfer_mat",
+    "vec_to_dofmat",
+    "dofmat_to_vec", ##
     "real_to_complex",
     "complex_to_real",
     "fd_to_td",
@@ -43,13 +43,13 @@ __all__ = [
     "add_linear_friction",
     "wave_excitation",
     "hydrodynamic_impedance",
-    "atleast_2d",
+    "atleast_2d", ##
     "degrees_to_radians",
     "subset_close",
     "scale_dofs",
     "decompose_state",
-    "frequency_parameters", #
-    "time_results", #
+    "frequency_parameters",
+    "time_results",
     "set_fb_centers", #
 ]
 
@@ -1265,55 +1265,57 @@ class WEC:
 
 def ncomponents(
     nfreq : int,
-    nfreq_start: Optional[int] = 0,
+    nfreq_start: Optional[int] = 1,
+    zero_freq: Optional[bool] = True,
     total: Optional[bool] = False,
-    zero_freq_total: Optional[bool] = True,
 ) -> int:
     """Number of Fourier components for each DOF.
 
     For most frequencies this is two compenents per frequency.
     However, the sine component of the highest frequency
-    (the 2-point wave) is excluded as it will always evaluate to zero,
-    i.e., :python:`2*nfreq-1`.
-    If the first frequency is :python:`nfreq_start=0`, that frequency
-    only has one component (DC) and the total number of components is
-    :python:`2*nfreq`.
+    (the 2-point wave) is excluded as it will always evaluate to zero.
+    Similarly, the zero-frequency (DC) component, if included via
+    :python:`zero_freq=True` (default) , only has a real part.
+
+    With the DC component included the  total number of components is
+    :python:`2*nfreq`, corresponding to :math:`x = [X0, Re(X1), Im(x1), ..., Re(Xn)]`
+    were :math:`X0` corresponds to frequency :python:`0`,
+    :math:`X1` corresponds to frequency :python:`nfreq_start*f1` and
+    :math:`Xn` corresponds to frequency :python:`(nfreq_start+nfreq-1)*f1`.
+
+    Without the DC component the totral number of components is one
+    less, or :python:`2*nfreq-1`
 
     Parameters
     ----------
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
+        Frequency index at which frequency vector starts.
     total
         Whether to return the total number of frequencies as if it
-        started at f=0.
-    zero_freq_total
-        Whether to include the zero (DC) component when `total=True`.
+        started at :python:`nfreq_start=1`.
+    zero_freq
+        Whether to include the zero (DC) component.
     """
-    if total:
-        nfreq = nfreq + nfreq_start
-        ncomp = 2*nfreq-2 if zero_freq_total else 2*nfreq-3
-    else:
-        ncomp = 2*nfreq-2 if (nfreq_start==0) else 2*nfreq-1
+    nfreq = nfreq if (not total) else (nfreq+nfreq_start-1)
+    ncomp = 2*nfreq if zero_freq else 2*nfreq-1
     return ncomp
 
 
 def frequency(
     f1: float,
     nfreq: int,
-    nfreq_start: Optional[int] = 0,
-    precision: Optional[int] = 10,
+    nfreq_start: Optional[int] = 1,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
     Returns the frequency array
-    :python:`[f1*n_start, f1*(nfreq_start+1), ..., f1*(nfreq_start+nfreq-1)]`.
+    :python:`[0, f1*nfreq_start, f1*(nfreq_start+1), ..., f1*(nfreq_start+nfreq-1)]`.
     :python:`f1` is fundamental frequency (1st harmonic) and
     :python:`n_start` allows the vector starting at a frequency other
-    than :python:`0`.
-    In particular, :python:`nfreq_start=0` includes the mean (DC)
-    component, while :python:`nfreq_start=1` excludes it (zero-mean).
+    than :python:`f1`.
     Larger values of :python:`nfreq_start` can be useful in reducing the
     computational cost when there is little or no energy in the lower
     frequency components, specially when using a very fine
@@ -1326,28 +1328,28 @@ def frequency(
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
-    precision
-        Controls rounding of fundamental frequency.
+        Frequency index at which frequency vector starts.
+    zero_freq
+        Whether to include the zero (DC) component.
     """
-    if precision is not None:
-        f1 = np.floor(f1*10**precision) / 10**precision
-    return np.arange(nfreq_start, nfreq_start+nfreq)*f1
+    freq = np.arange(nfreq_start, nfreq_start+nfreq)*f1
+    freq = freq if (not zero_freq) else np.concatenate(([0], freq))
+    return freq
 
 
 def time(
     f1: float,
     nfreq: int,
-    nfreq_start: Optional[int] = 0,
+    nfreq_start: Optional[int] = 1,
     nsubsteps: Optional[int] = 1,
 ) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
 
     Returns the 1D time vector, in seconds, starting at time
     :python:`0`, and not containing the end time :python:`tf=1/f1`.
-    The time vector has length :python:`2*(nfreq+nfreq_start)*nsubsteps`.
+    The time vector has length :python:`2*(nfreq+nfreq_start-1)*nsubsteps`.
     The timestep length is :python:`dt = dt_default * 1/nsubsteps`,
-    where :python:`dt_default=tf/(2*(nfreq+nfreq_start))`.
+    where :python:`dt_default=tf/(2*(nfreq+nfreq_start-1))`.
 
     Parameters
     ----------
@@ -1356,14 +1358,12 @@ def time(
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
+        Frequency index at which frequency vector starts.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
     """
-    if nsubsteps < 1:
-        raise ValueError("'nsubsteps' must be 1 or greater")
-    ncomp = ncomponents(nfreq, nfreq_start, total=True, zero_freq_total=True)
+    ncomp = ncomponents(nfreq, nfreq_start, total=True, zero_freq=True)
     nsteps = nsubsteps * ncomp
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
@@ -1371,8 +1371,9 @@ def time(
 def time_mat(
     f1: float,
     nfreq: int,
-    nfreq_start: Optional[int] = 0,
+    nfreq_start: Optional[int] = 1,
     nsubsteps: Optional[int] = 1,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
@@ -1384,9 +1385,10 @@ def time_mat(
     :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`,
     the response vector in the time-domain (:math:`x(t)`) is given as
     :math:`Mx`, where :math:`M` is the time matrix.
-    If :python:`nfreq_start>0` the state vector does not include the
-    DC component and starts at components for frequency
-    :python:`nfreq_start*f1`.
+    If :python:`nfreq_start>0` the state vector starts at components for
+    frequency :python:`nfreq_start*f1` instead of :python:`f1`.
+    If :python:`zero_freq=False` the DC component is assumed missing
+    from the state vector.
 
     Parameters
     ---------
@@ -1395,21 +1397,22 @@ def time_mat(
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
+        Frequency index at which the frequency vector starts.
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
+    zero_freq
+        Whether the state vector includes the zero (DC) component.
     """
     t = time(f1, nfreq, nfreq_start, nsubsteps)
-    omega = frequency(f1, nfreq, nfreq_start) * 2*np.pi
-    ncomp = ncomponents(nfreq, nfreq_start)
+    omega = frequency(f1, nfreq, nfreq_start, zero_freq=False) * 2*np.pi
+    ncomp = ncomponents(nfreq, nfreq_start, zero_freq)
     time_mat = np.empty((nsubsteps*len(t), ncomp))
-    if nfreq_start==0:
-        wt = np.outer(t, omega[1:])
+    wt = np.outer(t, omega)
+    if zero_freq:
         time_mat[:, 0] = 1.0
         c0, s0 = 1,2
     else:
-        wt = np.outer(t, omega)
         c0,s0 = 0,1
     time_mat[:, c0::2] = np.cos(wt)
     time_mat[:, s0::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
@@ -1419,7 +1422,8 @@ def time_mat(
 def derivative_mat(
     f1: float,
     nfreq: int,
-    nfreq_start: Optional[int] = 0,
+    nfreq_start: Optional[int] = 1,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
@@ -1430,7 +1434,7 @@ def derivative_mat(
     as :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`, the state of its
     derivative is given as :math:`Dx`, where :math:`D` is the derivative
     matrix.
-    If :python:`nfreq_start>0` the state vector does not include the
+    If :python:`zero_freq=False` the state vector does not include the
     DC component and starts at components for frequency
     :python:`nfreq_start*f1`.
 
@@ -1441,13 +1445,14 @@ def derivative_mat(
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
+        Frequency index at which frequency vector starts.
+    zero_freq
+        Whether the state vector includes the zero (DC) component.
     """
     def block(n): return np.array([[0, -1], [1, 0]]) * n*f1 * 2*np.pi
-    if nfreq_start==0:
-        blocks = [0.0] + [block(n) for n in range(1, nfreq)]
-    else:
-        blocks = [block(n) for n in range(nfreq_start, nfreq+nfreq_start)]
+    blocks = [block(n) for n in range(nfreq_start, nfreq+nfreq_start)]
+    if zero_freq:
+        blocks = [0.0] + blocks
     deriv_mat = block_diag(*blocks)[:-1, :-1] # remove 2pt wave sine component
     return deriv_mat
 
@@ -1456,6 +1461,7 @@ def derivative2_mat(
     f1: float,
     nfreq: int,
     nfreq_start: Optional[int] = 0,
+    zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Assemble the second derivative matrix that converts the state
     vector of a response to the state vector of its second derivative.
@@ -1466,7 +1472,7 @@ def derivative2_mat(
     as :math:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`, the state of its
     second derivative is given as :math:`(DD)x`, where :math:`DD` is the
     second derivative matrix.
-    If :python:`nfreq_start>0` the state vector does not include the
+    If :python:`zero_freq=False` the state vector does not include the
     DC component and starts at components for frequency
     :python:`nfreq_start*f1`.
 
@@ -1477,17 +1483,14 @@ def derivative2_mat(
     nfreq
         Number of frequencies.
     nfreq_start
-        Frequency index at which to start.
+        Frequency index at which frequency vector starts.
+    zero_freq
+        Whether the state vector includes the zero (DC) component.
     """
-    if nfreq_start==0:
-        vals = [((n)*f1 * 2*np.pi)**2 for n in range(1, nfreq)]
-        diagonal = np.concatenate((
-            [0.0],
-            np.squeeze(np.repeat(-np.ones(nfreq-1) * vals, 2))[:-1], # remove 2pt wave sine
-        ))
-    else:
-        vals = [((n)*f1 * 2*np.pi)**2 for n in range(nfreq_start, nfreq+nfreq_start)]
-        diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    vals = [((n)*f1 * 2*np.pi)**2 for n in range(nfreq_start, nfreq+nfreq_start)]
+    diagonal = np.squeeze(np.repeat(-np.ones(nfreq-1) * vals, 2))[:-1] # remove 2pt wave sine
+    if zero_freq:
+        diagonal = np.concatenate(([0.0], diagonal))
     return np.diag(diagonal)
 
 
@@ -2493,9 +2496,8 @@ def frequency_parameters(
         If the frequency vector is not evenly spaced.
     """
     f1 = freqs[1] - freqs[0]
-    if precision is not None:
-        f1 = np.floor(f1*10**precision) / 10**precision
-    nfreq_start = round(freqs[0]/f1)
+    f1 = f1 if precision is None else round(f1, precision)
+    nfreq_start = round(f   reqs[0]/f1)
     assert np.isclose(nfreq_start, freqs[0]/f1)
     nfreq = len(freqs)
     f_check = np.arange(nfreq_start, nfreq_start+nfreq)*f1
