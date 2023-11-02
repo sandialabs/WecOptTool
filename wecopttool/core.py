@@ -868,6 +868,9 @@ class WEC:
         """
         create_time = f"{datetime.utcnow()}"
 
+        omega_vals = np.concatenate([[0], waves.omega.values])
+        freq_vals = np.concatenate([[0], waves.freq.values])
+        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -879,9 +882,9 @@ class WEC:
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
-        omega_coord = ("omega", self.omega, omega_attr)
-        freq_coord = ("omega", self.frequency, freq_attr)
-        period_coord = ("omega", self.period, period_attr)
+        omega_coord = ("omega", omega_vals, omega_attr)
+        freq_coord = ("omega", freq_vals, freq_attr)
+        period_coord = ("omega", period_vals, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
 
         # frequency domain
@@ -1292,7 +1295,6 @@ def frequency(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-    precision: Optional[int] = 10,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
@@ -1313,11 +1315,7 @@ def frequency(
         Number of frequencies.
     zero_freq
         Whether to include the zero-frequency.
-    precision
-        Controls rounding of fundamental frequency.
     """
-    if precision is not None:
-        f1 = np.floor(f1*10**precision) / 10**precision
     freq = np.arange(0, nfreq+1)*f1
     freq = freq[1:] if not zero_freq else freq
     return freq
