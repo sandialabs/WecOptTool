@@ -727,13 +727,18 @@ class PTO:
         force_fd = wec.td_to_fd(force_td[::nsubsteps])
 
         # power
-        power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
-        power_fd = wec.td_to_fd(power_td[::nsubsteps])
+        elec_power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
+        elec_power_fd = wec.td_to_fd(elec_power_td[::nsubsteps])
 
         # mechanical power
         mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
                                               nsubsteps)
         mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
+
+        # stack mechanical and electrical power
+        power_names = ['mech','elec']
+        power_fd = np.stack((mech_power_fd,elec_power_fd))
+        power_td = np.stack((mech_power_td,elec_power_td))
 
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
@@ -748,6 +753,7 @@ class PTO:
         period_attr = {'long_name': 'Period', 'units': 's'}
         dof_attr = {'long_name': 'PTO degree of freedom'}
         time_attr = {'long_name': 'Time', 'units': 's'}
+        type_attr = {'long_name': 'Power type'}
 
         t_dat = wec.time_nsubsteps(nsubsteps)
 
@@ -757,15 +763,14 @@ class PTO:
                 'vel': (['omega','dof'], vel_fd, vel_attr),
                 'acc': (['omega','dof'], acc_fd, acc_attr),
                 'force': (['omega','dof'], force_fd, force_attr),
-                'power': (['omega','dof'], power_fd, power_attr),
-                'mech_power': (['omega','dof'],
-                                mech_power_fd, mech_power_attr)
+                'power': (['type','omega','dof'], power_fd, power_attr),
             },
             coords={
                 'omega':('omega', wec.omega, omega_attr),
                 'freq':('omega', wec.frequency, freq_attr),
                 'period':('omega', wec.period, period_attr),
-                'dof':('dof', self.names, dof_attr)},
+                'dof':('dof', self.names, dof_attr),
+                'type':('type', power_names, power_attr)},
             attrs={"time_created_utc": create_time}
             )
 
@@ -775,13 +780,12 @@ class PTO:
                 'vel': (['time','dof'], vel_td, vel_attr),
                 'acc': (['time','dof'], acc_td, acc_attr),
                 'force': (['time','dof'], force_td, force_attr),
-                'power': (['time','dof'], power_td, power_attr),
-                'mech_power': (['time','dof'],
-                                 mech_power_td, mech_power_attr)
+                'power': (['type','time','dof'], power_td, power_attr),
             },
             coords={
                 'time':('time', t_dat, time_attr),
-                'dof':('dof', self.names, dof_attr)},
+                'dof':('dof', self.names, dof_attr),
+                'type':('type', power_names, power_attr)},
             attrs={"time_created_utc": create_time}
             )
 

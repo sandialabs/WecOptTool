@@ -10,7 +10,7 @@ Community contributions are welcomed! 🎊
 
 Using `conda` this looks like:
 ```bash
-conda create -n wecopttool python=3.10
+conda create -n wecopttool python=3.11
 conda activate wecopttool
 conda install -c conda-forge capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
@@ -22,7 +22,7 @@ And using `pip`:
 ```bash
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
-python3.10 -m venv .venv
+python3.11 -m venv .venv
 . .venv/bin/activate
 pip install -e .[dev]
 ```
@@ -75,6 +75,10 @@ To delete, do `python3 docs/clean_docs.py`.
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
 When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
 We recommend installing pandoc using its Anaconda distribution: `conda install -c conda-forge pandoc`.
+
+**NOTE:** it may be expedient at times to avoid running the tutorial notebooks. To do so, add [`nbsphinx_execute = 'never'`](https://nbsphinx.readthedocs.io/en/0.9.3/configuration.html#nbsphinx_execute) to `docs/source/conf.py`. Make sure not to commit these changes!
+
+If you add or change any hyperlinks in the documentation, we recommend checking the "Build documentation" warnings in the GitHub Actions CI workflow to make sure the links will not cause an issue. The CI will not fail due to broken links, only issue a warning (see [issue #286](https://github.com/sandialabs/WecOptTool/issues/286)).
 
 ### Editing the tutorials
 The tutorials are used as part of the Documentation.

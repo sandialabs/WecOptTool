@@ -53,19 +53,24 @@ def bem_data(f1, nfreq):
     }
 
     ndof = 2; ndir = 3;
-    radiation_dims = ['radiating_dof', 'influenced_dof', 'omega']
-    excitation_dims = ['influenced_dof', 'wave_direction', 'omega']
+    radiation_dims = ['omega', 'radiating_dof', 'influenced_dof']
+    excitation_dims = ['omega', 'influenced_dof', 'wave_direction']
+    hydrostatics_dims = ['radiating_dof', 'influenced_dof']
 
-    added_mass = np.ones([ndof, ndof, nfreq])
-    radiation_damping = np.ones([ndof, ndof, nfreq])
-    diffraction_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
-    Froude_Krylov_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
-
+    added_mass = np.ones([nfreq, ndof, ndof])
+    radiation_damping = np.ones([nfreq, ndof, ndof])
+    diffraction_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
+    Froude_Krylov_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
+    inertia_matrix = np.ones([ndof, ndof])
+    hydrostatic_stiffness = np.ones([ndof, ndof])
+    
     data_vars = {
         'added_mass': (radiation_dims, added_mass),
         'radiation_damping': (radiation_dims, radiation_damping),
         'diffraction_force': (excitation_dims, diffraction_force),
-        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force)
+        'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force),
+        'inertia_matrix': (hydrostatics_dims, inertia_matrix),
+        'hydrostatic_stiffness': (hydrostatics_dims, hydrostatic_stiffness)
     }
     return xr.Dataset(data_vars=data_vars, coords=coords)
 
@@ -75,11 +80,9 @@ def hydro_data(bem_data):
     """Synthetic hydro-data containing inertia, stiffness, and friction
     in addition to the coefficients in `bem_data`."""
     ndof = len(bem_data.influenced_dof)
-    inertia_matrix = np.ones([ndof, ndof])
-    stiffness = np.ones([ndof, ndof])
     friction = np.ones([ndof, ndof])
-    data = wot.linear_hydrodynamics(
-        bem_data, inertia_matrix, stiffness, friction
+    data = wot.add_linear_friction(
+        bem_data, friction
     )
     return data
 
@@ -210,11 +213,11 @@ def nfreq_imp():
 @pytest.fixture(scope="module")
 def rao(ndof_imp, nfreq_imp):
     """Synthetic RAO transfer matrix."""
-    rao = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-    rao[0, 0, :] = [0+1j, 0+2j]
-    rao[1, 0, :] = [1+1j, 11+2j]
-    rao[0, 1, :] = [2+1j, 22+2j]
-    rao[1, 1, :] = [3+1j, 33+2j]
+    rao = np.empty([nfreq_imp, ndof_imp, ndof_imp], dtype=complex)
+    rao[:, 0, 0] = [0+1j, 0+2j]
+    rao[:, 1, 0] = [1+1j, 11+2j]
+    rao[:, 0, 1] = [2+1j, 22+2j]
+    rao[:, 1, 1] = [3+1j, 33+2j]
     return rao
 
 
@@ -573,7 +576,7 @@ class TestMIMOTransferMat:
                 i in range(np.size(x)-1)], -1),
             [np.real(z[-1]) * np.real(x[-1])],
         ])
-        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
+        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [-1, 1,1]), False)
         assert np.allclose(Z_mimo @ X, F)
 
 
@@ -933,33 +936,69 @@ class TestCheckLinearDamping:
         return 0.01
 
     @pytest.fixture(scope="class")
-    def data_new(self, data, tol):
+    def data_new_uniform(self, data, tol):
         """Hydrodynamic data structure for which the function
         :python:`check_linear_damping` has been called.
         """
         return wot.check_linear_damping(data, tol)
 
-    def test_friction(self, data_new, tol):
-        """Test that the modified friction diagonal has the expected
-        value.
+    @pytest.fixture(scope="class")
+    def data_new_nonuniform(self, data, tol):
+        """Hydrodynamic data structure for which the function
+        :python:`check_linear_damping` has been called.
         """
-        assert np.allclose(np.diagonal(data_new.friction.values), tol)
+        return wot.check_linear_damping(data, tol, False)
 
-    def test_only_diagonal_friction(self, data, data_new):
-        """Test that only the diagonal was changed."""
+    def test_friction(self, data_new_uniform, tol):
+        """Test that the modified friction diagonal has the expected
+        value for a uniform shift.
+        """
+        assert np.allclose(np.diagonal(data_new_uniform.friction.values), tol)
+
+    def test_only_diagonal_friction(self, data, data_new_uniform):
+        """Test that only the diagonal was changed for a uniform shift."""
         data_org = data.copy(deep=True)
         def nodiag(x):
             return x.friction.values - np.diag(np.diagonal(x.friction.values))
-        assert np.allclose(nodiag(data_new), nodiag(data_org))
+        assert np.allclose(nodiag(data_new_uniform), nodiag(data_org))
 
-    def test_only_friction(self, data, data_new):
+    def test_only_friction(self, data, data_new_uniform):
         """Test that only the friction is changed in the hydrodynamic
-        data.
+        data for a uniform shift.
         """
-        data_new_nofric = data_new.copy(deep=True).drop_vars('friction')
+        data_new_nofric = data_new_uniform.copy(deep=True
+                                                ).drop_vars('friction')
         data_org_nofric = data.copy(deep=True).drop_vars('friction')
         assert data_new_nofric.equals(data_org_nofric)
 
+    def test_damping(self, data_new_nonuniform, tol):
+        """Test that the modified radiation damping diagonal has the expected
+        value for a non-uniform shift.
+        """
+        assert np.allclose(
+            np.diagonal(data_new_nonuniform.radiation_damping.values,
+                        axis1=1, axis2=2),
+                        tol)
+
+    def test_only_diagonal_damping(self, data_new_nonuniform):
+        """Test that no off-diagonal radiation damping terms are nonzero
+        for a non-uniform shift.
+        """
+        assert (
+            np.prod(
+            np.shape(data_new_nonuniform.radiation_damping.values)[:-1]) == 
+            np.count_nonzero(data_new_nonuniform.radiation_damping.values)
+        )
+
+    def test_only_rd(self, data, data_new_nonuniform):
+        """Test that only the radiation damping is changed in the hydrodynamic
+        data for a non-uniform shift.
+        """
+        data_new_nord = data_new_nonuniform.copy(
+            deep=True).drop_vars('radiation_damping')
+        data_org_nord = data.copy(deep=True).drop_vars('radiation_damping')
+        assert data_new_nord.equals(data_org_nord)
+        
 
 class TestCheckImpedance:
     """Test functions :python:`hydrodynamic_impedance` and 
@@ -995,14 +1034,14 @@ class TestCheckImpedance:
         """Test that the modified impedance diagonal has the expected
         value.
         """
-        assert np.allclose(np.real(np.diagonal(data_new)), tol)
+        assert np.allclose(np.real(np.diagonal(data_new, axis1=1, axis2=2)), tol)
 
     def test_only_diagonal_friction(self, data, data_new):
         """Test that only the diagonal was changed."""
         data_org = data.copy(deep=True)
 
         def offdiags(x):
-            return x.values[np.invert(np.eye(x.shape[0], dtype=bool))]
+            return x.values[:, np.invert(np.eye(x.shape[1], dtype=bool))]
         assert np.allclose(offdiags(data_new), offdiags(data_org))
 
     def test_only_friction(self, data, data_new):
@@ -1156,14 +1195,14 @@ class TestInertiaStandardForces:
         data['inertia_matrix'][:, :] = np.eye(ndof)*mass
         data['hydrostatic_stiffness'][:, :] = np.eye(ndof)*hstiff
         data['friction'][:, :] = np.eye(ndof)*fric
-        data['radiation_damping'].values[:, :, index_freq-1] = np.eye(ndof)*rad
-        data['added_mass'].values[:, :, index_freq-1] = np.eye(ndof)*addmass
-        data['diffraction_force'].values[:, :, index_freq-1] = (
+        data['radiation_damping'].values[index_freq-1, :, :] = np.eye(ndof)*rad
+        data['added_mass'].values[index_freq-1, :, :] = np.eye(ndof)*addmass
+        data['diffraction_force'].values[index_freq-1, :, :] = (
             np.zeros([ndof, ndir], dtype=complex))
-        data['diffraction_force'].values[0, 0, index_freq-1] = diff
-        data['Froude_Krylov_force'].values[:, :, index_freq-1] = (
+        data['diffraction_force'].values[index_freq-1, 0, 0] = diff
+        data['Froude_Krylov_force'].values[index_freq-1, :, :] = (
             np.zeros([ndof, ndir], dtype=complex))
-        data['Froude_Krylov_force'].values[0, 0, index_freq-1] = fk_coeff
+        data['Froude_Krylov_force'].values[index_freq-1, 0, 0] = fk_coeff
         # standard forces
         forces = wot.standard_forces(data)
         # calculated inertia and forces
@@ -1222,9 +1261,11 @@ class TestRunBEM:
         """Test that the function at least runs and returns correct
         data type.
         """
-        rect = cpy.RectangularParallelepiped(
-            size=(5.0, 5.0, 2.0), resolution=(10, 10, 10), center=(0.0, 0.0, 0.0,)
+        rect_mesh = cpy.mesh_parallelepiped(
+            size=(5.0, 5.0, 2.0), resolution=(10, 10, 10), 
+            center=(0.0, 0.0, 0.0)
         )
+        rect = cpy.FloatingBody(rect_mesh, name="rect")
         rect.add_translation_dof(name="Heave")
         bem_data = wot.run_bem(fb=rect, freq=[0.1, 0.2], wave_dirs=[0,])
         assert type(bem_data) == xr.Dataset
@@ -1262,12 +1303,12 @@ class TestChangeBEMConvention:
 
 
 class TestLinearHydrodynamics:
-    """Test function :python:`linear_hydrodynamics`."""
+    """Test function :python:`add_linear_friction`."""
 
     def test_values(self, bem_data, hydro_data):
         """Test the function returns expected values."""
         mat = np.array([[1, 1], [1, 1]])
-        calculated = wot.linear_hydrodynamics(bem_data, mat, mat, mat)
+        calculated = wot.add_linear_friction(bem_data, mat)
         xr.testing.assert_allclose(calculated, hydro_data)
 
 

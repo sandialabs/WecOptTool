@@ -40,7 +40,7 @@ __all__ = [
     "standard_forces",
     "run_bem",
     "change_bem_convention",
-    "linear_hydrodynamics",
+    "add_linear_friction",
     "wave_excitation",
     "hydrodynamic_impedance",
     "atleast_2d",
@@ -50,6 +50,7 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
+    "set_fb_centers",
 ]
 
 
@@ -284,12 +285,11 @@ class WEC:
     @staticmethod
     def from_bem(
         bem_data: Union[Dataset, Union[str, Path]],
-        inertia_matrix: Optional[ndarray] = None,
-        hydrostatic_stiffness: Optional[ndarray] = None,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        uniform_shift: Optional[bool] = True,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -311,26 +311,16 @@ class WEC:
         :py:func:`wecopttool.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
-        using :py:func:`wecopttool.write_netcdf`.
-
-        In addition to the Capytaine results, if the dataset contains
-        the :python:`inertia_matrix`, :python:`hydrostatic_stiffness`,
-        or :python:`friction` these do not need to be provided
-        separately.
+        using :py:func:`wecopttool.write_netcdf`. 
+        :py:func:`wecopttool.run_bem` also computes the inertia and 
+        hydrostatic stiffness which should be included in bem_data.
 
         Parameters
         ----------
         bem_data
             Linear hydrodynamic coefficients obtained using the boundary
             element method (BEM) code Capytaine, with sign convention
-            corrected.
-        inertia_matrix
-           Inertia matrix of size :python:`(ndof, ndof)`.
-           :python:`None` if included in :python:`bem_data`.
-        hydrostatic_stiffness
-            Linear hydrostatic restoring coefficient of size
-            :python:`(nodf, ndof)`.
-            :python:`None` if included in :python:`bem_data`.
+            corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
             :python:`(nodf, ndof)`.
@@ -350,38 +340,27 @@ class WEC:
         min_damping
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_linear_damping` for more details.
+        uniform_shift
+            Boolean determining whether damping corrections shifts the damping
+            values uniformly for all frequencies or only for frequencies below
+            :python:`min_damping`.
+            See :py:func:`wecopttool.check_linear_damping` for more details.
         dof_names
             Names of the different degrees of freedom (e.g.
             :python:`'Heave'`).
             If :python:`None` the names
             :python:`['DOF_0', ..., 'DOF_N']` are used.
 
-        Raises
-        ------
-        ValueError
-            If either :python:`inertia_matrix` or
-            :python:`hydrostatic_stiffness` are :python:`None` and is
-            not included in :python:`bem_data`.
-            See :py:func:`wecopttool.linear_hydrodynamics`.
-        ValueError
-            If any of :python:`inertia_matrix`,
-            :python:`hydrostatic_stiffness`, or :python:`stiffness` are
-            both provided and included in :python:`bem_data` but have
-            different values.
-            See :py:func:`wecopttool.linear_hydrodynamics`.
-
         See Also
         --------
-        run_bem, linear_hydrodynamics, change_bem_convention,
+        run_bem, add_linear_friction, change_bem_convention,
         write_netcdf, check_linear_damping
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
-        # add inertia_matrix, hydrostatic stiffness, and friction
-        hydro_data = linear_hydrodynamics(
-            bem_data, inertia_matrix, hydrostatic_stiffness, friction)
-        if inertia_matrix is None:
-            inertia_matrix = hydro_data['inertia_matrix'].values
+        # add friction
+        hydro_data = add_linear_friction(bem_data, friction)
+        inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
         f1, nfreq = frequency_parameters(
@@ -389,7 +368,8 @@ class WEC:
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
-            hydro_data = check_linear_damping(hydro_data, min_damping)
+            hydro_data = check_linear_damping(
+                hydro_data, min_damping, uniform_shift)
 
         # forces in the dynamics equations
         linear_force_functions = standard_forces(hydro_data)
@@ -404,8 +384,6 @@ class WEC:
         fb: cpy.FloatingBody,
         f1: float,
         nfreq: int,
-        inertia_matrix: ndarray,
-        hydrostatic_stiffness: ndarray,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -447,11 +425,6 @@ class WEC:
         nfreq
             Number of frequencies (not including zero frequency),
             i.e., :python:`freqs = [0, f1, 2*f1, ..., nfreq*f1]`.
-        inertia_matrix
-           Inertia matrix of size :python:`(ndof, ndof)`.
-        hydrostatic_stiffness
-            Linear hydrostatic restoring coefficient of size
-            :python:`(ndof, ndof)`.
         friction
             Linear friction, in addition to radiation damping, of size
             :python:`(ndof, ndof)`.
@@ -497,7 +470,7 @@ class WEC:
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
-            bem_data, inertia_matrix, hydrostatic_stiffness, friction, f_add,
+            bem_data, friction, f_add,
             constraints, min_damping=min_damping)
         return wec
 
@@ -530,7 +503,7 @@ class WEC:
             Frequency vector [:math:`Hz`] not including the zero frequency,
             :python:`freqs = [f1, 2*f1, ..., nfreq*f1]`.
         impedance
-            Complex impedance of size :python:`(ndof, ndof, nfreq)`.
+            Complex impedance of size :python:`(nfreq, ndof, ndof)`.
         exc_coeff
             Complex excitation transfer function of size
             :python:`(ndof, nfreq)`.
@@ -564,17 +537,18 @@ class WEC:
         # impedance matrix shape
         shape = impedance.shape
         ndim = impedance.ndim
-        if (ndim!=3) or (shape[0]!=shape[1]) or (shape[2]!=nfreq):
+        if (ndim!=3) or (shape[1]!=shape[2]) or (shape[0]!=nfreq):
             raise ValueError(
-                "'impedance' must have shape '(ndof, ndof, nfreq)'.")
+                "'impedance' must have shape '(nfreq, ndof, ndof)'.")
 
         impedance = check_impedance(impedance, min_damping)
 
         # impedance force
         omega = freqs * 2*np.pi
-        transfer_func = impedance * (1j*omega)
+        omega0 = np.expand_dims(omega, [1,2])
+        transfer_func = impedance * (1j*omega0)
         transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
-        transfer_func = np.concatenate([transfer_func0, transfer_func], 2)
+        transfer_func = np.concatenate([transfer_func0, transfer_func], axis=0)
         transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
         force_impedance = force_from_rao_transfer_function(transfer_func)
 
@@ -591,10 +565,24 @@ class WEC:
 
         # wec
         wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[0])
+                  inertia_in_forces=True, ndof=shape[1])
         return wec
 
-    def _resid_fun(self, x_wec, x_opt, waves):
+    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+        ) -> float:
+        """
+        Return the residual of the dynamic equation (r = m⋅a-Σf).
+
+        Parameters
+        ----------
+        x_wec
+            WEC state vector.
+        x_opt
+            Optimization (control) state.
+        waves
+            :py:class:`xarray.Dataset` with the structure and elements
+            shown by :py:mod:`wecopttool.waves`.
+        """
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
@@ -622,7 +610,7 @@ class WEC:
         callback: Optional[TStateFunction] = None,
         ) -> OptimizeResult:
         """Simulate WEC dynamics using a pseudo-spectral solution
-        method and returns the raw results dictionary produced by 
+        method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
 
         Parameters
@@ -685,7 +673,7 @@ class WEC:
             If the optimizer fails for any reason other than maximum
             number of states, i.e. for exit modes other than 0 or 9.
             See :py:mod:`scipy.optimize` for exit mode details.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -760,7 +748,7 @@ class WEC:
         def scaled_resid_fun(x):
             x_s = x/scale
             x_wec, x_opt = self.decompose_state(x_s)
-            return self._resid_fun(x_wec, x_opt, waves)
+            return self.residual(x_wec, x_opt, waves)
 
         eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
         if use_grad:
@@ -794,13 +782,15 @@ class WEC:
         if callback is None:
             def callback_scipy(x):
                 x_wec, x_opt = self.decompose_state(x)
-                _log.info("[max(x_wec), max(x_opt), obj_fun(x)]: "
+                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
+                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
                           + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{np.max(np.abs(x_opt)):.2e}, "
-                          + f"{np.max(obj_fun_scaled(x)):.2e}]")
+                          + f"{max_x_opt:.2e}, "
+                          + f"{obj_fun_scaled(x):.2e}]")
         else:
             def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
+                x_s = x/scale
+                x_wec, x_opt = self.decompose_state(x_s)
                 return callback(self, x_wec, x_opt, waves)
 
         # optimization problem
@@ -860,7 +850,7 @@ class WEC:
             Dynamic responses in the frequency-domain.
         results_td
             Dynamic responses in the time-domain.
-            
+
         Examples
         --------
         The :py:meth:`wecopttool.WEC.solve` method only returns the
@@ -878,6 +868,9 @@ class WEC:
         """
         create_time = f"{datetime.utcnow()}"
 
+        omega_vals = np.concatenate([[0], waves.omega.values])
+        freq_vals = np.concatenate([[0], waves.freq.values])
+        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -889,9 +882,9 @@ class WEC:
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
-        omega_coord = ("omega", self.omega, omega_attr)
-        freq_coord = ("omega", self.frequency, freq_attr)
-        period_coord = ("omega", self.period, period_attr)
+        omega_coord = ("omega", omega_vals, omega_attr)
+        freq_coord = ("omega", freq_vals, freq_attr)
+        period_coord = ("omega", period_vals, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
 
         # frequency domain
@@ -1049,7 +1042,7 @@ class WEC:
         """Matrix to create time-series from Fourier coefficients.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the time series is obtained via
         :python:`time_mat @ x`, also size
         :python:`(2*nfreq, ndof)`.
@@ -1062,7 +1055,7 @@ class WEC:
         some quantity.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
         derivative of :python:`x` are obtained via
         :python:`derivative_mat @ x`.
@@ -1075,7 +1068,7 @@ class WEC:
         some quantity.
 
         For some array of Fourier coefficients :python:`x`
-        (excluding the sine component of the highest freequency), size
+        (excluding the sine component of the highest frequency), size
         :python:`(2*nfreq, ndof)`, the Fourier coefficients of the
         second derivative of :python:`x` are obtained via
         :python:`derivative2_mat @ x`.
@@ -1487,7 +1480,7 @@ def mimo_transfer_mat(
     For example, it can be an impedance matrix or an RAO transfer
     matrix.
     The input complex impedance matrix has shape
-    :python`(ndof, ndof, nfreq)`.
+    :python`(nfreq, ndof, ndof)`.
 
     Returns the 2D real matrix that transform the state representation
     of the input variable variable to the state representation of the
@@ -1508,20 +1501,20 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    ndof = transfer_mat.shape[0]
-    assert transfer_mat.shape[1] == ndof
+    ndof = transfer_mat.shape[1]
+    assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
     def block(re, im): return np.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
-                Zp0 = transfer_mat[idof, jdof, 0]
+                Zp0 = transfer_mat[0, idof, jdof]
                 assert np.all(np.isreal(Zp0))
                 Zp0 = np.real(Zp0)
-                Zp = transfer_mat[idof, jdof, 1:]
+                Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
-                Zp = transfer_mat[idof, jdof, :]
+                Zp = transfer_mat[:, idof, jdof]
             re = np.real(Zp)
             im = np.imag(Zp)
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
@@ -1834,12 +1827,13 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
+    uniform_shift: Optional[bool] = True,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
-    Shifts the :python:`friction` up if necessary.
-    Returns the (possibly) updated Dataset with
+    Shifts the :python:`friction` or :python:`radiation_damping` up
+    if necessary. Returns the (possibly) updated Dataset with
     :python:`damping` :math:`>=` :python:`min_damping`.
 
     Parameters
@@ -1848,6 +1842,14 @@ def check_linear_damping(
         Linear hydrodynamic data.
     min_damping
         Minimum threshold for damping. Default is 1e-6.
+    uniform_shift
+        Boolean that determines whether the damping correction for each
+        degree of freedom is frequency dependent or not. If :python:`True`,
+        the damping correction is applied to :python:`friction` and shifts the
+        damping for all frequencies. If :python:`False`, the damping correction
+        is applied to :python:`radiation_damping` and only shifts the
+        damping for frequencies with negative damping values. Default is
+        :python:`True`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1857,15 +1859,26 @@ def check_linear_damping(
     for idof in range(ndof):
         iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
-        dmin = (iradiation+ifriction).min()
-        if dmin <= 0.0 + min_damping:
+        if uniform_shift:
+            dmin = (iradiation+ifriction).min()
+            if dmin <= 0.0 + min_damping:
+                dof = hydro_data_new.influenced_dof.values[idof]
+                delta = min_damping-dmin
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close ' +
+                    'to zero terms. Shifting up via linear friction of ' +
+                    f'{delta.values} N/(m/s).')
+                hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+        else:
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            delta = min_damping-dmin
-            _log.warning(
-                f'Linear damping for DOF "{dof}" has negative or close to ' +
-                'zero terms. Shifting up via linear friction of ' +
-                f'{delta.values} N/(m/s).')
-            hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+            if (new_damping==min_damping).any():
+                _log.warning(
+                    f'Linear damping for DOF "{dof}" has negative or close to ' +
+                    'zero terms. Shifting up damping terms to a minimum of ' +
+                    f'{min_damping} N/(m/s)')
+            hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
 
@@ -1886,13 +1899,13 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=0,axis2=1)
+    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
         dmin = np.min(np.real(Zi_diag[:, dof]))
         if dmin < min_damping:
             delta = min_damping - dmin
-            Zi_shifted[dof,dof,:] = Zi_diag[:, dof] \
+            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
                 + np.abs(delta)
             _log.warning(
                 f'Real part of impedance for {dof} has negative or close to ' +
@@ -1983,8 +1996,8 @@ def inertia(
     inertia_matrix
         Inertia matrix.
     """
-    omega = np.reshape(frequency(f1, nfreq, False)*2*np.pi, [1,1,-1])
-    inertia_matrix = np.expand_dims(inertia_matrix, -1)
+    omega = np.expand_dims(frequency(f1, nfreq, False)*2*np.pi, [1,2])
+    inertia_matrix = np.expand_dims(inertia_matrix, 0)
     rao_transfer_function = -1*omega**2*inertia_matrix + 0j
     inertia_fun = force_from_rao_transfer_function(
         rao_transfer_function, False)
@@ -2004,8 +2017,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     hydro_data
         Linear hydrodynamic data.
     """
-    hydro_data = hydro_data.transpose(
-         "omega", "wave_direction", "radiating_dof", "influenced_dof")
 
     # intrinsic impedance
     w = hydro_data['omega']
@@ -2019,7 +2030,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     rao_transfer_functions['friction'] = (1j*w*Bf, False)
 
     # include zero_freq in hydrostatics
-    hs = ((K + 0j).expand_dims({"omega": B.omega}))
+    hs = ((K + 0j).expand_dims({"omega": B.omega}, 0))
     tmp = hs.isel(omega=0).copy(deep=True)
     tmp['omega'] = tmp['omega'] * 0
     hs = xr.concat([tmp, hs], dim='omega') #, data_vars='minimal')
@@ -2027,7 +2038,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     linear_force_functions = dict()
     for name, (value, zero_freq) in rao_transfer_functions.items():
-        value = value.transpose("radiating_dof", "influenced_dof", "omega")
+        value = value.transpose("omega", "radiating_dof", "influenced_dof")
         value = -1*value  # RHS of equation: ma = Σf
         linear_force_functions[name] = (
             force_from_rao_transfer_function(value, zero_freq))
@@ -2109,12 +2120,17 @@ def run_bem(
         # radiation only problem, no diffraction or excitation
         test_matrix = test_matrix.drop_vars('wave_direction')
     if write_info is None:
-        write_info = {'hydrostatics': False,
+        write_info = {'hydrostatics': True,
                       'mesh': False,
                       'wavelength': False,
                       'wavenumber': False,
                      }
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    wec_im = set_fb_centers(wec_im, rho=rho)
+    if not hasattr(wec_im, 'inertia_matrix'):
+        wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
+    if not hasattr(wec_im, 'hydrostatic_stiffness'):
+        wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho, g=g)
     bem_data = solver.fill_dataset(
         test_matrix, wec_im, n_jobs=njobs, **write_info)
     return change_bem_convention(bem_data)
@@ -2141,14 +2157,11 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     return bem_data
 
 
-def linear_hydrodynamics(
+def add_linear_friction(
     bem_data: Dataset,
-    inertia_matrix: Optional[ArrayLike] = None,
-    hydrostatic_stiffness: Optional[ArrayLike] = None,
     friction: Optional[ArrayLike] = None
 ) -> Dataset:
-    """Add rigid body inertia_matrix, hydrostatic stiffness, and linear
-    friction to BEM data.
+    """Add linear friction to BEM data.
 
     Returns the Dataset with the additional information added.
 
@@ -2157,62 +2170,32 @@ def linear_hydrodynamics(
     bem_data
         Linear hydrodynamic coefficients obtained using the boundary
         element method (BEM) code Capytaine, with sign convention
-        corrected.
-    inertia_matrix
-        Inertia matrix of size :python:`(ndof, ndof)`.
-        :python:`None` if included in :python:`bem_data`.
-    hydrostatic_stiffness
-        Linear hydrostatic restoring coefficient of size
-        :python:`(nodf, ndof)`.
-        :python:`None` if included in :python:`bem_data`.
+        corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
         :python:`(nodf, ndof)`.
         :python:`None` if included in :python:`bem_data` or to set to zero.
-
-    Raises
-    ------
-    ValueError
-        If either :python:`inertia_matrix` or
-        :python:`hydrostatic_stiffness` are :python:`None` and is not
-        included in :python:`bem_data`.
-    ValueError
-        If any of :python:`inertia_matrix`,
-        :python:`hydrostatic_stiffness`, or :python:`friction` are both
-        provided and included in :python:`bem_data` but have different
-        values.
     """
-    vars = {'inertia_matrix': inertia_matrix, 'friction': friction,
-            'hydrostatic_stiffness': hydrostatic_stiffness}
-
     dims = ['radiating_dof', 'influenced_dof']
-
     hydro_data = bem_data.copy(deep=True)
-
-    for name, data in vars.items():
-        org = name in hydro_data.variables.keys()
-        new = data is not None
-        if new and org:
+    
+    if friction is not None:
+        if 'friction' in hydro_data.variables.keys():
             if not np.allclose(data, hydro_data.variables[name]):
                 raise ValueError(
-                    f'BEM data already has variable "{name}" ' +
-                    'with diferent values')
-            else :
+                        f'Variable "friction" is already in BEM data ' +
+                        f'with different values.')
+            else:
                 _log.warning(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
-        elif (not new) and (not org):
-            if name=='friction':
-                ndof = len(hydro_data["influenced_dof"])
-                hydro_data[name] = (dims, np.zeros([ndof, ndof]))
-            else:
-                raise ValueError(
-                    f'Variable "{name}" is not in BEM data and ' +
-                    'was not provided.')
-        elif new:
-            data = atleast_2d(data)
-            hydro_data[name] = (dims, data)
-
+        else:
+            data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction)
+    elif friction is None:
+        ndof = len(hydro_data["influenced_dof"])
+        hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
+            
     return hydro_data
 
 
@@ -2246,8 +2229,7 @@ def wave_excitation(exc_coeff: ArrayLike, waves: Dataset) -> ndarray:
     omega_e = exc_coeff['omega'].values
     dir_w = waves['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
-    exc_coeff = exc_coeff.transpose(
-        'omega', 'wave_direction', 'influenced_dof').values
+    exc_coeff = exc_coeff.values
 
     wave_elev_fd = np.expand_dims(waves.values, -1)
 
@@ -2272,14 +2254,14 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
     ----------
     hydro_data
         Dataset with linear hydrodynamic coefficients produced by
-        :py:func:`wecopttool.linear_hydrodynamics`.
+        :py:func:`wecopttool.add_linear_friction`.
     """
 
     Zi = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi
+    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
@@ -2374,18 +2356,16 @@ def subset_close(
         raise ValueError("Elements in set_b not unique")
 
     ind = []
-    tmp_result = [False for _ in range(len(set_a))]
-    for subset_element in set_a:
-        for set_element in set_b:
-            if np.isclose(subset_element, set_element, rtol, atol, equal_nan):
-                tmp_set_ind = np.where(
-                    np.isclose(set_element, set_b , rtol, atol, equal_nan))
-                tmp_subset_ind = np.where(
-                    np.isclose(subset_element, set_a , rtol, atol,
-                               equal_nan))
-                ind.append( int(tmp_set_ind[0]) )
-                tmp_result[ int(tmp_subset_ind[0]) ] = True
-    subset = all(tmp_result)
+    for el in set_a:
+        a_in_b = np.isclose(set_b, el,
+                            rtol=rtol, atol=atol, equal_nan=equal_nan)
+        if np.sum(a_in_b) == 1:
+            ind.append(np.flatnonzero(a_in_b)[0])
+        if np.sum(a_in_b) > 1:
+            _log.warning('Multiple matching elements in subset, ' +
+                         'selecting closest match.')
+            ind.append(np.argmin(np.abs(a_in_b - el)))
+    subset = len(set_a) == len(ind)
     ind = ind if subset else []
     return subset, ind
 
@@ -2523,3 +2503,35 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         out = out + \
             np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
+
+
+def set_fb_centers(
+    fb: FloatingBody,
+    rho: float = _default_parameters["rho"],
+) -> FloatingBody:
+    """Sets default properties if not provided by the user:
+        - `center_of_mass` is set to the geometric centroid
+        - `rotation_center` is set to the center of mass
+    """
+    valid_properties = ['center_of_mass', 'rotation_center']
+    
+    for property in valid_properties:
+        if not hasattr(fb, property):
+            setattr(fb, property, None)
+        if getattr(fb, property) is None:
+            if property == 'center_of_mass':
+                def_val = fb.center_of_buoyancy
+                log_str = (
+                    "Using the geometric centroid as the center of gravity (COG).")
+            elif property == 'rotation_center':
+                def_val = fb.center_of_mass
+                log_str = (
+                    "Using the center of gravity (COG) as the rotation center " +
+                    "for hydrostatics.")
+            setattr(fb, property, def_val)
+            _log.warning(log_str)
+        elif getattr(fb, property) is not None:
+            _log.warning(
+                f'{property} already defined as {getattr(fb, property)}.')
+            
+    return fb
