@@ -477,8 +477,8 @@ class WEC:
     @staticmethod
     def from_impedance(
         freqs: ArrayLike,
-        impedance: ArrayLike,
-        exc_coeff: ArrayLike,
+        impedance: DataArray,
+        exc_coeff: DataArray,
         hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -608,7 +608,7 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[TStateFunction] = None,
-        ) -> tuple[Dataset, Dataset, OptimizeResult]:
+        ) -> OptimizeResult:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
@@ -1470,7 +1470,7 @@ def derivative2_mat(
 
 
 def mimo_transfer_mat(
-    transfer_mat: ArrayLike,
+    transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
@@ -1883,7 +1883,7 @@ def check_linear_damping(
 
 
 def check_impedance(
-    Zi: ArrayLike,
+    Zi: DataArray,
     min_damping: Optional[float] = 1e-6,
 ) -> DataArray:
     """Ensure that the real part of the impedance (resistive) is positive.
@@ -1914,7 +1914,7 @@ def check_impedance(
 
 
 def force_from_rao_transfer_function(
-    rao_transfer_mat: ArrayLike,
+    rao_transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
 ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
@@ -1946,7 +1946,7 @@ def force_from_rao_transfer_function(
 
 def force_from_impedance(
     omega: ArrayLike,
-    impedance: ArrayLike,
+    impedance: DataArray,
 ) -> TStateFunction:
     """Create a force function from its impedance.
 
@@ -1964,7 +1964,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike,
+def force_from_waves(force_coeff: DataArray,
                      ) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
@@ -2199,7 +2199,7 @@ def add_linear_friction(
     return hydro_data
 
 
-def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 
