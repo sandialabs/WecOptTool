@@ -347,7 +347,7 @@ class TestTheoreticalPowerLimits:
         nstate_opt = {}
         
         # Constraint
-        f_max = 1e3
+        f_max = 2000.0
 
         nstate_opt['us'] = 2*nfreq
         pto['us'] = pto_tmp
