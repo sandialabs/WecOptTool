@@ -338,8 +338,6 @@ class TestTheoreticalPowerLimits:
     def test_saturated_pi_controller(self,
                                     bem,
                                     regular_wave,
-                                    mass,
-                                    hstiff,
                                     pto,
                                     nfreq):
 
