@@ -374,14 +374,14 @@ class TestTheoreticalPowerLimits:
                                      f_add={"PTO": pto['pi'].force_on_wec},
                                      constraints=[])
         
-        x_opt_0 = {'us': None,
+        x_opt_0 = {'us': np.ones(nstate_opt['us'])*0.1,
                    'pi': [-1e3, 1e4]}
-        scale_x_wec = {'us': 1e2,
-                       'pi': 1e2}
-        scale_x_opt = {'us': 1e-2,
-                       'pi': 1e-3}
+        scale_x_wec = {'us': 1e1,
+                       'pi': 1e3}
+        scale_x_opt = {'us': 1e-3,
+                       'pi': 1}
         scale_obj = {'us': 1e-2,
-                     'pi': 1e-2}
+                     'pi': 1}
         bounds_opt = {'us': None,
                       'pi': ((-1e4, 0), (0, 2e4),)}
         
