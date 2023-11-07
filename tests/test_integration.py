@@ -355,7 +355,7 @@ class TestTheoreticalPowerLimits:
             f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
                                        nsubsteps=4)
             return f_max - np.abs(f.flatten())
-        wec['us'] = wot.WEC.from_bem(bem, mass, hstiff,
+        wec['us'] = wot.WEC.from_bem(bem,
                                      f_add={"PTO": pto['us'].force_on_wec},
                                      constraints=[{'type': 'ineq',
                                                    'fun': const_f_pto, }])
@@ -370,7 +370,7 @@ class TestTheoreticalPowerLimits:
         pto['pi'] = wot.pto.PTO(ndof=ndof,
                                 kinematics=np.eye(ndof),
                                 controller=saturated_pi,)
-        wec['pi'] = wot.WEC.from_bem(bem, mass, hstiff, 
+        wec['pi'] = wot.WEC.from_bem(bem,
                                      f_add={"PTO": pto['pi'].force_on_wec},
                                      constraints=[])
         
