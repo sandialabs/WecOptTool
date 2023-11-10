@@ -303,7 +303,6 @@ class TestTheoreticalPowerLimits:
                          ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-4)
-    
     def test_unstructured_controller_irregular_wave(self,
                                                     fb,
                                                     bem,
