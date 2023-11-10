@@ -7,6 +7,7 @@ import capytaine as cpy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import Bounds
+import xarray as xr
 
 
 kplim = -1e1
@@ -302,7 +303,7 @@ class TestTheoreticalPowerLimits:
                          ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-4)
-
+    
     def test_unstructured_controller_irregular_wave(self,
                                                     fb,
                                                     bem,
@@ -340,6 +341,9 @@ class TestTheoreticalPowerLimits:
                                     regular_wave,
                                     pto,
                                     nfreq):
+        """Saturated PI controller matches constrained unstructured controller
+        for a regular wave
+        """
 
         pto_tmp = pto
         pto = {}
@@ -351,7 +355,7 @@ class TestTheoreticalPowerLimits:
 
         nstate_opt['us'] = 2*nfreq
         pto['us'] = pto_tmp
-        def const_f_pto(wec, x_wec, x_opt, waves): # Format for scipy.optimize.minimize
+        def const_f_pto(wec, x_wec, x_opt, waves):
             f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
                                        nsubsteps=4)
             return f_max - np.abs(f.flatten())
@@ -377,11 +381,11 @@ class TestTheoreticalPowerLimits:
         x_opt_0 = {'us': np.ones(nstate_opt['us'])*0.1,
                    'pi': [-1e3, 1e4]}
         scale_x_wec = {'us': 1e1,
-                       'pi': 1e3}
+                       'pi': 1e1}
         scale_x_opt = {'us': 1e-3,
-                       'pi': 1}
+                       'pi': 1e-3}
         scale_obj = {'us': 1e-2,
-                     'pi': 1}
+                     'pi': 1e-2}
         bounds_opt = {'us': None,
                       'pi': ((-1e4, 0), (0, 2e4),)}
         
@@ -407,4 +411,9 @@ class TestTheoreticalPowerLimits:
                                                                  regular_wave, 
                                                                  nsubstep_postprocess)
         
-        assert 0==0 # TODO: replace this eventually
+        xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
+                                   pto_tdom['us'].power.squeeze().mean('time'),
+                                   rtol=1e-1)
+        
+        xr.testing.assert_allclose(pto_tdom['us'].force.max(),
+                                   pto_tdom['pi'].force.max())
