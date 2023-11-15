@@ -54,6 +54,7 @@ def elevation_fd(
     f1: float,
     nfreq: int,
     directions: Union[float, ArrayLike],
+    nRealizations: Optional[int] = 1,
     amplitudes: Optional[ArrayLike] = None,
     phases: Optional[ArrayLike] = None,
     attr: Optional[Mapping] = None,
@@ -88,22 +89,25 @@ def elevation_fd(
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
+    realization = range(nRealizations)
     freq = frequency(f1, nfreq, False)
     omega = freq*2*np.pi
 
-    dims = ('omega', 'wave_direction')
+    dims = ('omega', 'wave_direction','realization')
     omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
     freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
     dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
+    real_attr = {'long_name': 'Phase realization', 'units': ''}
     coords = {'omega': (dims[0], omega, omega_attr),
               'freq': (dims[0], freq, freq_attr),
-              'wave_direction': (dims[1], directions, dir_attr)}
+              'wave_direction': (dims[1], directions, dir_attr),
+              'realization': (dims[2], realization, real_attr)}
 
     if amplitudes is None:
-        amplitudes = np.zeros([nfreq, ndirections])
+        amplitudes = np.zeros([nfreq, ndirections, nRealizations])
 
     if phases is None:
-        phases = random_phase([nfreq, ndirections],seed)
+        phases = random_phase([nfreq, ndirections, nRealizations],seed)
     else:
         phases = degrees_to_radians(phases, False)
 
@@ -175,8 +179,8 @@ def regular_wave(
         rphase = degrees_to_radians(phase)
 
     # wave elevation
-    tmp = np.zeros([nfreq, 1])
-    waves = elevation_fd(f1, nfreq, direction, tmp, tmp, attrs)
+    tmp = np.zeros([nfreq, 1, 1])
+    waves = elevation_fd(f1, nfreq, direction, 1, tmp, tmp, attrs)
     waves.loc[{'omega': iomega}] = amplitude  * np.exp(1j*rphase)
 
     return waves
@@ -186,6 +190,7 @@ def long_crested_wave(
     efth: DataArray,
     direction: Optional[float] = 0.0,
     seed: Optional[float] = None,
+    nRealizations: Optional[float] = 1,
 ) -> DataArray:
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
@@ -215,13 +220,14 @@ def long_crested_wave(
     values = efth.values
     values[values<0] = np.nan
     amplitudes = np.sqrt(2 * values * df)
+    amplitudes = np.expand_dims(amplitudes,axis=1)
 
     attr = {
         'Wave type': 'Long-crested irregular',
         'Direction (degrees)': direction,
     }
 
-    return elevation_fd(f1, nfreq, direction, amplitudes, None, attr, seed)
+    return elevation_fd(f1, nfreq, direction, nRealizations, amplitudes, None, attr, seed)
 
 
 def irregular_wave(efth: DataArray,
