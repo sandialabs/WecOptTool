@@ -5,7 +5,6 @@ from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
 import autograd.numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import Bounds
 import xarray as xr
 

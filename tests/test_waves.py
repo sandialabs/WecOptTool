@@ -4,7 +4,6 @@
 import os
 
 import pytest
-import capytaine as cpy
 import numpy as np
 import wavespectra as ws
 from scipy import signal
