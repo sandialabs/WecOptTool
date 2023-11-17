@@ -261,3 +261,24 @@ class TestControllers:
         x_opt = [pid_p, pid_i, pid_d]
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
+
+    def test_controller_pid_saturated(
+            self, wec, ndof, kinematics, omega, pid_p, pid_i, pid_d,
+        ):
+        """Test the PID controller."""
+        saturation = np.array([[-4,5]])
+        def controller(p,w,xw,xo,wa,ns):
+            return wot.pto.controller_pid(p,w,xw,xo,wa,ns,saturation=saturation)
+        pto = wot.pto.PTO(ndof, kinematics, controller)
+        amp = 2.3
+        w = omega[-2]
+        pos = amp * np.cos(w * wec.time)
+        vel = -1 * amp * w * np.sin(w * wec.time)
+        acc = -1 * amp * w**2 * np.cos(w * wec.time)
+        force = vel*pid_p + pos*pid_i + acc*pid_d
+        force = np.clip(force, saturation[0,0], saturation[0,1])
+        force = force.reshape(-1, 1)
+        x_wec = [0, amp, 0, 0]
+        x_opt = [pid_p, pid_i, pid_d]
+        calculated = pto.force(wec, x_wec, x_opt, None)
+        assert np.allclose(force, calculated)

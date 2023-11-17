@@ -477,8 +477,8 @@ class WEC:
     @staticmethod
     def from_impedance(
         freqs: ArrayLike,
-        impedance: ArrayLike,
-        exc_coeff: ArrayLike,
+        impedance: DataArray,
+        exc_coeff: DataArray,
         hydrostatic_stiffness: ndarray,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -608,7 +608,7 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[TStateFunction] = None,
-        ) -> tuple[Dataset, Dataset, OptimizeResult]:
+        ) -> OptimizeResult:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
@@ -868,6 +868,9 @@ class WEC:
         """
         create_time = f"{datetime.utcnow()}"
 
+        omega_vals = np.concatenate([[0], waves.omega.values])
+        freq_vals = np.concatenate([[0], waves.freq.values])
+        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -879,9 +882,9 @@ class WEC:
         force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
         wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
         x_wec, x_opt = self.decompose_state(res.x)
-        omega_coord = ("omega", self.omega, omega_attr)
-        freq_coord = ("omega", self.frequency, freq_attr)
-        period_coord = ("omega", self.period, period_attr)
+        omega_coord = ("omega", omega_vals, omega_attr)
+        freq_coord = ("omega", freq_vals, freq_attr)
+        period_coord = ("omega", period_vals, period_attr)
         dof_coord = ("influenced_dof", self.dof_names, dof_attr)
 
         # frequency domain
@@ -1292,7 +1295,6 @@ def frequency(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-    precision: Optional[int] = 10,
 ) -> ndarray:
     """Construct equally spaced frequency array.
 
@@ -1313,11 +1315,7 @@ def frequency(
         Number of frequencies.
     zero_freq
         Whether to include the zero-frequency.
-    precision
-        Controls rounding of fundamental frequency.
     """
-    if precision is not None:
-        f1 = np.floor(f1*10**precision) / 10**precision
     freq = np.arange(0, nfreq+1)*f1
     freq = freq[1:] if not zero_freq else freq
     return freq
@@ -1472,7 +1470,7 @@ def derivative2_mat(
 
 
 def mimo_transfer_mat(
-    transfer_mat: ArrayLike,
+    transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
@@ -1885,7 +1883,7 @@ def check_linear_damping(
 
 
 def check_impedance(
-    Zi: ArrayLike,
+    Zi: DataArray,
     min_damping: Optional[float] = 1e-6,
 ) -> DataArray:
     """Ensure that the real part of the impedance (resistive) is positive.
@@ -1916,7 +1914,7 @@ def check_impedance(
 
 
 def force_from_rao_transfer_function(
-    rao_transfer_mat: ArrayLike,
+    rao_transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
 ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
@@ -1948,7 +1946,7 @@ def force_from_rao_transfer_function(
 
 def force_from_impedance(
     omega: ArrayLike,
-    impedance: ArrayLike,
+    impedance: DataArray,
 ) -> TStateFunction:
     """Create a force function from its impedance.
 
@@ -1966,7 +1964,7 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
-def force_from_waves(force_coeff: ArrayLike,
+def force_from_waves(force_coeff: DataArray,
                      ) -> TStateFunction:
     """Create a force function from waves excitation coefficients.
 
@@ -2201,7 +2199,7 @@ def add_linear_friction(
     return hydro_data
 
 
-def wave_excitation(exc_coeff: Dataset, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
     waves.
 

@@ -84,7 +84,7 @@ class PTO:
             kinematics).
         controller
             Function with signature
-            :python:`def fun(wec, x_wec, x_opt, waves, nsubsteps):`
+            :python:`def fun(pto, wec, x_wec, x_opt, waves, nsubsteps):`
             or matrix with shape (PTO DOFs, WEC DOFs) that converts
             from the WEC DOFs to the PTO DOFs.
         impedance
@@ -923,6 +923,7 @@ def controller_pid(
     proportional: Optional[bool] = True,
     integral: Optional[bool] = True,
     derivative: Optional[bool] = True,
+    saturation: Optional[FloatOrArray] = None,
 ) -> ndarray:
     """Proportional-integral-derivative (PID) controller that returns
     a time history of PTO forces.
@@ -941,25 +942,30 @@ def controller_pid(
         :py:class:`xarray.Dataset` with the structure and elements shown
         by :py:mod:`wecopttool.waves`.
     nsubsteps
-            Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step
-            length.
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step length.
     proportional
         True to include proportional gain
     integral
         True to include integral gain
     derivative
         True to include derivative gain
+    saturation
+        Maximum and minimum control value.
+        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
     """
     ndof = pto.ndof
-    force_td = np.zeros([wec.nt*nsubsteps, ndof])
+    force_td_tmp = np.zeros([wec.nt*nsubsteps, ndof])
+
+    # PID force
     idx = 0
 
     def update_force_td(response):
-        nonlocal idx, force_td
-        gain = np.reshape(x_opt[idx*ndof:(idx+1)*ndof], [1, ndof])
-        force_td = force_td + gain*response
+        nonlocal idx, force_td_tmp
+        gain = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+        force_td_tmp = force_td_tmp + np.dot(response, gain.T)
         idx = idx + 1
+        return
 
     if proportional:
         vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
@@ -970,6 +976,28 @@ def controller_pid(
     if derivative:
         acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
         update_force_td(acc_td)
+
+    # Saturation
+    if saturation is not None:
+        saturation = np.atleast_2d(np.squeeze(saturation))
+        assert len(saturation)==ndof
+        if len(saturation.shape) > 2:
+            raise ValueError("`saturation` must have <= 2 dimensions.")
+        if saturation.shape[1] == 1:
+            f_min, f_max = -1*saturation, saturation
+        elif saturation.shape[1] == 2:
+            f_min, f_max = saturation[:,0], saturation[:,1]
+        else:
+            raise ValueError("`saturation` must have 1 or 2 columns.")
+
+        force_td_list = []
+        for i in range(ndof):
+            tmp = np.clip(force_td_tmp[:,i], f_min[i], f_max[i])
+            force_td_list.append(tmp)
+        force_td = np.array(force_td_list).T
+    else:
+        force_td = force_td_tmp
+
     return force_td
 
 
@@ -980,6 +1008,7 @@ def controller_pi(
     x_opt: ndarray,
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
+    saturation: Optional[FloatOrArray] = None,
 ) -> ndarray:
     """Proportional-integral (PI) controller that returns a time
     history of PTO forces.
@@ -998,12 +1027,16 @@ def controller_pi(
         :py:class:`xarray.Dataset` with the structure and elements shown
         by :py:mod:`wecopttool.waves`.
     nsubsteps
-            Number of steps between the default (implied) time steps.
-            A value of :python:`1` corresponds to the default step
-            length.
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step length.
+    saturation
+        Maximum and minimum control value.
+        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                              True, True, False)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, True, False, saturation,
+    )
     return force_td
 
 
@@ -1014,6 +1047,7 @@ def controller_p(
     x_opt: ndarray,
     waves: Optional[Dataset] = None,
     nsubsteps: Optional[int] = 1,
+    saturation: Optional[FloatOrArray] = None,
 ) -> ndarray:
     """Proportional (P) controller that returns a time history of
     PTO forces.
@@ -1034,7 +1068,44 @@ def controller_p(
     nsubsteps
         Number of steps between the default (implied) time steps.
         A value of :python:`1` corresponds to the default step length.
+    saturation
+        Maximum and minimum control value. Can be symmetric ([ndof]) or
+        asymmetric ([ndof, 2]).
     """
-    force_td = controller_pid(pto, wec, x_wec, x_opt, waves, nsubsteps,
-                               True, False, False)
+    force_td = controller_pid(
+        pto, wec, x_wec, x_opt, waves, nsubsteps,
+        True, False, False, saturation,
+    )
     return force_td
+
+
+# utilities
+def nstate_unstructured(nfreq: int, ndof: int) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nfreq
+        Number of frequencies.
+    ndof
+        Number of degrees of freedom.
+    """
+    return 2*nfreq*ndof
+
+
+def nstate_pid(
+        nterm: int,
+        ndof: int,
+) -> int:
+    """
+    Number of states needed to represent an unstructured controller.
+
+    Parameters
+    ----------
+    nterm
+        Number of terms (e.g. 1 for P, 2 for PI, 3 for PID).
+    ndof
+        Number of degrees of freedom.
+    """
+    return int(nterm*ndof)
