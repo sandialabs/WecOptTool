@@ -53,17 +53,17 @@ def bem_data(f1, nfreq):
     }
 
     ndof = 2; ndir = 3;
-    radiation_dims = ['radiating_dof', 'influenced_dof', 'omega']
-    excitation_dims = ['influenced_dof', 'wave_direction', 'omega']
+    radiation_dims = ['omega', 'radiating_dof', 'influenced_dof']
+    excitation_dims = ['omega', 'influenced_dof', 'wave_direction']
     hydrostatics_dims = ['radiating_dof', 'influenced_dof']
 
-    added_mass = np.ones([ndof, ndof, nfreq])
-    radiation_damping = np.ones([ndof, ndof, nfreq])
-    diffraction_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
-    Froude_Krylov_force = np.ones([ndof, ndir, nfreq], dtype=complex) + 1j
+    added_mass = np.ones([nfreq, ndof, ndof])
+    radiation_damping = np.ones([nfreq, ndof, ndof])
+    diffraction_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
+    Froude_Krylov_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
     inertia_matrix = np.ones([ndof, ndof])
     hydrostatic_stiffness = np.ones([ndof, ndof])
-
+    
     data_vars = {
         'added_mass': (radiation_dims, added_mass),
         'radiation_damping': (radiation_dims, radiation_damping),
@@ -213,11 +213,11 @@ def nfreq_imp():
 @pytest.fixture(scope="module")
 def rao(ndof_imp, nfreq_imp):
     """Synthetic RAO transfer matrix."""
-    rao = np.empty([ndof_imp, ndof_imp, nfreq_imp], dtype=complex)
-    rao[0, 0, :] = [0+1j, 0+2j]
-    rao[1, 0, :] = [1+1j, 11+2j]
-    rao[0, 1, :] = [2+1j, 22+2j]
-    rao[1, 1, :] = [3+1j, 33+2j]
+    rao = np.empty([nfreq_imp, ndof_imp, ndof_imp], dtype=complex)
+    rao[:, 0, 0] = [0+1j, 0+2j]
+    rao[:, 1, 0] = [1+1j, 11+2j]
+    rao[:, 0, 1] = [2+1j, 22+2j]
+    rao[:, 1, 1] = [3+1j, 33+2j]
     return rao
 
 
@@ -576,7 +576,7 @@ class TestMIMOTransferMat:
                 i in range(np.size(x)-1)], -1),
             [np.real(z[-1]) * np.real(x[-1])],
         ])
-        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [1,1,-1]), False)
+        Z_mimo = wot.mimo_transfer_mat(np.reshape([z], [-1, 1,1]), False)
         assert np.allclose(Z_mimo @ X, F)
 
 
@@ -947,8 +947,6 @@ class TestCheckLinearDamping:
         """Hydrodynamic data structure for which the function
         :python:`check_linear_damping` has been called.
         """
-        # TODO: clean this up when fixing the dim order discrepancy
-        data['radiation_damping'] = data['radiation_damping'].transpose('omega', ...)
         return wot.check_linear_damping(data, tol, False)
 
     def test_friction(self, data_new_uniform, tol):
@@ -1036,14 +1034,14 @@ class TestCheckImpedance:
         """Test that the modified impedance diagonal has the expected
         value.
         """
-        assert np.allclose(np.real(np.diagonal(data_new)), tol)
+        assert np.allclose(np.real(np.diagonal(data_new, axis1=1, axis2=2)), tol)
 
     def test_only_diagonal_friction(self, data, data_new):
         """Test that only the diagonal was changed."""
         data_org = data.copy(deep=True)
 
         def offdiags(x):
-            return x.values[np.invert(np.eye(x.shape[0], dtype=bool))]
+            return x.values[:, np.invert(np.eye(x.shape[1], dtype=bool))]
         assert np.allclose(offdiags(data_new), offdiags(data_org))
 
     def test_only_friction(self, data, data_new):
@@ -1197,14 +1195,14 @@ class TestInertiaStandardForces:
         data['inertia_matrix'][:, :] = np.eye(ndof)*mass
         data['hydrostatic_stiffness'][:, :] = np.eye(ndof)*hstiff
         data['friction'][:, :] = np.eye(ndof)*fric
-        data['radiation_damping'].values[:, :, index_freq-1] = np.eye(ndof)*rad
-        data['added_mass'].values[:, :, index_freq-1] = np.eye(ndof)*addmass
-        data['diffraction_force'].values[:, :, index_freq-1] = (
+        data['radiation_damping'].values[index_freq-1, :, :] = np.eye(ndof)*rad
+        data['added_mass'].values[index_freq-1, :, :] = np.eye(ndof)*addmass
+        data['diffraction_force'].values[index_freq-1, :, :] = (
             np.zeros([ndof, ndir], dtype=complex))
-        data['diffraction_force'].values[0, 0, index_freq-1] = diff
-        data['Froude_Krylov_force'].values[:, :, index_freq-1] = (
+        data['diffraction_force'].values[index_freq-1, 0, 0] = diff
+        data['Froude_Krylov_force'].values[index_freq-1, :, :] = (
             np.zeros([ndof, ndir], dtype=complex))
-        data['Froude_Krylov_force'].values[0, 0, index_freq-1] = fk_coeff
+        data['Froude_Krylov_force'].values[index_freq-1, 0, 0] = fk_coeff
         # standard forces
         forces = wot.standard_forces(data)
         # calculated inertia and forces

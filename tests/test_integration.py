@@ -4,9 +4,9 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
-import numpy as np
-import matplotlib.pyplot as plt
+import autograd.numpy as np
 from scipy.optimize import Bounds
+import xarray as xr
 
 
 kplim = -1e1
@@ -120,10 +120,9 @@ def wec_from_floatingbody(f1, nfreq, fb, pto):
 @pytest.fixture(scope='module')
 def wec_from_impedance(bem, pto, fb):
     """Simple WEC: 1 DOF, no constraints."""
-    bemc = bem.copy().transpose(
-        "radiating_dof", "influenced_dof", "omega", "wave_direction")
+    bemc = bem.copy()
     omega = bemc['omega'].values
-    w = np.expand_dims(omega, [0, 1])
+    w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
     B = bemc['radiation_damping'].values
     fb.center_of_mass = [0, 0, 0]
@@ -181,7 +180,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
     """Confirm that bounds are not violated and scale correctly when
     passing bounds argument as both as Bounds object and a tuple"""
 
-    # replace unstructured controller with propotional controller
+    # replace unstructured controller with proportional controller
     wec_from_bem.forces['PTO'] = p_controller_pto.force_on_wec
 
     res = wec_from_bem.solve(waves=regular_wave,
@@ -303,7 +302,6 @@ class TestTheoreticalPowerLimits:
                          ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-4)
-
     def test_unstructured_controller_irregular_wave(self,
                                                     fb,
                                                     bem,
@@ -334,4 +332,86 @@ class TestTheoreticalPowerLimits:
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
 
-        assert power_sol == approx(power_optimal, rel=1e-2)
+        assert power_sol == approx(power_optimal, rel=1e-3)
+
+    def test_saturated_pi_controller(self,
+                                    bem,
+                                    regular_wave,
+                                    pto,
+                                    nfreq):
+        """Saturated PI controller matches constrained unstructured controller
+        for a regular wave
+        """
+
+        pto_tmp = pto
+        pto = {}
+        wec = {}
+        nstate_opt = {}
+        
+        # Constraint
+        f_max = 2000.0
+
+        nstate_opt['us'] = 2*nfreq
+        pto['us'] = pto_tmp
+        def const_f_pto(wec, x_wec, x_opt, waves):
+            f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
+                                       nsubsteps=4)
+            return f_max - np.abs(f.flatten())
+        wec['us'] = wot.WEC.from_bem(bem,
+                                     f_add={"PTO": pto['us'].force_on_wec},
+                                     constraints=[{'type': 'ineq',
+                                                   'fun': const_f_pto, }])
+        
+        
+        ndof = 1
+        nstate_opt['pi'] = 2
+        def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+            return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
+                                         nsubsteps, 
+                                         saturation=[-f_max, f_max])
+        pto['pi'] = wot.pto.PTO(ndof=ndof,
+                                kinematics=np.eye(ndof),
+                                controller=saturated_pi,)
+        wec['pi'] = wot.WEC.from_bem(bem,
+                                     f_add={"PTO": pto['pi'].force_on_wec},
+                                     constraints=[])
+        
+        x_opt_0 = {'us': np.ones(nstate_opt['us'])*0.1,
+                   'pi': [-1e3, 1e4]}
+        scale_x_wec = {'us': 1e1,
+                       'pi': 1e1}
+        scale_x_opt = {'us': 1e-3,
+                       'pi': 1e-3}
+        scale_obj = {'us': 1e-2,
+                     'pi': 1e-2}
+        bounds_opt = {'us': None,
+                      'pi': ((-1e4, 0), (0, 2e4),)}
+        
+        res = {}
+        pto_fdom = {}
+        pto_tdom = {}
+        for key in wec.keys():
+            res[key] = wec[key].solve(waves=regular_wave,
+                            obj_fun=pto[key].average_power,
+                            nstate_opt=nstate_opt[key],
+                            x_wec_0=1e-1*np.ones(wec[key].nstate_wec),
+                            x_opt_0=x_opt_0[key],
+                            scale_x_wec=scale_x_wec[key],
+                            scale_x_opt=scale_x_opt[key],
+                            scale_obj=scale_obj[key],
+                            optim_options={'maxiter': 200},
+                            bounds_opt=bounds_opt[key]
+                            )
+            
+            nsubstep_postprocess = 4
+            pto_fdom[key], pto_tdom[key] = pto[key].post_process(wec[key], 
+                                                                 res[key], 
+                                                                 regular_wave, 
+                                                                 nsubstep_postprocess)
+        
+        xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
+                                   pto_tdom['us'].power.squeeze().mean('time'),
+                                   rtol=1e-1)
+        
+        xr.testing.assert_allclose(pto_tdom['us'].force.max(),
+                                   pto_tdom['pi'].force.max())
