@@ -36,7 +36,7 @@ __all__ = [
     "force_from_rao_transfer_function",
     "force_from_impedance",
     "force_from_waves",
-    "inertia",
+    # "inertia",
     "standard_forces",
     "run_bem",
     "change_bem_convention",
@@ -51,7 +51,7 @@ __all__ = [
     "frequency_parameters",
     "time_results",
     "set_fb_centers",
-]
+    ]
 
 
 import logging
@@ -115,8 +115,9 @@ class WEC:
     def __init__(
         self,
         f1: float,
-        nfreq: int,
+        ifreq_end: int,
         forces: TIForceDict,
+        ifreq_start: int = 1,
         constraints: Optional[Iterable[Mapping]] = None,
         inertia_matrix: Optional[ndarray] = None,
         ndof: Optional[int] = None,
@@ -206,11 +207,14 @@ class WEC:
             Initialize a :py:class:`wecopttool.WEC` object from an
             intrinsic impedance array and excitation coefficients.
         """
-        self._freq = frequency(f1, nfreq)
-        self._time = time(f1, nfreq)
-        self._time_mat = time_mat(f1, nfreq)
-        self._derivative_mat = derivative_mat(f1, nfreq)
-        self._derivative2_mat = derivative2_mat(f1, nfreq)
+        self._ifreq_start = ifreq_start
+        self._ifreq_end = ifreq_end
+        idx_1, idx_2 = self._idxs(ifreq_start, ifreq_end)
+        self._freq = frequency(f1, ifreq_end)[idx_1]
+        self._time = time(f1, ifreq_end)
+        self._time_mat = time_mat(f1, ifreq_end)[:, idx_2]
+        self._derivative_mat = derivative_mat(f1, ifreq_end)[idx_2][:, idx_2]
+        self._derivative2_mat = derivative2_mat(f1, ifreq_end)[idx_2][:, idx_2]
         self._forces = forces
         constraints = list(constraints) if (constraints is not None) else []
         self._constraints = constraints
@@ -258,7 +262,7 @@ class WEC:
         if inertia_in_forces:
             _inertia = None
         else:
-            _inertia = inertia(f1, nfreq, inertia_matrix)
+            _inertia = WEC._get_inertia(f1, ifreq_start, ifreq_end, inertia_matrix)
         self._inertia = _inertia
 
         # names
@@ -271,7 +275,7 @@ class WEC:
     def __str__(self) -> str:
         str = (f'{self.__class__.__name__}: ' +
                f'DOFs ({self.ndof})={self.dof_names}, ' +
-               f'f=[0, {self.f1}, ..., {self.nfreq}({self.f1})] Hz.')
+               f'f=[0, {self.f1}, ..., {self.ifreq_end}({self.f1})] Hz.')
         return str
 
     def __repr__(self) -> str:
@@ -280,6 +284,37 @@ class WEC:
         qualname = type_.__qualname__
         repr_org = f"<{module}.{qualname} object at {hex(id(self))}>"
         return repr_org + " :: " + self.__str__()
+
+    @staticmethod
+    def _idxs(ifreq_start, ifreq_end):
+        idx_1 = [True if i==0 or i>=ifreq_start else False for i in range(ifreq_end+1)]
+        idx_2 = [True if i==0 or i>=2*ifreq_start-1 else False for i in range(2*ifreq_end)]
+        return idx_1, idx_2
+
+    @staticmethod
+    def _get_inertia(
+        f1: float,
+        ifreq_start: int,
+        ifreq_end: int,
+        inertia_matrix: ArrayLike,
+        ) -> TStateFunction:
+        """Create the inertia "force" from the inertia matrix.
+
+        Parameters
+        ----------
+        f1
+            Fundamental frequency :python:`f1` [:math:`Hz`].
+        nfreq
+            Number of frequencies.
+        inertia_matrix
+            Inertia matrix.
+        """
+        omega = np.expand_dims(frequency(f1, ifreq_end)[ifreq_start:]*2*np.pi, [1,2])
+        inertia_matrix = np.expand_dims(inertia_matrix, 0)
+        rao_transfer_function = -1*omega**2*inertia_matrix + 0j
+        inertia_fun = force_from_rao_transfer_function(
+            rao_transfer_function, False)
+        return inertia_fun
 
     # other initialization methods
     @staticmethod
@@ -363,8 +398,8 @@ class WEC:
         inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
-        f1, nfreq = frequency_parameters(
-            hydro_data.omega.values/(2*np.pi), False)
+        f1, ifreq_start, ifreq_end = WEC.frequency_parameters(
+            hydro_data.omega.values/(2*np.pi))
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
@@ -377,13 +412,17 @@ class WEC:
         forces = linear_force_functions | f_add
         # constraints
         constraints = constraints if (constraints is not None) else []
-        return WEC(f1, nfreq, forces, constraints, inertia_matrix, dof_names=dof_names)
+        wec = WEC(
+            f1, ifreq_end, forces, ifreq_start, constraints,
+            inertia_matrix, dof_names=dof_names)
+        return wec
 
     @staticmethod
     def from_floating_body(
         fb: cpy.FloatingBody,
         f1: float,
-        nfreq: int,
+        ifreq_end: int,
+        ifreq_start: int = 1,
         friction: Optional[ndarray] = None,
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
@@ -392,7 +431,7 @@ class WEC:
         rho: Optional[float] = _default_parameters['rho'],
         g: Optional[float] = _default_parameters['g'],
         depth: Optional[float] = _default_parameters['depth'],
-    ) -> TWEC:
+        ) -> TWEC:
         """Create a WEC object from a Capytaine :python:`FloatingBody`
         (:py:class:capytaine.bodies.bodies.FloatingBody).
 
@@ -464,9 +503,11 @@ class WEC:
         """
 
         # RUN BEM
-        _log.info(f"Running Capytaine (BEM): {nfreq+1} frequencies x " +
+        nfreq = ifreq_end - ifreq_start + 1
+        _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
-        freq = frequency(f1, nfreq)[1:]
+        idx_1, _ = self._idxs(ifreq_start, ifreq_end)
+        freq = frequency(f1, ifreq_end)[idx_1][1:]
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
@@ -483,7 +524,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-    ) -> TWEC:
+        ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
 
@@ -495,7 +536,6 @@ class WEC:
         :math:`Z(ω) = (m+A(ω))*iω + B(ω) + B_f + K/(iω)`.
         The impedance can also be obtained experimentally.
         Note that the impedance is not defined at :math:`ω=0`.
-
 
         Parameters
         ----------
@@ -533,6 +573,8 @@ class WEC:
             :python:`(ndof, ndof, nfreq)`.
         """
         f1, nfreq = frequency_parameters(freqs, False)
+        f1, ifreq_start, ifreq_end = self.frequency_parameters(freqs)
+        nfreq = ifreq_end - ifreq_start + 1
 
         # impedance matrix shape
         shape = impedance.shape
@@ -564,10 +606,11 @@ class WEC:
         forces = forces | f_add
 
         # wec
-        wec = WEC(f1, nfreq, forces, constraints,
-                  inertia_in_forces=True, ndof=shape[1])
+        wec = WEC(f1, ifreq_end, forces, ifreq_start, constraints,
+            inertia_in_forces=True, ndof=shape[1])
         return wec
 
+    # solve
     def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
         ) -> float:
         """
@@ -586,13 +629,12 @@ class WEC:
         if not self.inertia_in_forces:
             ri = self.inertia(self, x_wec, x_opt, waves)
         else:
-            ri = np.zeros([self.ncomponents, self.ndof])
+            ri = np.zeros([self.nt, self.ndof])
         # forces, -Σf
         for f in self.forces.values():
             ri = ri - f(self, x_wec, x_opt, waves)
         return self.dofmat_to_vec(ri)
 
-    # solve
     def solve(self,
         waves: Dataset,
         obj_fun: TStateFunction,
@@ -828,7 +870,7 @@ class WEC:
         res: OptimizeResult,
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+        ) -> tuple[Dataset, Dataset]:
         """Post-process the results from
         :py:meth:`wecopttool.WEC.solve`.
 
@@ -1012,9 +1054,19 @@ class WEC:
         return self._freq[1]
 
     @property
+    def ifreq_end(self) -> int:
+        """Number of frequencies, not including the zero-frequency."""
+        return self._ifreq_end
+
+    @property
+    def ifreq_start(self) -> int:
+        """Number of frequencies, not including the zero-frequency."""
+        return self._ifreq_start
+
+    @property
     def nfreq(self) -> int:
         """Number of frequencies, not including the zero-frequency."""
-        return len(self._freq)-1
+        return self.ifreq_end - self.ifreq_start + 1
 
     @property
     def omega(self) -> ndarray:
@@ -1090,7 +1142,7 @@ class WEC:
     @property
     def nt(self) -> int:
         """Number of timesteps."""
-        return self.ncomponents
+        return 2*self.ifreq_end
 
     @property
     def ncomponents(self) -> int:
@@ -1111,7 +1163,7 @@ class WEC:
     # other methods
     def decompose_state(self,
         state: ndarray
-    ) -> tuple[ndarray, ndarray]:
+        ) -> tuple[ndarray, ndarray]:
         """Split the state vector into the WEC dynamics state and the
         optimization (control) state.
 
@@ -1155,7 +1207,7 @@ class WEC:
         --------
         time, WEC.time
         """
-        return time(self.f1, self.nfreq, nsubsteps)
+        return time(self.f1, self.ifreq_end, nsubsteps)
 
     def time_mat_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time matrix similar to
@@ -1174,7 +1226,8 @@ class WEC:
         --------
         time_mat, WEC.time_mat, WEC.time_nsubsteps
         """
-        return time_mat(self.f1, self.nfreq, nsubsteps)
+        _, idx_2 = self._idxs(self.ifreq_start, self.ifreq_end)
+        return time_mat(self.f1, self.ifreq_end, nsubsteps)[:, idx_2]
 
     def vec_to_dofmat(self, vec: ndarray) -> ndarray:
         """Convert a vector to a matrix with one column per degree of
@@ -1238,7 +1291,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return fd_to_td(fd, self.f1, self.nfreq, True)
+        return self.time_mat @ complex_to_real(fd)
 
     def td_to_fd(
         self,
@@ -1264,13 +1317,62 @@ class WEC:
         --------
         td_to_fd, WEC.fd_to_td
         """
-        return td_to_fd(td, fft, True)
+        idx_1, _ = self._idxs(self.ifreq_start, self.ifreq_end)
+        return td_to_fd(td, fft, True)[idx_1, :]
+
+    @staticmethod
+    def frequency_parameters(
+        freqs: ArrayLike,
+        precision: Optional[int] = 10,
+        ) -> tuple[float, int]:
+        """Return the fundamental frequency, the number of frequencies,
+        and first frequency in a frequency array.
+
+        This function can be used as a check for inputs to other
+        functions since it raises an error if the frequency vector does
+        not have the correct format (equally spaced).
+
+        Parameters
+        ----------
+        freqs
+            The frequency array with equal spacing.
+        precision
+            Controls rounding of fundamental frequency.
+
+        Returns
+        -------
+        f1
+            Fundamental frequency :python:`f1` [:math:`Hz`].
+            This is also the spacing.
+        ifreq_end
+            Last frequency (index).
+        ifreq_start
+            Frequency (index) at which vector starts.
+
+        Raises
+        ------
+        ValueError
+            If the frequency vector is not evenly spaced.
+        """
+        f1 = freqs[1] - freqs[0]
+        f1 = f1 if precision is None else round(f1, precision)
+        ifreq_start = round(freqs[0]/f1)
+        assert np.isclose(ifreq_start, freqs[0]/f1)
+        ifreq_end = ifreq_start + len(freqs) - 1
+        f_check = np.arange(ifreq_start, ifreq_end+1)*f1
+        if not np.allclose(f_check, freqs):
+            print(f_check)
+            print(freqs)
+            raise ValueError(
+                "Frequency array must be evenly spaced by " +
+                "the fundamental frequency ")
+        return f1, ifreq_start, ifreq_end
 
 
 def ncomponents(
     nfreq : int,
     zero_freq: Optional[bool] = True,
-) -> int:
+    ) -> int:
     """Number of Fourier components (:python:`2*nfreq`) for each
     DOF. The sine component of the highest frequency (the 2-point wave)
     is excluded as it will always evaluate to zero.
@@ -1295,7 +1397,7 @@ def frequency(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Construct equally spaced frequency array.
 
     The array includes :python:`0` and has length of :python:`nfreq+1`.
@@ -1325,7 +1427,7 @@ def time(
     f1: float,
     nfreq: int,
     nsubsteps: Optional[int] = 1,
-) -> ndarray:
+    ) -> ndarray:
     """Assemble the time vector with :python:`nsubsteps` subdivisions.
 
     Returns the 1D time vector, in seconds, starting at time
@@ -1355,7 +1457,7 @@ def time_mat(
     nfreq: int,
     nsubsteps: Optional[int] = 1,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Assemble the time matrix that converts the state to a
     time-series.
 
@@ -1400,7 +1502,7 @@ def derivative_mat(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Assemble the derivative matrix that converts the state vector of
     a response to the state vector of its derivative.
 
@@ -1437,7 +1539,7 @@ def derivative2_mat(
     f1: float,
     nfreq: int,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Assemble the second derivative matrix that converts the state vector of
     a response to the state vector of its second derivative.
 
@@ -1472,7 +1574,7 @@ def derivative2_mat(
 def mimo_transfer_mat(
     transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Create a block matrix of the MIMO transfer function.
 
     The input is a complex transfer matrix that relates the complex
@@ -1568,7 +1670,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
 def real_to_complex(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Convert from two real amplitudes to one complex amplitude per
     frequency.
 
@@ -1617,7 +1719,7 @@ def real_to_complex(
 def complex_to_real(
     fd: ArrayLike,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Convert from one complex amplitude to two real amplitudes per
     frequency.
 
@@ -1679,7 +1781,7 @@ def fd_to_td(
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
     of time-domain responses.
 
@@ -1748,7 +1850,7 @@ def td_to_fd(
     td: ArrayLike,
     fft: Optional[bool] = True,
     zero_freq: Optional[bool] = True,
-) -> ndarray:
+    ) -> ndarray:
     """Convert a real array of time-domain responses to a complex array
     of Fourier coefficients.
 
@@ -1828,7 +1930,7 @@ def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
     uniform_shift: Optional[bool] = True,
-) -> Dataset:
+    ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
 
@@ -1885,7 +1987,7 @@ def check_linear_damping(
 def check_impedance(
     Zi: DataArray,
     min_damping: Optional[float] = 1e-6,
-) -> DataArray:
+    ) -> DataArray:
     """Ensure that the real part of the impedance (resistive) is positive.
 
     Adds to real part of the impedance.
@@ -1916,7 +2018,7 @@ def check_impedance(
 def force_from_rao_transfer_function(
     rao_transfer_mat: DataArray,
     zero_freq: Optional[bool] = True,
-) -> TStateFunction:
+    ) -> TStateFunction:
     """Create a force function from its position transfer matrix.
 
     This is the position equivalent to the velocity-based
@@ -1947,7 +2049,7 @@ def force_from_rao_transfer_function(
 def force_from_impedance(
     omega: ArrayLike,
     impedance: DataArray,
-) -> TStateFunction:
+    ) -> TStateFunction:
     """Create a force function from its impedance.
 
     Parameters
@@ -1978,30 +2080,6 @@ def force_from_waves(force_coeff: DataArray,
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
         return np.dot(wec.time_mat[:, 1:], force_fd)
     return force
-
-
-def inertia(
-    f1: float,
-    nfreq: int,
-    inertia_matrix: ArrayLike,
-) -> TStateFunction:
-    """Create the inertia "force" from the inertia matrix.
-
-    Parameters
-    ----------
-    f1
-        Fundamental frequency :python:`f1` [:math:`Hz`].
-    nfreq
-        Number of frequencies.
-    inertia_matrix
-        Inertia matrix.
-    """
-    omega = np.expand_dims(frequency(f1, nfreq, False)*2*np.pi, [1,2])
-    inertia_matrix = np.expand_dims(inertia_matrix, 0)
-    rao_transfer_function = -1*omega**2*inertia_matrix + 0j
-    inertia_fun = force_from_rao_transfer_function(
-        rao_transfer_function, False)
-    return inertia_fun
 
 
 def standard_forces(hydro_data: Dataset) -> TForceDict:
@@ -2064,7 +2142,7 @@ def run_bem(
     depth: float = _default_parameters['depth'],
     write_info: Optional[Mapping[str, bool]] = None,
     njobs: int = 1,
-) -> Dataset:
+    ) -> Dataset:
     """Run Capytaine for a range of frequencies and wave directions.
 
     This simplifies running *Capytaine* and ensures the output are in
@@ -2160,7 +2238,7 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
 def add_linear_friction(
     bem_data: Dataset,
     friction: Optional[ArrayLike] = None
-) -> Dataset:
+    ) -> Dataset:
     """Add linear friction to BEM data.
 
     Returns the Dataset with the additional information added.
@@ -2286,7 +2364,7 @@ def atleast_2d(array: ArrayLike) -> ndarray:
 def degrees_to_radians(
     degrees: FloatOrArray,
     sort: Optional[bool] = True,
-) -> Union[float, ndarray]:
+    ) -> Union[float, ndarray]:
     """Convert a 1D array of angles in degrees to radians in the range
     :math:`[-π, π)` and optionally sort them.
 
@@ -2313,7 +2391,7 @@ def subset_close(
     rtol: float = 1.e-5,
     atol: float = 1.e-8,
     equal_nan: bool = False,
-) -> tuple[bool, list]:
+    ) -> tuple[bool, list]:
     """Check if the first set :python:`set_a` is contained, to some
     tolerance, in the second set :python:`set_b`.
 
@@ -2400,7 +2478,7 @@ def decompose_state(
     state: ndarray,
     ndof: int,
     nfreq: int,
-) -> tuple[ndarray, ndarray]:
+    ) -> tuple[ndarray, ndarray]:
     """Split the state vector into the WEC dynamics state and the
     optimization (control) state.
 
@@ -2432,7 +2510,7 @@ def decompose_state(
 def frequency_parameters(
     freqs: ArrayLike,
     zero_freq: bool = True,
-) -> tuple[float, int]:
+    ) -> tuple[float, int]:
     """Return the fundamental frequency and the number of frequencies
     in a frequency array.
 
@@ -2508,7 +2586,7 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
 def set_fb_centers(
     fb: FloatingBody,
     rho: float = _default_parameters["rho"],
-) -> FloatingBody:
+    ) -> FloatingBody:
     """Sets default properties if not provided by the user:
         - `center_of_mass` is set to the geometric centroid
         - `rotation_center` is set to the center of mass

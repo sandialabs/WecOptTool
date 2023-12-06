@@ -52,8 +52,9 @@ _log = logging.getLogger(__name__)
 
 def elevation_fd(
     f1: float,
-    nfreq: int,
+    ifreq_end: int,
     directions: Union[float, ArrayLike],
+    ifreq_start: int = 1,
     amplitudes: Optional[ArrayLike] = None,
     phases: Optional[ArrayLike] = None,
     attr: Optional[Mapping] = None,
@@ -88,7 +89,7 @@ def elevation_fd(
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
-    freq = frequency(f1, nfreq, False)
+    freq = frequency(f1, ifreq_end)[ifreq_start:]
     omega = freq*2*np.pi
 
     dims = ('omega', 'wave_direction')
@@ -99,6 +100,7 @@ def elevation_fd(
               'freq': (dims[0], freq, freq_attr),
               'wave_direction': (dims[1], directions, dir_attr)}
 
+    nfreq = (ifreq_end - ifreq_start + 1)
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections])
 
@@ -120,11 +122,12 @@ def elevation_fd(
 
 def regular_wave(
     f1: float,
-    nfreq: int,
+    ifreq_end: int,
     freq: float,
     amplitude: float,
     phase: Optional[float] = None,
     direction: float = 0.0,
+    ifreq_start: int = 1,
 ) -> DataArray:
     """Create the dataset for a regular wave.
 
@@ -149,7 +152,8 @@ def regular_wave(
 
     # attributes & index
     omega = freq*2*np.pi
-    tmp_waves = elevation_fd(f1, nfreq, direction)
+    nfreq = (ifreq_end - ifreq_start + 1)
+    tmp_waves = elevation_fd(f1, ifreq_end, direction, ifreq_start)
     iomega = tmp_waves.sel(omega=omega, method='nearest').omega.values
     ifreq = iomega/(2*np.pi)
 
@@ -176,7 +180,7 @@ def regular_wave(
 
     # wave elevation
     tmp = np.zeros([nfreq, 1])
-    waves = elevation_fd(f1, nfreq, direction, tmp, tmp, attrs)
+    waves = elevation_fd(f1, ifreq_end, direction, ifreq_start, tmp, tmp, attrs)
     waves.loc[{'omega': iomega}] = amplitude  * np.exp(1j*rphase)
 
     return waves

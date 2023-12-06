@@ -1080,7 +1080,11 @@ def controller_p(
 
 
 # utilities
-def nstate_unstructured(nfreq: int, ndof: int) -> int:
+def nstate_unstructured(
+        ndof: int,
+        ifreq_end: int,
+        ifreq_start=1
+    ) -> int:
     """
     Number of states needed to represent an unstructured controller.
 
@@ -1091,6 +1095,7 @@ def nstate_unstructured(nfreq: int, ndof: int) -> int:
     ndof
         Number of degrees of freedom.
     """
+    nfreq = ifreq_end - ifreq_start + 1
     return 2*nfreq*ndof
 
 
