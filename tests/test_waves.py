@@ -4,7 +4,6 @@
 import os
 
 import pytest
-import capytaine as cpy
 import numpy as np
 import wavespectra as ws
 from scipy import signal
@@ -180,7 +179,7 @@ class TestLongCrestedWave:
     def direction(self, ndbc_omnidirectional, ndir):
         """Wave direction."""
         return ndbc_omnidirectional.dir.values[np.random.randint(0, ndir)]
-    
+
     @pytest.fixture(scope="class")
     def nrealizations(self):
         """Number of wave realizations."""
@@ -191,7 +190,7 @@ class TestLongCrestedWave:
         """Complex sea state elevation amplitude [m] indexed by
         frequency and direction."""
         elev = wot.waves.long_crested_wave(
-            ndbc_omnidirectional.efth, direction, None, nrealizations)
+            ndbc_omnidirectional.efth, direction, nrealizations)
         return elev
 
     @pytest.fixture(scope="class")
