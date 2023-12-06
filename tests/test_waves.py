@@ -247,7 +247,7 @@ class TestLongCrestedWave:
     def test_realizations(self, elevation, direction):
         """Test that the number of realizations is correct."""
         realization_out = elevation.realization.values
-        assert (realization_out == [0, 1]).all()
+        assert (realization_out == [0,1]).all()
 
     def test_spectrum(self, pm_spectrum, pm_hs):
         """Test that the constructed spectrum has the expected Hs."""
