@@ -97,7 +97,7 @@ def wave_regular(f1, nfreq):
     phase = 24.5  # degrees
     wave = wot.waves.regular_wave(f1, nfreq, freq, amp, phase)
     params = {'n': n, 'amp': amp, 'phase': phase}
-    return wave, params
+    return wave.sel(realization=0), params
 
 
 @pytest.fixture(scope="module")
@@ -160,21 +160,22 @@ def waves_multi(f1, nfreq):
     """
     n = np.random.randint(1, nfreq)
     directions = [0.0, 30.0]
+    nrealizations = 1
     ndir = len(directions)
 
-    amplitudes = np.zeros([nfreq, ndir])
-    phases = np.zeros([nfreq, ndir])
+    amplitudes = np.zeros([nfreq, ndir, nrealizations])
+    phases = np.zeros([nfreq, ndir, nrealizations])
     amp0, amp1 = 1.2, 2.1
     phase0, phase1 = 26, -13
-    amplitudes[n-1, :] = [amp0, amp1]
-    phases[n-1, :] = [phase0, phase1]
+    amplitudes[n-1, :, :] = [[amp0], [amp1]]
+    phases[n-1, :, :] = [[phase0], [phase1]]
 
-    waves = wot.waves.elevation_fd(f1, nfreq, directions, amplitudes, phases)
+    waves = wot.waves.elevation_fd(f1, nfreq, directions, nrealizations, amplitudes, phases)
 
-    params = {'n': n, 'directions': directions, 'amp0': amp0, 'amp1': amp1,
-              'phase0': phase0, 'phase1': phase1}
+    params = {'n': n, 'directions': directions, 'nrealizations': nrealizations, 'amp0': amp0, 
+              'amp1': amp1, 'phase0': phase0, 'phase1': phase1}
 
-    return waves, params
+    return waves.sel(realization=0), params
 
 
 @pytest.fixture(scope="module")
@@ -1218,8 +1219,8 @@ class TestInertiaStandardForces:
         radiation = forces['radiation'](wec, x_wec, None, None)
         hydrostatics = forces['hydrostatics'](wec, x_wec, None, None)
         friction = forces['friction'](wec, x_wec, None, None)
-        fk = forces['Froude_Krylov'](wec, None, None, waves)
-        diffraction = forces['diffraction'](wec, None, None, waves)
+        fk = forces['Froude_Krylov'](wec, None, None, waves.sel(realization=0))
+        diffraction = forces['diffraction'](wec, None, None, waves.sel(realization=0))
         # true/expected inertia and forces
         inertia_truth = mass * acc
         radiation_truth = -(rad*vel + addmass*acc)
@@ -1342,7 +1343,7 @@ class TestWaveExcitation:
         a subset of the hydrodata directions.
         """
         with pytest.raises(ValueError):
-            waves = wot.waves.elevation_fd(f1, nfreq, [0.0, 25])
+            waves = wot.waves.elevation_fd(f1, nfreq, [0.0, 25], 1)
             wot.wave_excitation(exc_coeff, waves)
 
     def test_error_different_frequencies(
@@ -1354,7 +1355,7 @@ class TestWaveExcitation:
         _, params_multi = waves_multi
         directions = np.deg2rad(params_multi['directions'])
         with pytest.raises(ValueError):
-            waves = wot.waves.elevation_fd(f1+0.01, nfreq, directions)
+            waves = wot.waves.elevation_fd(f1+0.01, nfreq, directions, 1)
             wot.wave_excitation(exc_coeff, waves)
 
 
