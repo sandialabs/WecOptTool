@@ -190,7 +190,7 @@ class TestLongCrestedWave:
         """Complex sea state elevation amplitude [m] indexed by
         frequency and direction."""
         elev = wot.waves.long_crested_wave(
-            ndbc_omnidirectional.efth, direction, nrealizations)
+            ndbc_omnidirectional.efth, nrealizations, direction)
         return elev
 
     @pytest.fixture(scope="class")
@@ -244,7 +244,7 @@ class TestLongCrestedWave:
         dir_out = elevation.wave_direction.values.item()
         assert np.isclose(dir_out, wot.degrees_to_radians(direction))
 
-    def test_realizations(self, elevation, direction):
+    def test_realizations(self, elevation):
         """Test that the number of realizations is correct."""
         realization_out = elevation.realization.values
         assert (realization_out == [0,1]).all()
@@ -259,7 +259,7 @@ class TestLongCrestedWave:
         # create time-series
         direction = 0.0
         nrealizations = 1
-        wave = wot.waves.long_crested_wave(pm_spectrum, direction, nrealizations)
+        wave = wot.waves.long_crested_wave(pm_spectrum, nrealizations, direction)
         wave_ts = wot.fd_to_td(wave.sel(realization=0).values, pm_f1, pm_nfreq, False)
         # calculate the spectrum from the time-series
         t = wot.time(pm_f1, pm_nfreq)
@@ -289,12 +289,17 @@ class TestIrregularWave:
         files = [f'41013{i}2020.txt' for i in markers]
         spec = ws.read_ndbc_ascii([os.path.join(dir, file) for file in files])
         return spec.sel(time=time).interp(freq=freq)
+    
+    @pytest.fixture(scope="class")
+    def nrealizations(self):
+        """Number of wave realizations."""
+        return 2
 
     @pytest.fixture(scope="class")
-    def elevation(self, ndbc_spectrum):
+    def elevation(self, ndbc_spectrum, nrealizations):
         """Complex sea state elevation amplitude [m] indexed by
         frequency and direction."""
-        return wot.waves.irregular_wave(ndbc_spectrum.efth)
+        return wot.waves.irregular_wave(ndbc_spectrum.efth, nrealizations)
 
     def test_coordinates(self, elevation):
         """Test that the elevation dataArray has the correct
@@ -304,15 +309,20 @@ class TestIrregularWave:
         for icoord in coordinates:
             assert icoord in elevation.coords, f'missing coordinate: {icoord}'
 
-    def test_shape(self, ndbc_spectrum, elevation):
+    def test_shape(self, ndbc_spectrum, elevation, nrealizations):
         """Test that the elevation dataArray has the correct shape."""
         nfreq = len(ndbc_spectrum.freq)
         ndir = len(ndbc_spectrum.dir)
-        assert np.squeeze(elevation.values).shape == (nfreq, ndir)
+        assert np.squeeze(elevation.values).shape == (nfreq, ndir, nrealizations)
 
     def test_type(self, elevation):
         """Test that the elevation dataArray has the correct type."""
         assert np.iscomplexobj(elevation)
+    
+    def test_realizations(self, elevation):
+        """Test that the number of realizations is correct."""
+        realization_out = elevation.realization.values
+        assert (realization_out == [0,1]).all()
 
 
 class TestRandomPhase:
@@ -323,7 +333,8 @@ class TestRandomPhase:
         """Shape of the phase matrix, randomized each time the test is
         run.
         """
-        return (np.random.randint(10, 100), np.random.randint(10, 100))
+        return (np.random.randint(10, 100), np.random.randint(10, 100),
+                np.random.randint(10, 100))
 
     @pytest.fixture(scope="class")
     def phase_mat(self, shape):

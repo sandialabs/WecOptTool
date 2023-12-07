@@ -95,7 +95,7 @@ def elevation_fd(
     freq = frequency(f1, nfreq, False)
     omega = freq*2*np.pi
 
-    dims = ('omega', 'wave_direction','realization')
+    dims = ('omega', 'wave_direction', 'realization')
     omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
     freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
     dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
@@ -107,11 +107,17 @@ def elevation_fd(
 
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections, nrealizations])
+    else:
+        if amplitudes.shape == (nfreq, ndirections):
+            amplitudes = np.expand_dims(amplitudes,axis=2)
+        assert amplitudes.shape == (nfreq, ndirections, 1) or \
+                amplitudes.shape == (nfreq, ndirections, nrealizations)
 
     if phases is None:
-        phases = random_phase([nfreq, ndirections, nrealizations],seed)
+        phases = random_phase([nfreq, ndirections, nrealizations], seed)
     else:
         phases = degrees_to_radians(phases, False)
+        assert phases.shape == (nfreq, ndirections, nrealizations)
 
     camplitude = amplitudes * np.exp(1j*phases)
 
@@ -190,8 +196,8 @@ def regular_wave(
 
 def long_crested_wave(
     efth: DataArray,
+    nrealizations: int,
     direction: Optional[float] = 0.0,
-    nrealizations: Optional[float] = 1,
     seed: Optional[float] = None,
 ) -> DataArray:
     """Create a complex frequency-domain wave elevation from an
@@ -210,11 +216,11 @@ def long_crested_wave(
     efth
         Omnidirection wave spectrum in units of m^2/Hz, in the format
         used by :py:class:`wavespectra.SpecArray`.
-    direction
-        Direction (in degrees) of the long-crested wave.
     nrealizations
         Number of wave phase realizations to be created for the 
         long-crested wave.
+    direction
+        Direction (in degrees) of the long-crested wave.
     seed
         Seed for random number generator. Used for reproducibility.
         Generally should not be used except for testing.
@@ -225,7 +231,6 @@ def long_crested_wave(
     values = efth.values
     values[values<0] = np.nan
     amplitudes = np.sqrt(2 * values * df)
-    amplitudes = np.expand_dims(amplitudes,axis=2)
 
     attr = {
         'Wave type': 'Long-crested irregular',
@@ -236,7 +241,7 @@ def long_crested_wave(
 
 
 def irregular_wave(efth: DataArray,
-                   nrealizations: Optional[float] = 1,
+                   nrealizations: int,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
@@ -270,7 +275,6 @@ def irregular_wave(efth: DataArray,
     values = efth.values
     values[values<0] = np.nan
     amplitudes = np.sqrt(2 * values * df * dd)
-    amplitudes = np.expand_dims(amplitudes,axis=2)
 
     attr = {'Wave type': 'Irregular'}
 
