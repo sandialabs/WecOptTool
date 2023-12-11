@@ -19,12 +19,15 @@ from typing import Optional, Union
 import logging
 from pathlib import Path
 
-import numpy as np
+import autograd.numpy as np
+from autograd.numpy import ndarray
+
 from xarray import DataArray
 from numpy.typing import ArrayLike
 # from autograd.numpy import ndarray
 from xarray import DataArray, concat
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from matplotlib.sankey import Sankey
 
 
@@ -35,7 +38,8 @@ _log = logging.getLogger(__name__)
 
 
 
-def plot_hydrodynamic_coefficients(bem_data)-> None:
+def plot_hydrodynamic_coefficients(bem_data,
+                                   wave_dir: Optional[float] = 0.0)-> None:
     """Plots hydrodynamic coefficients (added mass, radiation damping,
        and wave excitation) based on BEM data.
 
@@ -46,8 +50,12 @@ def plot_hydrodynamic_coefficients(bem_data)-> None:
         Linear hydrodynamic coefficients obtained using the boundary
         element method (BEM) code Capytaine, with sign convention
         corrected.
+    wave_dir
+        Wave direction(s) to plot the
     
     """
+
+    bem_data = bem_data.sel(wave_direction = wave_dir, method='nearest')
     radiating_dofs = bem_data.radiating_dof.values
     influenced_dofs = bem_data.influenced_dof.values
 
@@ -268,7 +276,7 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float])-> None:
+def plot_power_flow(power_flows: dict[str, float])-> Figure:
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
@@ -349,9 +357,10 @@ def plot_power_flow(power_flows: dict[str, float])-> None:
     for diagram in diagrams[0:2]:
             diagram.texts[2].set_text('')
 
-
     plt.axis("off") 
     plt.show()
+
+    return fig
 
 
 # def add_zerofreq_to_xr(data):
