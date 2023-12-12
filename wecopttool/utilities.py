@@ -28,6 +28,8 @@ from numpy.typing import ArrayLike
 from xarray import DataArray, concat
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.axes import Axes
+
 from matplotlib.sankey import Sankey
 
 
@@ -39,7 +41,8 @@ _log = logging.getLogger(__name__)
 
 
 def plot_hydrodynamic_coefficients(bem_data,
-                                   wave_dir: Optional[float] = 0.0)-> None:
+                                   wave_dir: Optional[float] = 0.0
+                                   )-> list(tuple(Figure, Axes)):
     """Plots hydrodynamic coefficients (added mass, radiation damping,
        and wave excitation) based on BEM data.
 
@@ -131,12 +134,12 @@ def plot_hydrodynamic_coefficients(bem_data,
                 fig_am.delaxes(ax_am[i, j])
                 fig_rd.delaxes(ax_rd[i, j])
     fig_ex.legend(ex_handles, ex_labels, loc=(0.08, 0), ncol=2, frameon=False)
-
+    return [(fig_am,ax_am), (fig_rd,ax_rd), (fig_ex,ax_ex)]
 
 def plot_bode_impedance(impedance: DataArray, 
-                        title: Optional[str]= None,
+                        title: Optional[str]= '',
                         #plot_natural_freq: Optional[bool] = False,
-)-> None:
+)-> tuple(Figure, Axes):
     """Plot Bode graph from wecoptool impedance data array.
 
     Parameters
@@ -254,11 +257,11 @@ def calculate_power_flows(wec,
         P_e.append((1/4)*(Fe_FD_t@np.conj(U_FD) + U_FD_t@np.conj(Fe_FD)))
 
     power_flows = {
-        'Optimal Excitation' : 2* np.sum(np.real(P_max)),#eq 6.68 positive inflow
-        'Radiated': -1*np.sum(np.real(P_r)), #negative because "out"flow
-        'Actual Excitation': -1*np.sum(np.real(P_e)), #negative because "out"flow
-        'Electrical (solver)': P_elec,  #solver determins sign
-        'Mechanical (solver)': P_mech, #solver determins sign
+        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68 
+        'Radiated': -1*np.sum(np.real(P_r)), 
+        'Actual Excitation': -1*np.sum(np.real(P_e)), 
+        'Electrical (solver)': P_elec, 
+        'Mechanical (solver)': P_mech, 
                   }
 
     power_flows['Absorbed'] =  (
@@ -266,7 +269,7 @@ def calculate_power_flows(wec,
         - power_flows['Radiated']
             )
     power_flows['Unused Potential'] =  (
-        -1*power_flows['Optimal Excitation'] 
+        power_flows['Optimal Excitation'] 
         - power_flows['Actual Excitation']
             )
     power_flows['PTO Loss'] = (
@@ -276,7 +279,7 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float])-> Figure:
+def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
@@ -290,19 +293,24 @@ def plot_power_flow(power_flows: dict[str, float])-> Figure:
 
 
     """
-    fig = plt.figure(figsize = [8,4])
-    ax = fig.add_subplot(1, 1, 1,)
-    plt.viridis()
+    # fig = plt.figure(figsize = [8,4])
+    # ax = fig.add_subplot(1, 1, 1,)
+    fig, ax = plt.subplots(1, 1,
+        tight_layout=True, 
+        figsize=(8, 4), 
+        )
+
+    # plt.viridis()
     sankey = Sankey(ax=ax, 
-                    scale= 1/power_flows['Optimal Excitation'],
+                    scale= -1/power_flows['Optimal Excitation'],
                     offset= 0,
                     format = '%.1f',
                     shoulder = 0.02,
-                    tolerance=1e-03*power_flows['Optimal Excitation'],
+                    tolerance=-1e-03*power_flows['Optimal Excitation'],
                     unit = 'W'
     )
 
-    sankey.add(flows=[power_flows['Optimal Excitation'],
+    sankey.add(flows=[-1*power_flows['Optimal Excitation'],
                     power_flows['Unused Potential'],
                     power_flows['Actual Excitation']], 
             labels = ['Optimal Excitation', 
@@ -358,9 +366,9 @@ def plot_power_flow(power_flows: dict[str, float])-> Figure:
             diagram.texts[2].set_text('')
 
     plt.axis("off") 
-    plt.show()
+    # plt.show()
 
-    return fig
+    return fig, ax
 
 
 # def add_zerofreq_to_xr(data):
