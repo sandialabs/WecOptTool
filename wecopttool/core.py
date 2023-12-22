@@ -114,7 +114,7 @@ class WEC:
     """
     def __init__(
         self,
-        f1: float,
+        df: float,
         ifreq_end: int,
         forces: TIForceDict,
         ifreq_start: int = 1,
@@ -207,14 +207,15 @@ class WEC:
             Initialize a :py:class:`wecopttool.WEC` object from an
             intrinsic impedance array and excitation coefficients.
         """
+        self._df = df
         self._ifreq_start = ifreq_start
         self._ifreq_end = ifreq_end
         idx_1, idx_2 = self._idxs(ifreq_start, ifreq_end)
-        self._freq = frequency(f1, ifreq_end)[idx_1]
-        self._time = time(f1, ifreq_end)
-        self._time_mat = time_mat(f1, ifreq_end)[:, idx_2]
-        self._derivative_mat = derivative_mat(f1, ifreq_end)[idx_2][:, idx_2]
-        self._derivative2_mat = derivative2_mat(f1, ifreq_end)[idx_2][:, idx_2]
+        self._freq = frequency(df, ifreq_end)[idx_1]
+        self._time = time(df, ifreq_end)
+        self._time_mat = time_mat(df, ifreq_end)[:, idx_2]
+        self._derivative_mat = derivative_mat(df, ifreq_end)[idx_2][:, idx_2]
+        self._derivative2_mat = derivative2_mat(df, ifreq_end)[idx_2][:, idx_2]
         self._forces = forces
         constraints = list(constraints) if (constraints is not None) else []
         self._constraints = constraints
@@ -262,7 +263,7 @@ class WEC:
         if inertia_in_forces:
             _inertia = None
         else:
-            _inertia = WEC._get_inertia(f1, ifreq_start, ifreq_end, inertia_matrix)
+            _inertia = WEC._get_inertia(df, ifreq_start, ifreq_end, inertia_matrix)
         self._inertia = _inertia
 
         # names
@@ -275,7 +276,7 @@ class WEC:
     def __str__(self) -> str:
         str = (f'{self.__class__.__name__}: ' +
                f'DOFs ({self.ndof})={self.dof_names}, ' +
-               f'f=[0, {self.f1}, ..., {self.ifreq_end}({self.f1})] Hz.')
+               f'f=[0, {self.df}, ..., {self.ifreq_end}({self.df})] Hz.')
         return str
 
     def __repr__(self) -> str:
@@ -293,7 +294,7 @@ class WEC:
 
     @staticmethod
     def _get_inertia(
-        f1: float,
+        df: float,
         ifreq_start: int,
         ifreq_end: int,
         inertia_matrix: ArrayLike,
@@ -302,19 +303,66 @@ class WEC:
 
         Parameters
         ----------
-        f1
-            Fundamental frequency :python:`f1` [:math:`Hz`].
+        df
+            Frequency spacing [:math:`Hz`].
         nfreq
             Number of frequencies.
         inertia_matrix
             Inertia matrix.
         """
-        omega = np.expand_dims(frequency(f1, ifreq_end)[ifreq_start:]*2*np.pi, [1,2])
+        omega = np.expand_dims(frequency(df, ifreq_end)[ifreq_start:]*2*np.pi, [1,2])
         inertia_matrix = np.expand_dims(inertia_matrix, 0)
         rao_transfer_function = -1*omega**2*inertia_matrix + 0j
         inertia_fun = force_from_rao_transfer_function(
             rao_transfer_function, False)
         return inertia_fun
+
+    @staticmethod
+    def frequency_parameters(
+        freqs: ArrayLike,
+        precision: Optional[int] = 10,
+        ) -> tuple[float, int]:
+        """Return the fundamental frequency, the number of frequencies,
+        and first frequency in a frequency array.
+
+        This function can be used as a check for inputs to other
+        functions since it raises an error if the frequency vector does
+        not have the correct format (equally spaced).
+
+        Parameters
+        ----------
+        freqs
+            The frequency array with equal spacing.
+        precision
+            Controls rounding of fundamental frequency.
+
+        Returns
+        -------
+        df
+            Frequency spacing [:math:`Hz`].
+        ifreq_end
+            Last frequency (index).
+        ifreq_start
+            Frequency (index) at which vector starts.
+
+        Raises
+        ------
+        ValueError
+            If the frequency vector is not evenly spaced.
+        """
+        df = freqs[1] - freqs[0]
+        df = df if precision is None else round(df, precision)
+        ifreq_start = round(freqs[0]/df)
+        assert np.isclose(ifreq_start, freqs[0]/df)
+        ifreq_end = ifreq_start + len(freqs) - 1
+        f_check = np.arange(ifreq_start, ifreq_end+1)*df
+        if not np.allclose(f_check, freqs):
+            print(f_check)
+            print(freqs)
+            raise ValueError(
+                "Frequency array must be evenly spaced by " +
+                "the fundamental frequency ")
+        return df, ifreq_start, ifreq_end
 
     # other initialization methods
     @staticmethod
@@ -398,7 +446,7 @@ class WEC:
         inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
-        f1, ifreq_start, ifreq_end = WEC.frequency_parameters(
+        df, ifreq_start, ifreq_end = WEC.frequency_parameters(
             hydro_data.omega.values/(2*np.pi))
 
         # check real part of damping diagonal > 0
@@ -413,14 +461,14 @@ class WEC:
         # constraints
         constraints = constraints if (constraints is not None) else []
         wec = WEC(
-            f1, ifreq_end, forces, ifreq_start, constraints,
+            df, ifreq_end, forces, ifreq_start, constraints,
             inertia_matrix, dof_names=dof_names)
         return wec
 
     @staticmethod
     def from_floating_body(
         fb: cpy.FloatingBody,
-        f1: float,
+        df: float,
         ifreq_end: int,
         ifreq_start: int = 1,
         friction: Optional[ndarray] = None,
@@ -507,7 +555,7 @@ class WEC:
         _log.info(f"Running Capytaine (BEM): {nfreq} frequencies x " +
                  f"{len(wave_directions)} wave directions.")
         idx_1, _ = self._idxs(ifreq_start, ifreq_end)
-        freq = frequency(f1, ifreq_end)[idx_1][1:]
+        freq = frequency(df, ifreq_end)[idx_1][1:]
         bem_data = run_bem(
             fb, freq, wave_directions, rho=rho, g=g, depth=depth)
         wec = WEC.from_bem(
@@ -572,8 +620,7 @@ class WEC:
             If :python:`impedance` does not have the correct size:
             :python:`(ndof, ndof, nfreq)`.
         """
-        f1, nfreq = frequency_parameters(freqs, False)
-        f1, ifreq_start, ifreq_end = self.frequency_parameters(freqs)
+        df, ifreq_start, ifreq_end = self.frequency_parameters(freqs)
         nfreq = ifreq_end - ifreq_start + 1
 
         # impedance matrix shape
@@ -606,7 +653,7 @@ class WEC:
         forces = forces | f_add
 
         # wec
-        wec = WEC(f1, ifreq_end, forces, ifreq_start, constraints,
+        wec = WEC(df, ifreq_end, forces, ifreq_start, constraints,
             inertia_in_forces=True, ndof=shape[1])
         return wec
 
@@ -837,17 +884,19 @@ class WEC:
 
         # optimization problem
         optim_options['disp'] = optim_options.get('disp', True)
-        problem = {'fun': obj_fun_scaled,
-                    'x0': x0,
-                    'method': 'SLSQP',
-                    'constraints': constraints,
-                    'options': optim_options,
-                    'bounds': bounds,
-                    'callback': callback_scipy,
-                    }
+        problem = {
+            'fun': obj_fun_scaled,
+            'x0': x0,
+            'method': 'SLSQP',
+            'constraints': constraints,
+            'options': optim_options,
+            'bounds': bounds,
+            'callback': callback_scipy,
+        }
         if use_grad:
             problem['jac'] = grad(obj_fun_scaled)
 
+        return problem ## DEBUG
         # minimize
         optim_res = minimize(**problem)
 
@@ -1049,9 +1098,14 @@ class WEC:
         return self._freq
 
     @property
+    def df(self) -> float:
+        """Frequency spacing [:math:`Hz`]."""
+        return self._df
+
+    @property
     def f1(self) -> float:
         """Fundamental frequency :python:`f1` [:math:`Hz`]."""
-        return self._freq[1]
+        return self.df
 
     @property
     def ifreq_end(self) -> int:
@@ -1137,7 +1191,7 @@ class WEC:
         """Final time (repeat period) [s]. Not included in
         :python:`time` vector.
         """
-        return 1/self.f1
+        return 1/self.df
 
     @property
     def nt(self) -> int:
@@ -1207,7 +1261,7 @@ class WEC:
         --------
         time, WEC.time
         """
-        return time(self.f1, self.ifreq_end, nsubsteps)
+        return time(self.df, self.ifreq_end, nsubsteps)
 
     def time_mat_nsubsteps(self, nsubsteps: int) -> ndarray:
         """Create a time matrix similar to
@@ -1227,7 +1281,7 @@ class WEC:
         time_mat, WEC.time_mat, WEC.time_nsubsteps
         """
         _, idx_2 = self._idxs(self.ifreq_start, self.ifreq_end)
-        return time_mat(self.f1, self.ifreq_end, nsubsteps)[:, idx_2]
+        return time_mat(self.df, self.ifreq_end, nsubsteps)[:, idx_2]
 
     def vec_to_dofmat(self, vec: ndarray) -> ndarray:
         """Convert a vector to a matrix with one column per degree of
@@ -1291,7 +1345,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return self.time_mat @ complex_to_real(fd)
+        return np.dot(self.time_mat, complex_to_real(fd))
 
     def td_to_fd(
         self,
@@ -1319,54 +1373,6 @@ class WEC:
         """
         idx_1, _ = self._idxs(self.ifreq_start, self.ifreq_end)
         return td_to_fd(td, fft, True)[idx_1, :]
-
-    @staticmethod
-    def frequency_parameters(
-        freqs: ArrayLike,
-        precision: Optional[int] = 10,
-        ) -> tuple[float, int]:
-        """Return the fundamental frequency, the number of frequencies,
-        and first frequency in a frequency array.
-
-        This function can be used as a check for inputs to other
-        functions since it raises an error if the frequency vector does
-        not have the correct format (equally spaced).
-
-        Parameters
-        ----------
-        freqs
-            The frequency array with equal spacing.
-        precision
-            Controls rounding of fundamental frequency.
-
-        Returns
-        -------
-        f1
-            Fundamental frequency :python:`f1` [:math:`Hz`].
-            This is also the spacing.
-        ifreq_end
-            Last frequency (index).
-        ifreq_start
-            Frequency (index) at which vector starts.
-
-        Raises
-        ------
-        ValueError
-            If the frequency vector is not evenly spaced.
-        """
-        f1 = freqs[1] - freqs[0]
-        f1 = f1 if precision is None else round(f1, precision)
-        ifreq_start = round(freqs[0]/f1)
-        assert np.isclose(ifreq_start, freqs[0]/f1)
-        ifreq_end = ifreq_start + len(freqs) - 1
-        f_check = np.arange(ifreq_start, ifreq_end+1)*f1
-        if not np.allclose(f_check, freqs):
-            print(f_check)
-            print(freqs)
-            raise ValueError(
-                "Frequency array must be evenly spaced by " +
-                "the fundamental frequency ")
-        return f1, ifreq_start, ifreq_end
 
 
 def ncomponents(
