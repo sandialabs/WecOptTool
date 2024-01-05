@@ -289,7 +289,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-        uniform_shift: Optional[bool] = True,
+        uniform_shift: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -1836,7 +1836,7 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
-    uniform_shift: Optional[bool] = True,
+    uniform_shift: Optional[bool] = False,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
@@ -1858,7 +1858,7 @@ def check_linear_damping(
         damping for all frequencies. If :python:`False`, the damping correction
         is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
-        :python:`True`.
+        :python:`False`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
