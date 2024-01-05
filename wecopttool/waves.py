@@ -116,7 +116,7 @@ def elevation_fd(
     if phases is None:
         phases = random_phase([nfreq, ndirections, nrealizations], seed)
     else:
-        phases = degrees_to_radians(phases, False)
+        phases = np.atleast_3d(degrees_to_radians(phases, False))
         assert phases.shape == (nfreq, ndirections, nrealizations)
 
     camplitude = amplitudes * np.exp(1j*phases)
