@@ -2309,9 +2309,7 @@ def degrees_to_radians(
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    if radians.size == 1:
-        radians = radians.item()
-    elif sort:
+    if radians.size > 1 and sort:
         radians = np.sort(radians)
     return radians
 
