@@ -608,7 +608,7 @@ class WEC:
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
         callback: Optional[TStateFunction] = None,
-        ) -> OptimizeResult:
+        ) -> list[OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by
         :py:func:`scipy.optimize.minimize`.
@@ -683,18 +683,20 @@ class WEC:
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
-        To get the post-processed results for the
-        :py:class:`wecopttool.pto.PTO`, you may call
+        To get the post-processed results for the :py:class:`wecopttool.WEC`
+        and :py:class:`wecopttool.pto.PTO` for a single realization, you
+        may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
+        >>> realization = 0 # realization index
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt[realization])
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[realization])
 
         See Also
         --------
         wecopttool.waves,
         """
 
-        _log.info("Solving pseudo-spectral control problem.")
+        results = []
 
         # x_wec scaling vector
         if scale_x_wec == None:
@@ -712,48 +714,13 @@ class WEC:
 
         # composite scaling vector
         scale = np.concatenate([scale_x_wec, scale_x_opt])
-
+        
         # decision variable initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
-
-        # objective function
-        sign = -1.0 if maximize else 1.0
-
-        def obj_fun_scaled(x):
-            x_wec, x_opt = self.decompose_state(x/scale)
-            return obj_fun(self, x_wec, x_opt, waves)*scale_obj*sign
-
-        # constraints
-        constraints = self.constraints.copy()
-
-        for i, icons in enumerate(self.constraints):
-            icons_new = {"type": icons["type"]}
-
-            def make_new_fun(icons):
-                def new_fun(x):
-                    x_wec, x_opt = self.decompose_state(x/scale)
-                    return icons["fun"](self, x_wec, x_opt, waves)
-                return new_fun
-
-            icons_new["fun"] = make_new_fun(icons)
-            if use_grad:
-                icons_new['jac'] = jacobian(icons_new['fun'])
-            constraints[i] = icons_new
-
-        # system dynamics through equality constraint, ma - Σf = 0
-        def scaled_resid_fun(x):
-            x_s = x/scale
-            x_wec, x_opt = self.decompose_state(x_s)
-            return self.residual(x_wec, x_opt, waves)
-
-        eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
-        if use_grad:
-            eq_cons['jac'] = jacobian(scaled_resid_fun)
-        constraints.append(eq_cons)
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -778,51 +745,93 @@ class WEC:
             bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                             ub=np.hstack([le.ub for le in bounds_list])*scale)
 
-        # callback
-        if callback is None:
-            def callback_scipy(x):
-                x_wec, x_opt = self.decompose_state(x)
-                max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
-                _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
-                          + f"[{np.max(np.abs(x_wec)):.2e}, "
-                          + f"{max_x_opt:.2e}, "
-                          + f"{obj_fun_scaled(x):.2e}]")
-        else:
-            def callback_scipy(x):
+        for realization, wave in waves.groupby('realization'):
+
+            _log.info("Solving pseudo-spectral control problem "
+                      + f"for realization number {realization}.") 
+            
+            # objective function
+            sign = -1.0 if maximize else 1.0
+            
+            def obj_fun_scaled(x):
+                x_wec, x_opt = self.decompose_state(x/scale)
+                return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
+
+            # constraints
+            constraints = self.constraints.copy()
+
+            for i, icons in enumerate(self.constraints):
+                icons_new = {"type": icons["type"]}
+
+                def make_new_fun(icons):
+                    def new_fun(x):
+                        x_wec, x_opt = self.decompose_state(x/scale)
+                        return icons["fun"](self, x_wec, x_opt, wave)
+                    return new_fun
+
+                icons_new["fun"] = make_new_fun(icons)
+                if use_grad:
+                    icons_new['jac'] = jacobian(icons_new['fun'])
+                constraints[i] = icons_new
+
+            # system dynamics through equality constraint, ma - Σf = 0
+            def scaled_resid_fun(x):
                 x_s = x/scale
                 x_wec, x_opt = self.decompose_state(x_s)
-                return callback(self, x_wec, x_opt, waves)
+                return self.residual(x_wec, x_opt, wave)
 
-        # optimization problem
-        optim_options['disp'] = optim_options.get('disp', True)
-        problem = {'fun': obj_fun_scaled,
-                    'x0': x0,
-                    'method': 'SLSQP',
-                    'constraints': constraints,
-                    'options': optim_options,
-                    'bounds': bounds,
-                    'callback': callback_scipy,
-                    }
-        if use_grad:
-            problem['jac'] = grad(obj_fun_scaled)
+            eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
+            if use_grad:
+                eq_cons['jac'] = jacobian(scaled_resid_fun)
+            constraints.append(eq_cons)
+            
+            # callback
+            if callback is None:
+                def callback_scipy(x):
+                    x_wec, x_opt = self.decompose_state(x)
+                    max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
+                    _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
+                              + f"[{np.max(np.abs(x_wec)):.2e}, "
+                              + f"{max_x_opt:.2e}, "
+                              + f"{obj_fun_scaled(x):.2e}]")
+            else:
+                def callback_scipy(x):
+                    x_s = x/scale
+                    x_wec, x_opt = self.decompose_state(x_s)
+                    return callback(self, x_wec, x_opt, wave)
 
-        # minimize
-        optim_res = minimize(**problem)
+            # optimization problem
+            optim_options['disp'] = optim_options.get('disp', True)
+            problem = {'fun': obj_fun_scaled,
+                        'x0': x0,
+                        'method': 'SLSQP',
+                        'constraints': constraints,
+                        'options': optim_options,
+                        'bounds': bounds,
+                        'callback': callback_scipy,
+                        }
+            if use_grad:
+                problem['jac'] = grad(obj_fun_scaled)
 
-        msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
-        if optim_res.status == 0:
-            _log.info(msg)
-        elif optim_res.status == 9:
-            _log.warning(msg)
-        else:
-            raise Exception(msg)
+            # minimize
+            optim_res = minimize(**problem)
 
-        # unscale
-        optim_res.x = optim_res.x / scale
-        optim_res.fun = optim_res.fun / scale_obj
-        optim_res.jac = optim_res.jac / scale_obj * scale
+            msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
+            if optim_res.status == 0:
+                _log.info(msg)
+            elif optim_res.status == 9:
+                _log.warning(msg)
+            else:
+                raise Exception(msg)
 
-        return optim_res
+            # unscale
+            optim_res.x = optim_res.x / scale
+            optim_res.fun = optim_res.fun / scale_obj
+            optim_res.jac = optim_res.jac / scale_obj * scale
+            
+            results.append(optim_res)
+        
+        return results
 
     def post_process(self,
         res: OptimizeResult,
@@ -2300,9 +2309,7 @@ def degrees_to_radians(
     """
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
-    if radians.size == 1:
-        radians = radians.item()
-    elif sort:
+    if radians.size > 1 and sort:
         radians = np.sort(radians)
     return radians
 

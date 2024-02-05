@@ -54,6 +54,7 @@ def elevation_fd(
     f1: float,
     nfreq: int,
     directions: Union[float, ArrayLike],
+    nrealizations: int,
     amplitudes: Optional[ArrayLike] = None,
     phases: Optional[ArrayLike] = None,
     attr: Optional[Mapping] = None,
@@ -75,6 +76,8 @@ def elevation_fd(
         i.e., :python:`freq = [0, f1, 2*f1, ..., nfreq*f1]`.
     directions
         Wave directions in degrees. 1D array.
+    nrealizations
+        Number of wave phase realizations.
     amplitudes:
         Wave elevation amplitude in meters.
     phases:
@@ -88,24 +91,33 @@ def elevation_fd(
     """
     directions = np.atleast_1d(degrees_to_radians(directions, sort=False))
     ndirections = len(directions)
+    realization = range(nrealizations)
     freq = frequency(f1, nfreq, False)
     omega = freq*2*np.pi
 
-    dims = ('omega', 'wave_direction')
+    dims = ('omega', 'wave_direction', 'realization')
     omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
     freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
     dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
+    real_attr = {'long_name': 'Phase realization', 'units': ''}
     coords = {'omega': (dims[0], omega, omega_attr),
               'freq': (dims[0], freq, freq_attr),
-              'wave_direction': (dims[1], directions, dir_attr)}
+              'wave_direction': (dims[1], directions, dir_attr),
+              'realization': (dims[2], realization, real_attr)}
 
     if amplitudes is None:
-        amplitudes = np.zeros([nfreq, ndirections])
+        amplitudes = np.zeros([nfreq, ndirections, nrealizations])
+    else:
+        if amplitudes.shape == (nfreq, ndirections):
+            amplitudes = np.expand_dims(amplitudes,axis=2)
+        assert amplitudes.shape == (nfreq, ndirections, 1) or \
+                amplitudes.shape == (nfreq, ndirections, nrealizations)
 
     if phases is None:
-        phases = random_phase([nfreq, ndirections],seed)
+        phases = random_phase([nfreq, ndirections, nrealizations], seed)
     else:
         phases = degrees_to_radians(phases, False)
+        assert phases.shape == (nfreq, ndirections, nrealizations)
 
     camplitude = amplitudes * np.exp(1j*phases)
 
@@ -149,7 +161,7 @@ def regular_wave(
 
     # attributes & index
     omega = freq*2*np.pi
-    tmp_waves = elevation_fd(f1, nfreq, direction)
+    tmp_waves = elevation_fd(f1, nfreq, direction, 1)
     iomega = tmp_waves.sel(omega=omega, method='nearest').omega.values
     ifreq = iomega/(2*np.pi)
 
@@ -175,8 +187,8 @@ def regular_wave(
         rphase = degrees_to_radians(phase)
 
     # wave elevation
-    tmp = np.zeros([nfreq, 1])
-    waves = elevation_fd(f1, nfreq, direction, tmp, tmp, attrs)
+    tmp = np.zeros([nfreq, 1, 1])
+    waves = elevation_fd(f1, nfreq, direction, 1, tmp, tmp, attrs)
     waves.loc[{'omega': iomega}] = amplitude  * np.exp(1j*rphase)
 
     return waves
@@ -184,6 +196,7 @@ def regular_wave(
 
 def long_crested_wave(
     efth: DataArray,
+    nrealizations: int,
     direction: Optional[float] = 0.0,
     seed: Optional[float] = None,
 ) -> DataArray:
@@ -203,6 +216,9 @@ def long_crested_wave(
     efth
         Omnidirection wave spectrum in units of m^2/Hz, in the format
         used by :py:class:`wavespectra.SpecArray`.
+    nrealizations
+        Number of wave phase realizations to be created for the 
+        long-crested wave.
     direction
         Direction (in degrees) of the long-crested wave.
     seed
@@ -221,10 +237,11 @@ def long_crested_wave(
         'Direction (degrees)': direction,
     }
 
-    return elevation_fd(f1, nfreq, direction, amplitudes, None, attr, seed)
+    return elevation_fd(f1, nfreq, direction, nrealizations, amplitudes, None, attr, seed)
 
 
 def irregular_wave(efth: DataArray,
+                   nrealizations: int,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
@@ -243,6 +260,9 @@ def irregular_wave(efth: DataArray,
     efth
         Wave spectrum in units of m^2/Hz/deg, in the format used by
         :py:class:`wavespectra.SpecArray`.
+    nrealizations
+        Number of wave phase realizations to be created for the 
+        irregular wave.
     seed
         Seed for random number generator. Used for reproducibility.
         Generally should not be used except for testing.
@@ -258,11 +278,11 @@ def irregular_wave(efth: DataArray,
 
     attr = {'Wave type': 'Irregular'}
 
-    return elevation_fd(f1, nfreq, directions, amplitudes, None, attr, seed)
+    return elevation_fd(f1, nfreq, directions, nrealizations, amplitudes, None, attr, seed)
 
 
 def random_phase(
-    shape: Optional[Union[Iterable[int], int]] = None,
+    shape: Optional[Union[Iterable[int], int, int]] = None,
     seed: Optional[float] = None,
 ) -> Union[float , ndarray]:
     """Generate random phases in range [-π, π) radians.

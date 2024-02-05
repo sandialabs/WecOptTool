@@ -5,7 +5,6 @@ from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
 import autograd.numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import Bounds
 import xarray as xr
 
@@ -193,7 +192,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
                              bounds_opt=bounds_opt,
                              )
 
-    assert pytest.approx(kplim, 1e-5) == res['x'][-1]
+    assert pytest.approx(kplim, 1e-5) == res[0]['x'][-1]
 
 
 def test_same_wec_init(wec_from_bem,
@@ -209,9 +208,9 @@ def test_same_wec_init(wec_from_bem,
     x_wec_0 = np.random.randn(wec_from_bem.nstate_wec)
     np.random.seed(1)
     x_opt_0 = np.random.randn(wec_from_bem.nstate_wec)
-    bem_res = wec_from_bem.residual(x_wec_0, x_opt_0, waves)
-    fb_res = wec_from_floatingbody.residual(x_wec_0, x_opt_0, waves)
-    imp_res = wec_from_impedance.residual(x_wec_0, x_opt_0, waves)
+    bem_res = wec_from_bem.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
+    fb_res = wec_from_floatingbody.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
+    imp_res = wec_from_impedance.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
     
     assert fb_res == approx(bem_res, rel=0.01)
     assert imp_res == approx(bem_res, rel=0.01)
@@ -262,9 +261,9 @@ class TestTheoreticalPowerLimits:
                         bounds_opt=((-1*np.infty, 0),),
                         )
 
-        power_sol = -1*res['fun']
+        power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res, resonant_wave,nsubsteps=1)
+        res_fd, _ = wec.post_process(res[0], resonant_wave.sel(realization=0), nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
@@ -294,9 +293,9 @@ class TestTheoreticalPowerLimits:
                         bounds_opt=((-1e4, 0), (0, 2e4),)
                         )
 
-        power_sol = -1*res['fun']
+        power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
+        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
@@ -325,9 +324,9 @@ class TestTheoreticalPowerLimits:
                         scale_obj=1e-2,
                         )
 
-        power_sol = -1*res['fun']
+        power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res, regular_wave, nsubsteps=1)
+        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
@@ -406,8 +405,8 @@ class TestTheoreticalPowerLimits:
             
             nsubstep_postprocess = 4
             pto_fdom[key], pto_tdom[key] = pto[key].post_process(wec[key], 
-                                                                 res[key], 
-                                                                 regular_wave, 
+                                                                 res[key][0], 
+                                                                 regular_wave.sel(realization=0), 
                                                                  nsubstep_postprocess)
         
         xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
