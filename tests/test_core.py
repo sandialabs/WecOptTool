@@ -941,7 +941,7 @@ class TestCheckLinearDamping:
         """Hydrodynamic data structure for which the function
         :python:`check_linear_damping` has been called.
         """
-        return wot.check_linear_damping(data, tol)
+        return wot.check_linear_damping(data, tol, True)
 
     @pytest.fixture(scope="class")
     def data_new_nonuniform(self, data, tol):
