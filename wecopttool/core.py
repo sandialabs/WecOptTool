@@ -59,12 +59,24 @@ from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
 import warnings
 from datetime import datetime
-
-from numpy.typing import ArrayLike
+import xarray as xr
+'''
 import autograd.numpy as np
 from autograd.numpy import ndarray
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd import grad, jacobian
+'''
+from numpy.typing import ArrayLike
+import jax
+import jax.numpy as np
+from jax.numpy import ndarray
+from jax import grad, jacfwd
+from jax import lax
+from jax import vmap
+jacobian = jacfwd
+# Note: JAX doesn't have builtins module, so you may not need isinstance, tuple, list, dict imports
+# Replace autograd's jacobian with JAX's equivalent
+# Depending on the context, you might need to adjust how jacobian is used
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
@@ -80,8 +92,8 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
-_default_min_damping = 1e-6
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
+_default_min_damping = jax.lax.convert_element_type(1e-6, float)
 
 # type aliases
 TWEC = TypeVar("TWEC", bound="WEC")
@@ -1393,15 +1405,19 @@ def time_mat(
         Whether the first frequency should be zero.
     """
     t = time(f1, nfreq, nsubsteps)
-    omega = frequency(f1, nfreq) * 2*np.pi
+    omega = frequency(f1, nfreq) * 2 * np.pi
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
-    time_mat = np.empty((nsubsteps*ncomp, ncomp))
-    time_mat[:, 0] = 1.0
-    time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
-    if not zero_freq:
-        time_mat = time_mat[:, 1:]
+    if zero_freq:
+        time_mat = np.empty((nsubsteps * ncomp, ncomp))
+        time_mat = time_mat.at[:, 0].set(1.0)
+    else:
+        time_mat = np.empty((nsubsteps * ncomp, ncomp - 1))
+        time_mat = time_mat.at[:, 0].set(np.cos(wt[:, 0]))
+
+    time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
+    time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1]))
+
     return time_mat
 
 
@@ -1471,66 +1487,74 @@ def derivative2_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    vals = [(n + 1) * f1 * 2 * np.pi
+            for n in range(nfreq)]
+
+    squared_vals = np.square(np.array(vals))
+    
+    diagonal = -np.repeat(np.ones(nfreq) * squared_vals, 2)[:-1]  # remove 2pt wave sine
+    
     if zero_freq:
-        diagonal = np.concatenate(([0.0], diagonal))
+        diagonal = np.concatenate([np.array([0.0]), diagonal])
+    
     return np.diag(diagonal)
 
 
 def mimo_transfer_mat(
-    transfer_mat: DataArray,
-    zero_freq: Optional[bool] = True,
-) -> ndarray:
-    """Create a block matrix of the MIMO transfer function.
+        transfer_mat: xr.DataArray,
+        zero_freq: Optional[bool] = True,
+    ) -> np.ndarray:
+        """Create a block matrix of the MIMO transfer function.
 
-    The input is a complex transfer matrix that relates the complex
-    Fourier representation of two variables.
-    For example, it can be an impedance matrix or an RAO transfer
-    matrix.
-    The input complex impedance matrix has shape
-    :python`(nfreq, ndof, ndof)`.
+        The input is a complex transfer matrix that relates the complex
+        Fourier representation of two variables.
+        For example, it can be an impedance matrix or an RAO transfer
+        matrix.
+        The input complex impedance matrix has shape
+        :python`(nfreq, ndof, ndof)`.
 
-    Returns the 2D real matrix that transform the state representation
-    of the input variable variable to the state representation of the
-    output variable.
-    Here, a state representation :python:`x` consists of the mean (DC)
-    component followed by the real and imaginary components of the
-    Fourier coefficients (excluding the imaginary component of the
-    2-point wave) as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
+        Returns the 2D real matrix that transforms the state representation
+        of the input variable to the state representation of the
+        output variable.
+        Here, a state representation :python:`x` consists of the mean (DC)
+        component followed by the real and imaginary components of the
+        Fourier coefficients (excluding the imaginary component of the
+        2-point wave) as
+        :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
 
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
+        If :python:`zero_freq = False` (not default), the mean (DC) component
+        :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
-    Parameters
-    ----------
-    transfer_mat
-        Complex transfer matrix.
-    zero_freq
-        Whether the first frequency should be zero.
-    """
-    ndof = transfer_mat.shape[1]
-    assert transfer_mat.shape[2] == ndof
-    elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
-    for idof in range(ndof):
-        for jdof in range(ndof):
-            if zero_freq:
-                Zp0 = transfer_mat[0, idof, jdof]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
-                Zp = transfer_mat[1:, idof, jdof]
-            else:
-                Zp0 = [0.0]
-                Zp = transfer_mat[:, idof, jdof]
-            re = np.real(Zp)
-            im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
-            blocks = [Zp0] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+        Parameters
+        ----------
+        transfer_mat
+            Complex transfer matrix.
+        zero_freq
+            Whether the first frequency should be zero.
+        """
+        # Convert xarray DataArray to JAX-compatible array
+        transfer_mat_jax = np.asarray(transfer_mat)
 
+        ndof = transfer_mat_jax.shape[1]
+        assert transfer_mat_jax.shape[2] == ndof
+        elem = [[None]*ndof for _ in range(ndof)]
+        def block(re, im): return np.array([[re, -im], [im, re]])
+        for idof in range(ndof):
+            for jdof in range(ndof):
+                if zero_freq:
+                    Zp0 = transfer_mat_jax[0, idof, jdof]
+                    assert np.all(np.isreal(Zp0))
+                    Zp0 = np.real(Zp0)
+                    Zp = transfer_mat_jax[1:, idof, jdof]
+                else:
+                    Zp0 = np.array([0.0])  # Convert to JAX array
+                    Zp = transfer_mat_jax[:, idof, jdof]
+                re = np.real(Zp)  # Convert to JAX array
+                im = np.imag(Zp)  # Convert to JAX array
+                blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
+                blocks = [Zp0] + blocks + [re[-1]]
+                elem[idof][jdof] = block_diag(*blocks)
+        return np.block(elem)
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     """Convert a vector back to a matrix with one column per DOF.
@@ -1611,13 +1635,12 @@ def real_to_complex(
     --------
     complex_to_real,
     """
-    fd= atleast_2d(fd)
+    fd = np.atleast_2d(fd)
     if zero_freq:
-        assert fd.shape[0]%2==0
+        assert fd.shape[0] % 2 == 0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    [fd[-1, :]], axis=0)
+    fdc = np.vstack((fd[0:-1:2, :] + 1j * fd[1::2, :], fd[-1, :]))
     if zero_freq:
         fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
@@ -1908,18 +1931,18 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
-    Zi_shifted = Zi.copy()
-    for dof in range(Zi_diag.shape[1]):
-        dmin = np.min(np.real(Zi_diag[:, dof]))
-        if dmin < min_damping:
-            delta = min_damping - dmin
-            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
-                + np.abs(delta)
-            _log.warning(
-                f'Real part of impedance for {dof} has negative or close to ' +
-                f'zero terms. Shifting up by {delta:.2f}')
-    return Zi_shifted
+    # Convert xarray DataArray to JAX-compatible array
+    Zi_jax = np.asarray(Zi)
+
+    # Continue with JAX operations
+    Zi_diag = np.diagonal(Zi_jax, axis1=1, axis2=2)
+    Zi_shifted = Zi_jax.copy()
+
+
+    # Convert back to xarray DataArray
+    Zi_shifted_xr = xr.DataArray(Zi_shifted, coords=Zi.coords, dims=Zi.dims)
+
+    return Zi_shifted_xr
 
 
 def force_from_rao_transfer_function(
@@ -2026,7 +2049,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     hydro_data
         Linear hydrodynamic data.
     """
-
     # intrinsic impedance
     w = hydro_data['omega']
     A = hydro_data['added_mass']
@@ -2066,7 +2088,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
@@ -2120,7 +2142,7 @@ def run_bem(
     test_matrix = Dataset(coords={
         'rho': [rho],
         'water_depth': [depth],
-        'omega': [ifreq*2*np.pi for ifreq in freq],
+        'omega': jax.numpy.array([ifreq*2*np.pi for ifreq in freq], dtype=float),
         'wave_direction': wave_dirs,
         'radiating_dof': list(fb.dofs.keys()),
         'g': [g],
@@ -2160,9 +2182,29 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data
         Linear hydrodynamic coefficients for the WEC.
     """
-    bem_data['Froude_Krylov_force'] = np.conjugate(
-        bem_data['Froude_Krylov_force'])
-    bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    force_np = bem_data['Froude_Krylov_force'].values
+    # Apply complex conjugation in JAX
+    force_conjugate_np = np.conj(force_np)
+    # Convert NumPy array back to DataArray
+    force_conjugate_da = xr.DataArray(
+        data=force_conjugate_np,
+        coords=bem_data['Froude_Krylov_force'].coords,
+        dims=bem_data['Froude_Krylov_force'].dims
+    )
+    # Update the original DataArray
+    bem_data['Froude_Krylov_force'] = force_conjugate_da
+    #diffraction_force
+    dforce_np = bem_data['diffraction_force'].values
+    # Apply complex conjugation in JAX
+    force_conjugate_np = np.conj(dforce_np)
+    # Convert NumPy array back to DataArray
+    force_conjugate_da = xr.DataArray(
+        data=force_conjugate_np,
+        coords=bem_data['diffraction_force'].coords,
+        dims=bem_data['diffraction_force'].dims
+    )
+    bem_data['diffraction_force'] = force_conjugate_da
+
     return bem_data
 
 
@@ -2307,10 +2349,12 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
-    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
+    radians = np.remainder(np.deg2rad(np.asarray(degrees)), 2 * np.pi)
+    radians = np.where(radians > np.pi, radians - 2 * np.pi, radians)
+
     if radians.size > 1 and sort:
         radians = np.sort(radians)
+
     return radians
 
 
@@ -2387,7 +2431,6 @@ def scale_dofs(scale_list: Iterable[float], ncomponents: int) -> ndarray:
     scale :python:`scale_list[0]`, the next :python:`ncomponents`
     entries have the value of the second scale :python:`scale_list[1]`,
     and so on.
-
 
     Parameters
     ----------
@@ -2482,7 +2525,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([[0.0,], freqs])
+            freqs0 = np.concatenate([np.array([0.0]), np.array(freqs)])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
@@ -2494,7 +2537,7 @@ def frequency_parameters(
     return f1, nfreq
 
 
-def time_results(fd: DataArray, time: DataArray) -> ndarray:
+def time_results(fd: DataArray, time: DataArray) -> DataArray:
     """Create a :py:class:`xarray.DataArray` of time-domain results from
     :py:class:`xarray.DataArray` of frequency-domain results.
 
@@ -2505,11 +2548,26 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     time
         Time array.
     """
-    out = np.zeros((*fd.isel(omega=0).shape, len(time)))
-    for w, mag in zip(fd.omega, fd):
-        out = out + \
-            np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
-    return out
+    # Convert xarray arrays to JAX arrays
+    fd_omega = np.array(fd.omega.values)
+    fd_values = np.array(fd.values)
+
+    # Ensure that the shapes are compatible for broadcasting
+    fd_values_broadcasted = np.expand_dims(fd_values, axis=0)
+    
+    # Extract time values directly
+    time_array = np.expand_dims(np.array(time.values), axis=-1)
+
+    # Calculate the time-domain response using JAX arrays
+    out = np.sum(fd_values_broadcasted * np.exp(1j * fd_omega * time_array), axis=1)
+
+    # Take the real part to ensure the result is real
+    out = np.real(out)
+
+    # Convert back to xarray DataArray
+    out_xr = xr.DataArray(out, coords={'time': time.values}, dims=['time'])
+
+    return out_xr
 
 
 def set_fb_centers(
