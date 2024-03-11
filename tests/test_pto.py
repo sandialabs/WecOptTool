@@ -224,8 +224,8 @@ class TestControllers:
         vel = -1 * amp * w * np.sin(w * wec.time)
         force = vel*pid_p
         force = force.reshape(-1, 1)
-        x_wec = [0, amp, 0, 0]
-        x_opt = [pid_p,]
+        x_wec = np.array([0, amp, 0, 0])
+        x_opt = np.array([pid_p,])
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
 
@@ -239,8 +239,8 @@ class TestControllers:
         vel = -1 * amp * w * np.sin(w * wec.time)
         force = vel*pid_p + pos*pid_i
         force = force.reshape(-1, 1)
-        x_wec = [0, amp, 0, 0]
-        x_opt = [pid_p, pid_i]
+        x_wec = np.array([0, amp, 0, 0])
+        x_opt = np.array([pid_p, pid_i])
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
 
@@ -257,8 +257,8 @@ class TestControllers:
         acc = -1 * amp * w**2 * np.cos(w * wec.time)
         force = vel*pid_p + pos*pid_i + acc*pid_d
         force = force.reshape(-1, 1)
-        x_wec = [0, amp, 0, 0]
-        x_opt = [pid_p, pid_i, pid_d]
+        x_wec = np.array([0, amp, 0, 0])
+        x_opt = np.array([pid_p, pid_i, pid_d])
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)
 
@@ -278,7 +278,7 @@ class TestControllers:
         force = vel*pid_p + pos*pid_i + acc*pid_d
         force = np.clip(force, saturation[0,0], saturation[0,1])
         force = force.reshape(-1, 1)
-        x_wec = [0, amp, 0, 0]
-        x_opt = [pid_p, pid_i, pid_d]
+        x_wec = np.array([0, amp, 0, 0])
+        x_opt = np.array([pid_p, pid_i, pid_d])
         calculated = pto.force(wec, x_wec, x_opt, None)
         assert np.allclose(force, calculated)

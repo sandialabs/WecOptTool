@@ -27,12 +27,22 @@ __all__ = [
 
 
 from typing import Optional, TypeVar, Callable, Union
-
+'''
 import autograd.numpy as np
 from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
+'''
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
+from numpy.typing import ArrayLike
+import jax
+import jax.numpy as np
+from jax.numpy import ndarray
+from jax import grad, jacfwd
+from jax import lax
+from jax import vmap
+jacobian = jacfwd
+import xarray as xr
 from xarray import DataArray, Dataset
 from datetime import datetime
 from scipy.optimize import OptimizeResult
@@ -909,7 +919,7 @@ def controller_unstructured(
         length.
     """
     tmat = pto._tmat(wec, nsubsteps)
-    x_opt = np.reshape(x_opt[:len(tmat[0])*pto.ndof], (-1, pto.ndof), order='F')
+    x_opt = np.reshape(np.array(x_opt[:len(tmat[0])*pto.ndof]), (-1, pto.ndof), order='F')
     return np.dot(tmat, x_opt)
 
 
