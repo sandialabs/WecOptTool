@@ -27,11 +27,6 @@ __all__ = [
 
 
 from typing import Optional, TypeVar, Callable, Union
-'''
-import autograd.numpy as np
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd.numpy import ndarray
-'''
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 from numpy.typing import ArrayLike

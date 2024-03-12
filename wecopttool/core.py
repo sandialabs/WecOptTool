@@ -60,12 +60,6 @@ from pathlib import Path
 import warnings
 from datetime import datetime
 import xarray as xr
-'''
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd import grad, jacobian
-'''
 from numpy.typing import ArrayLike
 import jax
 import jax.numpy as np
@@ -74,9 +68,6 @@ from jax import grad, jacfwd
 from jax import lax
 from jax import vmap
 jacobian = jacfwd
-# Note: JAX doesn't have builtins module, so you may not need isinstance, tuple, list, dict imports
-# Replace autograd's jacobian with JAX's equivalent
-# Depending on the context, you might need to adjust how jacobian is used
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
@@ -1414,8 +1405,13 @@ def time_mat(
     else:
         time_mat = np.empty((nsubsteps * ncomp, ncomp - 1))
         time_mat = time_mat.at[:, 0].set(np.cos(wt[:, 0]))
+    print("Shape of wt after set:", wt.shape)
+    print("Size of wt after set:", np.size(wt))
+    print("Size of time_mat after set and before slicing:", np.size(time_mat))
+    time_mat = time_mat.at[:, 1::2].set(np.cos(wt[:, :time_mat.shape[1] // 2]))
+    print("Size of time_mat after set and slicing:", np.size(time_mat))
+    print("Final shape of time_mat:", time_mat.shape)
 
-    time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
     time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1]))
 
     return time_mat
