@@ -40,8 +40,6 @@ jacobian = jacfwd
 import xarray as xr
 from xarray import DataArray, Dataset
 from datetime import datetime
-from scipy.optimize import OptimizeResult
-
 from wecopttool.core import complex_to_real, td_to_fd
 from wecopttool.core import dofmat_to_vec, vec_to_dofmat
 from wecopttool.core import TWEC, TStateFunction, FloatOrArray

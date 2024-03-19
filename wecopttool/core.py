@@ -59,19 +59,22 @@ from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
 import warnings
 from datetime import datetime
-import xarray as xr
 from numpy.typing import ArrayLike
+import numpy as npy 
 import jax
 import jax.numpy as np
 from jax.numpy import ndarray
 from jax import grad, jacfwd
 from jax import lax
 from jax import vmap
+from jax import random
 jacobian = jacfwd
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
+import cyipopt
+from cyipopt import minimize_ipopt
 from scipy.linalg import block_diag, dft
 
 
@@ -720,12 +723,17 @@ class WEC:
         
         # decision variable initial guess
         if x_wec_0 is None:
-            x_wec_0 = np.random.randn(self.nstate_wec)
+            key_wec = random.PRNGKey(0)  # Initialize a random key for WEC
+            x_wec_0 = random.normal(key_wec, shape=(self.nstate_wec,))
         if x_opt_0 is None:
-            x_opt_0 = np.random.randn(nstate_opt)
+            key_opt = random.PRNGKey(1)  # Initialize a random key for optimization
+            x_opt_0 = random.normal(key_opt, shape=(nstate_opt,))
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
-
         # bounds
+        print(f"bounds_opt before processing: {bounds_opt}")
+        print(f"bounds_wec before processing: {bounds_wec}")
+        # Continue with constructing Bounds object
+
         if (bounds_wec is None) and (bounds_opt is None):
             bounds = None
         else:
@@ -745,9 +753,22 @@ class WEC:
                 else:
                     bo = bd
                 bounds_list.append(bo)
+            # Ensure that scale has the same length as the concatenated bounds arrays
+            scale_length = len(np.hstack([le.lb for le in bounds_list]))
+
+            # If the length of the scale array is different, adjust it
+            if len(scale) != scale_length:
+                # Calculate the number of elements to add or remove
+                diff = scale_length - len(scale)
+                if diff > 0:
+                    # Add elements with a value of 1
+                    scale = np.concatenate([scale, np.ones(diff)])
+                elif diff < 0:
+                    # Remove excess elements
+                    scale = scale[:scale_length]
             bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                             ub=np.hstack([le.ub for le in bounds_list])*scale)
-
+        print(f"bounds after processing: {bounds}")
         for realization, wave in waves.groupby('realization'):
 
             _log.info("Solving pseudo-spectral control problem "
@@ -788,7 +809,7 @@ class WEC:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
             
-            # callback
+            # callback implementation will have to be removed for cyipopt minimize_ipopt
             if callback is None:
                 def callback_scipy(x):
                     x_wec, x_opt = self.decompose_state(x)
@@ -805,19 +826,17 @@ class WEC:
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
-            problem = {'fun': obj_fun_scaled,
-                        'x0': x0,
-                        'method': 'SLSQP',
-                        'constraints': constraints,
-                        'options': optim_options,
-                        'bounds': bounds,
-                        'callback': callback_scipy,
-                        }
-            if use_grad:
-                problem['jac'] = grad(obj_fun_scaled)
+            problem = {
+                'x0': x0,
+                'bounds': (bounds.lb, bounds.ub) if bounds else None,
+                'constraints': constraints,
+                'options': optim_options,
+                'callback': callback_scipy,
+                'jac': use_grad,
+            }
 
             # minimize
-            optim_res = minimize(**problem)
+            optim_res = minimize_ipopt(obj_fun_scaled, **problem)
 
             msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
             if optim_res.status == 0:
@@ -833,7 +852,7 @@ class WEC:
             optim_res.jac = optim_res.jac / scale_obj * scale
             
             results.append(optim_res)
-        
+
         return results
 
     def post_process(self,
@@ -880,9 +899,9 @@ class WEC:
         """
         create_time = f"{datetime.utcnow()}"
 
-        omega_vals = np.concatenate([[0], waves.omega.values])
-        freq_vals = np.concatenate([[0], waves.freq.values])
-        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+        omega_vals = np.concatenate([np.array([0]), np.array(waves.omega.values)])
+        freq_vals = np.concatenate([np.array([0]), np.array(waves.freq.values)])
+        period_vals = np.concatenate([np.array([np.inf]), np.array(1/waves.freq.values)])
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -1405,13 +1424,7 @@ def time_mat(
     else:
         time_mat = np.empty((nsubsteps * ncomp, ncomp - 1))
         time_mat = time_mat.at[:, 0].set(np.cos(wt[:, 0]))
-    print("Shape of wt after set:", wt.shape)
-    print("Size of wt after set:", np.size(wt))
-    print("Size of time_mat after set and before slicing:", np.size(time_mat))
     time_mat = time_mat.at[:, 1::2].set(np.cos(wt[:, :time_mat.shape[1] // 2]))
-    print("Size of time_mat after set and slicing:", np.size(time_mat))
-    print("Final shape of time_mat:", time_mat.shape)
-
     time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1]))
 
     return time_mat
@@ -1754,21 +1767,24 @@ def fd_to_td(
     --------
     td_to_fd, time, time_mat
     """
+    
     fd = atleast_2d(fd)
-
     if zero_freq:
         msg = "The first row must be real when `zero_freq=True`."
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
         tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
+
+        
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        td = np.fft.irfft(fd/2, n=n, axis=0)
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
+    
     return td
 
 
@@ -1933,7 +1949,13 @@ def check_impedance(
     # Continue with JAX operations
     Zi_diag = np.diagonal(Zi_jax, axis1=1, axis2=2)
     Zi_shifted = Zi_jax.copy()
-
+    # Perform damping shift if necessary
+    delta = np.min(np.real(Zi_diag)) - min_damping
+    if delta < 0:
+        Zi_shifted += np.abs(delta)
+        _log.warning(
+            f'Real part of impedance has negative or close to zero terms. Shifting up by {delta:.2f}'
+        )
 
     # Convert back to xarray DataArray
     Zi_shifted_xr = xr.DataArray(Zi_shifted, coords=Zi.coords, dims=Zi.dims)

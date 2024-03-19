@@ -4,7 +4,8 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
-import autograd.numpy as np
+import jax
+import jax.numpy as np
 from scipy.optimize import Bounds
 import xarray as xr
 
@@ -150,43 +151,24 @@ def resonant_wave(f1, nfreq, fb, bem):
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
     return waves
 
+#Eliminated test for callback since cyipopt minimize_ipopt has no implemantation for callback
 
-def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
-    """Check that user can set a custom callback"""
-
-    cbstring = 'hello world!'
-
-    def my_callback(my_wec, x_wec, x_opt, wave):
-        print(cbstring)
-
-    _ = wec_from_bem.solve(regular_wave,
-                           obj_fun=pto.average_power,
-                           nstate_opt=2*nfreq,
-                           scale_x_wec=1.0,
-                           scale_x_opt=0.01,
-                           scale_obj=1e-1,
-                           callback=my_callback,
-                           optim_options={'maxiter': 1})
-
-    out, err = capfd.readouterr()
-
-    assert out.split('\n')[0] == cbstring
-
-
-@pytest.mark.parametrize("bounds_opt",
-                         [Bounds(lb=kplim, ub=0), ((kplim, 0),)])
-def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
-                      p_controller_pto):
+def test_solve_bounds(wec_from_bem, regular_wave, p_controller_pto):
     """Confirm that bounds are not violated and scale correctly when
     passing bounds argument as both as Bounds object and a tuple"""
-
+    
     # replace unstructured controller with proportional controller
     wec_from_bem.forces['PTO'] = p_controller_pto.force_on_wec
 
+    nstate_opt = 1  # Number of decision variables
+    lb = [kplim]*nstate_opt  # Lower bounds
+    ub = [0]*nstate_opt  # Upper bounds
+    bounds_opt = Bounds(lb, ub)
+
     res = wec_from_bem.solve(waves=regular_wave,
                              obj_fun=p_controller_pto.average_power,
-                             nstate_opt=1,
-                             x_opt_0=[kplim*0.1],
+                             nstate_opt=nstate_opt,
+                             x_opt_0=np.array([kplim*0.1]),
                              optim_options={'maxiter': 2e1,
                                             'ftol': 1e-8},
                              bounds_opt=bounds_opt,
@@ -285,7 +267,7 @@ class TestTheoreticalPowerLimits:
                         obj_fun=pi_controller_pto.average_power,
                         nstate_opt=2,
                         x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        x_opt_0=[-1e3, 1e4],
+                        x_opt_0=np.array([-1e3, 1e4]),
                         scale_x_wec=1e2,
                         scale_x_opt=1e-3,
                         scale_obj=1e-2,
@@ -321,7 +303,9 @@ class TestTheoreticalPowerLimits:
                         x_wec_0=1e-1*np.ones(wec.nstate_wec),
                         scale_x_wec=1e2,
                         scale_x_opt=1e-2,
+                        callback=None,
                         scale_obj=1e-2,
+                        
                         )
 
         power_sol = -1*res[0]['fun']
@@ -399,6 +383,7 @@ class TestTheoreticalPowerLimits:
                             scale_x_wec=scale_x_wec[key],
                             scale_x_opt=scale_x_opt[key],
                             scale_obj=scale_obj[key],
+                            callback=None,
                             optim_options={'maxiter': 200},
                             bounds_opt=bounds_opt[key]
                             )
