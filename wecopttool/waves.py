@@ -41,6 +41,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 from numpy import ndarray
 from xarray import DataArray
+from wavespectra import SpecArray
 from scipy.special import gamma
 
 from wecopttool.core import frequency, degrees_to_radians, frequency_parameters
@@ -108,10 +109,7 @@ def elevation_fd(
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections, nrealizations])
     else:
-        if amplitudes.shape == (nfreq, ndirections):
-            amplitudes = np.expand_dims(amplitudes,axis=2)
-        assert amplitudes.shape == (nfreq, ndirections, 1) or \
-                amplitudes.shape == (nfreq, ndirections, nrealizations)
+        assert amplitudes.shape == (nfreq, ndirections, nrealizations)
 
     if phases is None:
         phases = random_phase([nfreq, ndirections, nrealizations], seed)
@@ -193,60 +191,64 @@ def regular_wave(
 
     return waves
 
+# TODO - remove
+# def long_crested_wave(
+#     ws: SpecArray,
+#     nrealizations: int,
+#     direction: Optional[float] = 0.0,
+#     seed: Optional[float] = None,
+# ) -> DataArray:
+#     """Create a complex frequency-domain wave elevation from an
+#     omnidirectional spectrum.
 
-def long_crested_wave(
-    efth: DataArray,
-    nrealizations: int,
-    direction: Optional[float] = 0.0,
-    seed: Optional[float] = None,
-) -> DataArray:
-    """Create a complex frequency-domain wave elevation from an
-    omnidirectional spectrum.
+#     The omnidirectional spectrum is in the
+#     :py:class:`wavespectra.SpecArray` format.
 
-    The omnidirectional spectrum is in the
-    :py:class:`wavespectra.SpecArray` format.
+#     .. note:: The frequencies must be evenly-spaced with spacing equal
+#               to the first frequency. This is not always the case when
+#               e.g. reading from buoy data. Use interpolation as
+#               :python:`da.interp(freq=[...])`.
 
-    .. note:: The frequencies must be evenly-spaced with spacing equal
-              to the first frequency. This is not always the case when
-              e.g. reading from buoy data. Use interpolation as
-              :python:`da.interp(freq=[...])`.
+#     Parameters
+#     ----------
+#     ws
+#         Omnidirection wave spectrum in units of m^2/Hz, in the format
+#         used by :py:class:`wavespectra.SpecArray`.
+#     nrealizations
+#         Number of wave phase realizations to be created for the 
+#         long-crested wave.
+#     direction
+#         Direction (in degrees) of the long-crested wave.
+#     seed
+#         Seed for random number generator. Used for reproducibility.
+#         Generally should not be used except for testing.
+#     """
+#     f1, nfreq = frequency_parameters(ws.freq.values, False)
+#     df = ws.df
+#     if not np.array_equal(df,df):
+#         raise ValueError(f'Frequency spacing of "ws" is not equal' +
+#                          f'ws.df = {df}')
+        
 
-    Parameters
-    ----------
-    efth
-        Omnidirection wave spectrum in units of m^2/Hz, in the format
-        used by :py:class:`wavespectra.SpecArray`.
-    nrealizations
-        Number of wave phase realizations to be created for the 
-        long-crested wave.
-    direction
-        Direction (in degrees) of the long-crested wave.
-    seed
-        Seed for random number generator. Used for reproducibility.
-        Generally should not be used except for testing.
-    """
-    f1, nfreq = frequency_parameters(efth.freq.values, False)
-    df = f1
+#     values = ws.oned().values
+#     values[values<0] = np.nan
+#     amplitudes = np.sqrt(2 * values * df[0])
 
-    values = efth.values
-    values[values<0] = np.nan
-    amplitudes = np.sqrt(2 * values * df)
+#     attr = {
+#         'Wave type': 'Long-crested irregular',
+#         'Direction (degrees)': direction,
+#     }
 
-    attr = {
-        'Wave type': 'Long-crested irregular',
-        'Direction (degrees)': direction,
-    }
-
-    return elevation_fd(f1, nfreq, direction, nrealizations, amplitudes, None, attr, seed)
+#     return elevation_fd(f1, nfreq, direction, nrealizations, amplitudes, None, attr, seed)
 
 
 def irregular_wave(efth: DataArray,
-                   nrealizations: int,
+                   nrealizations: Optional[int] = 1,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
     The omnidirectional spectrum is in the
-    :py:class:`wavespectra.SpecArray` format.
+    :py:class:`wavespectra.SpecArray` format. TODO - fix this description
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
@@ -268,13 +270,21 @@ def irregular_wave(efth: DataArray,
         Generally should not be used except for testing.
     """
     f1, nfreq = frequency_parameters(efth.freq.values, False)
-    directions = efth.dir.values
-    df = f1
-    dd = np.sort(directions)[1]-np.sort(directions)[0]
+    dfs = np.gradient(efth.freq)
+    if not np.array_equal(dfs,dfs):
+        raise ValueError(f'Frequency spacing of "ws" must be equal:' +
+                         f'{dfs}')
+    df = dfs[0]
 
+    directions = efth.dir.values
+    if len(directions) > 1:
+        dd = np.gradient(directions) #TODO - check that these are equal too?
+    else:
+        dd = 1
     values = efth.values
     values[values<0] = np.nan
-    amplitudes = np.sqrt(2 * values * df * dd)
+    amplitudes = np.atleast_3d(np.sqrt(2 * values * df * dd))
+    print(amplitudes.shape)
 
     attr = {'Wave type': 'Irregular'}
 
