@@ -64,18 +64,15 @@ import numpy as npy
 import jax
 import jax.numpy as np
 from jax.numpy import ndarray
-from jax import grad, jacfwd
-from jax import lax
-from jax import vmap
-from jax import random
+from jax import grad, jacfwd, lax, vmap, random, jacrev, hessian
 jacobian = jacfwd
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
-from scipy.optimize import minimize, OptimizeResult, Bounds
+from scipy.optimize import OptimizeResult, Bounds
+from scipy.linalg import block_diag, dft
 import cyipopt
 from cyipopt import minimize_ipopt
-from scipy.linalg import block_diag, dft
 
 
 # logger
@@ -546,8 +543,9 @@ class WEC:
         if (ndim!=3) or (shape[1]!=shape[2]) or (shape[0]!=nfreq):
             raise ValueError(
                 "'impedance' must have shape '(nfreq, ndof, ndof)'.")
-
-        impedance = check_impedance(impedance, min_damping)
+        
+        impedance = xr.DataArray(impedance)
+        impedance = np.array(check_impedance(impedance, min_damping))
 
         # impedance force
         omega = freqs * 2*np.pi
@@ -613,7 +611,6 @@ class WEC:
         maximize: Optional[bool] = False,
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
-        callback: Optional[TStateFunction] = None,
         ) -> list[OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by
@@ -701,7 +698,6 @@ class WEC:
         --------
         wecopttool.waves,
         """
-
         results = []
 
         # x_wec scaling vector
@@ -719,6 +715,8 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
+        scale_x_wec = np.array(scale_x_wec)
+        scale_x_opt = np.array(scale_x_opt)
         scale = np.concatenate([scale_x_wec, scale_x_opt])
         
         # decision variable initial guess
@@ -728,47 +726,35 @@ class WEC:
         if x_opt_0 is None:
             key_opt = random.PRNGKey(1)  # Initialize a random key for optimization
             x_opt_0 = random.normal(key_opt, shape=(nstate_opt,))
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
-        # bounds
-        print(f"bounds_opt before processing: {bounds_opt}")
-        print(f"bounds_wec before processing: {bounds_wec}")
-        # Continue with constructing Bounds object
+        x_wec_0 = np.array(x_wec_0)
+        x_opt_0 = np.array(x_opt_0)
+    
+        x0 = np.concatenate([x_wec_0, x_opt_0]) * scale # scale initial guess
 
+        # bounds
         if (bounds_wec is None) and (bounds_opt is None):
             bounds = None
         else:
             bounds_in = [bounds_wec, bounds_opt]
-            for idx, bii in enumerate(bounds_in):
-                if isinstance(bii, tuple):
-                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
-                                            ub=[xibs[1] for xibs in bii])
+            bounds_list = []
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
-                            Bounds(lb=-inf_opt, ub=inf_opt)]
-            bounds_list = []
-            for bi, bd in zip(bounds_in, bounds_dflt):
-                if bi is not None:
-                    bo = bi
+                        Bounds(lb=-inf_opt, ub=inf_opt)]
+            for bii, bd in zip(bounds_in, bounds_dflt):
+                if bii is not None:
+                    if isinstance(bii, list) and all(isinstance(x, tuple) for x in bii):
+                        bounds_list.append(Bounds(lb=np.array([x[0] for x in bii]),
+                                                ub=np.array([x[1] for x in bii])))
+                    elif isinstance(bii, tuple):
+                        bounds_list.append(Bounds(lb=np.array([bii[0]]).reshape(-1), 
+                                                ub=np.array([bii[1]]).reshape(-1)))
                 else:
-                    bo = bd
-                bounds_list.append(bo)
-            # Ensure that scale has the same length as the concatenated bounds arrays
-            scale_length = len(np.hstack([le.lb for le in bounds_list]))
-
-            # If the length of the scale array is different, adjust it
-            if len(scale) != scale_length:
-                # Calculate the number of elements to add or remove
-                diff = scale_length - len(scale)
-                if diff > 0:
-                    # Add elements with a value of 1
-                    scale = np.concatenate([scale, np.ones(diff)])
-                elif diff < 0:
-                    # Remove excess elements
-                    scale = scale[:scale_length]
+                    bounds_list.append(bd)
+            
             bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                             ub=np.hstack([le.ub for le in bounds_list])*scale)
-        print(f"bounds after processing: {bounds}")
+            
         for realization, wave in waves.groupby('realization'):
 
             _log.info("Solving pseudo-spectral control problem "
@@ -776,7 +762,7 @@ class WEC:
             
             # objective function
             sign = -1.0 if maximize else 1.0
-            
+
             def obj_fun_scaled(x):
                 x_wec, x_opt = self.decompose_state(x/scale)
                 return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
@@ -808,49 +794,28 @@ class WEC:
             if use_grad:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
-            
-            # callback implementation will have to be removed for cyipopt minimize_ipopt
-            if callback is None:
-                def callback_scipy(x):
-                    x_wec, x_opt = self.decompose_state(x)
-                    max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
-                    _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
-                              + f"[{np.max(np.abs(x_wec)):.2e}, "
-                              + f"{max_x_opt:.2e}, "
-                              + f"{obj_fun_scaled(x):.2e}]")
-            else:
-                def callback_scipy(x):
-                    x_s = x/scale
-                    x_wec, x_opt = self.decompose_state(x_s)
-                    return callback(self, x_wec, x_opt, wave)
+
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
-            problem = {
-                'x0': x0,
-                'bounds': (bounds.lb, bounds.ub) if bounds else None,
-                'constraints': constraints,
-                'options': optim_options,
-                'callback': callback_scipy,
-                'jac': use_grad,
-            }
+            problem = {'fun': obj_fun_scaled,
+                        'x0': x0,
+                        'constraints': constraints,
+                        'options': optim_options,
+                        'bounds': bounds,
+                        }
+            if use_grad:
+                problem['jac'] = grad(obj_fun_scaled)
 
             # minimize
-            optim_res = minimize_ipopt(obj_fun_scaled, **problem)
-
-            msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
-            if optim_res.status == 0:
-                _log.info(msg)
-            elif optim_res.status == 9:
-                _log.warning(msg)
-            else:
-                raise Exception(msg)
+            optim_res = minimize_ipopt(**problem)
 
             # unscale
             optim_res.x = optim_res.x / scale
             optim_res.fun = optim_res.fun / scale_obj
-            optim_res.jac = optim_res.jac / scale_obj * scale
-            
+            if hasattr(optim_res, 'jac'):
+                optim_res.jac = optim_res.jac / scale_obj * scale
+
             results.append(optim_res)
 
         return results
@@ -1055,7 +1020,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate([np.array([np.inf]), np.array(1/self._freq[1:])])
 
     @property
     def w1(self) -> float:
@@ -1958,6 +1923,8 @@ def check_impedance(
         )
 
     # Convert back to xarray DataArray
+    if not isinstance(Zi, xr.DataArray):
+        raise TypeError("Zi must be an xarray.DataArray")
     Zi_shifted_xr = xr.DataArray(Zi_shifted, coords=Zi.coords, dims=Zi.dims)
 
     return Zi_shifted_xr

@@ -11,8 +11,7 @@ import numpy as np
 import xarray as xr
 import capytaine as cpy
 import jax.numpy as jnp
-from jax import vmap
-from jax import jit
+from jax import vmap, jit
 import wecopttool as wot
 
 

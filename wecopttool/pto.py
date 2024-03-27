@@ -33,9 +33,7 @@ from numpy.typing import ArrayLike
 import jax
 import jax.numpy as np
 from jax.numpy import ndarray
-from jax import grad, jacfwd
-from jax import lax
-from jax import vmap
+from jax import grad, jacfwd, lax, vmap
 jacobian = jacfwd
 import xarray as xr
 from xarray import DataArray, Dataset
@@ -982,7 +980,7 @@ def controller_pid(
 
     # Saturation
     if saturation is not None:
-        saturation = np.atleast_2d(np.squeeze(saturation))
+        saturation = np.atleast_2d(np.squeeze(np.array(saturation)))
         assert len(saturation)==ndof
         if len(saturation.shape) > 2:
             raise ValueError("`saturation` must have <= 2 dimensions.")
