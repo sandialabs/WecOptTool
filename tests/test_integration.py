@@ -41,7 +41,6 @@ def p_controller_pto():
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
                       controller=wot.pto.controller_p,
                       names=["P controller PTO"])
-    print("got here")
     return pto
 
 
