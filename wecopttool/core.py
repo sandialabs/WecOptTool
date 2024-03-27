@@ -59,17 +59,20 @@ from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
 import warnings
 from datetime import datetime
-
 from numpy.typing import ArrayLike
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd import grad, jacobian
+import numpy as npy 
+import jax
+import jax.numpy as np
+from jax.numpy import ndarray
+from jax import grad, jacfwd, lax, vmap, random, jacrev, hessian
+jacobian = jacfwd
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
-from scipy.optimize import minimize, OptimizeResult, Bounds
+from scipy.optimize import OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
+import cyipopt
+from cyipopt import minimize_ipopt
 
 
 # logger
@@ -80,8 +83,8 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
-_default_min_damping = 1e-6
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
+_default_min_damping = jax.lax.convert_element_type(1e-6, float)
 
 # type aliases
 TWEC = TypeVar("TWEC", bound="WEC")
@@ -540,8 +543,9 @@ class WEC:
         if (ndim!=3) or (shape[1]!=shape[2]) or (shape[0]!=nfreq):
             raise ValueError(
                 "'impedance' must have shape '(nfreq, ndof, ndof)'.")
-
-        impedance = check_impedance(impedance, min_damping)
+        
+        impedance = xr.DataArray(impedance)
+        impedance = np.array(check_impedance(impedance, min_damping))
 
         # impedance force
         omega = freqs * 2*np.pi
@@ -607,7 +611,6 @@ class WEC:
         maximize: Optional[bool] = False,
         bounds_wec: Optional[Bounds] = None,
         bounds_opt: Optional[Bounds] = None,
-        callback: Optional[TStateFunction] = None,
         ) -> list[OptimizeResult]:
         """Simulate WEC dynamics using a pseudo-spectral solution
         method and returns the raw results dictionary produced by
@@ -695,7 +698,6 @@ class WEC:
         --------
         wecopttool.waves,
         """
-
         results = []
 
         # x_wec scaling vector
@@ -713,38 +715,46 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
+        scale_x_wec = np.array(scale_x_wec)
+        scale_x_opt = np.array(scale_x_opt)
         scale = np.concatenate([scale_x_wec, scale_x_opt])
         
         # decision variable initial guess
         if x_wec_0 is None:
-            x_wec_0 = np.random.randn(self.nstate_wec)
+            key_wec = random.PRNGKey(0)  # Initialize a random key for WEC
+            x_wec_0 = random.normal(key_wec, shape=(self.nstate_wec,))
         if x_opt_0 is None:
-            x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
+            key_opt = random.PRNGKey(1)  # Initialize a random key for optimization
+            x_opt_0 = random.normal(key_opt, shape=(nstate_opt,))
+        x_wec_0 = np.array(x_wec_0)
+        x_opt_0 = np.array(x_opt_0)
+    
+        x0 = np.concatenate([x_wec_0, x_opt_0]) * scale # scale initial guess
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
             bounds = None
         else:
             bounds_in = [bounds_wec, bounds_opt]
-            for idx, bii in enumerate(bounds_in):
-                if isinstance(bii, tuple):
-                    bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
-                                            ub=[xibs[1] for xibs in bii])
+            bounds_list = []
             inf_wec = np.ones(self.nstate_wec)*np.inf
             inf_opt = np.ones(nstate_opt)*np.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
-                            Bounds(lb=-inf_opt, ub=inf_opt)]
-            bounds_list = []
-            for bi, bd in zip(bounds_in, bounds_dflt):
-                if bi is not None:
-                    bo = bi
+                        Bounds(lb=-inf_opt, ub=inf_opt)]
+            for bii, bd in zip(bounds_in, bounds_dflt):
+                if bii is not None:
+                    if isinstance(bii, list) and all(isinstance(x, tuple) for x in bii):
+                        bounds_list.append(Bounds(lb=np.array([x[0] for x in bii]),
+                                                ub=np.array([x[1] for x in bii])))
+                    elif isinstance(bii, tuple):
+                        bounds_list.append(Bounds(lb=np.array([bii[0]]).reshape(-1), 
+                                                ub=np.array([bii[1]]).reshape(-1)))
                 else:
-                    bo = bd
-                bounds_list.append(bo)
+                    bounds_list.append(bd)
+            
             bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
                             ub=np.hstack([le.ub for le in bounds_list])*scale)
-
+            
         for realization, wave in waves.groupby('realization'):
 
             _log.info("Solving pseudo-spectral control problem "
@@ -752,7 +762,7 @@ class WEC:
             
             # objective function
             sign = -1.0 if maximize else 1.0
-            
+
             def obj_fun_scaled(x):
                 x_wec, x_opt = self.decompose_state(x/scale)
                 return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
@@ -784,53 +794,30 @@ class WEC:
             if use_grad:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
-            
-            # callback
-            if callback is None:
-                def callback_scipy(x):
-                    x_wec, x_opt = self.decompose_state(x)
-                    max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
-                    _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
-                              + f"[{np.max(np.abs(x_wec)):.2e}, "
-                              + f"{max_x_opt:.2e}, "
-                              + f"{obj_fun_scaled(x):.2e}]")
-            else:
-                def callback_scipy(x):
-                    x_s = x/scale
-                    x_wec, x_opt = self.decompose_state(x_s)
-                    return callback(self, x_wec, x_opt, wave)
+
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
             problem = {'fun': obj_fun_scaled,
                         'x0': x0,
-                        'method': 'SLSQP',
                         'constraints': constraints,
                         'options': optim_options,
                         'bounds': bounds,
-                        'callback': callback_scipy,
                         }
             if use_grad:
                 problem['jac'] = grad(obj_fun_scaled)
 
             # minimize
-            optim_res = minimize(**problem)
-
-            msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
-            if optim_res.status == 0:
-                _log.info(msg)
-            elif optim_res.status == 9:
-                _log.warning(msg)
-            else:
-                raise Exception(msg)
+            optim_res = minimize_ipopt(**problem)
 
             # unscale
             optim_res.x = optim_res.x / scale
             optim_res.fun = optim_res.fun / scale_obj
-            optim_res.jac = optim_res.jac / scale_obj * scale
-            
+            if hasattr(optim_res, 'jac'):
+                optim_res.jac = optim_res.jac / scale_obj * scale
+
             results.append(optim_res)
-        
+
         return results
 
     def post_process(self,
@@ -877,9 +864,9 @@ class WEC:
         """
         create_time = f"{datetime.utcnow()}"
 
-        omega_vals = np.concatenate([[0], waves.omega.values])
-        freq_vals = np.concatenate([[0], waves.freq.values])
-        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+        omega_vals = np.concatenate([np.array([0]), np.array(waves.omega.values)])
+        freq_vals = np.concatenate([np.array([0]), np.array(waves.freq.values)])
+        period_vals = np.concatenate([np.array([np.inf]), np.array(1/waves.freq.values)])
         pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
         vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
         acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -1033,7 +1020,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate([np.array([np.inf]), np.array(1/self._freq[1:])])
 
     @property
     def w1(self) -> float:
@@ -1393,15 +1380,18 @@ def time_mat(
         Whether the first frequency should be zero.
     """
     t = time(f1, nfreq, nsubsteps)
-    omega = frequency(f1, nfreq) * 2*np.pi
+    omega = frequency(f1, nfreq) * 2 * np.pi
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
-    time_mat = np.empty((nsubsteps*ncomp, ncomp))
-    time_mat[:, 0] = 1.0
-    time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
-    if not zero_freq:
-        time_mat = time_mat[:, 1:]
+    if zero_freq:
+        time_mat = np.empty((nsubsteps * ncomp, ncomp))
+        time_mat = time_mat.at[:, 0].set(1.0)
+    else:
+        time_mat = np.empty((nsubsteps * ncomp, ncomp - 1))
+        time_mat = time_mat.at[:, 0].set(np.cos(wt[:, 0]))
+    time_mat = time_mat.at[:, 1::2].set(np.cos(wt[:, :time_mat.shape[1] // 2]))
+    time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1]))
+
     return time_mat
 
 
@@ -1471,66 +1461,74 @@ def derivative2_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    vals = [(n + 1) * f1 * 2 * np.pi
+            for n in range(nfreq)]
+
+    squared_vals = np.square(np.array(vals))
+    
+    diagonal = -np.repeat(np.ones(nfreq) * squared_vals, 2)[:-1]  # remove 2pt wave sine
+    
     if zero_freq:
-        diagonal = np.concatenate(([0.0], diagonal))
+        diagonal = np.concatenate([np.array([0.0]), diagonal])
+    
     return np.diag(diagonal)
 
 
 def mimo_transfer_mat(
-    transfer_mat: DataArray,
-    zero_freq: Optional[bool] = True,
-) -> ndarray:
-    """Create a block matrix of the MIMO transfer function.
+        transfer_mat: xr.DataArray,
+        zero_freq: Optional[bool] = True,
+    ) -> np.ndarray:
+        """Create a block matrix of the MIMO transfer function.
 
-    The input is a complex transfer matrix that relates the complex
-    Fourier representation of two variables.
-    For example, it can be an impedance matrix or an RAO transfer
-    matrix.
-    The input complex impedance matrix has shape
-    :python`(nfreq, ndof, ndof)`.
+        The input is a complex transfer matrix that relates the complex
+        Fourier representation of two variables.
+        For example, it can be an impedance matrix or an RAO transfer
+        matrix.
+        The input complex impedance matrix has shape
+        :python`(nfreq, ndof, ndof)`.
 
-    Returns the 2D real matrix that transform the state representation
-    of the input variable variable to the state representation of the
-    output variable.
-    Here, a state representation :python:`x` consists of the mean (DC)
-    component followed by the real and imaginary components of the
-    Fourier coefficients (excluding the imaginary component of the
-    2-point wave) as
-    :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
+        Returns the 2D real matrix that transforms the state representation
+        of the input variable to the state representation of the
+        output variable.
+        Here, a state representation :python:`x` consists of the mean (DC)
+        component followed by the real and imaginary components of the
+        Fourier coefficients (excluding the imaginary component of the
+        2-point wave) as
+        :python:`x=[X0, Re(X1), Im(X1), ..., Re(Xn)]`.
 
-    If :python:`zero_freq = False` (not default), the mean (DC) component
-    :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
+        If :python:`zero_freq = False` (not default), the mean (DC) component
+        :python:`X0` is excluded, and the matrix/vector length is reduced by 1.
 
-    Parameters
-    ----------
-    transfer_mat
-        Complex transfer matrix.
-    zero_freq
-        Whether the first frequency should be zero.
-    """
-    ndof = transfer_mat.shape[1]
-    assert transfer_mat.shape[2] == ndof
-    elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
-    for idof in range(ndof):
-        for jdof in range(ndof):
-            if zero_freq:
-                Zp0 = transfer_mat[0, idof, jdof]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
-                Zp = transfer_mat[1:, idof, jdof]
-            else:
-                Zp0 = [0.0]
-                Zp = transfer_mat[:, idof, jdof]
-            re = np.real(Zp)
-            im = np.imag(Zp)
-            blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
-            blocks = [Zp0] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+        Parameters
+        ----------
+        transfer_mat
+            Complex transfer matrix.
+        zero_freq
+            Whether the first frequency should be zero.
+        """
+        # Convert xarray DataArray to JAX-compatible array
+        transfer_mat_jax = np.asarray(transfer_mat)
 
+        ndof = transfer_mat_jax.shape[1]
+        assert transfer_mat_jax.shape[2] == ndof
+        elem = [[None]*ndof for _ in range(ndof)]
+        def block(re, im): return np.array([[re, -im], [im, re]])
+        for idof in range(ndof):
+            for jdof in range(ndof):
+                if zero_freq:
+                    Zp0 = transfer_mat_jax[0, idof, jdof]
+                    assert np.all(np.isreal(Zp0))
+                    Zp0 = np.real(Zp0)
+                    Zp = transfer_mat_jax[1:, idof, jdof]
+                else:
+                    Zp0 = np.array([0.0])  # Convert to JAX array
+                    Zp = transfer_mat_jax[:, idof, jdof]
+                re = np.real(Zp)  # Convert to JAX array
+                im = np.imag(Zp)  # Convert to JAX array
+                blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
+                blocks = [Zp0] + blocks + [re[-1]]
+                elem[idof][jdof] = block_diag(*blocks)
+        return np.block(elem)
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     """Convert a vector back to a matrix with one column per DOF.
@@ -1611,13 +1609,12 @@ def real_to_complex(
     --------
     complex_to_real,
     """
-    fd= atleast_2d(fd)
+    fd = np.atleast_2d(fd)
     if zero_freq:
-        assert fd.shape[0]%2==0
+        assert fd.shape[0] % 2 == 0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    [fd[-1, :]], axis=0)
+    fdc = np.vstack((fd[0:-1:2, :] + 1j * fd[1::2, :], fd[-1, :]))
     if zero_freq:
         fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
@@ -1735,21 +1732,24 @@ def fd_to_td(
     --------
     td_to_fd, time, time_mat
     """
+    
     fd = atleast_2d(fd)
-
     if zero_freq:
         msg = "The first row must be real when `zero_freq=True`."
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
         tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
+
+        
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        td = np.fft.irfft(fd/2, n=n, axis=0)
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
+    
     return td
 
 
@@ -1908,18 +1908,26 @@ def check_impedance(
     min_damping
         Minimum threshold for damping. Default is 1e-6.
     """
-    Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
-    Zi_shifted = Zi.copy()
-    for dof in range(Zi_diag.shape[1]):
-        dmin = np.min(np.real(Zi_diag[:, dof]))
-        if dmin < min_damping:
-            delta = min_damping - dmin
-            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
-                + np.abs(delta)
-            _log.warning(
-                f'Real part of impedance for {dof} has negative or close to ' +
-                f'zero terms. Shifting up by {delta:.2f}')
-    return Zi_shifted
+    # Convert xarray DataArray to JAX-compatible array
+    Zi_jax = np.asarray(Zi)
+
+    # Continue with JAX operations
+    Zi_diag = np.diagonal(Zi_jax, axis1=1, axis2=2)
+    Zi_shifted = Zi_jax.copy()
+    # Perform damping shift if necessary
+    delta = np.min(np.real(Zi_diag)) - min_damping
+    if delta < 0:
+        Zi_shifted += np.abs(delta)
+        _log.warning(
+            f'Real part of impedance has negative or close to zero terms. Shifting up by {delta:.2f}'
+        )
+
+    # Convert back to xarray DataArray
+    if not isinstance(Zi, xr.DataArray):
+        raise TypeError("Zi must be an xarray.DataArray")
+    Zi_shifted_xr = xr.DataArray(Zi_shifted, coords=Zi.coords, dims=Zi.dims)
+
+    return Zi_shifted_xr
 
 
 def force_from_rao_transfer_function(
@@ -2026,7 +2034,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     hydro_data
         Linear hydrodynamic data.
     """
-
     # intrinsic impedance
     w = hydro_data['omega']
     A = hydro_data['added_mass']
@@ -2066,7 +2073,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
@@ -2120,7 +2127,7 @@ def run_bem(
     test_matrix = Dataset(coords={
         'rho': [rho],
         'water_depth': [depth],
-        'omega': [ifreq*2*np.pi for ifreq in freq],
+        'omega': jax.numpy.array([ifreq*2*np.pi for ifreq in freq], dtype=float),
         'wave_direction': wave_dirs,
         'radiating_dof': list(fb.dofs.keys()),
         'g': [g],
@@ -2160,9 +2167,29 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data
         Linear hydrodynamic coefficients for the WEC.
     """
-    bem_data['Froude_Krylov_force'] = np.conjugate(
-        bem_data['Froude_Krylov_force'])
-    bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    force_np = bem_data['Froude_Krylov_force'].values
+    # Apply complex conjugation in JAX
+    force_conjugate_np = np.conj(force_np)
+    # Convert NumPy array back to DataArray
+    force_conjugate_da = xr.DataArray(
+        data=force_conjugate_np,
+        coords=bem_data['Froude_Krylov_force'].coords,
+        dims=bem_data['Froude_Krylov_force'].dims
+    )
+    # Update the original DataArray
+    bem_data['Froude_Krylov_force'] = force_conjugate_da
+    #diffraction_force
+    dforce_np = bem_data['diffraction_force'].values
+    # Apply complex conjugation in JAX
+    force_conjugate_np = np.conj(dforce_np)
+    # Convert NumPy array back to DataArray
+    force_conjugate_da = xr.DataArray(
+        data=force_conjugate_np,
+        coords=bem_data['diffraction_force'].coords,
+        dims=bem_data['diffraction_force'].dims
+    )
+    bem_data['diffraction_force'] = force_conjugate_da
+
     return bem_data
 
 
@@ -2307,10 +2334,12 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
-    radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
+    radians = np.remainder(np.deg2rad(np.asarray(degrees)), 2 * np.pi)
+    radians = np.where(radians > np.pi, radians - 2 * np.pi, radians)
+
     if radians.size > 1 and sort:
         radians = np.sort(radians)
+
     return radians
 
 
@@ -2387,7 +2416,6 @@ def scale_dofs(scale_list: Iterable[float], ncomponents: int) -> ndarray:
     scale :python:`scale_list[0]`, the next :python:`ncomponents`
     entries have the value of the second scale :python:`scale_list[1]`,
     and so on.
-
 
     Parameters
     ----------
@@ -2482,7 +2510,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([[0.0,], freqs])
+            freqs0 = np.concatenate([np.array([0.0]), np.array(freqs)])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
@@ -2494,7 +2522,7 @@ def frequency_parameters(
     return f1, nfreq
 
 
-def time_results(fd: DataArray, time: DataArray) -> ndarray:
+def time_results(fd: DataArray, time: DataArray) -> DataArray:
     """Create a :py:class:`xarray.DataArray` of time-domain results from
     :py:class:`xarray.DataArray` of frequency-domain results.
 
@@ -2505,11 +2533,26 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     time
         Time array.
     """
-    out = np.zeros((*fd.isel(omega=0).shape, len(time)))
-    for w, mag in zip(fd.omega, fd):
-        out = out + \
-            np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
-    return out
+    # Convert xarray arrays to JAX arrays
+    fd_omega = np.array(fd.omega.values)
+    fd_values = np.array(fd.values)
+
+    # Ensure that the shapes are compatible for broadcasting
+    fd_values_broadcasted = np.expand_dims(fd_values, axis=0)
+    
+    # Extract time values directly
+    time_array = np.expand_dims(np.array(time.values), axis=-1)
+
+    # Calculate the time-domain response using JAX arrays
+    out = np.sum(fd_values_broadcasted * np.exp(1j * fd_omega * time_array), axis=1)
+
+    # Take the real part to ensure the result is real
+    out = np.real(out)
+
+    # Convert back to xarray DataArray
+    out_xr = xr.DataArray(out, coords={'time': time.values}, dims=['time'])
+
+    return out_xr
 
 
 def set_fb_centers(

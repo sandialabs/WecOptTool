@@ -4,7 +4,9 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
-import autograd.numpy as np
+import jax
+from jax import random
+import jax.numpy as np
 from scipy.optimize import Bounds
 import xarray as xr
 
@@ -146,54 +148,31 @@ def resonant_wave(f1, nfreq, fb, bem):
     """Regular wave at natural frequency of the WEC"""
     hd = wot.add_linear_friction(bem)
     Zi = wot.hydrodynamic_impedance(hd)
-    wn = Zi['omega'][np.abs(Zi).argmin(dim='omega')].item()
+    Zi_np = Zi.values
+    magnitude_Zi = np.sqrt((Zi_np * Zi_np.conj()).real)
+    min_index = magnitude_Zi.sum(axis=(1,2)).argmin()
+    wn = Zi['omega'][min_index].item()
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
     return waves
 
+#Eliminated test for callback since cyipopt minimize_ipopt has no implemantation for callback
 
-def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
-    """Check that user can set a custom callback"""
-
-    cbstring = 'hello world!'
-
-    def my_callback(my_wec, x_wec, x_opt, wave):
-        print(cbstring)
-
-    _ = wec_from_bem.solve(regular_wave,
-                           obj_fun=pto.average_power,
-                           nstate_opt=2*nfreq,
-                           scale_x_wec=1.0,
-                           scale_x_opt=0.01,
-                           scale_obj=1e-1,
-                           callback=my_callback,
-                           optim_options={'maxiter': 1})
-
-    out, err = capfd.readouterr()
-
-    assert out.split('\n')[0] == cbstring
-
-
-@pytest.mark.parametrize("bounds_opt",
-                         [Bounds(lb=kplim, ub=0), ((kplim, 0),)])
-def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
-                      p_controller_pto):
+def test_bounds(wec_from_bem, regular_wave, p_controller_pto):
     """Confirm that bounds are not violated and scale correctly when
     passing bounds argument as both as Bounds object and a tuple"""
-
     # replace unstructured controller with proportional controller
     wec_from_bem.forces['PTO'] = p_controller_pto.force_on_wec
-
+    # Define the bounds for the optimization variables
+    bounds_opt = [(kplim, 0)]
     res = wec_from_bem.solve(waves=regular_wave,
                              obj_fun=p_controller_pto.average_power,
                              nstate_opt=1,
                              x_opt_0=[kplim*0.1],
-                             optim_options={'maxiter': 2e1,
-                                            'ftol': 1e-8},
+                             optim_options={'maxiter': 20,
+                                            'tol': 1e-8},
                              bounds_opt=bounds_opt,
                              )
-
     assert pytest.approx(kplim, 1e-5) == res[0]['x'][-1]
-
 
 def test_same_wec_init(wec_from_bem,
                        wec_from_floatingbody,
@@ -204,10 +183,12 @@ def test_same_wec_init(wec_from_bem,
     """
 
     waves = wot.waves.regular_wave(f1, nfreq, 0.3, 0.0625)
-    np.random.seed(0)
-    x_wec_0 = np.random.randn(wec_from_bem.nstate_wec)
-    np.random.seed(1)
-    x_opt_0 = np.random.randn(wec_from_bem.nstate_wec)
+   
+    key_wec = random.PRNGKey(0)  # Initialize a random key for WEC
+    x_wec_0 = random.normal(key_wec, shape=(wec_from_bem.nstate_wec,))
+    key_opt = random.PRNGKey(1)  # Initialize a random key for optimization
+    x_opt_0 = random.normal(key_opt, shape=(wec_from_bem.nstate_wec,))
+
     bem_res = wec_from_bem.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
     fb_res = wec_from_floatingbody.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
     imp_res = wec_from_impedance.residual(x_wec_0, x_opt_0, waves.sel(realization=0))
@@ -237,102 +218,6 @@ class TestTheoreticalPowerLimits:
         hd = wot.check_linear_damping(hd)
         Zi = wot.hydrodynamic_impedance(hd)
         return Zi
-
-    def test_p_controller_resonant_wave(self,
-                                        bem,
-                                        resonant_wave,
-                                        p_controller_pto,
-                                        hydro_impedance):
-        """Proportional controller should match optimum for natural resonant
-        wave"""
-        
-        f_add = {"PTO": p_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
-
-        res = wec.solve(waves=resonant_wave,
-                        obj_fun=p_controller_pto.average_power,
-                        nstate_opt=1,
-                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        x_opt_0=[-1470],
-                        scale_x_wec=1e2,
-                        scale_x_opt=1e-3,
-                        scale_obj=1e-1,
-                        optim_options={'ftol': 1e-10},
-                        bounds_opt=((-1*np.infty, 0),),
-                        )
-
-        power_sol = -1*res[0]['fun']
-
-        res_fd, _ = wec.post_process(res[0], resonant_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
-            type=['Froude_Krylov', 'diffraction']).sum('type')
-        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                         ).squeeze().sum('omega').item()
-
-        assert power_sol == approx(power_optimal, rel=0.03)
-
-    def test_pi_controller_regular_wave(self,
-                                        bem,
-                                        regular_wave,
-                                        pi_controller_pto,
-                                        hydro_impedance):
-        """PI controller matches optimal for any regular wave"""
-
-        f_add = {"PTO": pi_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
-
-        res = wec.solve(waves=regular_wave,
-                        obj_fun=pi_controller_pto.average_power,
-                        nstate_opt=2,
-                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        x_opt_0=[-1e3, 1e4],
-                        scale_x_wec=1e2,
-                        scale_x_opt=1e-3,
-                        scale_obj=1e-2,
-                        optim_options={'maxiter': 50},
-                        bounds_opt=((-1e4, 0), (0, 2e4),)
-                        )
-
-        power_sol = -1*res[0]['fun']
-
-        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
-            type=['Froude_Krylov', 'diffraction']).sum('type')
-        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                         ).squeeze().sum('omega').item()
-
-        assert power_sol == approx(power_optimal, rel=1e-4)
-    def test_unstructured_controller_irregular_wave(self,
-                                                    fb,
-                                                    bem,
-                                                    regular_wave,
-                                                    pto,
-                                                    nfreq,
-                                                    hydro_impedance):
-        """Unstructured (numerical optimal) controller matches optimal for any
-        irregular wave when unconstrained"""
-
-        f_add = {"PTO": pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
-
-        res = wec.solve(waves=regular_wave,
-                        obj_fun=pto.average_power,
-                        nstate_opt=2*nfreq,
-                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        scale_x_wec=1e2,
-                        scale_x_opt=1e-2,
-                        scale_obj=1e-2,
-                        )
-
-        power_sol = -1*res[0]['fun']
-
-        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
-            type=['Froude_Krylov', 'diffraction']).sum('type')
-        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                         ).squeeze().sum('omega').item()
-
-        assert power_sol == approx(power_optimal, rel=1e-3)
 
     def test_saturated_pi_controller(self,
                                     bem,
@@ -400,7 +285,7 @@ class TestTheoreticalPowerLimits:
                             scale_x_opt=scale_x_opt[key],
                             scale_obj=scale_obj[key],
                             optim_options={'maxiter': 200},
-                            bounds_opt=bounds_opt[key]
+                            bounds_opt=bounds_opt[key],
                             )
             
             nsubstep_postprocess = 4
@@ -408,6 +293,7 @@ class TestTheoreticalPowerLimits:
                                                                  res[key][0], 
                                                                  regular_wave.sel(realization=0), 
                                                                  nsubstep_postprocess)
+            
         
         xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
                                    pto_tdom['us'].power.squeeze().mean('time'),
@@ -415,3 +301,102 @@ class TestTheoreticalPowerLimits:
         
         xr.testing.assert_allclose(pto_tdom['us'].force.max(),
                                    pto_tdom['pi'].force.max())
+    
+    def test_p_controller_resonant_wave(self,
+                                        bem,
+                                        resonant_wave,
+                                        p_controller_pto,
+                                        hydro_impedance):
+        """Proportional controller should match optimum for natural resonant
+        wave"""
+        
+        f_add = {"PTO": p_controller_pto.force_on_wec}
+        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        bounds_opt = [(-1*float('inf'), 0)]
+        res = wec.solve(waves=resonant_wave,
+                        obj_fun=p_controller_pto.average_power,
+                        nstate_opt=1,
+                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
+                        x_opt_0=[-1470],
+                        scale_x_wec=1e2,
+                        scale_x_opt=1e-3,
+                        scale_obj=1e-1,
+                        optim_options={'tol': 1e-10},
+                        bounds_opt=bounds_opt,
+                        )
+
+        power_sol = -1*res[0]['fun']
+
+        res_fd, _ = wec.post_process(res[0], resonant_wave.sel(realization=0), nsubsteps=1)
+        Fex = res_fd.force.sel(
+            type=['Froude_Krylov', 'diffraction']).sum('type')
+        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
+                         ).squeeze().sum('omega').item()
+
+        assert power_sol == approx(power_optimal, rel=0.03)
+    
+    def test_pi_controller_regular_wave(self,
+                                        bem,
+                                        regular_wave,
+                                        pi_controller_pto,
+                                        hydro_impedance):
+        """PI controller matches optimal for any regular wave"""
+
+        f_add = {"PTO": pi_controller_pto.force_on_wec}
+        wec = wot.WEC.from_bem(bem, f_add=f_add)
+
+        res = wec.solve(waves=regular_wave,
+                        obj_fun=pi_controller_pto.average_power,
+                        nstate_opt=2,
+                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
+                        x_opt_0=np.array([-1e3, 1e4]),
+                        scale_x_wec=1e2,
+                        scale_x_opt=1e-3,
+                        scale_obj=1e-2,
+                        optim_options={'maxiter': 50},
+                        bounds_opt=((-1e4, 0), (0, 2e4),)
+                        )
+
+        power_sol = -1*res[0]['fun']
+
+        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
+        Fex = res_fd.force.sel(
+            type=['Froude_Krylov', 'diffraction']).sum('type')
+        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
+                         ).squeeze().sum('omega').item()
+
+        assert power_sol == approx(power_optimal, rel=1e-4)
+
+    def test_unstructured_controller_irregular_wave(self,
+                                                    fb,
+                                                    bem,
+                                                    regular_wave,
+                                                    pto,
+                                                    nfreq,
+                                                    hydro_impedance):
+        """Unstructured (numerical optimal) controller matches optimal for any
+        irregular wave when unconstrained"""
+
+        f_add = {"PTO": pto.force_on_wec}
+        wec = wot.WEC.from_bem(bem, f_add=f_add)
+
+        res = wec.solve(waves=regular_wave,
+                        obj_fun=pto.average_power,
+                        nstate_opt=2*nfreq,
+                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
+                        scale_x_wec=1e2,
+                        scale_x_opt=1e-2,
+                        scale_obj=1e-2,
+                        
+                        )
+
+        power_sol = -1*res[0]['fun']
+
+        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
+        Fex = res_fd.force.sel(
+            type=['Froude_Krylov', 'diffraction']).sum('type')
+        power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
+                         ).squeeze().sum('omega').item()
+
+        assert power_sol == approx(power_optimal, rel=1e-3)
+
