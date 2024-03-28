@@ -109,7 +109,7 @@ def elevation_fd(
     if amplitudes is None:
         amplitudes = np.zeros([nfreq, ndirections, nrealizations])
     else:
-        assert amplitudes.shape == (nfreq, ndirections, nrealizations)
+        assert amplitudes.shape == (nfreq, ndirections, 1)
 
     if phases is None:
         phases = random_phase([nfreq, ndirections, nrealizations], seed)
@@ -118,6 +118,7 @@ def elevation_fd(
         assert phases.shape == (nfreq, ndirections, nrealizations)
 
     camplitude = amplitudes * np.exp(1j*phases)
+    camplitude.shape == (nfreq, ndirections, nrealizations)
 
     attr = {} if attr is None else attr
     attrs = {'units': 'm', 'long_name': 'Wave elevation'} | attr
