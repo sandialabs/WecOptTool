@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.waves &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -132,10 +134,13 @@
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="elevation_fd"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.elevation_fd.html#wecopttool.waves.elevation_fd">[docs]</a><span class="k">def</span> <span class="nf">elevation_fd</span><span class="p">(</span>
+<div class="viewcode-block" id="elevation_fd">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.elevation_fd.html#wecopttool.waves.elevation_fd">[docs]</a>
+<span class="k">def</span> <span class="nf">elevation_fd</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">directions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
+    <span class="n">nrealizations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">amplitudes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">phases</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">attr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -157,6 +162,8 @@
 <span class="sd">        i.e., :python:`freq = [0, f1, 2*f1, ..., nfreq*f1]`.</span>
 <span class="sd">    directions</span>
 <span class="sd">        Wave directions in degrees. 1D array.</span>
+<span class="sd">    nrealizations</span>
+<span class="sd">        Number of wave phase realizations.</span>
 <span class="sd">    amplitudes:</span>
 <span class="sd">        Wave elevation amplitude in meters.</span>
 <span class="sd">    phases:</span>
@@ -170,24 +177,33 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">degrees_to_radians</span><span class="p">(</span><span class="n">directions</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
     <span class="n">ndirections</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">directions</span><span class="p">)</span>
+    <span class="n">realization</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrealizations</span><span class="p">)</span>
     <span class="n">freq</span> <span class="o">=</span> <span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
-    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">,</span> <span class="s1">&#39;realization&#39;</span><span class="p">)</span>
     <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Radial frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
     <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span><span class="p">}</span>
     <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wave direction&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">}</span>
+    <span class="n">real_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Phase realization&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
     <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">omega_attr</span><span class="p">),</span>
               <span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span>
-              <span class="s1">&#39;wave_direction&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">)}</span>
+              <span class="s1">&#39;wave_direction&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">),</span>
+              <span class="s1">&#39;realization&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">realization</span><span class="p">,</span> <span class="n">real_attr</span><span class="p">)}</span>
 
     <span class="k">if</span> <span class="n">amplitudes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">])</span>
+        <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">amplitudes</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">):</span>
+            <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">amplitudes</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">amplitudes</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> \
+                <span class="n">amplitudes</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">phases</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">phases</span> <span class="o">=</span> <span class="n">random_phase</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">],</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="n">random_phase</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">],</span> <span class="n">seed</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="n">degrees_to_radians</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">phases</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">)</span>
 
     <span class="n">camplitude</span> <span class="o">=</span> <span class="n">amplitudes</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">phases</span><span class="p">)</span>
 
@@ -200,7 +216,10 @@
     <span class="k">return</span> <span class="n">waves</span><span class="o">.</span><span class="n">sortby</span><span class="p">(</span><span class="n">waves</span><span class="o">.</span><span class="n">wave_direction</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="regular_wave"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.regular_wave.html#wecopttool.waves.regular_wave">[docs]</a><span class="k">def</span> <span class="nf">regular_wave</span><span class="p">(</span>
+
+<div class="viewcode-block" id="regular_wave">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.regular_wave.html#wecopttool.waves.regular_wave">[docs]</a>
+<span class="k">def</span> <span class="nf">regular_wave</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">freq</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -231,7 +250,7 @@
 
     <span class="c1"># attributes &amp; index</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-    <span class="n">tmp_waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span>
+    <span class="n">tmp_waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">iomega</span> <span class="o">=</span> <span class="n">tmp_waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="n">omega</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
     <span class="n">ifreq</span> <span class="o">=</span> <span class="n">iomega</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
@@ -257,15 +276,19 @@
         <span class="n">rphase</span> <span class="o">=</span> <span class="n">degrees_to_radians</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
 
     <span class="c1"># wave elevation</span>
-    <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
-    <span class="n">waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
     <span class="n">waves</span><span class="o">.</span><span class="n">loc</span><span class="p">[{</span><span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="n">iomega</span><span class="p">}]</span> <span class="o">=</span> <span class="n">amplitude</span>  <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">rphase</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">waves</span></div>
 
 
-<div class="viewcode-block" id="long_crested_wave"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.long_crested_wave.html#wecopttool.waves.long_crested_wave">[docs]</a><span class="k">def</span> <span class="nf">long_crested_wave</span><span class="p">(</span>
+
+<div class="viewcode-block" id="long_crested_wave">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.long_crested_wave.html#wecopttool.waves.long_crested_wave">[docs]</a>
+<span class="k">def</span> <span class="nf">long_crested_wave</span><span class="p">(</span>
     <span class="n">efth</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
+    <span class="n">nrealizations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">direction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
@@ -285,6 +308,9 @@
 <span class="sd">    efth</span>
 <span class="sd">        Omnidirection wave spectrum in units of m^2/Hz, in the format</span>
 <span class="sd">        used by :py:class:`wavespectra.SpecArray`.</span>
+<span class="sd">    nrealizations</span>
+<span class="sd">        Number of wave phase realizations to be created for the </span>
+<span class="sd">        long-crested wave.</span>
 <span class="sd">    direction</span>
 <span class="sd">        Direction (in degrees) of the long-crested wave.</span>
 <span class="sd">    seed</span>
@@ -303,10 +329,14 @@
         <span class="s1">&#39;Direction (degrees)&#39;</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
     <span class="p">}</span>
 
-    <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="irregular_wave"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.irregular_wave.html#wecopttool.waves.irregular_wave">[docs]</a><span class="k">def</span> <span class="nf">irregular_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
+
+<div class="viewcode-block" id="irregular_wave">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.irregular_wave.html#wecopttool.waves.irregular_wave">[docs]</a>
+<span class="k">def</span> <span class="nf">irregular_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
+                   <span class="n">nrealizations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from a spectrum.</span>
 
@@ -325,6 +355,9 @@
 <span class="sd">    efth</span>
 <span class="sd">        Wave spectrum in units of m^2/Hz/deg, in the format used by</span>
 <span class="sd">        :py:class:`wavespectra.SpecArray`.</span>
+<span class="sd">    nrealizations</span>
+<span class="sd">        Number of wave phase realizations to be created for the </span>
+<span class="sd">        irregular wave.</span>
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
 <span class="sd">        Generally should not be used except for testing.</span>
@@ -340,11 +373,14 @@
 
     <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Wave type&#39;</span><span class="p">:</span> <span class="s1">&#39;Irregular&#39;</span><span class="p">}</span>
 
-    <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="random_phase"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.random_phase.html#wecopttool.waves.random_phase">[docs]</a><span class="k">def</span> <span class="nf">random_phase</span><span class="p">(</span>
-    <span class="n">shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="random_phase">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.random_phase.html#wecopttool.waves.random_phase">[docs]</a>
+<span class="k">def</span> <span class="nf">random_phase</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span> <span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate random phases in range [-π, π) radians.</span>
@@ -361,10 +397,13 @@
     <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
 
 
+
 <span class="c1"># TODO: Move everything below to wavespectra.construct</span>
 <span class="c1">#       wavespectra is good at reading from simulations or measurements</span>
 <span class="c1">#       but not good yet at constructing from parametric models.</span>
-<div class="viewcode-block" id="omnidirectional_spectrum"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.omnidirectional_spectrum.html#wecopttool.waves.omnidirectional_spectrum">[docs]</a><span class="k">def</span> <span class="nf">omnidirectional_spectrum</span><span class="p">(</span>
+<div class="viewcode-block" id="omnidirectional_spectrum">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.omnidirectional_spectrum.html#wecopttool.waves.omnidirectional_spectrum">[docs]</a>
+<span class="k">def</span> <span class="nf">omnidirectional_spectrum</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">spectrum_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
@@ -431,7 +470,10 @@
     <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">efth_attr</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="spectrum"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.spectrum.html#wecopttool.waves.spectrum">[docs]</a><span class="k">def</span> <span class="nf">spectrum</span><span class="p">(</span>
+
+<div class="viewcode-block" id="spectrum">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.spectrum.html#wecopttool.waves.spectrum">[docs]</a>
+<span class="k">def</span> <span class="nf">spectrum</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">directions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
@@ -529,7 +571,10 @@
     <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">efth_attr</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="pierson_moskowitz_spectrum"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_spectrum.html#wecopttool.waves.pierson_moskowitz_spectrum">[docs]</a><span class="k">def</span> <span class="nf">pierson_moskowitz_spectrum</span><span class="p">(</span>
+
+<div class="viewcode-block" id="pierson_moskowitz_spectrum">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_spectrum.html#wecopttool.waves.pierson_moskowitz_spectrum">[docs]</a>
+<span class="k">def</span> <span class="nf">pierson_moskowitz_spectrum</span><span class="p">(</span>
     <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -554,7 +599,10 @@
     <span class="k">return</span> <span class="n">general_spectrum</span><span class="p">(</span><span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="jonswap_spectrum"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.jonswap_spectrum.html#wecopttool.waves.jonswap_spectrum">[docs]</a><span class="k">def</span> <span class="nf">jonswap_spectrum</span><span class="p">(</span>
+
+<div class="viewcode-block" id="jonswap_spectrum">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.jonswap_spectrum.html#wecopttool.waves.jonswap_spectrum">[docs]</a>
+<span class="k">def</span> <span class="nf">jonswap_spectrum</span><span class="p">(</span>
     <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -598,7 +646,10 @@
     <span class="k">return</span> <span class="n">general_spectrum</span><span class="p">(</span><span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="spread_cos2s"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.spread_cos2s.html#wecopttool.waves.spread_cos2s">[docs]</a><span class="k">def</span> <span class="nf">spread_cos2s</span><span class="p">(</span>
+
+<div class="viewcode-block" id="spread_cos2s">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.spread_cos2s.html#wecopttool.waves.spread_cos2s">[docs]</a>
+<span class="k">def</span> <span class="nf">spread_cos2s</span><span class="p">(</span>
     <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">directions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">dm</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -635,7 +686,10 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span> <span class="o">*</span> <span class="p">(</span><span class="n">cs</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rdir</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">s_param</span><span class="p">))</span><span class="o">.</span><span class="n">T</span></div>
 
 
-<div class="viewcode-block" id="general_spectrum"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.general_spectrum.html#wecopttool.waves.general_spectrum">[docs]</a><span class="k">def</span> <span class="nf">general_spectrum</span><span class="p">(</span>
+
+<div class="viewcode-block" id="general_spectrum">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.general_spectrum.html#wecopttool.waves.general_spectrum">[docs]</a>
+<span class="k">def</span> <span class="nf">general_spectrum</span><span class="p">(</span>
     <span class="n">a_param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">b_param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
     <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
@@ -662,7 +716,10 @@
     <span class="k">return</span> <span class="n">spectrum</span></div>
 
 
-<div class="viewcode-block" id="pierson_moskowitz_params"><a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_params.html#wecopttool.waves.pierson_moskowitz_params">[docs]</a><span class="k">def</span> <span class="nf">pierson_moskowitz_params</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
+
+<div class="viewcode-block" id="pierson_moskowitz_params">
+<a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_params.html#wecopttool.waves.pierson_moskowitz_params">[docs]</a>
+<span class="k">def</span> <span class="nf">pierson_moskowitz_params</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the two PM parameters for the general spectrum formulation.</span>
 
 <span class="sd">    Parameters</span>
@@ -686,6 +743,7 @@
     <span class="n">b_param</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.057</span><span class="o">*</span><span class="n">fp</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
     <span class="n">a_param</span> <span class="o">=</span> <span class="n">hs</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">b_param</span>
     <span class="k">return</span> <span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span></div>
+
 </pre></div>
 
            </div>
@@ -695,7 +753,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

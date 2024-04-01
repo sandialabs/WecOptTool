@@ -232,7 +232,7 @@
    "source": [
     "#### Combined `FloatingBody`\n",
     "\n",
-    "With both WEC bodies defined separately, we can now create a union of the bodies and define the properties for the overall LUPA device. At the equilibrium position the float is neutrally buoyant while the spar is positively buoyant and requires mooring pre-tension. The combined center of mass and moment of inertia can be found by using the given values weighted by the mass (via the parallel axis theorem for the moment of inertia). This is also when we can specify the surge and pitch degrees of freedom.\n",
+    "With both WEC bodies defined separately, we should first define the respective centers of mass and rotation centers for the `FloatingBody`s. Then, we can create a union of the bodies and define the properties for the overall LUPA device. At the equilibrium position the float is neutrally buoyant while the spar is positively buoyant and requires mooring pre-tension. The combined center of mass and moment of inertia can be found by using the given values weighted by the mass (via the parallel axis theorem for the moment of inertia). This is also when we can specify the surge and pitch degrees of freedom.\n",
     "\n",
     "We are using the density of *fresh* water, $\\rho = 1000 kg/m^3$, since we are modeling LUPA in a wave flume."
    ]
@@ -246,19 +246,23 @@
     "# density of fresh water\n",
     "rho = 1000\n",
     "\n",
-    "# floating body\n",
-    "lupa_fb = float_fb + spar_fb\n",
-    "lupa_fb.name = 'LUPA'\n",
-    "\n",
     "# mass properties float\n",
     "mass_float = float_mass_properties['mass'] \n",
     "cm_float = np.array(float_mass_properties['CG'])\n",
     "pitch_inertia_float = float_mass_properties['MOI'][1] \n",
+    "float_fb.center_of_mass = cm_float\n",
+    "float_fb.rotation_center = float_fb.center_of_mass\n",
     "\n",
     "# mass properties spar\n",
     "mass_spar = spar_mass_properties['mass']  \n",
     "cm_spar = np.array(spar_mass_properties['CG'])\n",
     "pitch_inertia_spar = spar_mass_properties['MOI'][1] \n",
+    "spar_fb.center_of_mass = cm_spar\n",
+    "spar_fb.rotation_center = spar_fb.center_of_mass\n",
+    "\n",
+    "# floating body\n",
+    "lupa_fb = float_fb + spar_fb\n",
+    "lupa_fb.name = 'LUPA'\n",
     "\n",
     " # mass properties LUPA\n",
     "lupa_fb.center_of_mass = ((mass_float*cm_float + mass_spar*cm_spar)\n",
@@ -277,6 +281,36 @@
     "# additional DOFs\n",
     "lupa_fb.add_translation_dof(name='Surge')\n",
     "lupa_fb.add_rotation_dof(name='Pitch')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Define Hydrostatics Manually\n",
+    "\n",
+    "When combining multiple bodies, we need to be careful to set up the hydrostatics correctly. The bodies move separately in heave but move together in surge and pitch. Therefore, we should define the individual heave inertia values for each body and define the total surge and pitch inertia values. The inertia then needs to be reformatted as a DataArray for Capytaine. Lastly, the hydrostatic stiffness can be calculated for the total immersed body."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# reorganize inertia values into DataArray for Capytaine\n",
+    "rigid_inertia_matrix_xr = xr.DataArray(data=np.asarray((inertia)),\n",
+    "                            dims=['influenced_dof', 'radiating_dof'],\n",
+    "                            coords={'influenced_dof': list(lupa_fb.dofs),\n",
+    "                                    'radiating_dof': list(lupa_fb.dofs)},\n",
+    "                            name=\"inertia_matrix\")\n",
+    "\n",
+    "# Set FloatingBody inertia matrix\n",
+    "lupa_fb.inertia_matrix = rigid_inertia_matrix_xr\n",
+    "\n",
+    "# Calculate hydrostatic stiffness after keeping immersed value\n",
+    "lupa_fb = lupa_fb.keep_immersed_part()\n",
+    "lupa_fb.hydrostatic_stiffness = lupa_fb.compute_hydrostatic_stiffness(rho=rho)"
    ]
   },
   {
@@ -329,12 +363,8 @@
     "try:\n",
     "    bem_data = wot.read_netcdf(filename)\n",
     "except:\n",
-    "    bem_data = wot.run_bem(lupa_fb, freq)\n",
-    "    wot.write_netcdf(filename, bem_data)\n",
-    "\n",
-    "# hydrostatics\n",
-    "_ = lupa_fb.compute_hydrostatics(rho=rho)\n",
-    "hydrostatic_stiffness = lupa_fb.hydrostatic_stiffness"
+    "    bem_data = wot.run_bem(lupa_fb, freq, rho=rho)\n",
+    "    wot.write_netcdf(filename, bem_data)"
    ]
   },
   {
@@ -863,7 +893,7 @@
     "tmp = moor.isel(omega=0).copy(deep=True)\n",
     "tmp['omega'] = tmp['omega'] * 0\n",
     "moor = xr.concat([tmp, moor], dim='omega') \n",
-    "moor = moor.transpose(\"radiating_dof\", \"influenced_dof\", \"omega\")\n",
+    "moor = moor.transpose(\"omega\", \"radiating_dof\", \"influenced_dof\")\n",
     "moor = -1*moor  # RHS of equation: -ma = Σf \n",
     "mooring_force = wot.force_from_rao_transfer_function(moor, True)"
    ]
@@ -910,8 +940,6 @@
     "\n",
     "# WEC\n",
     "wec = wot.WEC.from_bem(bem_data,\n",
-    "                       inertia_matrix=inertia,\n",
-    "                       hydrostatic_stiffness=hydrostatic_stiffness,\n",
     "                       constraints=constraints,\n",
     "                       friction=friction,\n",
     "                       f_add=f_add,\n",
@@ -928,7 +956,11 @@
     "For each site/scale they provide four wave conditions to test at the Oregon State Large Wave Flume (LWF): the maximum 90<sup>th</sup> percentile, maximum percent annual energy, maximum occurrence, and minimum 10<sup>th</sup> percentile. \n",
     "\n",
     "In this tutorial we will use the PacWave South conditions scaled to the LWF and will design for the maximum occurrence wave. \n",
-    "The wave conditions are specified in terms of significant wave height and peak period. Waves are mostly fully developed at the PacWave site, so we will use a Pierson-Moskowitz wave spectrum."
+    "The wave conditions are specified in terms of significant wave height and peak period. Waves are mostly fully developed at the PacWave site, so we will use a Pierson-Moskowitz wave spectrum. \n",
+    "\n",
+    "The irregular wave is created with multiple phase realizations. For this tutorial, the number of realizations has been overwritten to 2 to reduce the total run-time. The solver will be run once for each wave phase realization. Each of these phase realizations leads to a slightly different result for optimal average power. Thus, for irregular wave conditions, it is recommended to include multiple phase realizations. The number of phase realizations required is dependent on the desired accuracy of the result, but it is generally recommended to include enough realizations for the total simulation time to equal 20 minutes.\n",
+    "\n",
+    "$t_{total} = \\frac{nrealizations}{f1} $"
    ]
   },
   {
@@ -946,6 +978,12 @@
     "wavedir = 0\n",
     "waves['regular'] = wot.waves.regular_wave(f1, nfreq, wavefreq, amplitude, phase, wavedir)\n",
     "\n",
+    "# number of realizations to reach 20 minutes of total simulation time\n",
+    "minutes_needed = 20\n",
+    "nrealizations = minutes_needed*60*f1\n",
+    "print(f'Number of realizations for a 20 minute total simulation time: {nrealizations}')\n",
+    "nrealizations = 2 # overwrite nrealizations to reduce run-time\n",
+    "\n",
     "# irregular wave cases from OSU\n",
     "wave_cases = {\n",
     "    'south_max_90': {'Hs': 0.21, 'Tp': 3.09}, \n",
@@ -962,7 +1000,7 @@
     "    fp = 1/tp\n",
     "    spectrum = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, hs)\n",
     "    efth = wot.waves.omnidirectional_spectrum(f1, nfreq, spectrum, \"Pierson-Moskowitz\")\n",
-    "    return wot.waves.long_crested_wave(efth)\n",
+    "    return wot.waves.long_crested_wave(efth,nrealizations)\n",
     "\n",
     "for case, data in wave_cases.items():\n",
     "    waves[case] = irregular_wave(data['Hs'], data['Tp'])"
@@ -982,21 +1020,21 @@
    "outputs": [],
    "source": [
     "fig, ax = plt.subplots()\n",
-    "plt1 = np.abs(waves['south_max_90']).plot(\n",
+    "plt1 = np.abs(waves['south_max_90'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C0', linestyle='solid', label='PW South, 90th percentile')\n",
-    "plt2 = np.abs(waves['south_max_annual']).plot(\n",
+    "plt2 = np.abs(waves['south_max_annual'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C0', linestyle='dotted', label='PW South, Max Annual')\n",
-    "plt3 = np.abs(waves['south_max_occurrence']).plot(\n",
+    "plt3 = np.abs(waves['south_max_occurrence'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C0', linestyle='dashed', label='PW South, Max Occurrence')\n",
-    "plt4 = np.abs(waves['south_min_10']).plot(\n",
+    "plt4 = np.abs(waves['south_min_10'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C0', linestyle='dashdot', label='PW South, 10th percentile')\n",
-    "plt5 = np.abs(waves['north_max_90']).plot(\n",
+    "plt5 = np.abs(waves['north_max_90'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C1', linestyle='solid', label='PW North, 90th percentile')\n",
-    "plt6 = np.abs(waves['north_max_annual']).plot(\n",
+    "plt6 = np.abs(waves['north_max_annual'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C1', linestyle='dotted', label='PW North, Max Annual')\n",
-    "plt7 = np.abs(waves['north_max_occurrence']).plot(\n",
+    "plt7 = np.abs(waves['north_max_occurrence'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C1', linestyle='dashed', label='PW North, Max Occurrence')\n",
-    "plt8 = np.abs(waves['north_min_10']).plot(\n",
+    "plt8 = np.abs(waves['north_min_10'].sel(realization=0)).plot(\n",
     "    ax=ax, color='C1', linestyle='dashdot', label='PW North, 10th percentile')\n",
     "\n",
     "ax.set_title('PacWave wave spectra, LWF scale', fontweight='bold')\n",
@@ -1038,8 +1076,8 @@
     "    scale_x_opt=scale_x_opt,\n",
     "    scale_obj=scale_obj,\n",
     ")\n",
-    "\n",
-    "print(f'Optimal average electrical power: {results.fun} W')"
+    "power_results = [result.fun for result in results]\n",
+    "print(f'Optimal average electrical power: {np.mean(power_results)} W')"
    ]
   },
   {
@@ -1048,7 +1086,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "x_wec, x_opt = wec.decompose_state(results.x)\n",
+    "x_wec, x_opt = wec.decompose_state(results[0].x)\n",
     "print(len(x_opt))"
    ]
   },
@@ -1060,8 +1098,8 @@
    "source": [
     "# Post-process\n",
     "nsubsteps = 5\n",
-    "wec_fdom, wec_tdom = wec.post_process(results, waves['south_max_occurrence'], nsubsteps)\n",
-    "pto_fdom, pto_tdom = pto.post_process(wec, results, waves['south_max_occurrence'], nsubsteps)"
+    "wec_fdom, wec_tdom = wec.post_process(results[0], waves['south_max_occurrence'].sel(realization=0), nsubsteps)\n",
+    "pto_fdom, pto_tdom = pto.post_process(wec, results[0], waves['south_max_occurrence'].sel(realization=0), nsubsteps)"
    ]
   },
   {
@@ -1296,8 +1334,6 @@
     "\n",
     "    # create WEC object\n",
     "    wec = wot.WEC.from_bem(bem_data,\n",
-    "                           inertia_matrix=inertia,\n",
-    "                           hydrostatic_stiffness=hydrostatic_stiffness,\n",
     "                           constraints=constraints,\n",
     "                           friction=friction,\n",
     "                           f_add=f_add,\n",
@@ -1322,21 +1358,21 @@
     "        scale_x_opt=scale_x_opt,\n",
     "        scale_obj=scale_obj,\n",
     "    )\n",
-    "    print(f'Optimal average electrical power: {results.fun:.2f} W')\n",
-    "    x_wec, x_opt = wec.decompose_state(results.x)\n",
-    "    x_wec_jac , x_opt_jac = wec.decompose_state(results.jac)\n",
+    "    print(f'Optimal average electrical power: {results[0].fun:.2f} W')\n",
+    "    x_wec, x_opt = wec.decompose_state(results[0].x)\n",
+    "    x_wec_jac , x_opt_jac = wec.decompose_state(results[0].jac)\n",
     "    ds = xr.Dataset(data_vars=dict(\n",
     "        x_wec=('wec_state', x_wec),\n",
     "        x_opt=('opt_state', x_opt),\n",
     "        x_wec_jac=('wec_state', x_wec_jac),\n",
     "        x_opt_jac=('opt_state', x_opt_jac),\n",
-    "        fval=results.fun),\n",
+    "        fval=results[0].fun),\n",
     "        coords=dict(\n",
     "        wec_state=range(wec.nstate_wec),\n",
     "        opt_state=range(nstate_opt))\n",
     "    )\n",
     "    wot.write_netcdf(os.path.join(dir, 'data', f'tutorial_3_results_{x}.nc'), ds)\n",
-    "    return results.fun"
+    "    return results[0].fun"
    ]
   },
   {
@@ -1449,7 +1485,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.10.10"
+   "version": "3.11.4"
   },
   "vscode": {
    "interpreter": {

@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.hydrostatics.stiffness_matrix &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <title>wecopttool.add_linear_friction &mdash; WecOptTool 2.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="wecopttool.hydrostatics.inertia_matrix" href="wecopttool.hydrostatics.inertia_matrix.html" />
-    <link rel="prev" title="wecopttool.hydrostatics" href="wecopttool.hydrostatics.html" /> 
+    <link rel="next" title="wecopttool.atleast_2d" href="wecopttool.atleast_2d.html" />
+    <link rel="prev" title="wecopttool.WEC.vec_to_dofmat" href="wecopttool.WEC.vec_to_dofmat.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -58,17 +58,13 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">wecopttool.hydrostatics.stiffness_matrix</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#wecopttool.hydrostatics.stiffness_matrix"><code class="docutils literal notranslate"><span class="pre">stiffness_matrix()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.hydrostatics.inertia_matrix.html">wecopttool.hydrostatics.inertia_matrix</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">wecopttool.add_linear_friction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wecopttool.add_linear_friction"><code class="docutils literal notranslate"><span class="pre">add_linear_friction()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
@@ -87,7 +83,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.inertia.html">wecopttool.inertia</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.linear_hydrodynamics.html">wecopttool.linear_hydrodynamics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.metadata.html">wecopttool.metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.mimo_transfer_mat.html">wecopttool.mimo_transfer_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.ncomponents.html">wecopttool.ncomponents</a></li>
@@ -95,6 +90,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.real_to_complex.html">wecopttool.real_to_complex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.run_bem.html">wecopttool.run_bem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.scale_dofs.html">wecopttool.scale_dofs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.set_fb_centers.html">wecopttool.set_fb_centers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.set_loglevel.html">wecopttool.set_loglevel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.standard_forces.html">wecopttool.standard_forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.subset_close.html">wecopttool.subset_close</a></li>
@@ -124,8 +120,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="wecopttool.html">API Documentation</a></li>
-          <li class="breadcrumb-item"><a href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a></li>
-      <li class="breadcrumb-item active">wecopttool.hydrostatics.stiffness_matrix</li>
+      <li class="breadcrumb-item active">wecopttool.add_linear_friction</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -134,39 +129,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="wecopttool-hydrostatics-stiffness-matrix">
-<h1>wecopttool.hydrostatics.stiffness_matrix<a class="headerlink" href="#wecopttool-hydrostatics-stiffness-matrix" title="Permalink to this heading"></a></h1>
+  <section id="wecopttool-add-linear-friction">
+<h1>wecopttool.add_linear_friction<a class="headerlink" href="#wecopttool-add-linear-friction" title="Link to this heading"></a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="wecopttool.hydrostatics.stiffness_matrix">
-<span class="sig-name descname"><span class="pre">stiffness_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rho</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1025.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">g</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9.81</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center_of_mass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/hydrostatics.html#stiffness_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.hydrostatics.stiffness_matrix" title="Permalink to this definition"></a></dt>
-<dd><p>Compute the hydrostatic stiffness of a Capytaine floating body.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Only works for rigid body DOFs which must be named
-according to the Capytaine convention (e.g.,
-<code class="code highlight python docutils literal highlight-python"><span class="s2">&quot;Heave&quot;</span></code>).</p>
-</div>
-<p>Uses
-<a class="reference external" href="https://ancell.in/capytaine/latest/developer_manual/api/capytaine.bodies.bodies.html#capytaine.bodies.bodies.FloatingBody.compute_hydrostatic_stiffness" title="(in capytaine v2.0)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">capytaine.bodies.bodies.FloatingBody.compute_hydrostatic_stiffness()</span></code></a>
-on the immersed part of the mesh.</p>
+<dt class="sig sig-object py" id="wecopttool.add_linear_friction">
+<span class="sig-name descname"><span class="pre">add_linear_friction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bem_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">friction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#add_linear_friction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.add_linear_friction" title="Link to this definition"></a></dt>
+<dd><p>Add linear friction to BEM data.</p>
+<p>Returns the Dataset with the additional information added.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fb</strong> (<a class="reference external" href="https://ancell.in/capytaine/latest/developer_manual/api/capytaine.bodies.bodies.html#capytaine.bodies.bodies.FloatingBody" title="(in capytaine v2.0)"><em>FloatingBody</em></a>) – A capytaine floating body (mesh + DOFs, and optionally center of
-mass).</p></li>
-<li><p><strong>rho</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Water density in <span class="math notranslate nohighlight">\(kg/m^3\)</span>.</p></li>
-<li><p><strong>g</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Gravitational acceleration in <span class="math notranslate nohighlight">\(m/s^2\)</span>.</p></li>
-<li><p><strong>center_of_mass</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>] </em><em>| </em><em>None</em>) – Center of gravity/mass <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">cx</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">cz</span><span class="p">)</span></code>.</p></li>
-<li><p><strong>rotation_center</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.11)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>] </em><em>| </em><em>None</em>) – Center of rotation <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">rz</span><span class="p">)</span></code> for hydrostatics
-calculations.</p></li>
+<li><p><strong>bem_data</strong> (<em>Dataset</em>) – Linear hydrodynamic coefficients obtained using the boundary
+element method (BEM) code Capytaine, with sign convention
+corrected. Also includes inertia and hydrostatic stiffness.</p></li>
+<li><p><strong>friction</strong> (<em>ArrayLike</em><em> | </em><em>None</em>) – Linear friction, in addition to radiation damping, of size
+<code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">nodf</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
+<code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> if included in <code class="code highlight python docutils literal highlight-python"><span class="n">bem_data</span></code> or to set to zero.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.11)"><strong>ValueError</strong></a> – If <code class="code highlight python docutils literal highlight-python"><span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></code> and
-    <code class="code highlight python docutils literal highlight-python"><span class="n">center_of_mass</span></code> is provided with a different value.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DataArray</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dataset</p>
 </dd>
 </dl>
 </dd></dl>
@@ -177,14 +159,14 @@ calculations.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="wecopttool.hydrostatics.html" class="btn btn-neutral float-left" title="wecopttool.hydrostatics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="wecopttool.hydrostatics.inertia_matrix.html" class="btn btn-neutral float-right" title="wecopttool.hydrostatics.inertia_matrix" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="wecopttool.WEC.vec_to_dofmat.html" class="btn btn-neutral float-left" title="wecopttool.WEC.vec_to_dofmat" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.atleast_2d.html" class="btn btn-neutral float-right" title="wecopttool.atleast_2d" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

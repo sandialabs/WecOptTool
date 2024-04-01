@@ -1,7 +1,6 @@
 {
  "cells": [
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -34,6 +33,7 @@
     "import autograd.numpy as np\n",
     "import matplotlib.pyplot as plt\n",
     "from scipy.linalg import block_diag\n",
+    "import xarray as xr\n",
     "\n",
     "import wecopttool as wot\n",
     "\n",
@@ -42,7 +42,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -50,7 +49,11 @@
     "\n",
     "### 1.1 Waves\n",
     "We start with the setting up the different waves we want to model, as this will inform what to select for our frequency range, which we need throughout the rest of the problem setup. \n",
-    "We will consider two waves: a regular wave and an irregular wave, both with typical characteristics of the deployment site. The regular wave is roughly at 0.35 Hz, the known pitch resonance frequency of the buoy. The irregular wave has a peak period of 5 seconds, matching that of the deployment site."
+    "We will consider two waves: a regular wave and an irregular wave, both with typical characteristics of the deployment site. The regular wave is roughly at 0.35 Hz, the known pitch resonance frequency of the buoy. The irregular wave has a peak period of 5 seconds, matching that of the deployment site. \n",
+    "\n",
+    "The irregular wave is created with multiple phase realizations. For this tutorial, the number of realizations has been overwritten to 3 to reduce the total run-time. The solver will be run once for each wave phase realization. Each of these phase realizations leads to a slightly different result for optimal average power. Thus, for irregular wave conditions, it is recommended to include multiple phase realizations and average the resultant optimal power. The number of phase realizations required is dependent on the desired accuracy of the result, but it is generally recommended to include enough realizations for the total simulation time to equal 20 minutes.\n",
+    "\n",
+    "$t_{total} = \\frac{nrealizations}{f1} $"
    ]
   },
   {
@@ -78,14 +81,19 @@
     "Hs = 1.5\n",
     "Tp = 5 \n",
     "\n",
+    "# number of realizations to reach 20 minutes of total simulation time\n",
+    "minutes_needed = 20\n",
+    "nrealizations = minutes_needed*60*f1\n",
+    "print(f'Number of realizations for a 20 minute total simulation time: {nrealizations}')\n",
+    "nrealizations = 3 # overwrite nrealizations to reduce run-time\n",
+    "\n",
     "fp = 1/Tp\n",
     "spectrum = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, Hs)\n",
     "efth = wot.waves.omnidirectional_spectrum(f1, nfreq, spectrum, \"Pierson-Moskowitz\")\n",
-    "waves_irregular = wot.waves.long_crested_wave(efth)"
+    "waves_irregular = wot.waves.long_crested_wave(efth, nrealizations)"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -102,13 +110,12 @@
     "#TODO: highlight the harmonics if wave freq and Tp with other markers+colors\n",
     "fig, ax = plt.subplots()\n",
     "np.abs(waves_regular).plot(marker = 'x', label=\"regular\")\n",
-    "np.abs(waves_irregular).plot(marker = '*', label=\"irregular\")\n",
+    "np.abs(waves_irregular.sel(realization=0)).plot(marker = '*', label=\"irregular\")\n",
     "ax.set_title('Wave elevation spectrum', fontweight='bold')\n",
     "plt.legend()"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -137,7 +144,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -178,7 +184,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -197,12 +202,11 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
     "#### Hydrodynamics and hydrostatics\n",
-    "As mentioned above, the `FloatingBody` object in Capytaine only needs to model the buoy, since no other components are being excited by the waves."
+    "As mentioned above, the `FloatingBody` object in Capytaine only needs to model the buoy, since no other components are being excited by the waves. The inertia matrix needs to be defined manually here since it is not based on the displaced mass."
    ]
   },
   {
@@ -216,29 +220,36 @@
     "pnr_fb.center_of_mass = np.array([0., 0., buoy_props['CG']])\n",
     "pnr_fb.rotation_center = pnr_fb.center_of_mass\n",
     "ndof = pnr_fb.nb_dofs\n",
-    "pnr_fb.show_matplotlib()"
+    "pnr_fb.show_matplotlib()\n",
+    "\n",
+    "pnr_fb.inertia_matrix = xr.DataArray([[buoy_props['MOI']]],\n",
+    "                            dims=['influenced_dof', 'radiating_dof'],\n",
+    "                            coords={'influenced_dof' : ['Pitch'],\n",
+    "                            'radiating_dof' : ['Pitch']},\n",
+    "                            name=\"inertia_matrix\"\n",
+    "                            )"
    ]
   },
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {},
+   "metadata": {
+    "scrolled": true
+   },
    "outputs": [],
    "source": [
     "rho = 1025. # kg/m^3\n",
     "freq = wot.frequency(f1, nfreq, False) # False -> no zero frequency\n",
-    "bem_data = wot.run_bem(pnr_fb, freq)\n",
+    "bem_data = wot.run_bem(pnr_fb, freq, rho=rho)\n",
     "omega = bem_data.omega.values\n",
     "\n",
     "pnr_fb.keep_immersed_part()\n",
-    "k_buoy = pnr_fb.compute_hydrostatic_stiffness(rho=rho).values.squeeze()\n",
     "k_spring = spring_props['Max torque'] / spring_props['Max displacement']\n",
-    "print(f'Hydrostatic stiffness from Capytaine: {k_buoy} N-m/rad')\n",
+    "print(f\"Hydrostatic stiffness from Capytaine: {bem_data['hydrostatic_stiffness'].values.squeeze()} N-m/rad\")\n",
     "print('Hydrostatic stiffness from experiment: 37204 N-m/rad')"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -280,7 +291,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -292,7 +302,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -316,7 +325,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -351,7 +359,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -372,7 +379,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -397,7 +403,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -439,7 +444,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -484,7 +488,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -506,7 +509,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -537,7 +539,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -569,7 +570,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -595,7 +595,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -610,8 +609,6 @@
    "outputs": [],
    "source": [
     "wec = wot.WEC.from_bem(bem_data,\n",
-    "                       inertia_matrix=np.array([[buoy_props['MOI']]]),\n",
-    "                       hydrostatic_stiffness=k_buoy,\n",
     "                       f_add=f_add,\n",
     "                       constraints=constraints,\n",
     "                       uniform_shift=False,\n",
@@ -619,7 +616,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -643,11 +639,10 @@
     "    scale_x_opt=1e-2,\n",
     "    scale_obj=1e-2,\n",
     ")\n",
-    "print(f'Optimal average power: {results.fun:.2f} W')"
+    "print(f'Optimal average power: {results[0].fun:.2f} W')"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -662,23 +657,22 @@
    "outputs": [],
    "source": [
     "nsubsteps = 5\n",
-    "wec_fdom, wec_tdom = wec.post_process(results, waves_regular, nsubsteps=nsubsteps)\n",
+    "wec_fdom, wec_tdom = wec.post_process(results[0], waves_regular.sel(realization=0), nsubsteps=nsubsteps)\n",
     "\n",
     "# Manually post-process PTO and flywheel outputs\n",
-    "x_wec, x_opt = wot.decompose_state(results.x, 1, nfreq)\n",
+    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq)\n",
     "fw_pos = np.dot(wec.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
-    "pto_pos = rel_position(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
-    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
-    "pto_force = f_motor(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
+    "pto_pos = rel_position(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_force = f_motor(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
     "pto_force_fd = wec.td_to_fd(pto_force[::nsubsteps])\n",
-    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
-    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
+    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
     "avg_mech_power = np.mean(pto_mech_power)\n",
     "avg_elec_power = np.mean(pto_elec_power)\n"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -745,7 +739,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -753,7 +746,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -767,7 +759,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "hydro_data = wot.linear_hydrodynamics(bem_data, np.array([[buoy_props['MOI']]]), k_buoy, friction=None)    \n",
+    "hydro_data = wot.add_linear_friction(bem_data, friction=None)    \n",
     "hydro_data = wot.check_linear_damping(hydro_data, uniform_shift=False)    \n",
     "\n",
     "Zi = wot.hydrodynamic_impedance(hydro_data)\n",
@@ -784,7 +776,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -856,7 +847,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -882,11 +872,11 @@
     "    scale_x_opt=1e-2,\n",
     "    scale_obj=1e-2,\n",
     ")\n",
-    "print(f'Optimal average power: {results.fun:.2f} W')"
+    "power_results = [result.fun for result in results]\n",
+    "print(f'Optimal average power: {np.mean(power_results):.2f} W')"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -900,17 +890,17 @@
    "outputs": [],
    "source": [
     "nsubsteps = 5\n",
-    "wec_fdom, wec_tdom = wec.post_process(results, waves_irregular, nsubsteps=nsubsteps)\n",
+    "wec_fdom, wec_tdom = wec.post_process(results[0], waves_irregular.sel(realization=0), nsubsteps=nsubsteps)\n",
     "\n",
     "# Manually post-process PTO and flywheel outputs\n",
-    "x_wec, x_opt = wot.decompose_state(results.x, 1, nfreq)\n",
+    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq)\n",
     "fw_pos = np.dot(wec.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
-    "pto_pos = rel_position(wec, x_wec, x_opt, waves_irregular, nsubsteps)\n",
-    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_irregular, nsubsteps)\n",
-    "pto_force = f_motor(wec, x_wec, x_opt, waves_irregular, nsubsteps)\n",
+    "pto_pos = rel_position(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_force = f_motor(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
     "pto_force_fd = wec.td_to_fd(pto_force[::nsubsteps])\n",
-    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_irregular, nsubsteps)\n",
-    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_irregular, nsubsteps)\n",
+    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
     "avg_mech_power = np.mean(pto_mech_power)\n",
     "avg_elec_power = np.mean(pto_elec_power)"
    ]
@@ -968,11 +958,18 @@
     "    axi.label_outer()\n",
     "    axi.autoscale(axis='x', tight=True)"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "conda-wot",
+   "display_name": "wot_dev",
    "language": "python",
    "name": "python3"
   },
@@ -986,7 +983,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.10.10"
+   "version": "3.11.5"
   }
  },
  "nbformat": 4,

@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.geom.WaveBot &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -67,10 +69,10 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrostatics.html">wecopttool.hydrostatics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.add_linear_friction.html">wecopttool.add_linear_friction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
@@ -89,7 +91,6 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.inertia.html">wecopttool.inertia</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.linear_hydrodynamics.html">wecopttool.linear_hydrodynamics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.metadata.html">wecopttool.metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.mimo_transfer_mat.html">wecopttool.mimo_transfer_mat</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.ncomponents.html">wecopttool.ncomponents</a></li>
@@ -97,6 +98,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.real_to_complex.html">wecopttool.real_to_complex</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.run_bem.html">wecopttool.run_bem</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.scale_dofs.html">wecopttool.scale_dofs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.set_fb_centers.html">wecopttool.set_fb_centers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.set_loglevel.html">wecopttool.set_loglevel</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.standard_forces.html">wecopttool.standard_forces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.subset_close.html">wecopttool.subset_close</a></li>
@@ -137,10 +139,10 @@
            <div itemprop="articleBody">
              
   <section id="wecopttool-geom-wavebot">
-<h1>wecopttool.geom.WaveBot<a class="headerlink" href="#wecopttool-geom-wavebot" title="Permalink to this heading"></a></h1>
+<h1>wecopttool.geom.WaveBot<a class="headerlink" href="#wecopttool-geom-wavebot" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wecopttool.geom.WaveBot">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WaveBot</span></span><a class="reference internal" href="../_modules/wecopttool/geom.html#WaveBot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.geom.WaveBot" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WaveBot</span></span><a class="reference internal" href="../_modules/wecopttool/geom.html#WaveBot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.geom.WaveBot" title="Link to this definition"></a></dt>
 <dd><p>Class representing the Sandia WaveBot.</p>
 <p>See, e.g.,</p>
 <blockquote>
@@ -151,17 +153,17 @@
 </div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="wecopttool.geom.WaveBot.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.88</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.17</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeboard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/geom.html#WaveBot.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.geom.WaveBot.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">r1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.88</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.17</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeboard</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/geom.html#WaveBot.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.geom.WaveBot.__init__" title="Link to this definition"></a></dt>
 <dd><p>Create a WaveBot with specific dimensions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>r1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Outer-most radius (of cylindrical section) [m].</p></li>
-<li><p><strong>r2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Inner-most radius (of the conic frustum) [m].</p></li>
-<li><p><strong>h1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Height of the cylindrical section [m].</p></li>
-<li><p><strong>h2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Height of the conic frustum section [m].</p></li>
-<li><p><strong>scale_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Scale factor to linearly scale hull dimensions [ ].</p></li>
-<li><p><strong>freeboard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Freeboard above free surface (will be removed later for BEM
+<li><p><strong>r1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Outer-most radius (of cylindrical section) [m].</p></li>
+<li><p><strong>r2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Inner-most radius (of the conic frustum) [m].</p></li>
+<li><p><strong>h1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Height of the cylindrical section [m].</p></li>
+<li><p><strong>h2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Height of the conic frustum section [m].</p></li>
+<li><p><strong>scale_factor</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Scale factor to linearly scale hull dimensions [ ].</p></li>
+<li><p><strong>freeboard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Freeboard above free surface (will be removed later for BEM
 calculations) [m]. The draft of the cylindrical section is
 <code class="code highlight python docutils literal highlight-python"><span class="n">h1</span><span class="o">-</span><span class="n">freeboard</span></code>.</p></li>
 </ul>
@@ -198,7 +200,7 @@ calculations) [m]. The draft of the cylindrical section is
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

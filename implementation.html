@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Implementation &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=a0fb6060" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -83,32 +85,32 @@
            <div itemprop="articleBody">
              
   <section id="implementation">
-<h1>Implementation<a class="headerlink" href="#implementation" title="Permalink to this heading"></a></h1>
+<h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h1>
 <p>As described in the <a class="reference internal" href="theory.html"><span class="doc">Theory &amp; Practice</span></a> page, WecOptTool operates by solving a constrained optimization problem, in which an equality constraint (<span class="math notranslate nohighlight">\(r(x) = 0\)</span>) is used to enforce the dynamics of the system.</p>
 <div class="math notranslate nohighlight" id="equation-optim-prob-implementation">
-<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob-implementation" title="Permalink to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
+<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob-implementation" title="Link to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
 \textrm{s.t.}&amp; \\
 r(x) &amp;= 0 \\
 c_{ineq}(x) &amp;\leq 0 \\
 c_{eq}(x) &amp;= 0\end{split}\]</div>
 <p>For the linear case, which is the default formulation in WecOptTool, the WEC dynamics can be expressed, in residual form, as</p>
 <div class="math notranslate nohighlight" id="equation-wec-dynamics">
-<span class="eqno">(2)<a class="headerlink" href="#equation-wec-dynamics" title="Permalink to this equation"></a></span>\[r = -(M + m_a) \ddot{x} - k x(t) - B \, \dot{x}(t) - C \int\limits_{-\infty}^t \dot{x}(t)  + f_{ext} + f_{exc} = 0.\]</div>
+<span class="eqno">(2)<a class="headerlink" href="#equation-wec-dynamics" title="Link to this equation"></a></span>\[r = -(M + m_a) \ddot{x} - k x(t) - B \, \dot{x}(t) - C \int\limits_{-\infty}^t \dot{x}(t)  + f_{ext} + f_{exc} = 0.\]</div>
 <p>The decision variable, <span class="math notranslate nohighlight">\(x\)</span>, includes states of the body motion as well as other external states, e.g., related to controllers, PTO systems, mooring systems, etc.</p>
 <div class="math notranslate nohighlight" id="equation-decision-variable-top">
-<span class="eqno">(3)<a class="headerlink" href="#equation-decision-variable-top" title="Permalink to this equation"></a></span>\[x = [ x_{pos}, x_{ext} ]^T\]</div>
+<span class="eqno">(3)<a class="headerlink" href="#equation-decision-variable-top" title="Link to this equation"></a></span>\[x = [ x_{pos}, x_{ext} ]^T\]</div>
 <p>Here, <span class="math notranslate nohighlight">\(x_{pos} \in \mathbb{R}^{m(2n + 1)}\)</span>, where <span class="math notranslate nohighlight">\(m\)</span> is the number of body modes of motion and <span class="math notranslate nohighlight">\(n\)</span> is the number of frequency components.
 Similarly, <span class="math notranslate nohighlight">\(x_{ext} \in \mathbb{R}^{p(2n+1)}\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> is the number of external states.
 Body modes could include multiple degrees-of-freedom for a single body (e.g., heave, surge, and pitch) and/or degrees-of-freedom from multiple bodies (e.g., heave modes from each body in a large array of bodies).
 The frequency vector <span class="math notranslate nohighlight">\(\omega \in \mathbb{R}^n\)</span> should span the relevant frequencies of the device operation, and also super harmonics to capture nonlinearities.</p>
 <div class="math notranslate nohighlight" id="equation-decision-variable-position">
-<span class="eqno">(4)<a class="headerlink" href="#equation-decision-variable-position" title="Permalink to this equation"></a></span>\[x_{pos} = [ x_{pos,1}, x_{pos,2}, \dots, x_{pos,m} ]^T\]</div>
+<span class="eqno">(4)<a class="headerlink" href="#equation-decision-variable-position" title="Link to this equation"></a></span>\[x_{pos} = [ x_{pos,1}, x_{pos,2}, \dots, x_{pos,m} ]^T\]</div>
 <p>For each mode, <span class="math notranslate nohighlight">\(x_{pos}\)</span> has <span class="math notranslate nohighlight">\(2n + 1\)</span> elements (<span class="math notranslate nohighlight">\(x_{pos,k} \in \mathbb{R}^{2n + 1}\)</span>).
 There are <span class="math notranslate nohighlight">\(2n\)</span> elements because each frequency is described by two components: one each corresponding to the cosine and sine amplitudes.
 The additional element in the first position is used to capture a mean (“DC”) displacement.
 Thus, the portion of <span class="math notranslate nohighlight">\(x_{pos}\)</span> describing the <span class="math notranslate nohighlight">\(k\)</span>-th mode would be.</p>
 <div class="math notranslate nohighlight" id="equation-decision-variable-position-detail">
-<span class="eqno">(5)<a class="headerlink" href="#equation-decision-variable-position-detail" title="Permalink to this equation"></a></span>\[x_{pos,k} =
+<span class="eqno">(5)<a class="headerlink" href="#equation-decision-variable-position-detail" title="Link to this equation"></a></span>\[x_{pos,k} =
 [ \bar{x}_{pos,k}, a_{k,1}, b_{k,1}, \dots, a_{k,n}, b_{k,n} ]^T\]</div>
 <p>The external state vector (<span class="math notranslate nohighlight">\(x_{ext}\)</span>) can have an analogous composition.
 The mean components in <span class="math notranslate nohighlight">\(x_{ext}\)</span> can be used to capture, for example, pretension in a tether.</p>
@@ -142,7 +144,7 @@ The matrices <span class="math notranslate nohighlight">\(M\)</span>, <span clas
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

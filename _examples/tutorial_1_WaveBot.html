@@ -1,23 +1,25 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 1 - WaveBot &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/nbsphinx-code-cells.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -58,6 +60,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#1.-Optimal-control-for-maximum-mechanical-power">1. Optimal control for maximum mechanical power</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#WEC-object">WEC object</a><ul>
 <li class="toctree-l5"><a class="reference internal" href="#Mesh">Mesh</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Frequency-and-mesh-check">Frequency and mesh check</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#BEM">BEM</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#PTO">PTO</a></li>
 <li class="toctree-l5"><a class="reference internal" href="#WEC-creation"><code class="docutils literal notranslate"><span class="pre">WEC</span></code> creation</a></li>
@@ -114,7 +117,7 @@
            <div itemprop="articleBody">
              
   <section id="Tutorial-1---WaveBot">
-<h1>Tutorial 1 - WaveBot<a class="headerlink" href="#Tutorial-1---WaveBot" title="Permalink to this heading"></a></h1>
+<h1>Tutorial 1 - WaveBot<a class="headerlink" href="#Tutorial-1---WaveBot" title="Link to this heading"></a></h1>
 <p>The goal of this tutorial is to familiarize new users with how to set up and run optimization problems using WecOptTool. It uses a one-body WEC, the WaveBot, in one degree of freedom in regular waves.</p>
 <p><img alt="WaveBot Photo" src="https://live.staticflickr.com/65535/51855905347_de87ccaaba_z.jpg" /></p>
 <p>At the end of this tutorial the user will perform control co-design of the WEC’s geometry and a corresponding optimal controller to maximize electrical power. We build up to this problem in three parts of successive complexity:</p>
@@ -133,9 +136,7 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-
-<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brute</span>
@@ -145,20 +146,20 @@
 </div>
 </div>
 <section id="1.-Optimal-control-for-maximum-mechanical-power">
-<h2>1. Optimal control for maximum mechanical power<a class="headerlink" href="#1.-Optimal-control-for-maximum-mechanical-power" title="Permalink to this heading"></a></h2>
+<h2>1. Optimal control for maximum mechanical power<a class="headerlink" href="#1.-Optimal-control-for-maximum-mechanical-power" title="Link to this heading"></a></h2>
 <p>This example illustrates how to set up, run, and analyze a basic optimization problem within WecOptTool.</p>
 <p>The objective of this example is to <strong>find the optimal PTO force time-series</strong> that produces the most mechanical power subject to the WEC dynamics and a maximum force the PTO can exert.</p>
 <p>WecOptTool requires the following to be defined to successfully run its optimization routines: - The WEC object, including all of its properties and constraints - The wave condition - The objective function</p>
-<div><p><img alt="fbc283ec6ee6486ea66325a0c14a696c" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="a404be0f286e45d58bf95b5e6b26639f" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
 </div><p>The graphic shows all the requirements for this first part of the tutorial: from the wave on the left, to the objective (mechanical power) on the right. The WEC object, with all it’s components, is illustrated in the middle. The components inside the blue box are the WEC properties that are actually passed on to the optimizer. In short, the WEC’s hydrodynamic properties are modelled by 1. Defining the WEC’s geometry 2. Meshing the geometry 3. Obtaining the WEC’s BEM cofficients based on the mesh
 4. Determening the WEC’s intrinsic impedance model based on the BEM coefficients</p>
 <p>For this first part of the tutorial, the heave-only, WEC-PTO kinematics are trivial (Unity) and the PTO is assumed to be lossless.</p>
 <section id="WEC-object">
-<h3>WEC object<a class="headerlink" href="#WEC-object" title="Permalink to this heading"></a></h3>
+<h3>WEC object<a class="headerlink" href="#WEC-object" title="Link to this heading"></a></h3>
 <p>In this section we will create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object, which contains all the information about the WEC and its dynamics. This constitutes the vast majority of the setup required to run WecOptTool.</p>
 <p>Our <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object requires information about the mesh, degrees of freedom, mass and hydrostatic properties, linear hydrodynamic coefficients (from a BEM solution), any additional dynamic forces (e.g. PTO force, mooring, non-linear hydrodynamics), and constraints (e.g. maximum PTO extension). In this case, the only additional force will be the PTO force and the only constraint will be a maximum PTO force of <span class="math notranslate nohighlight">\(2,000 N\)</span>.</p>
 <section id="Mesh">
-<h4>Mesh<a class="headerlink" href="#Mesh" title="Permalink to this heading"></a></h4>
+<h4>Mesh<a class="headerlink" href="#Mesh" title="Link to this heading"></a></h4>
 <p>First, we will create a surface mesh for the hull and store it using the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> object from Capytaine. The WaveBot mesh is pre-defined in the <code class="docutils literal notranslate"><span class="pre">wecopttool.geom</span></code> module, so we will call it directly from there. We will only model the heave degree of freedom in this case. Note that the Capytaine <code class="docutils literal notranslate"><span class="pre">from_meshio</span></code> method can also import from other file types (STL, VTK, MSH, etc.)</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
@@ -173,22 +174,12 @@
 </pre></div>
 </div>
 </div>
-<p>Next we will add the mass and hydrostatic stiffness properties. If these values are known they can be added directly. Here we will use the fact that the WaveBot is free floating and assume constant density to calculate these properties, which Capytaine can natively perform with the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> created above. For convenience, this functionality has been wrapped in <code class="docutils literal notranslate"><span class="pre">wecopttool.hydrostatics</span></code>.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">stiffness</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">stiffness_matrix</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-<span class="n">mass</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">inertia_matrix</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-</pre></div>
-</div>
-</div>
 <div class="line-block">
 <div class="line">At this point we can visualize the mesh for inspection. Capytaine has built-in methods for visualizing meshes (<code class="docutils literal notranslate"><span class="pre">fb.show</span></code>, and <code class="docutils literal notranslate"><span class="pre">fb.show_matplotlib</span></code>). When running outside a Notebook, these are interactive.</div>
 <div class="line">The included WaveBot example also has a method for plotting the cross-section of the device.</div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fb</span><span class="o">.</span><span class="n">show_matplotlib</span><span class="p">()</span>
@@ -200,174 +191,534 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_WaveBot_8_0.png" src="../_images/_examples_tutorial_1_WaveBot_8_0.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_6_0.png" src="../_images/_examples_tutorial_1_WaveBot_6_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../_images/_examples_tutorial_1_WaveBot_8_1.png" src="../_images/_examples_tutorial_1_WaveBot_8_1.png" />
+<img alt="../_images/_examples_tutorial_1_WaveBot_6_1.png" src="../_images/_examples_tutorial_1_WaveBot_6_1.png" />
 </div>
 </div>
 </section>
-<section id="BEM">
-<h4>BEM<a class="headerlink" href="#BEM" title="Permalink to this heading"></a></h4>
-<p>With our Capytaine floating body created, we can now run the Boundary Element Method solver in Capytaine to get the hydrostatic and hydrodynamic coefficients of our WEC object. This is wrapped into the <code class="docutils literal notranslate"><span class="pre">wecopttool.run_bem</span></code> function.</p>
+<section id="Frequency-and-mesh-check">
+<h4>Frequency and mesh check<a class="headerlink" href="#Frequency-and-mesh-check" title="Link to this heading"></a></h4>
 <p>We will analyze 50 frequencies with a spacing of 0.05 Hz. These frequencies will be used for the Fourier representation of both the wave and the desired PTO force in the pseudo-spectral problem. See the Theory section of the Documentation for more details on the pseudo-spectral problem formulation.</p>
-<p>If you would like to save our BEM data to a NetCDF file for future use, see the <code class="docutils literal notranslate"><span class="pre">wecopttool.write_netcdf</span></code> function.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fb.minimal_computable_wavelength</span></code> parameter checks the mesh to determine the minimum wavelength that can be reliably computed using Capytaine. This warning is ignored here because the BEM results have been validated, but can be used as a guide for mesh refinement to ensure accurate BEM results.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f1</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="n">nfreq</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">freq</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># False -&gt; no zero frequency</span>
 
-<span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+<span class="n">min_computable_wavelength</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">minimal_computable_wavelength</span>
+<span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+<span class="n">min_period</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">f1</span><span class="o">*</span><span class="n">nfreq</span><span class="p">)</span>
+<span class="n">min_wavelength</span> <span class="o">=</span> <span class="p">(</span><span class="n">g</span><span class="o">*</span><span class="p">(</span><span class="n">min_period</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">min_wavelength</span> <span class="o">&lt;</span> <span class="n">min_computable_wavelength</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Minimum wavelength in frequency spectrum (</span><span class="si">{</span><span class="n">min_wavelength</span><span class="si">}</span><span class="s1">) is smaller&#39;</span>
+         <span class="sa">f</span><span class="s1">&#39; than the minimum computable wavelength (</span><span class="si">{</span><span class="n">min_computable_wavelength</span><span class="si">}</span><span class="s1">).&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Warning: Minimum wavelength in frequency spectrum (0.24980959867703897) is smaller than the minimum computable wavelength (0.8062438881017548).
+</pre></div></div>
+</div>
+</section>
+<section id="BEM">
+<h4>BEM<a class="headerlink" href="#BEM" title="Link to this heading"></a></h4>
+<p>With our Capytaine floating body created, we can now run the Boundary Element Method solver in Capytaine to get the hydrostatic and hydrodynamic coefficients of our WEC object. This is wrapped into the <code class="docutils literal notranslate"><span class="pre">wecopttool.run_bem</span></code> function.</p>
+<p>If you would like to save our BEM data to a NetCDF file for future use, see the <code class="docutils literal notranslate"><span class="pre">wecopttool.write_netcdf</span></code> function.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=8.796, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=7.97e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=9.111, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=7.43e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=9.425, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.94e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=9.739, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.50e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=10.053, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.10e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=10.367, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.73e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=10.681, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.40e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=10.996, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.10e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=11.310, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.82e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=11.624, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.56e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=11.938, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.32e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=12.252, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.11e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=12.566, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.90e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=12.881, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.72e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=13.195, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.54e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=13.509, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.38e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=13.823, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.23e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=14.137, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.08e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=14.451, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.95e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=14.765, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.83e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=15.080, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.71e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=15.394, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.60e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for DiffractionProblem(body=WaveBot_immersed, omega=15.708, water_depth=inf, wave_direction=0.000, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.50e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=8.796, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=7.97e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=9.111, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=7.43e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=9.425, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.94e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=9.739, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.50e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=10.053, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=6.10e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=10.367, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.73e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=10.681, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.40e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=10.996, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=5.10e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=11.310, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.82e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=11.624, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.56e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=11.938, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.32e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=12.252, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=4.11e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=12.566, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.90e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=12.881, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.72e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=13.195, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.54e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=13.509, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.38e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=13.823, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.23e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=14.137, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=3.08e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=14.451, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.95e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=14.765, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.83e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=15.080, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.71e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=15.394, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.60e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
 WARNING:capytaine.bem.problems_and_results:Mesh resolution for RadiationProblem(body=WaveBot_immersed, omega=15.708, water_depth=inf, radiating_dof=&#39;Heave&#39;, rho=1025.0):
 The resolution of the mesh &#39;WaveBot&#39; of the body &#39;WaveBot_immersed&#39; might be insufficient for the wavelength λ=2.50e-01.
 This warning appears because the largest panel of this mesh has radius 1.01e-01 &gt; λ/8.
@@ -375,7 +726,7 @@ This warning appears because the largest panel of this mesh has radius 1.01e-01 
 </div>
 </section>
 <section id="PTO">
-<h4>PTO<a class="headerlink" href="#PTO" title="Permalink to this heading"></a></h4>
+<h4>PTO<a class="headerlink" href="#PTO" title="Link to this heading"></a></h4>
 <p>WecOptTool includes the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class to encompass all properties of the power take-off system of the WEC. Data wrapped into our <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class will be used to help define our <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object and optimization problem later.</p>
 <p>To create an instance of the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class, we need: - The kinematics matrix, which converts from the WEC degrees of freedom to the PTO degrees of freedom. The PTO extracts power directly from the WEC’s heave in this case, so the kinematics matrix is simply the <span class="math notranslate nohighlight">\(1 \times 1\)</span> identity matrix. - The definition of the PTO controller. The <code class="docutils literal notranslate"><span class="pre">wecopttool.pto</span></code> submodule includes P, PI, and PID controller functions that can be provided to the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class and return the PTO force. However, we will
 be using an unstructured controller in this case, so we will set <code class="docutils literal notranslate"><span class="pre">None</span></code> for the controller. - Any PTO impedance. We’re only interested in mechanical power for this first problem, so we will leave this empty for now - The non-linear power conversion loss (assumed 0% if <code class="docutils literal notranslate"><span class="pre">None</span></code>) - The PTO system name, if desired</p>
@@ -417,7 +768,7 @@ be using an unstructured controller in this case, so we will set <code class="do
 </div>
 </section>
 <section id="WEC-creation">
-<h4><code class="docutils literal notranslate"><span class="pre">WEC</span></code> creation<a class="headerlink" href="#WEC-creation" title="Permalink to this heading"></a></h4>
+<h4><code class="docutils literal notranslate"><span class="pre">WEC</span></code> creation<a class="headerlink" href="#WEC-creation" title="Link to this heading"></a></h4>
 <p>We are now ready to create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object itself! Since we ran our BEM already, we can define the object using the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.from_bem</span></code> function. If we saved our BEM data to a NetCDF file, we can also provide the path to that file instead of specifying the BEM <code class="docutils literal notranslate"><span class="pre">Dataset</span></code> directly.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
@@ -425,8 +776,6 @@ be using an unstructured controller in this case, so we will set <code class="do
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
     <span class="n">bem_data</span><span class="p">,</span>
-    <span class="n">inertia_matrix</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
-    <span class="n">hydrostatic_stiffness</span><span class="o">=</span><span class="n">stiffness</span><span class="p">,</span>
     <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
     <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span>
@@ -446,7 +795,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 </section>
 </section>
 <section id="Waves">
-<h3>Waves<a class="headerlink" href="#Waves" title="Permalink to this heading"></a></h3>
+<h3>Waves<a class="headerlink" href="#Waves" title="Link to this heading"></a></h3>
 <p>The wave environment must be specified as a 2-dimensional <code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code> containing the complex amplitude (m). The two coordinates are the radial frequency <code class="docutils literal notranslate"><span class="pre">omega</span></code> (rad/s) and the direction <code class="docutils literal notranslate"><span class="pre">wave_direction</span></code> (rad). The <code class="docutils literal notranslate"><span class="pre">wecopttool.waves</span></code> submodule contains functions for creating this <code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code> for different types of wave environments.</p>
 <p>In this case we will use a regular wave with a frequency of 0.3 Hz and an amplitude of 0.0625 m. We will use the <code class="docutils literal notranslate"><span class="pre">wecopttool.waves.regular_wave</span></code> function.</p>
 <div class="nbinput nblast docutils container">
@@ -463,7 +812,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 </div>
 </section>
 <section id="Objective-function">
-<h3>Objective function<a class="headerlink" href="#Objective-function" title="Permalink to this heading"></a></h3>
+<h3>Objective function<a class="headerlink" href="#Objective-function" title="Link to this heading"></a></h3>
 <p>The objective function is the quantity (scalar) we want to optimize—in this case, the average mechanical power. The objective function is itself a function of the optimization state, the size of which we need to properly define our call to <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code>. The average mechanical power can be taken directly from the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> object we created.</p>
 <p>One technical quirk here: <code class="docutils literal notranslate"><span class="pre">nstate_opt</span></code> is one smaller than would be expected for a state space representing the mean (DC) component and the real and imaginary Fourier coefficients. This is because WecOptTool excludes the imaginary Fourier component of the highest frequency (the 2-point wave). Since the 2-point wave is sampled at multiples of <span class="math notranslate nohighlight">\(\pi\)</span>, the imaginary component is evaluated as <span class="math notranslate nohighlight">\(sin(n\pi); n = 0, 1, 2, ..., n_{freq}\)</span>, which is always zero. Excluding this component speeds
 up the optimization as the state space is reduced by one.</p>
@@ -478,7 +827,7 @@ up the optimization as the state space is reduced by one.</p>
 </div>
 </section>
 <section id="Solve">
-<h3>Solve<a class="headerlink" href="#Solve" title="Permalink to this heading"></a></h3>
+<h3>Solve<a class="headerlink" href="#Solve" title="Link to this heading"></a></h3>
 <p>We are now ready to solve the problem. WecOptTool uses <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> as its optimization driver, which is wrapped into <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve</span></code> for ease of use.</p>
 <p>Note that the only required inputs for defining and solving the problem are: (1) the waves, (2) the objective function, and (3) the size of the optimization state. Optional inputs can be provided to control the optimization execution if desired, which we do here to change the default iteration maximum and tolerance. See <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> docs for more details.</p>
 <p>To help the optimization we will scale the problem before solving it (see Documentation). WecOptTool allows you to scale the WEC dynamics state, your optimization state (in this case the Fourier coefficients for the PTO force), and the objective function separately. See the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code> function for more information.</p>
@@ -502,10 +851,19 @@ up the optimization as the state space is reduced by one.</p>
     <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
     <span class="p">)</span>
 
-<span class="n">opt_mechanical_average_power</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">fun</span>
+<span class="n">opt_mechanical_average_power</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average mechanical power: </span><span class="si">{</span><span class="n">opt_mechanical_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -513,24 +871,24 @@ up the optimization as the state space is reduced by one.</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.0144724657843236
-            Iterations: 17
-            Function evaluations: 17
-            Gradient evaluations: 17
-Optimal average mechanical power: -101.44724657843236 W
+            Current function value: -1.0144729783766175
+            Iterations: 18
+            Function evaluations: 19
+            Gradient evaluations: 18
+Optimal average mechanical power: -101.44729783766175 W
 </pre></div></div>
 </div>
 </section>
 <section id="Analyzing-results">
-<h3>Analyzing results<a class="headerlink" href="#Analyzing-results" title="Permalink to this heading"></a></h3>
+<h3>Analyzing results<a class="headerlink" href="#Analyzing-results" title="Link to this heading"></a></h3>
 <p>We will use two post-processing functions to obtain frequency- and time-domain results for the WEC and PTO responses. The pseudospectral method gives continuous in time results. To get smoother looking plots, we specify the number of subpoints betweeen co-location points. In this case we will use 5.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">pto_fdom</span><span class="p">,</span> <span class="n">pto_tdom</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
-<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_fdom</span><span class="p">,</span> <span class="n">pto_tdom</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -550,7 +908,7 @@ Optimal average mechanical power: -101.44724657843236 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7f317585eb60&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f1b357b3150&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -576,7 +934,7 @@ Optimal average mechanical power: -101.44724657843236 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7f31743a26b0&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f1b2bd13950&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -601,7 +959,7 @@ Optimal average mechanical power: -101.44724657843236 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7f317420b880&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f1b2bd2dfd0&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -988,231 +1346,231 @@ dl.xr-attrs {
   stroke: currentColor;
   fill: currentColor;
 }
-</style><pre class='xr-text-repr-fallback'>&lt;xarray.Dataset&gt;
+</style><pre class='xr-text-repr-fallback'>&lt;xarray.Dataset&gt; Size: 28kB
 Dimensions:  (time: 500, dof: 1, type: 2)
 Coordinates:
-  * time     (time) float64 0.0 0.04 0.08 0.12 0.16 ... 19.84 19.88 19.92 19.96
-  * dof      (dof) &lt;U9 &#x27;PTO_Heave&#x27;
-  * type     (type) &lt;U4 &#x27;mech&#x27; &#x27;elec&#x27;
+  * time     (time) float64 4kB 0.0 0.04 0.08 0.12 ... 19.84 19.88 19.92 19.96
+  * dof      (dof) &lt;U9 36B &#x27;PTO_Heave&#x27;
+  * type     (type) &lt;U4 32B &#x27;mech&#x27; &#x27;elec&#x27;
 Data variables:
-    pos      (time, dof) float64 0.08717 0.0958 0.1049 ... 0.07175 0.07912
-    vel      (time, dof) float64 0.209 0.2222 0.231 ... 0.159 0.1757 0.193
-    acc      (time, dof) float64 0.3721 0.281 0.1572 ... 0.396 0.4323 0.4239
-    force    (time, dof) float64 1.755e+03 1.854e+03 ... 1.436e+03 1.617e+03
-    power    (type, time, dof) float64 366.7 411.8 443.6 ... 192.5 252.3 312.0
+    pos      (time, dof) float64 4kB 0.087 0.09562 0.1047 ... 0.07165 0.07898
+    vel      (time, dof) float64 4kB 0.2085 0.222 0.2311 ... 0.1746 0.1921
+    acc      (time, dof) float64 4kB 0.3801 0.2889 0.1641 ... 0.4372 0.4309
+    force    (time, dof) float64 4kB 1.763e+03 1.862e+03 ... 1.441e+03 1.625e+03
+    power    (type, time, dof) float64 8kB 367.6 413.3 445.3 ... 251.7 312.2
 Attributes:
-    time_created_utc:  2023-07-13 20:55:10.088480</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-baba99cb-c022-4ebc-b889-ed170a0a0075' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-baba99cb-c022-4ebc-b889-ed170a0a0075' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 500</li><li><span class='xr-has-index'>dof</span>: 1</li><li><span class='xr-has-index'>type</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-97f3808f-862a-455a-898f-e6f9abfeca9f' class='xr-section-summary-in' type='checkbox'  checked><label for='section-97f3808f-862a-455a-898f-e6f9abfeca9f' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.04 0.08 ... 19.88 19.92 19.96</div><input id='attrs-e0f73b8d-b57e-41ee-99a6-80c598a91bb8' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-e0f73b8d-b57e-41ee-99a6-80c598a91bb8' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5b16c59e-f6e3-4232-b58d-8120d9308ed2' class='xr-var-data-in' type='checkbox'><label for='data-5b16c59e-f6e3-4232-b58d-8120d9308ed2' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.  ,  0.04,  0.08, ..., 19.88, 19.92, 19.96])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-4b1dcdb8-d24f-4546-9ae5-f16671150a98' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-4b1dcdb8-d24f-4546-9ae5-f16671150a98' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-fe72c36f-51c2-4df0-8116-6fc99100633c' class='xr-var-data-in' type='checkbox'><label for='data-fe72c36f-51c2-4df0-8116-6fc99100633c' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>&lt;U4</div><div class='xr-var-preview xr-preview'>&#x27;mech&#x27; &#x27;elec&#x27;</div><input id='attrs-f11fc9bf-4786-4fc4-8d41-ea261eda6559' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-f11fc9bf-4786-4fc4-8d41-ea261eda6559' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7e93d0cd-ac1b-4aef-96f8-4413d956d847' class='xr-var-data-in' type='checkbox'><label for='data-7e93d0cd-ac1b-4aef-96f8-4413d956d847' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;&lt;U4&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-47290679-7f4e-4c28-83d8-5f9617d60868' class='xr-section-summary-in' type='checkbox'  checked><label for='section-47290679-7f4e-4c28-83d8-5f9617d60868' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.08717 0.0958 ... 0.07175 0.07912</div><input id='attrs-8fc429b4-c5cd-4d83-b148-acbc982029d4' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8fc429b4-c5cd-4d83-b148-acbc982029d4' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-afdbf535-5b51-4c42-992b-28912c78b35d' class='xr-var-data-in' type='checkbox'><label for='data-afdbf535-5b51-4c42-992b-28912c78b35d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.08716527],
-       [ 0.09580089],
-       [ 0.10488174],
-       [ 0.11421081],
-       [ 0.12355173],
-       [ 0.13264273],
-       [ 0.14121061],
-       [ 0.14898385],
-       [ 0.15570443],
-       [ 0.16113796],
-       [ 0.16508196],
-       [ 0.1673726 ],
-       [ 0.16788966],
-       [ 0.16656003],
-       [ 0.16335968],
-       [ 0.15831421],
-       [ 0.15149799],
-       [ 0.14303185],
-       [ 0.1330796 ],
-       [ 0.12184324],
+    time_created_utc:  2024-04-01 14:56:52.225669</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-3227a219-ee93-4813-a55e-5d7692a2ef55' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-3227a219-ee93-4813-a55e-5d7692a2ef55' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span class='xr-has-index'>time</span>: 500</li><li><span class='xr-has-index'>dof</span>: 1</li><li><span class='xr-has-index'>type</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-5cdc8960-683e-4724-9d77-ec7ec0cf30a7' class='xr-section-summary-in' type='checkbox'  checked><label for='section-5cdc8960-683e-4724-9d77-ec7ec0cf30a7' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.04 0.08 ... 19.88 19.92 19.96</div><input id='attrs-c9c7ea0e-6c48-4fe9-8d91-c86fe1583739' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-c9c7ea0e-6c48-4fe9-8d91-c86fe1583739' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-d3d068d9-caf0-4451-a68f-460674095ca7' class='xr-var-data-in' type='checkbox'><label for='data-d3d068d9-caf0-4451-a68f-460674095ca7' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([ 0.  ,  0.04,  0.08, ..., 19.88, 19.92, 19.96])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-dc646e48-b226-46d7-9e03-3a530add361a' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-dc646e48-b226-46d7-9e03-3a530add361a' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-19d043a8-2234-4f3b-bb09-f1b404fb5d6d' class='xr-var-data-in' type='checkbox'><label for='data-19d043a8-2234-4f3b-bb09-f1b404fb5d6d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>&lt;U4</div><div class='xr-var-preview xr-preview'>&#x27;mech&#x27; &#x27;elec&#x27;</div><input id='attrs-7c942911-efd7-487c-9d7d-f8619845ce72' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7c942911-efd7-487c-9d7d-f8619845ce72' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-5b332a9c-2b4f-4089-86c9-232ab4c77c6f' class='xr-var-data-in' type='checkbox'><label for='data-5b332a9c-2b4f-4089-86c9-232ab4c77c6f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;&lt;U4&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1b0c3b5a-ce8d-4ab5-a12f-c5d39eab5568' class='xr-section-summary-in' type='checkbox'  checked><label for='section-1b0c3b5a-ce8d-4ab5-a12f-c5d39eab5568' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.087 0.09562 ... 0.07165 0.07898</div><input id='attrs-39006f73-6b37-4d99-8864-08ac3bae1fbb' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-39006f73-6b37-4d99-8864-08ac3bae1fbb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b14b9a37-ae06-4153-b9df-cf57aaed2546' class='xr-var-data-in' type='checkbox'><label for='data-b14b9a37-ae06-4153-b9df-cf57aaed2546' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.08700048],
+       [ 0.09562231],
+       [ 0.10470185],
+       [ 0.11404062],
+       [ 0.12340008],
+       [ 0.13251604],
+       [ 0.14111319],
+       [ 0.14891837],
+       [ 0.15567243],
+       [ 0.16114011],
+       [ 0.16511822],
+       [ 0.16744207],
+       [ 0.16799049],
+       [ 0.16668931],
+       [ 0.16351355],
+       [ 0.15848808],
+       [ 0.15168679],
+       [ 0.14323037],
+       [ 0.1332826 ],
+       [ 0.12204553],
 ...
-       [-0.08745407],
-       [-0.07367212],
-       [-0.05985577],
-       [-0.04628415],
-       [-0.03321621],
-       [-0.02087814],
-       [-0.00945074],
-       [ 0.0009419 ],
-       [ 0.01024124],
-       [ 0.01845921],
-       [ 0.02567818],
-       [ 0.03204522],
-       [ 0.03776088],
-       [ 0.04306291],
-       [ 0.04820663],
-       [ 0.05344347],
-       [ 0.05900002],
-       [ 0.0650594 ],
-       [ 0.07174671],
-       [ 0.07911975]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.209 0.2222 0.231 ... 0.1757 0.193</div><input id='attrs-747d8189-1a95-4945-8ae2-ec3b7fe707f6' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-747d8189-1a95-4945-8ae2-ec3b7fe707f6' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a5964dfb-3523-4f77-9267-c70e4e26f0e1' class='xr-var-data-in' type='checkbox'><label for='data-a5964dfb-3523-4f77-9267-c70e4e26f0e1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.20899509],
-       [ 0.22216129],
-       [ 0.23101096],
-       [ 0.2343972 ],
-       [ 0.23150825],
-       [ 0.22188129],
-       [ 0.20539305],
-       [ 0.18223361],
-       [ 0.15286992],
-       [ 0.11800381],
-       [ 0.07852838],
-       [ 0.03548456],
-       [-0.00998084],
-       [-0.05665537],
-       [-0.10329905],
-       [-0.14868028],
-       [-0.1916093 ],
-       [-0.23096923],
-       [-0.26574486],
-       [-0.29505001],
+       [-0.08755725],
+       [-0.07376581],
+       [-0.05993756],
+       [-0.04635132],
+       [-0.03326553],
+       [-0.02090593],
+       [-0.00945331],
+       [ 0.00096745],
+       [ 0.01029596],
+       [ 0.01854127],
+       [ 0.02578214],
+       [ 0.03216194],
+       [ 0.03787812],
+       [ 0.04316679],
+       [ 0.04828344],
+       [ 0.05348178],
+       [ 0.05899241],
+       [ 0.06500358],
+       [ 0.07164574],
+       [ 0.07898135]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.2085 0.222 ... 0.1746 0.1921</div><input id='attrs-63bf3540-de9b-435b-a948-6e7b5e795777' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-63bf3540-de9b-435b-a948-6e7b5e795777' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-328f76e5-4511-4c6b-b99f-53e6a2ddacd1' class='xr-var-data-in' type='checkbox'><label for='data-328f76e5-4511-4c6b-b99f-53e6a2ddacd1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.20848995],
+       [ 0.22197886],
+       [ 0.23112846],
+       [ 0.23476469],
+       [ 0.2320643 ],
+       [ 0.22256705],
+       [ 0.20616119],
+       [ 0.18305089],
+       [ 0.15371411],
+       [ 0.11885765],
+       [ 0.07937361],
+       [ 0.03629859],
+       [-0.00922466],
+       [-0.05598434],
+       [-0.10273658],
+       [-0.14824234],
+       [-0.19130342],
+       [-0.23079623],
+       [-0.26570222],
+       [-0.29513469],
 ...
-       [ 0.34172696],
-       [ 0.34615164],
-       [ 0.34345394],
-       [ 0.33398874],
-       [ 0.31841638],
-       [ 0.29771226],
-       [ 0.27315372],
-       [ 0.24627617],
-       [ 0.21879476],
-       [ 0.19249333],
-       [ 0.16908927],
-       [ 0.15008858],
-       [ 0.13664923],
-       [ 0.12947101],
-       [ 0.12872752],
-       [ 0.13404981],
-       [ 0.14456358],
-       [ 0.15897433],
-       [ 0.17568808],
-       [ 0.19295163]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.3721 0.281 ... 0.4323 0.4239</div><input id='attrs-18fb77d3-6da9-4a85-8e98-119c4dadab61' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-18fb77d3-6da9-4a85-8e98-119c4dadab61' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ad994c76-5924-496c-b106-d9c58e339816' class='xr-var-data-in' type='checkbox'><label for='data-ad994c76-5924-496c-b106-d9c58e339816' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[ 0.37209549],
-       [ 0.28099761],
-       [ 0.15719082],
-       [ 0.00873372],
-       [-0.15560666],
-       [-0.3270549 ],
-       [-0.49736109],
-       [-0.65914878],
-       [-0.80609325],
-       [-0.93297138],
-       [-1.0356343 ],
-       [-1.11095025],
-       [-1.15675072],
-       [-1.17179424],
-       [-1.15574547],
-       [-1.10915693],
-       [-1.03343974],
-       [-0.93081661],
-       [-0.80426148],
-       [-0.65743999],
+       [ 0.34193489],
+       [ 0.34642109],
+       [ 0.34378792],
+       [ 0.33439664],
+       [ 0.31890997],
+       [ 0.298298  ],
+       [ 0.27382322],
+       [ 0.24699797],
+       [ 0.21951069],
+       [ 0.19312199],
+       [ 0.16953726],
+       [ 0.15026782],
+       [ 0.13649648],
+       [ 0.12896468],
+       [ 0.12789711],
+       [ 0.13297482],
+       [ 0.14336169],
+       [ 0.15778135],
+       [ 0.17463442],
+       [ 0.19214094]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.3801 0.2889 ... 0.4372 0.4309</div><input id='attrs-754e3cd6-f45a-494a-9ea3-9aec2fab26a0' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-754e3cd6-f45a-494a-9ea3-9aec2fab26a0' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-725c8c10-680e-4db7-baa7-5292d3fb6a35' class='xr-var-data-in' type='checkbox'><label for='data-725c8c10-680e-4db7-baa7-5292d3fb6a35' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[ 3.80062897e-01],
+       [ 2.88867242e-01],
+       [ 1.64123830e-01],
+       [ 1.42530695e-02],
+       [-1.51605314e-01],
+       [-3.24391245e-01],
+       [-4.95715481e-01],
+       [-6.58210691e-01],
+       [-8.05665155e-01],
+       [-9.33001869e-01],
+       [-1.03618270e+00],
+       [-1.11210941e+00],
+       [-1.15856686e+00],
+       [-1.17421888e+00],
+       [-1.15863706e+00],
+       [-1.11232653e+00],
+       [-1.03671527e+00],
+       [-9.34091897e-01],
+       [-8.07503207e-01],
+       [-6.60644784e-01],
 ...
-       [ 0.20125279],
-       [ 0.02108235],
-       [-0.15399743],
-       [-0.3165158 ],
-       [-0.45853457],
-       [-0.57214226],
-       [-0.65016585],
-       [-0.68701974],
-       [-0.67956076],
-       [-0.62779204],
-       [-0.53526688],
-       [-0.4090845 ],
-       [-0.25943696],
-       [-0.09874393],
-       [ 0.059515  ],
-       [ 0.20210909],
-       [ 0.31732319],
-       [ 0.39601169],
-       [ 0.43231051],
-       [ 0.42393951]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.755e+03 1.854e+03 ... 1.617e+03</div><input id='attrs-201fed40-6498-4027-a62c-fb62c52a6f9b' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-201fed40-6498-4027-a62c-fb62c52a6f9b' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-7df29e38-3b4c-4a87-bf8a-21e555c0ff6d' class='xr-var-data-in' type='checkbox'><label for='data-7df29e38-3b4c-4a87-bf8a-21e555c0ff6d' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment on WEC</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[ 1754.74128515],
-       [ 1853.76582751],
-       [ 1920.33694996],
-       [ 1961.59276842],
-       [ 1984.60075475],
-       [ 1995.61780157],
-       [ 1999.63839546],
-       [ 2000.23702416],
-       [ 1999.6573554 ],
-       [ 1999.06631853],
-       [ 1998.88031671],
-       [ 1999.08192397],
-       [ 1999.47211711],
-       [ 1999.83583435],
-       [ 2000.02746433],
+       [ 2.02739787e-01],
+       [ 2.25705855e-02],
+       [-1.52310493e-01],
+       [-3.14494944e-01],
+       [-4.56212357e-01],
+       [-5.69790749e-01],
+       [-6.48298527e-01],
+       [-6.86306643e-01],
+       [-6.80667472e-01],
+       [-6.31181228e-01],
+       [-5.41018821e-01],
+       [-4.16794485e-01],
+       [-2.68229566e-01],
+       [-1.07412524e-01],
+       [ 5.22721110e-02],
+       [ 1.97414299e-01],
+       [ 3.15878984e-01],
+       [ 3.97957818e-01],
+       [ 4.37215842e-01],
+       [ 4.30927204e-01]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>1.763e+03 1.862e+03 ... 1.625e+03</div><input id='attrs-2765ab33-531d-45fe-9aa5-6fc343f928cb' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-2765ab33-531d-45fe-9aa5-6fc343f928cb' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-21dba4f9-a188-406e-bedf-1514619c66e3' class='xr-var-data-in' type='checkbox'><label for='data-21dba4f9-a188-406e-bedf-1514619c66e3' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Force or moment on WEC</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[ 1763.31390152],
+       [ 1861.77948854],
+       [ 1926.74092058],
+       [ 1965.91451357],
+       [ 1986.94079888],
+       [ 1996.49115106],
+       [ 1999.73055192],
+       [ 2000.1615386 ],
+       [ 1999.79072133],
+       [ 1999.50057912],
+       [ 1999.48797134],
+       [ 1999.64840796],
+       [ 1999.8319992 ],
+       [ 1999.95565525],
+       [ 2000.00672252],
        [ 2000.        ],
-       [ 1999.80358978],
-       [ 1999.56782769],
-       [ 1999.46369726],
-       [ 1999.62459444],
+       [ 1999.94616361],
+       [ 1999.85934063],
+       [ 1999.78877783],
+       [ 1999.82285803],
 ...
        [-2000.        ],
-       [-1997.81977599],
-       [-1990.43504396],
-       [-1973.03077392],
-       [-1939.155365  ],
-       [-1881.1865262 ],
-       [-1791.18821386],
-       [-1662.05446985],
-       [-1488.75332738],
-       [-1269.43863796],
-       [-1006.20291856],
-       [ -705.300707  ],
-       [ -376.76742169],
-       [  -33.47202693],
-       [  310.25217173],
-       [  640.17818912],
-       [  943.70594297],
-       [ 1211.09948517],
-       [ 1436.2688157 ],
-       [ 1617.01332466]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(type, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>366.7 411.8 443.6 ... 252.3 312.0</div><input id='attrs-e9d381d5-d287-4ce2-888f-a1882e7e76e3' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-e9d381d5-d287-4ce2-888f-a1882e7e76e3' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-0420a604-d6a0-4746-8063-3ffaba81bac2' class='xr-var-data-in' type='checkbox'><label for='data-0420a604-d6a0-4746-8063-3ffaba81bac2' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[[ 366.73231114],
-        [ 411.83500354],
-        [ 443.61887274],
-        [ 459.79185733],
-        [ 459.4514514 ],
-        [ 442.79025959],
-        [ 410.71182167],
-        [ 364.51041967],
-        [ 305.6874568 ],
-        [ 235.89744557],
-        [ 156.96882714],
-        [  70.93654103],
-        [ -19.95641961],
-        [-113.30144762],
-        [-206.6009437 ],
-        [-297.3605614 ],
-        [-383.18097171],
-        [-461.83863828],
-        [-531.34720257],
-        [-589.98926172],
+       [-1997.4453852 ],
+       [-1989.27970627],
+       [-1970.78879917],
+       [-1935.79909345],
+       [-1877.09286415],
+       [-1787.15536728],
+       [-1659.17912697],
+       [-1488.18271238],
+       [-1272.0565634 ],
+       [-1012.33860146],
+       [ -714.55214689],
+       [ -388.0044074 ],
+       [  -45.0341301 ],
+       [  300.20503689],
+       [  633.25259816],
+       [  940.91078947],
+       [ 1212.63050946],
+       [ 1441.49919778],
+       [ 1624.68795283]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(type, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>367.6 413.3 445.3 ... 251.7 312.2</div><input id='attrs-429c655d-1372-4f1e-acae-76575cbecc84' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-429c655d-1372-4f1e-acae-76575cbecc84' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-96f2273c-7cc5-4d39-b2f3-3bb6d0cfe4b8' class='xr-var-data-in' type='checkbox'><label for='data-96f2273c-7cc5-4d39-b2f3-3bb6d0cfe4b8' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[[ 367.63321999],
+        [ 413.27567921],
+        [ 445.32465885],
+        [ 461.52732074],
+        [ 461.09803537],
+        [ 444.35314373],
+        [ 412.26682336],
+        [ 366.13134583],
+        [ 307.39604102],
+        [ 237.65594328],
+        [ 158.70658627],
+        [  72.58441265],
+        [ -18.44777438],
+        [-111.96619987],
+        [-205.47385477],
+        [-296.48468273],
+        [-382.5965354 ],
+        [-461.55999393],
+        [-531.3483232 ],
+        [-590.21710547],
 ...
-        [-683.45392941],
-        [-691.54859733],
-        [-683.62276471],
-        [-658.97006602],
-        [-617.45882769],
-        [-560.05229761],
-        [-489.26972053],
-        [-409.32440843],
-        [-325.73143109],
-        [-244.35847607],
-        [-170.13811415],
-        [-105.85758313],
-        [ -51.48497825],
-        [  -4.33365701],
-        [  39.93799253],
-        [  85.81576359],
-        [ 136.42551074],
-        [ 192.53372521],
-        [ 252.33530581],
-        [ 312.00536446]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-481350bb-2ddb-4357-b195-bf0b461160e2' class='xr-section-summary-in' type='checkbox'  ><label for='section-481350bb-2ddb-4357-b195-bf0b461160e2' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-7748826c-4544-4970-b5c8-ee6389de4de7' class='xr-index-data-in' type='checkbox'/><label for='index-7748826c-4544-4970-b5c8-ee6389de4de7' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  0.0,  0.04,  0.08,  0.12,  0.16,   0.2,  0.24,  0.28,  0.32,  0.36,
+        [-683.86977646],
+        [-691.95720645],
+        [-683.89033334],
+        [-659.02516151],
+        [-617.34564006],
+        [-559.93304818],
+        [-489.36462961],
+        [-409.81387467],
+        [-326.67201945],
+        [-245.6620996 ],
+        [-171.6291142 ],
+        [-107.37419623],
+        [ -52.96123529],
+        [  -5.8078124 ],
+        [  38.39535759],
+        [  84.20664716],
+        [ 134.890559  ],
+        [ 191.3304755 ],
+        [ 251.73537456],
+        [ 312.16906745]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-f69c093b-a258-4656-b4f5-d37dbccc936e' class='xr-section-summary-in' type='checkbox'  ><label for='section-f69c093b-a258-4656-b4f5-d37dbccc936e' class='xr-section-summary' >Indexes: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-index-name'><div>time</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-2f85f43f-87aa-4d3c-9701-54b2efe7691f' class='xr-index-data-in' type='checkbox'/><label for='index-2f85f43f-87aa-4d3c-9701-54b2efe7691f' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([  0.0,  0.04,  0.08,  0.12,  0.16,   0.2,  0.24,  0.28,  0.32,  0.36,
        ...
         19.6, 19.64, 19.68, 19.72, 19.76,  19.8, 19.84, 19.88, 19.92, 19.96],
-      dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;, length=500))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-cb9eac62-c778-45af-8139-802b25345f34' class='xr-index-data-in' type='checkbox'/><label for='index-cb9eac62-c778-45af-8139-802b25345f34' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;PTO_Heave&#x27;], dtype=&#x27;object&#x27;, name=&#x27;dof&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>type</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-ae6a224d-4bca-4510-aded-44af8c8cfaab' class='xr-index-data-in' type='checkbox'/><label for='index-ae6a224d-4bca-4510-aded-44af8c8cfaab' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;object&#x27;, name=&#x27;type&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-7db1fd91-e4a9-4b9b-8bb2-c33096c1e80d' class='xr-section-summary-in' type='checkbox'  checked><label for='section-7db1fd91-e4a9-4b9b-8bb2-c33096c1e80d' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2023-07-13 20:55:10.088480</dd></dl></div></li></ul></div></div></div>
+      dtype=&#x27;float64&#x27;, name=&#x27;time&#x27;, length=500))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>dof</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-fc0b3e57-6174-47f2-8fa7-ba093726ff1a' class='xr-index-data-in' type='checkbox'/><label for='index-fc0b3e57-6174-47f2-8fa7-ba093726ff1a' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;PTO_Heave&#x27;], dtype=&#x27;object&#x27;, name=&#x27;dof&#x27;))</pre></div></li><li class='xr-var-item'><div class='xr-index-name'><div>type</div></div><div class='xr-index-preview'>PandasIndex</div><div></div><input id='index-3703a4e3-ae34-4282-a67c-46052448b627' class='xr-index-data-in' type='checkbox'/><label for='index-3703a4e3-ae34-4282-a67c-46052448b627' title='Show/Hide index repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-index-data'><pre>PandasIndex(Index([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;object&#x27;, name=&#x27;type&#x27;))</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-81c41ff2-6f04-4016-9a98-ca838af1de47' class='xr-section-summary-in' type='checkbox'  checked><label for='section-81c41ff2-6f04-4016-9a98-ca838af1de47' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2024-04-01 14:56:52.225669</dd></dl></div></li></ul></div></div></div>
 </div>
 </section>
 </section>
 <section id="2.-Optimal-control-for-maximum-electrical-power">
-<h2>2. Optimal control for maximum electrical power<a class="headerlink" href="#2.-Optimal-control-for-maximum-electrical-power" title="Permalink to this heading"></a></h2>
+<h2>2. Optimal control for maximum electrical power<a class="headerlink" href="#2.-Optimal-control-for-maximum-electrical-power" title="Link to this heading"></a></h2>
 <p>The rest of this tutorial will focus on optimizing for electrical power (new objective function) rather than mechanical, as this is a form of power that is usable and transportable.</p>
 <p>Since we’re still dealing with the same WaveBot as in part 1, we can reuse the BEM and wave data from before. Look back at part 1 if you need a refresher on how to create these data.</p>
-<div><p><img alt="b80af3957f134f0cb3415e75fce64e66" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="a98487ede11a4fd2b9e737e8c11f6b64" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
 </div><p>The WEC-PTO kinematics remain the same as well (unity). The major difference now is that we consider the dynamics of PTO, since they impact the electrical power and we shall not assume a lossless PTO.</p>
 <p>We will express the PTO’s dynamics in form of a 2-port impedance model, to incoporate the dynamics of the drive-train and the dynamics of the generator. The additional mechanical energy storage through the drive-train is modelled using Newton’s second law and we assume a linear generator using a power-invariant park transform.</p>
 <p>The PTO impedance matrix components are then obtained under open-circuit conditions, i.e. no load current or no WEC velocity, respectively.</p>
@@ -1275,8 +1633,6 @@ Attributes:
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update WEC</span>
 
 <span class="n">wec_2</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
-                         <span class="n">inertia_matrix</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
-                         <span class="n">hydrostatic_stiffness</span><span class="o">=</span><span class="n">stiffness</span><span class="p">,</span>
                          <span class="n">constraints</span><span class="o">=</span><span class="n">constraints_2</span><span class="p">,</span>
                          <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">f_add</span><span class="o">=</span><span class="n">f_add_2</span>
@@ -1298,12 +1654,12 @@ Attributes:
     <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
     <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2</span><span class="o">.</span><span class="n">fun</span>
+<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">opt_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
 
 <span class="c1"># Post-process</span>
-<span class="n">wec_fdom_2</span><span class="p">,</span> <span class="n">wec_tdom_2</span> <span class="o">=</span> <span class="n">wec_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">results_2</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-<span class="n">pto_fdom_2</span><span class="p">,</span> <span class="n">pto_tdom_2</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec_2</span><span class="p">,</span> <span class="n">results_2</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">wec_fdom_2</span><span class="p">,</span> <span class="n">wec_tdom_2</span> <span class="o">=</span> <span class="n">wec_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">results_2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_fdom_2</span><span class="p">,</span> <span class="n">pto_tdom_2</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec_2</span><span class="p">,</span> <span class="n">results_2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1315,17 +1671,26 @@ Attributes:
 WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up via linear friction of 37.414423343352546 N/(m/s).
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25561704611717045
-            Iterations: 11
-            Function evaluations: 12
-            Gradient evaluations: 11
-Optimal average electrical power: -25.561704611717044 W
+            Current function value: -0.25561721146528565
+            Iterations: 12
+            Function evaluations: 13
+            Gradient evaluations: 12
+Optimal average electrical power: -25.561721146528566 W
 </pre></div></div>
 </div>
 <p>We will compare our optimal results to the unconstrained case to gain some insight into the effect of the constraint on the optimal PTO force. Let’s do the same process as before, but unset the <code class="docutils literal notranslate"><span class="pre">constraints</span></code> parameter in a new <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object.</p>
@@ -1335,8 +1700,6 @@ Optimal average electrical power: -25.561704611717044 W
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec_2_nocon</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
     <span class="n">bem_data</span><span class="p">,</span>
-    <span class="n">inertia_matrix</span><span class="o">=</span><span class="n">mass</span><span class="p">,</span>
-    <span class="n">hydrostatic_stiffness</span><span class="o">=</span><span class="n">stiffness</span><span class="p">,</span>
     <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">f_add</span><span class="o">=</span><span class="n">f_add_2</span><span class="p">)</span>
@@ -1349,12 +1712,12 @@ Optimal average electrical power: -25.561704611717044 W
     <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
     <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2_nocon</span><span class="o">.</span><span class="n">fun</span>
+<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">opt_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
 <span class="n">wec_fdom_2_nocon</span><span class="p">,</span> <span class="n">wec_tdom_2_nocon</span> <span class="o">=</span> <span class="n">wec_2_nocon</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span>
-    <span class="n">results_2_nocon</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">results_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
 <span class="n">pto_fdom_2_nocon</span><span class="p">,</span> <span class="n">pto_tdom_2_nocon</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span>
-    <span class="n">wec_2_nocon</span><span class="p">,</span> <span class="n">results_2_nocon</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">wec_2_nocon</span><span class="p">,</span> <span class="n">results_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -1366,17 +1729,26 @@ Optimal average electrical power: -25.561704611717044 W
 WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up via linear friction of 37.414423343352546 N/(m/s).
 </pre></div></div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2893973263667313
+            Current function value: -0.28939746962436674
             Iterations: 17
             Function evaluations: 18
             Gradient evaluations: 17
-Optimal average electrical power: -28.93973263667313 W
+Optimal average electrical power: -28.939746962436672 W
 </pre></div></div>
 </div>
 <p>Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of <span class="math notranslate nohighlight">\(600 N\)</span>.</p>
@@ -1407,7 +1779,7 @@ Optimal average electrical power: -28.93973263667313 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f3174277d30&gt;
+&lt;matplotlib.legend.Legend at 0x7f1b2bb1f910&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1435,15 +1807,15 @@ Optimal average electrical power: -28.93973263667313 W
 associated with the optimal trajectories for mechanical power maximisation.</p>
 </section>
 <section id="3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power">
-<h2>3. Control co-design of the WEC geometry for maximum electrical power<a class="headerlink" href="#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power" title="Permalink to this heading"></a></h2>
+<h2>3. Control co-design of the WEC geometry for maximum electrical power<a class="headerlink" href="#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power" title="Link to this heading"></a></h2>
 <p>The first two examples only used the inner optimization loop in WecOptTool to optimize PTO power. Here in Part 3 we bring it all together and show how to use both the inner and outer optimization loops in WecOptTool to do control co-optimization of a hull design in conjunction with an optimal controller for electrical power. Again, we use the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius</strong> (<code class="docutils literal notranslate"><span class="pre">r2</span></code>) that maximizes the average produced
 electrical power, while maintaining a constant hull volume. A constant volume is achieved by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius (<code class="docutils literal notranslate"><span class="pre">r2</span></code>).</p>
 <p>This example demonstrates a complete case of the types of optimization studies WecOptTool is meant for. The main optimization (outer optimization loop) is to find the optimal geometry (radius <code class="docutils literal notranslate"><span class="pre">r2</span></code>), and for each geometry considered the optimal PTO force (inner optimization loop) will be found. The inner loop was showcased in Example 2 and uses a gradient-based optimization method, with the gradients obtained with automatic differentiation. The outer loop optimization is for the user to setup.
 In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>.</p>
 <p><img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" /></p>
-<div><p><img alt="68c0b2869e374fdb9e05f830bdee9294" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="147c8a0885844964b467c64bea0b5751" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
 </div><section id="Problem-setup">
-<h3>Problem setup<a class="headerlink" href="#Problem-setup" title="Permalink to this heading"></a></h3>
+<h3>Problem setup<a class="headerlink" href="#Problem-setup" title="Link to this heading"></a></h3>
 <p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
@@ -1506,10 +1878,6 @@ In this example, we will do a simple <em>brute force</em> optimization using <co
     <span class="n">nfreq</span> <span class="o">=</span> <span class="mi">50</span>
     <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
 
-    <span class="c1"># Mass &amp; hydrostatic stiffness</span>
-    <span class="n">stiffness_3</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">stiffness_matrix</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">mass_3</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrostatics</span><span class="o">.</span><span class="n">inertia_matrix</span><span class="p">(</span><span class="n">fb</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-
     <span class="c1"># Impedance definition</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
     <span class="n">gear_ratio</span> <span class="o">=</span> <span class="mf">12.0</span>
@@ -1558,8 +1926,6 @@ In this example, we will do a simple <em>brute force</em> optimization using <co
 
     <span class="c1"># Create WEC</span>
     <span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
-            <span class="n">inertia_matrix</span><span class="o">=</span><span class="n">mass_3</span><span class="p">,</span>
-            <span class="n">hydrostatic_stiffness</span><span class="o">=</span><span class="n">stiffness_3</span><span class="p">,</span>
             <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
             <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span>
@@ -1587,13 +1953,13 @@ In this example, we will do a simple <em>brute force</em> optimization using <co
         <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
         <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">fun</span>
+    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
 </pre></div>
 </div>
 </div>
 </section>
 <section id="id1">
-<h3>Solve<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
+<h3>Solve<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <p>Finally, we may call this objective function with an optimization algorithm. Here, a simple <em>brute force</em> optimization approach is used for illustrative purposes, but any variety of options could be applied. The optimization algorithm will call our objective function, which in turn will create a new WaveBot hull, run the necessary BEM calculations for the hull, and find the PTO force that provides the most electric power for that hull. This process will be conducted for the range of <code class="docutils literal notranslate"><span class="pre">r2</span></code>
 values that we specify.</p>
 <p><em>(note: the cell below will likely take 5+ minutes to run on a standard personal computer)</em></p>
@@ -1611,72 +1977,272 @@ values that we specify.</p>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 
 r2 = 0.05:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2552447699344598
-            Iterations: 12
-            Function evaluations: 13
-            Gradient evaluations: 12
+            Current function value: -0.25524499580305404
+            Iterations: 11
+            Function evaluations: 12
+            Gradient evaluations: 11
 
 r2 = 0.17:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25521940889082806
+            Current function value: -0.2552194210527316
             Iterations: 11
             Function evaluations: 13
             Gradient evaluations: 11
 
 r2 = 0.29:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2554246567827402
-            Iterations: 12
-            Function evaluations: 13
-            Gradient evaluations: 12
-
-r2 = 0.41:
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2558713085750176
-            Iterations: 12
-            Function evaluations: 12
-            Gradient evaluations: 12
-
-r2 = 0.52:
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.25660460324236206
+            Current function value: -0.2554247574510021
             Iterations: 11
             Function evaluations: 13
             Gradient evaluations: 11
 
-r2 = 0.64:
+r2 = 0.41:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2579176308508169
-            Iterations: 12
+            Current function value: -0.2558713794289674
+            Iterations: 11
+            Function evaluations: 13
+            Gradient evaluations: 11
+
+r2 = 0.52:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.25660454717092207
+            Iterations: 11
             Function evaluations: 12
-            Gradient evaluations: 12
+            Gradient evaluations: 11
+
+r2 = 0.64:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.25791775084556473
+            Iterations: 11
+            Function evaluations: 12
+            Gradient evaluations: 11
 
 r2 = 0.76:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2601233820111907
+            Current function value: -0.26012337129397517
             Iterations: 10
             Function evaluations: 12
             Gradient evaluations: 10
 
 r2 = 0.88:
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/capytaine/io/xarray.py:68: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  keys_in_dataset = set(dataset.dims.keys())
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.8/x64/lib/python3.11/site-packages/wecopttool/core.py:748: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2574161557150916
+            Current function value: -0.25741612582289686
             Iterations: 10
-            Function evaluations: 11
+            Function evaluations: 12
             Gradient evaluations: 10
 </pre></div></div>
 </div>
 </section>
 <section id="Results">
-<h3>Results<a class="headerlink" href="#Results" title="Permalink to this heading"></a></h3>
+<h3>Results<a class="headerlink" href="#Results" title="Link to this heading"></a></h3>
 <p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code>. It is also clear that when the WEC is cylindrical (where <code class="docutils literal notranslate"><span class="pre">r2=0.88</span></code>), power absorption is reduced.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
@@ -1717,7 +2283,7 @@ Optimization terminated successfully    (Exit mode 0)
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

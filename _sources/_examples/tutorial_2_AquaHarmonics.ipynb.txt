@@ -1,7 +1,6 @@
 {
  "cells": [
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -23,18 +22,19 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import os\n",
     "import capytaine as cpy\n",
     "import autograd.numpy as np\n",
     "import matplotlib.pyplot as plt\n",
     "from matplotlib import cm\n",
     "from scipy.optimize import brute\n",
+    "import logging\n",
+    "logging.basicConfig()\n",
+    "logging.getLogger().setLevel(logging.DEBUG)\n",
     "\n",
     "import wecopttool as wot"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -62,7 +62,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -83,14 +82,12 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
     "#### Hydrostatics and mass\n",
     "The AquaHarmonics device is positively buoyant (i.e., the buoyancy force is greater than the force due to gravity).\n",
-    "Therefore, we'll calculate the hydrostatic stiffness from the mesh, but set the rigid-body mass manually. \n",
-    "We will also calculate the displaced volume and mass from the mesh, which we will need later for defining forces and constraints."
+    "Therefore, we'll set the rigid-body mass manually, but allow the hydrostatic stiffness to be set automatically by run_bem() based on the mesh. We will also calculate the displaced volume and mass from the mesh (before manually defining the mass of the FloatingBody), which we will need later for defining forces and constraints."
    ]
   },
   {
@@ -99,17 +96,17 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "mass = np.atleast_2d(5e3) # [kg]\n",
-    "stiffness = wot.hydrostatics.stiffness_matrix(fb).values\n",
-    "\n",
     "g = 9.81\n",
     "rho = 1025\n",
-    "displaced_mass = wot.hydrostatics.inertia_matrix(fb, rho).values  # [kg]\n",
-    "displacement = displaced_mass/rho # [m^3] "
+    "fb.center_of_mass = [0, 0, 0]\n",
+    "fb.rotation_center = fb.center_of_mass\n",
+    "displaced_mass = fb.compute_rigid_body_inertia(rho=rho).values  # [kg]\n",
+    "displacement = displaced_mass/rho # [m^3] \n",
+    "\n",
+    "fb.mass = np.atleast_2d(5e3) # [kg]"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -134,7 +131,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -167,7 +163,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -233,7 +228,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -257,7 +251,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -281,7 +274,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -321,7 +313,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -349,7 +340,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -410,7 +400,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -474,15 +463,13 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
     "#### WEC object\n",
     "Finally, we can use all the different components we've developed thus far to construct a `WEC` object:\n",
     "\n",
-    " * **BEM data** - defines the hydrodynamics of the hull\n",
-    " * **Inertia and hydrostatics** - rigid-body inertia and hydrostatic stiffness\n",
+    " * **BEM data** - defines the hydrodynamics of the hull and includes hydrostatics\n",
     " * **Constraints** - limitations on the hardware (max power, max torque, etc.) and the constraint to prevent the tether from going slack\n",
     " * **Additional forces** - this captures all of the forces on the WEC that are not due to the interaction between the hull and water (PTO, etc.)"
    ]
@@ -490,20 +477,19 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {},
+   "metadata": {
+    "scrolled": false
+   },
    "outputs": [],
    "source": [
     "wec = wot.WEC.from_bem(\n",
     "    bem_data,\n",
-    "    inertia_matrix = mass,\n",
-    "    hydrostatic_stiffness = stiffness,\n",
     "    constraints = constraints,\n",
     "    f_add = f_add,\n",
     ")"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -526,7 +512,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -544,7 +529,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -558,7 +542,9 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "metadata": {},
+   "metadata": {
+    "scrolled": true
+   },
    "outputs": [],
    "source": [
     "scale_x_wec = 1e1\n",
@@ -579,11 +565,10 @@
     "    scale_obj=scale_obj,\n",
     ")\n",
     "\n",
-    "print(f'Optimal average power: {results.fun/1e3:.2f} kW')"
+    "print(f'Optimal average power: {results[0].fun/1e3:.2f} kW')"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -598,12 +583,11 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "wec_fdom, wec_tdom = wec.post_process(results, waves, nsubsteps=nsubsteps)\n",
-    "pto_fdom, pto_tdom = pto.post_process(wec, results, waves, nsubsteps=nsubsteps)"
+    "wec_fdom, wec_tdom = wec.post_process(results[0], waves.sel(realization=0), nsubsteps=nsubsteps)\n",
+    "pto_fdom, pto_tdom = pto.post_process(wec, results[0], waves.sel(realization=0), nsubsteps=nsubsteps)"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -621,7 +605,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -659,7 +642,7 @@
     "    ax=ax[1], \n",
     "    label='PTO force in WEC frame',\n",
     ")\n",
-    "x_wec, x_opt = wot.decompose_state(results.x, ndof=ndof, nfreq=nfreq)\n",
+    "x_wec, x_opt = wot.decompose_state(results[0].x, ndof=ndof, nfreq=nfreq)\n",
     "ax[1].plot(\n",
     "    wec.time_nsubsteps(nsubsteps),\n",
     "    f_pto_line(wec, x_wec, x_opt, waves, nsubsteps)/1e3,\n",
@@ -719,7 +702,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -747,7 +729,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -783,12 +764,11 @@
     "    # Unpack geometry variables\n",
     "    mass_ratio = x[0]\n",
     "    mass_var = mass_ratio * max_mass\n",
-    "\n",
+    "    bem_data['inertia_matrix'] = mass_var\n",
+    "    \n",
     "    # update WEC \n",
     "    wec_mass = wot.WEC.from_bem(\n",
     "        bem_data,\n",
-    "        inertia_matrix = mass_var,\n",
-    "        hydrostatic_stiffness = stiffness,\n",
     "        constraints = constraints,\n",
     "        friction = None,\n",
     "        f_add = f_add,\n",
@@ -804,7 +784,7 @@
     "        scale_x_wec=scale_x_wec,\n",
     "        scale_x_opt=scale_x_opt,\n",
     "        scale_obj=scale_obj)\n",
-    "    opt_average_power = res.fun\n",
+    "    opt_average_power = res[0].fun\n",
     "    print(\n",
     "        f'* Mass: {mass_var:.2f} kg\\n' +\n",
     "        f'* Optimal average electrical power: {opt_average_power/1e3:.2f} kW' \n",
@@ -812,14 +792,13 @@
     "\n",
     "    # wec_fdom, wec_tdom = wec_mass.post_process(res, waves, nsubsteps=nsubsteps)\n",
     "    global max_torque \n",
-    "    x_wec, x_opt = wot.decompose_state(res.x, ndof=ndof, nfreq=nfreq)\n",
-    "    max_torque.append(np.max(f_pto_line(wec_mass, x_wec, x_opt, waves, nsubsteps)))\n",
+    "    x_wec, x_opt = wot.decompose_state(res[0].x, ndof=ndof, nfreq=nfreq)\n",
+    "    max_torque.append(np.max(f_pto_line(wec_mass, x_wec, x_opt, waves.sel(realization=0), nsubsteps)))\n",
     "    \n",
-    "    return res.fun"
+    "    return res[0].fun"
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -853,7 +832,6 @@
    ]
   },
   {
-   "attachments": {},
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -912,6 +890,13 @@
     "ax3.set_yticks([1, 5, 10, 15, 20, 25])\n",
     "ax3.legend(loc=9)"
    ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
   }
  ],
  "metadata": {
@@ -930,7 +915,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.10.10"
+   "version": "3.11.5"
   },
   "vscode": {
    "interpreter": {

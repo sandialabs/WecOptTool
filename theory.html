@@ -1,22 +1,24 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Theory &amp; Practice &mdash; WecOptTool 2.6.0 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=a0fb6060" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=ae39cb24"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -97,16 +99,15 @@
            <div itemprop="articleBody">
              
   <section id="theory-practice">
-<h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Permalink to this heading"></a></h1>
+<h1>Theory &amp; Practice<a class="headerlink" href="#theory-practice" title="Link to this heading"></a></h1>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
-For a more detailed explanation, please see <span id="id1">[<a class="reference internal" href="references.html#id3" title="Giorgio Bacelli. Optimal control of wave energy converters. PhD, National University of Ireland, Maynooth, Maynooth, Ireland, 2014. URL: http://mural.maynoothuniversity.ie/6753/.">1</a>, <a class="reference internal" href="references.html#id7" title="Giorgio Bacelli and John V Ringwood. Numerical optimal control of wave energy converters. IEEE Transactions on Sustainable Energy, 6(2):294–302, 2014. doi:10.1109/TSTE.2014.2371536.">2</a>, <a class="reference internal" href="references.html#id5" title="Ryan G. Coe, Giorgio Bacelli, Sterling Olson, Vincent S. Neary, and Mathew B. R. Topper. Initial conceptual demonstration of control co-design for WEC optimization. Journal of Ocean Engineering and Marine Energy, 6(4):441–449, 2020. doi:10.1007/s40722-020-00181-9.">3</a>]</span>.
-A journal paper will be available soon.</p>
+For a more detailed explanation, please see <span id="id1">[<a class="reference internal" href="references.html#id8" title="Carlos A. Michelén Ströfer, Daniel T. Gaebele, Ryan G. Coe, and Giorgio Bacelli. Control Co-Design of Power Take-off Systems for Wave Energy Converters using WecOptTool. IEEE Transactions on Sustainable Energy, 14(4):2157-2167, 2023. doi:10.1109/TSTE.2023.3272868.">1</a>, <a class="reference internal" href="references.html#id9" title="Giorgio Bacelli. Optimal control of wave energy converters. PhD, National University of Ireland, Maynooth, Maynooth, Ireland, 2014. URL: http://mural.maynoothuniversity.ie/6753/.">2</a>, <a class="reference internal" href="references.html#id13" title="Giorgio Bacelli and John V Ringwood. Numerical optimal control of wave energy converters. IEEE Transactions on Sustainable Energy, 6(2):294–302, 2014. doi:10.1109/TSTE.2014.2371536.">3</a>]</span>.</p>
 </div>
 <section id="basic-concept">
-<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Permalink to this heading"></a></h2>
-<p>WecOptTool uses a pseudo-spectral method <span id="id2">[<a class="reference internal" href="references.html#id4" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks synchronously:</p>
+<h2>Basic concept<a class="headerlink" href="#basic-concept" title="Link to this heading"></a></h2>
+<p>WecOptTool uses a pseudo-spectral method <span id="id2">[<a class="reference internal" href="references.html#id10" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks simultaneously:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p>Optimize the solution for the desired objective function (e.g. power generation)</p></li>
@@ -115,7 +116,7 @@ A journal paper will be available soon.</p>
 </div></blockquote>
 <p>This can be written as a traditional optimization problem:</p>
 <div class="math notranslate nohighlight" id="equation-optim-prob">
-<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob" title="Permalink to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
+<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob" title="Link to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
 \textrm{s.t.}&amp; \\
 r(x) &amp;= 0 \\
 c_{ineq}(x) &amp;\leq 0 \\
@@ -148,7 +149,7 @@ Some examples of problems which can be addressed within this framework include:<
 </div></blockquote>
 </section>
 <section id="how-s-this-different-from-what-i-m-used-to">
-<h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Permalink to this heading"></a></h2>
+<h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Link to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
 <a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" /></a>
@@ -161,9 +162,9 @@ At first the solution will not be correct, but as the optimization algorithm ite
 </div>
 </section>
 <section id="practical-concerns">
-<h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Permalink to this heading"></a></h2>
+<h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Link to this heading"></a></h2>
 <section id="frequencies">
-<h3>Frequencies<a class="headerlink" href="#frequencies" title="Permalink to this heading"></a></h3>
+<h3>Frequencies<a class="headerlink" href="#frequencies" title="Link to this heading"></a></h3>
 <p>The solution to <a class="reference internal" href="#equation-optim-prob">(1)</a> will be found by projecting the time-domain trajectories into the frequency domain (see further discussion in <a class="reference internal" href="implementation.html"><span class="doc">Implementation</span></a>).
 To control this process, the user must specify an equally spaced frequency array (see <a class="reference internal" href="api_docs/wecopttool.frequency.html#wecopttool.frequency" title="wecopttool.frequency"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.frequency()</span></code></a>).
 When creating this frequency array, consider:</p>
@@ -171,12 +172,12 @@ When creating this frequency array, consider:</p>
 <div><ul class="simple">
 <li><p>Exciting frequencies of the wave and, if you expect a nonlinear response, superharmonics of the exciting frequencies</p></li>
 <li><p>Power absorption occurs at two times the exciting frequencies (only important for visualization)</p></li>
-<li><p>The fundamental frequency is also the frequency step (<span class="math notranslate nohighlight">\(f_1=\Delta f\)</span>); set this sufficiently small to resolve the wave spectra and frequency response functios of interest</p></li>
+<li><p>The fundamental frequency is also the frequency step (<span class="math notranslate nohighlight">\(f_1=\Delta f\)</span>); set this sufficiently small to resolve the wave spectra and frequency response functions of interest</p></li>
 </ul>
 </div></blockquote>
 </section>
 <section id="automatic-differentiation">
-<h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Permalink to this heading"></a></h3>
+<h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Link to this heading"></a></h3>
 <p>In practice, the size of the decision vector <span class="math notranslate nohighlight">\(x\)</span> from <a class="reference internal" href="#equation-optim-prob">(1)</a> will often be quite large.
 For a single degree of freedom device, <span class="math notranslate nohighlight">\(x\)</span> can easily be <span class="math notranslate nohighlight">\(\mathcal{O}(1e2)\)</span>.
 To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the <a class="reference external" href="https://en.wikipedia.org/wiki/Automatic_differentiation">automatic differentiation</a> package <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a>.
@@ -184,7 +185,7 @@ In practice, most WecOptTool users should only need to know that when writing cu
 Note that Autograd does not support all of NumPy (see the <a class="reference external" href="https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy">Autograd documentation</a>) and using unsupported parts can result in silent failure of the automatic differentiation.</p>
 </section>
 <section id="scaling">
-<h3>Scaling<a class="headerlink" href="#scaling" title="Permalink to this heading"></a></h3>
+<h3>Scaling<a class="headerlink" href="#scaling" title="Link to this heading"></a></h3>
 <p>For many WEC problems, <a class="reference internal" href="#equation-optim-prob">(1)</a> will be poorly scaled.
 Recall that <span class="math notranslate nohighlight">\(x = [x_{w}, x_{u}]\)</span>, where <span class="math notranslate nohighlight">\(x_{w}\)</span> describes the state of the WEC (e.g., velocities) and <span class="math notranslate nohighlight">\(x_{u}\)</span> is a vector to be optimized to maximize power absorption.
 Consider, for example, a general case without a controller structure, in which <span class="math notranslate nohighlight">\(x_{u}\)</span> would relate to PTO forces.
@@ -193,7 +194,7 @@ For larger WECs, this discrepancy in the orders of magnitude may be even worse.
 Scaling mismatches in the decision variable <span class="math notranslate nohighlight">\(x\)</span> and with the objective function <span class="math notranslate nohighlight">\(J(x)\)</span> can lead to problems with convergence.</p>
 </section>
 <section id="constraints">
-<h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading"></a></h3>
+<h3>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h3>
 <p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
 This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_WaveBot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
@@ -201,37 +202,37 @@ It may be required to enforce constraints at more points than the dynamics (as d
 In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec" title="wecopttool.pto.PTO.force_on_wec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PTO.force_on_wec()</span></code></a>).</p>
 </section>
 <section id="buoyancy-gravity">
-<h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Permalink to this heading"></a></h3>
+<h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Link to this heading"></a></h3>
 <p>As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
 In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="api_docs/wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
 </section>
 <section id="pto-kinematics">
-<h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Permalink to this heading"></a></h3>
+<h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Link to this heading"></a></h3>
 <p>The <a class="reference internal" href="api_docs/wecopttool.pto.html#module-wecopttool.pto" title="wecopttool.pto"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.pto</span></code></a> module includes several examples of PTOs that can be used for both additional PTO forces on the WEC dynamics and for objective functions (e.g., PTO average power).
 Creating one of these pre-defined PTOs requires specifying the <em>kinematics matrix</em>.
 Here, the kinematics matrix, <span class="math notranslate nohighlight">\(K\)</span>, is defined as the linear transformation from the WEC position (e.g., heave) in the global frame, <span class="math notranslate nohighlight">\(x\)</span>, to the PTO position in the PTO frame (e.g., tether length/generator rotation), <span class="math notranslate nohighlight">\(p\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-kinematics">
-<span class="eqno">(2)<a class="headerlink" href="#equation-kinematics" title="Permalink to this equation"></a></span>\[p = K x\]</div>
-<p>The relationship <span class="math notranslate nohighlight">\(p(x)\)</span> is typically referred to as the <em>backward kinematics</em>, in the field of robotics. If the WEC were considered to be a robot it’s hydrodynamic body would be equivalent to an endeffector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
+<span class="eqno">(2)<a class="headerlink" href="#equation-kinematics" title="Link to this equation"></a></span>\[p = K x\]</div>
+<p>The relationship <span class="math notranslate nohighlight">\(p(x)\)</span> is typically referred to as the <em>backward kinematics</em>, in the field of robotics. If the WEC were considered to be a robot it’s hydrodynamic body would be equivalent to an end effector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
 The matrix <span class="math notranslate nohighlight">\(K\)</span> has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
 Equation <a class="reference internal" href="#equation-kinematics">(2)</a> represents a linearization of <span class="math notranslate nohighlight">\(p(x)\)</span> about the mean <span class="math notranslate nohighlight">\(x=0\)</span> position, with the matrix <span class="math notranslate nohighlight">\(K\)</span> being the inverse Jacobian of <span class="math notranslate nohighlight">\(p(x)\)</span> at <span class="math notranslate nohighlight">\(x=0\)</span>.</p>
 <p>The transpose of <span class="math notranslate nohighlight">\(K\)</span> is used to transform the PTO forces in PTO frame, <span class="math notranslate nohighlight">\(f_p\)</span>, to the PTO forces on the WEC, <span class="math notranslate nohighlight">\(f_w\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-k">
-<span class="eqno">(3)<a class="headerlink" href="#equation-k" title="Permalink to this equation"></a></span>\[f_w = K^T f_p\]</div>
-<p>This relationship can be derived from conservation of energy in both frames, and using the definition in Equation <a class="reference internal" href="#equation-kinematics">(2)</a>:</p>
+<span class="eqno">(3)<a class="headerlink" href="#equation-k" title="Link to this equation"></a></span>\[f_w = K^T f_p\]</div>
+<p>This relationship can be derived from conservation of energy in both frames, and using the definition in <a class="reference internal" href="#equation-kinematics">(2)</a>:</p>
 <div class="math notranslate nohighlight" id="equation-conservation-energy">
-<span class="eqno">(4)<a class="headerlink" href="#equation-conservation-energy" title="Permalink to this equation"></a></span>\[\begin{split}f_w^T x = f_p^T p \\
+<span class="eqno">(4)<a class="headerlink" href="#equation-conservation-energy" title="Link to this equation"></a></span>\[\begin{split}f_w^T x = f_p^T p \\
 f_w^T x = f_p^T K x \\
 f_w^T = f_p^T K \\
 f_w = K^T f_p \\\end{split}\]</div>
 </section>
 </section>
 <section id="troubleshooting">
-<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading"></a></h2>
-<p>If your simlation is not behaving as expected, consider some of the general troubleshooting steps below:</p>
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>If your simulation is not behaving as expected, consider some of the general troubleshooting steps below:</p>
 <blockquote>
 <div><ul>
 <li><p>Check that the hydrodynamic coefficients are displaying expected behavior for high frequencies:</p>
@@ -261,7 +262,7 @@ f_w = K^T f_p \\\end{split}\]</div>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC(NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
