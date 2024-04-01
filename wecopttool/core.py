@@ -289,7 +289,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-        uniform_shift: Optional[bool] = True,
+        uniform_shift: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -483,6 +483,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        uniform_shift: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -525,6 +526,11 @@ class WEC:
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_impedance` for
             more details.
+        uniform_shift
+            Boolean determining whether damping corrections shifts the damping
+            values uniformly for all frequencies or only for frequencies below
+            :python:`min_damping`.
+            See :py:func:`wecopttool.check_linear_damping` for more details.
 
         Raises
         ------
@@ -1836,7 +1842,7 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
 def check_linear_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
-    uniform_shift: Optional[bool] = True,
+    uniform_shift: Optional[bool] = False,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
@@ -1858,7 +1864,7 @@ def check_linear_damping(
         damping for all frequencies. If :python:`False`, the damping correction
         is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
-        :python:`True`.
+        :python:`False`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1885,7 +1891,8 @@ def check_linear_damping(
             if (new_damping==min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
-                    'zero terms. Shifting up damping terms to a minimum of ' +
+                    'zero terms. Shifting up damping terms ' +
+                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
@@ -1894,6 +1901,7 @@ def check_linear_damping(
 def check_impedance(
     Zi: DataArray,
     min_damping: Optional[float] = 1e-6,
+    uniform_shift: Optional[bool] = False,
 ) -> DataArray:
     """Ensure that the real part of the impedance (resistive) is positive.
 
@@ -1911,14 +1919,27 @@ def check_impedance(
     Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
-        dmin = np.min(np.real(Zi_diag[:, dof]))
-        if dmin < min_damping:
-            delta = min_damping - dmin
-            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
-                + np.abs(delta)
-            _log.warning(
-                f'Real part of impedance for {dof} has negative or close to ' +
-                f'zero terms. Shifting up by {delta:.2f}')
+        if uniform_shift:
+            dmin = np.min(np.real(Zi_diag[:, dof]))
+            if dmin < min_damping:
+                delta = min_damping - dmin
+                Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
+                    + np.abs(delta)
+                _log.warning(
+                    f'Real part of impedance for {dof} has negative or close to ' +
+                    f'zero terms. Shifting up by {delta:.2f}')
+        else:
+            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
+            Zi_dof_real = Zi_diag[:,dof].real.copy()
+            Zi_dof_imag = Zi_diag[:,dof].imag.copy() 
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
+            if (Zi_dof_real==min_damping).any():
+                _log.warning(
+                    f'Real part of impedance for {dof} has negative or close to ' +
+                    f'zero terms. Shifting up elements '
+                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
+                    f' {min_damping} N/(m/s)')
     return Zi_shifted
 
 
