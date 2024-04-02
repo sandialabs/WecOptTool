@@ -10,7 +10,7 @@ import xarray as xr
 
 
 kplim = -1e1
-
+min_damping = 45
 
 @pytest.fixture(scope="module")
 def f1():
@@ -73,10 +73,13 @@ def fb():
 
 
 @pytest.fixture(scope="module")
-def bem(f1, nfreq, fb):
-    """Boundary elemement model (Capytaine) results"""
+def hydro_data(f1, nfreq, fb):
+    """Boundary element model (Capytaine) results (with friction added)"""
     freq = wot.frequency(f1, nfreq, False)
-    return wot.run_bem(fb, freq)
+    hydro_data = wot.run_bem(fb, freq)
+    hd = wot.add_linear_friction(hydro_data)
+    hd = wot.check_radiation_damping(hd, min_damping=min_damping)
+    return hd
 
 
 @pytest.fixture(scope='module')
@@ -107,10 +110,10 @@ def long_crested_wave(f1, nfreq):
 
 
 @pytest.fixture(scope='module')
-def wec_from_bem(f1, nfreq, bem, fb, pto):
+def wec_from_bem(f1, nfreq, hydro_data, fb, pto):
     """Simple WEC: 1 DOF, no constraints."""
     f_add = {"PTO": pto.force_on_wec}
-    wec = wot.WEC.from_bem(bem, f_add=f_add)
+    wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
     return wec
 
 
@@ -118,14 +121,15 @@ def wec_from_bem(f1, nfreq, bem, fb, pto):
 def wec_from_floatingbody(f1, nfreq, fb, pto):
     """Simple WEC: 1 DOF, no constraints."""
     f_add = {"PTO": pto.force_on_wec}
-    wec = wot.WEC.from_floating_body(fb, f1, nfreq, f_add=f_add)
+    wec = wot.WEC.from_floating_body(fb, f1, nfreq, f_add=f_add, 
+                                     min_damping=min_damping)
     return wec
 
 
 @pytest.fixture(scope='module')
-def wec_from_impedance(bem, pto, fb):
+def wec_from_impedance(hydro_data, pto, fb):
     """Simple WEC: 1 DOF, no constraints."""
-    bemc = bem.copy()
+    bemc = hydro_data.copy()
     omega = bemc['omega'].values
     w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
@@ -139,17 +143,18 @@ def wec_from_impedance(bem, pto, fb):
     
     freqs = omega / (2 * np.pi)
     impedance = (A + mass)*(1j*w) + B + K/(1j*w)
-    exc_coeff = bem['Froude_Krylov_force'] + bem['diffraction_force']
+    exc_coeff = hydro_data['Froude_Krylov_force'] + hydro_data['diffraction_force']
     f_add = {"PTO": pto.force_on_wec}
 
-    wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add)
+    wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add, 
+                                 min_damping=min_damping)
     return wec
 
 
 @pytest.fixture(scope='module')
-def resonant_wave(f1, nfreq, fb, bem):
+def resonant_wave(f1, nfreq, fb, hydro_data):
     """Regular wave at natural frequency of the WEC"""
-    hd = wot.add_linear_friction(bem)
+    hd = wot.add_linear_friction(hydro_data)
     Zi = wot.hydrodynamic_impedance(hd)
     wn = Zi['omega'][np.abs(Zi).argmin(dim='omega')].item()
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
@@ -236,17 +241,13 @@ class TestTheoreticalPowerLimits:
         return fb.compute_hydrostatic_stiffness()
 
     @pytest.fixture(scope='class')
-    def hydro_impedance(self, bem):
+    def hydro_impedance(self, hydro_data):
         """Intrinsic hydrodynamic impedance"""
-        hd = wot.add_linear_friction(bem)
-        rad = bem['radiation_damping']
-        min_damping = rad.where(rad>0)[-25:].mean()
-        hd = wot.check_linear_damping(hd, min_damping=min_damping)
-        Zi = wot.hydrodynamic_impedance(hd)
+        Zi = wot.hydrodynamic_impedance(hydro_data)
         return Zi
 
     def test_p_controller_resonant_wave(self,
-                                        bem,
+                                        hydro_data,
                                         resonant_wave,
                                         p_controller_pto,
                                         hydro_impedance):
@@ -254,7 +255,7 @@ class TestTheoreticalPowerLimits:
         wave"""
         
         f_add = {"PTO": p_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
 
         res = wec.solve(waves=resonant_wave,
                         obj_fun=p_controller_pto.average_power,
@@ -279,14 +280,14 @@ class TestTheoreticalPowerLimits:
         assert power_sol == approx(power_optimal, rel=0.03)
 
     def test_pi_controller_regular_wave(self,
-                                        bem,
+                                        hydro_data,
                                         regular_wave,
                                         pi_controller_pto,
                                         hydro_impedance):
         """PI controller matches optimal for any regular wave"""
 
         f_add = {"PTO": pi_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
 
         res = wec.solve(waves=regular_wave,
                         obj_fun=pi_controller_pto.average_power,
@@ -308,19 +309,19 @@ class TestTheoreticalPowerLimits:
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
 
-        assert power_sol == approx(power_optimal, rel=1e-1)
+        assert power_sol == approx(power_optimal, rel=1e-4)
         
     def test_unstructured_controller_long_crested_wave(self,
-                                                    bem,
-                                                    long_crested_wave,
-                                                    pto,
-                                                    nfreq,
-                                                    hydro_impedance):
+                                                       hydro_data,
+                                                       long_crested_wave,
+                                                       pto,
+                                                       nfreq,
+                                                       hydro_impedance):
         """Unstructured (numerical optimal) controller matches optimal for any
         irregular (long crested) wave when unconstrained"""
 
         f_add = {"PTO": pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
 
         res = wec.solve(waves=long_crested_wave,
                         obj_fun=pto.average_power,
@@ -334,17 +335,17 @@ class TestTheoreticalPowerLimits:
         power_sol = -1*res[0]['fun']
 
         res_fd, _ = wec.post_process(res[0], 
-                                     long_crested_wave.sel(realization=0), 
-                                     nsubsteps=1)
+                                        long_crested_wave.sel(realization=0), 
+                                        nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                         ).squeeze().sum('omega').item()
+                            ).squeeze().sum('omega').item()
 
-        assert power_sol == approx(power_optimal, rel=1e-1)
+        assert power_sol == approx(power_optimal, rel=1e-2)
 
     def test_saturated_pi_controller(self,
-                                    bem,
+                                    hydro_data,
                                     regular_wave,
                                     pto,
                                     nfreq):
@@ -366,7 +367,7 @@ class TestTheoreticalPowerLimits:
             f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
                                        nsubsteps=4)
             return f_max - np.abs(f.flatten())
-        wec['us'] = wot.WEC.from_bem(bem,
+        wec['us'] = wot.WEC.from_bem(hydro_data,
                                      f_add={"PTO": pto['us'].force_on_wec},
                                      constraints=[{'type': 'ineq',
                                                    'fun': const_f_pto, }])
@@ -381,7 +382,7 @@ class TestTheoreticalPowerLimits:
         pto['pi'] = wot.pto.PTO(ndof=ndof,
                                 kinematics=np.eye(ndof),
                                 controller=saturated_pi,)
-        wec['pi'] = wot.WEC.from_bem(bem,
+        wec['pi'] = wot.WEC.from_bem(hydro_data,
                                      f_add={"PTO": pto['pi'].force_on_wec},
                                      constraints=[])
         
