@@ -42,7 +42,7 @@ Autograd does not support all NumPy and SciPy functionalities, see [autograd doc
   1. Create a fork of WecOptTool
   2. Create a branch for the specific issue
   3. Add desired code modifications. For enhancements add to documentation. Add or modify a test. Make sure all tests pass and documentation builds. Follow style guide above.
-  4. Do a pull request, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/sandialabs/WecOptTool/releases) for the next version. Start the PR title with an all caps label followed by a colon, e.g., "BUG FIX: ...", "NEW FEATURE: ...", "DOCUMENTATION: ...", etc.
+  4. Do a pull request to the `dev` branch, and give admins edit access. [Link to any open issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue) and add relevant tags. Use a concise but descriptive PR title, as this will be part of the [release notes](https://github.com/sandialabs/WecOptTool/releases) for the next version. Start the PR title with an all caps label followed by a colon, e.g., "BUG FIX: ...", "NEW FEATURE: ...", "DOCUMENTATION: ...", etc. **Note: Pull requests should be made to the `dev` branch, not the `main` branch**. 
 
 ## Tests
 There are a series of unit and integration tests defined in the `tests` directory.
