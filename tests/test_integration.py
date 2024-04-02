@@ -311,7 +311,6 @@ class TestTheoreticalPowerLimits:
         assert power_sol == approx(power_optimal, rel=1e-1)
         
     def test_unstructured_controller_long_crested_wave(self,
-                                                    fb,
                                                     bem,
                                                     long_crested_wave,
                                                     pto,
