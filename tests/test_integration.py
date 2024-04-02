@@ -318,7 +318,7 @@ class TestTheoreticalPowerLimits:
                                                     nfreq,
                                                     hydro_impedance):
         """Unstructured (numerical optimal) controller matches optimal for any
-        irregular wave when unconstrained"""
+        irregular (long crested) wave when unconstrained"""
 
         f_add = {"PTO": pto.force_on_wec}
         wec = wot.WEC.from_bem(bem, f_add=f_add)
