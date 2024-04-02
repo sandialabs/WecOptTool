@@ -308,6 +308,8 @@ class TestTheoreticalPowerLimits:
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
 
+        assert power_sol == approx(power_optimal, rel=1e-1)
+        
     def test_unstructured_controller_long_crested_wave(self,
                                                     fb,
                                                     bem,
