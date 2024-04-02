@@ -1746,7 +1746,8 @@ def fd_to_td(
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        fd = np.concatenate((fd[:1, :], fd[1:-1, :]/2, fd[-1:, :]))
+        td = np.fft.irfft(fd, n=n, axis=0, norm='forward')
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
