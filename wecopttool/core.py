@@ -1783,10 +1783,10 @@ def td_to_fd(
     td= atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
-    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
