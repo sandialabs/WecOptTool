@@ -146,6 +146,16 @@ This relationship can be derived from conservation of energy in both frames, and
     f_w = K^T f_p \\
     :label: conservation_energy
 
+Phase Realizations
+^^^^^^^^^^^^^^^^^^
+Irregular waves are defined in WecOptTool as a spectrum of complex frequency-domain wave elevations. The phase of each of the elevation elements impacts the time-domain result. Thus, the standard calculation of the objective function (average power) may change across a range of phase realizations. The amount of variance in power depends on multiple factors such as the optimization problem and the frequency array. When creating an irregular wave using :py:meth:`wecopttool.waves.long_crested_wave` or :py:meth:`wecopttool.waves.irregular_wave`, :code:`nrealizations` can be used to select the number of phase realizations to be used. By default, random realizations will be used to create the selected number of wave elevation spectra. The :py:meth:`wecopttool.WEC.solve` function will automatically iterate through and solve the optimization problem for each realization, and the overall result can be found by averaging the value of the objective function across all realizations. A general recommendation is to use sufficient random phase realizations such that the total simulation time sums to 20 minutes. 
+
+.. math::
+    t_{total} = \frac{nrealizations}{f1}
+    :label: total_time
+
+The selection of the number of realizations is further detailed in :doc:`_examples/tutorial_4_Pioneer`.
+
 Troubleshooting
 ---------------
 If your simulation is not behaving as expected, consider some of the general troubleshooting steps below:

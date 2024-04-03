@@ -705,7 +705,7 @@ class WEC:
         results = []
 
         # x_wec scaling vector
-        if scale_x_wec == None:
+        if scale_x_wec is None:
             scale_x_wec = [1.0] * self.ndof
         elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
             scale_x_wec = [scale_x_wec] * self.ndof
@@ -1752,7 +1752,8 @@ def fd_to_td(
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        fd = np.concatenate((fd[:1, :], fd[1:-1, :]/2, fd[-1:, :]))
+        td = np.fft.irfft(fd, n=n, axis=0, norm='forward')
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
@@ -1788,10 +1789,10 @@ def td_to_fd(
     td= atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
-    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
