@@ -214,10 +214,10 @@ def long_crested_wave(
     Parameters
     ----------
     efth
-        Omnidirection wave spectrum in units of m^2/Hz, in the format
+        Omnidirectional wave spectrum in units of m^2/Hz, in the format
         used by :py:class:`wavespectra.SpecArray`.
     nrealizations
-        Number of wave phase realizations to be created for the 
+        Number of wave phase realizations to be created for the
         long-crested wave.
     direction
         Direction (in degrees) of the long-crested wave.
@@ -228,8 +228,9 @@ def long_crested_wave(
     f1, nfreq = frequency_parameters(efth.freq.values, False)
     df = f1
 
-    values = efth.values
-    values[values<0] = np.nan
+    values = efth.values.copy()  # Create a copy of the values array
+    values[values < 0] = np.nan
+
     amplitudes = np.sqrt(2 * values * df)
 
     attr = {
@@ -522,15 +523,16 @@ def jonswap_spectrum(
     """
     # Pierson-Moskowitz parameters
     a_param_pm, b_param = pierson_moskowitz_params(fp, hs)
-
     # JONSWAP parameters
     sigma_a = 0.07
     sigma_b = 0.09
-    sigma = np.piecewise(freq,
-                         condlist=[freq <= fp, freq > fp],
-                         funclist=[sigma_a, sigma_b])
-    alpha = np.exp(-1*((freq/fp - 1)/(np.sqrt(2)*sigma))**2)
-    c_param = 1-0.287*np.log(gamma)
+    # Create an array of sigma with the same shape as freq
+    sigma = np.zeros_like(freq)
+    # Apply conditions using boolean indexing
+    sigma[freq <= fp] = sigma_a
+    sigma[freq > fp] = sigma_b
+    alpha = np.exp(-1 * ((freq / fp - 1) / (np.sqrt(2) * sigma))**2)
+    c_param = 1 - 0.287 * np.log(gamma)
     a_param = a_param_pm * c_param * gamma**alpha
 
     return general_spectrum(a_param, b_param, freq)
@@ -570,6 +572,10 @@ def spread_cos2s(
     pow[freq > fp] = -2.5
     s_param = s_max * (freq/fp)**pow
     cs = 2**(2*s_param-1)/np.pi * (gamma(s_param+1))**2/gamma(2*s_param+1)
+    print("rdir:", rdir)
+    print("pow:", pow)
+    print("s_param:", s_param)
+    print("cs:", cs)
     return np.pi/180 * (cs * np.power.outer(np.cos(rdir/2), 2*s_param)).T
 
 
