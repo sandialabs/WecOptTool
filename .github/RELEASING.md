@@ -3,7 +3,8 @@ This section is for developers.
 
 Before a release make sure to:
 
-* change [version number](https://semver.org/) in `pyproject.toml`
+* change [version number](https://semver.org/) in `pyproject.toml` in the `dev` branch.
+* Merge the `dev` branch into the `main` branch. **Note: the `dev` branch should only be merged into `main` when it is ready for a new release.**
 
 ## GitHub
 In the GitHub repository, click on *Releases*, click on *Draft new release*.
