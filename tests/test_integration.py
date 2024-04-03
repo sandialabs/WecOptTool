@@ -326,10 +326,10 @@ class TestTheoreticalPowerLimits:
         res = wec.solve(waves=long_crested_wave,
                         obj_fun=pto.average_power,
                         nstate_opt=2*nfreq,
-                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        scale_x_wec=1e2,
-                        scale_x_opt=1e-2,
-                        scale_obj=1e-2,
+                        x_wec_0=1e-3*np.ones(wec.nstate_wec),
+                        scale_x_wec=1e1,
+                        scale_x_opt=1e-3,
+                        scale_obj=5e-2,
                         )
 
         power_sol = -1*res[0]['fun']
