@@ -705,7 +705,7 @@ class WEC:
         results = []
 
         # x_wec scaling vector
-        if scale_x_wec == None:
+        if scale_x_wec is None:
             scale_x_wec = [1.0] * self.ndof
         elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
             scale_x_wec = [scale_x_wec] * self.ndof
