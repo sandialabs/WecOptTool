@@ -675,13 +675,12 @@ class PTO:
         To get the post-processed results for the
         :py:class:`wecopttool.pto.PTO`, you may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[0],wave)
 
         For smoother plots, you can set :python:`nsubsteps` to a value
         greater than 1.
 
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[0],
                                                       nsubsteps=4)
         >>> res_pto_td.power.plot()
 

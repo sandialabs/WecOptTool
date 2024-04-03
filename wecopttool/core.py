@@ -694,12 +694,14 @@ class WEC:
         may call
 
         >>> realization = 0 # realization index
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt[realization])
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[realization])
+        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt[realization],wave)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[realization],wave)
 
         See Also
         --------
         wecopttool.waves,
+        wecopttool.core.wec.post_process,
+        wecopttool.core.pto.post_process,
         """
 
         results = []
@@ -849,11 +851,11 @@ class WEC:
 
         Parameters
         ----------
+        res
+            Results produced by :py:func:`scipy.optimize.minimize`.
         waves
             :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
-        res
-            Results produced by :py:func:`scipy.optimize.minimize`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -875,11 +877,12 @@ class WEC:
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
-        To get the post-processed results for the
-        :py:class:`wecopttool.pto.PTO`, you may call
+        To get the post-processed results we may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
+        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt[0],wave)
+        
+        Note that :py:meth:`wecopttool.WEC.solve` method produces a list of 
+        results objects (one for each phase realization).
         """
         create_time = f"{datetime.utcnow()}"
 
