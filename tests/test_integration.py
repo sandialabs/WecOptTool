@@ -234,7 +234,7 @@ class TestTheoreticalPowerLimits:
     def hydro_impedance(self, bem):
         """Intrinsic hydrodynamic impedance"""
         hd = wot.add_linear_friction(bem)
-        hd = wot.check_linear_damping(hd)
+        hd = wot.check_radiation_damping(hd)
         Zi = wot.hydrodynamic_impedance(hd)
         return Zi
 
