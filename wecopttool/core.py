@@ -842,17 +842,16 @@ class WEC:
         return results
 
     def post_process(self,
-        res: OptimizeResult,
+        res: Union[OptimizeResult,list],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[Dataset, Dataset]:
-        """Post-process the results from
-        :py:meth:`wecopttool.WEC.solve`.
+        """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
         ----------
         res
-            Results produced by :py:func:`scipy.optimize.minimize`.
+            Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
             :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
@@ -879,93 +878,104 @@ class WEC:
 
         To get the post-processed results we may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt[0],wave)
+        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt,wave)
         
         Note that :py:meth:`wecopttool.WEC.solve` method produces a list of 
         results objects (one for each phase realization).
         """
-        create_time = f"{datetime.utcnow()}"
+        
+        if isinstance(res, list):
+            results_fd = []
+            results_td = []
+            for idx, resi in enumerate(res):
+                tmp_results_td, tmp_results_fd = self.post_process(
+                    resi, waves.sel(realization=idx), nsubsteps)
+                results_fd.append(tmp_results_fd)
+                results_td.append(tmp_results_td)
+                
+        else:
+            create_time = f"{datetime.utcnow()}"
 
-        omega_vals = np.concatenate([[0], waves.omega.values])
-        freq_vals = np.concatenate([[0], waves.freq.values])
-        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
-        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
-        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
-        omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
-        freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
-        period_attr = {'long_name': 'Period', 'units': 's'}
-        time_attr = {'long_name': 'Time', 'units': 's'}
-        dof_attr = {'long_name': 'Degree of freedom'}
-        force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
-        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
-        x_wec, x_opt = self.decompose_state(res.x)
-        omega_coord = ("omega", omega_vals, omega_attr)
-        freq_coord = ("omega", freq_vals, freq_attr)
-        period_coord = ("omega", period_vals, period_attr)
-        dof_coord = ("influenced_dof", self.dof_names, dof_attr)
+            omega_vals = np.concatenate([[0], waves.omega.values])
+            freq_vals = np.concatenate([[0], waves.freq.values])
+            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+            pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+            vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+            acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+            omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+            freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+            period_attr = {'long_name': 'Period', 'units': 's'}
+            time_attr = {'long_name': 'Time', 'units': 's'}
+            dof_attr = {'long_name': 'Degree of freedom'}
+            force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
+            wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
+            x_wec, x_opt = self.decompose_state(res.x)
+            omega_coord = ("omega", omega_vals, omega_attr)
+            freq_coord = ("omega", freq_vals, freq_attr)
+            period_coord = ("omega", period_vals, period_attr)
+            dof_coord = ("influenced_dof", self.dof_names, dof_attr)
 
-        # frequency domain
-        force_da_list = []
-        for name, force in self.forces.items():
-            force_td_tmp = force(self, x_wec, x_opt, waves)
-            force_fd = self.td_to_fd(force_td_tmp)
-            force_da = DataArray(data=force_fd,
-                                 dims=["omega", "influenced_dof"],
-                                 coords={
-                                     'omega': omega_coord,
-                                     'freq': freq_coord,
-                                     'period': period_coord,
-                                     'influenced_dof': dof_coord},
-                                 attrs=force_attr
-                                 ).expand_dims({'type': [name]})
-            force_da_list.append(force_da)
+            # frequency domain
+            force_da_list = []
+            for name, force in self.forces.items():
+                force_td_tmp = force(self, x_wec, x_opt, waves)
+                force_fd = self.td_to_fd(force_td_tmp)
+                force_da = DataArray(data=force_fd,
+                                    dims=["omega", "influenced_dof"],
+                                    coords={
+                                        'omega': omega_coord,
+                                        'freq': freq_coord,
+                                        'period': period_coord,
+                                        'influenced_dof': dof_coord},
+                                    attrs=force_attr
+                                    ).expand_dims({'type': [name]})
+                force_da_list.append(force_da)
 
-        fd_forces = xr.concat(force_da_list, dim='type')
-        fd_forces.type.attrs['long_name'] = 'Type'
-        fd_forces.name = 'force'
-        fd_forces.attrs['long_name'] = 'Force'
+            fd_forces = xr.concat(force_da_list, dim='type')
+            fd_forces.type.attrs['long_name'] = 'Type'
+            fd_forces.name = 'force'
+            fd_forces.attrs['long_name'] = 'Force'
 
-        pos = self.vec_to_dofmat(x_wec)
-        pos_fd = real_to_complex(pos)
+            pos = self.vec_to_dofmat(x_wec)
+            pos_fd = real_to_complex(pos)
 
-        vel = self.derivative_mat @ pos
-        vel_fd = real_to_complex(vel)
+            vel = self.derivative_mat @ pos
+            vel_fd = real_to_complex(vel)
 
-        acc = self.derivative2_mat @ pos
-        acc_fd = real_to_complex(acc)
+            acc = self.derivative2_mat @ pos
+            acc_fd = real_to_complex(acc)
 
-        fd_state = Dataset(
-            data_vars={
-                'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
-                'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
-                'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
-            coords={
-                'omega': omega_coord,
-                'freq': freq_coord,
-                'period': period_coord,
-                'influenced_dof': dof_coord},
-            attrs={"time_created_utc": create_time}
-        )
+            fd_state = Dataset(
+                data_vars={
+                    'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
+                    'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
+                    'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
+                coords={
+                    'omega': omega_coord,
+                    'freq': freq_coord,
+                    'period': period_coord,
+                    'influenced_dof': dof_coord},
+                attrs={"time_created_utc": create_time}
+            )
 
-        results_fd = xr.merge([fd_state, fd_forces, waves])
-        results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
-                                          'wave_direction')
-        results_fd = results_fd.fillna(0)
+            results_fd = xr.merge([fd_state, fd_forces, waves])
+            results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
+                                            'wave_direction')
+            results_fd = results_fd.fillna(0)
 
-        # time domain
-        t_dat = self.time_nsubsteps(nsubsteps)
-        time = DataArray(
-            data=t_dat, name='time', dims='time', coords=[t_dat])
-        results_td = results_fd.map(lambda x: time_results(x, time))
+            # time domain
+            t_dat = self.time_nsubsteps(nsubsteps)
+            time = DataArray(
+                data=t_dat, name='time', dims='time', coords=[t_dat])
+            results_td = results_fd.map(lambda x: time_results(x, time))
 
-        results_td['pos'].attrs = pos_attr
-        results_td['vel'].attrs = vel_attr
-        results_td['acc'].attrs = acc_attr
-        results_td['wave_elev'].attrs = wave_elev_attr
-        results_td['force'].attrs = force_attr
-        results_td['time'].attrs = time_attr
-        results_td.attrs['time_created_utc'] = create_time
+            results_td['pos'].attrs = pos_attr
+            results_td['vel'].attrs = vel_attr
+            results_td['acc'].attrs = acc_attr
+            results_td['wave_elev'].attrs = wave_elev_attr
+            results_td['force'].attrs = force_attr
+            results_td['time'].attrs = time_attr
+            results_td.attrs['time_created_utc'] = create_time
 
         return results_fd, results_td
 

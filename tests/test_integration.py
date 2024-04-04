@@ -105,7 +105,7 @@ def long_crested_wave(f1, nfreq):
     efth = wot.waves.omnidirectional_spectrum(f1=f1, nfreq=nfreq, 
                                               spectrum_func=spec_fun,
                                               )
-    waves = wot.waves.long_crested_wave(efth, nrealizations=1)
+    waves = wot.waves.long_crested_wave(efth, nrealizations=2)
     return waves
 
 
@@ -245,6 +245,41 @@ class TestTheoreticalPowerLimits:
         """Intrinsic hydrodynamic impedance"""
         Zi = wot.hydrodynamic_impedance(hydro_data)
         return Zi
+    
+    @pytest.fixture(scope='class')
+    def unstruct_wec(self,
+                     hydro_data,
+                     pto):
+        """WaveBot WEC object with unstructured controller"""
+
+        f_add = {"PTO": pto.force_on_wec}
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
+
+        return wec
+
+    @pytest.fixture(scope='class')
+    def long_crested_wave_unstruct_res(self,
+                                       unstruct_wec,
+                                       long_crested_wave,
+                                       pto,
+                                       hydro_data,
+                                       nfreq):
+        """Solution for an unstructured controller with multiple long crested 
+        waves"""
+
+        f_add = {"PTO": pto.force_on_wec}
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
+
+        res = unstruct_wec.solve(waves=long_crested_wave,
+                                 obj_fun=pto.average_power,
+                                 nstate_opt=2*nfreq,
+                                 x_wec_0=1e-3*np.ones(wec.nstate_wec),
+                                 scale_x_wec=1e1,
+                                 scale_x_opt=1e-3,
+                                 scale_obj=5e-2,
+                                 )
+
+        return res
 
     def test_p_controller_resonant_wave(self,
                                         hydro_data,
@@ -312,37 +347,34 @@ class TestTheoreticalPowerLimits:
         assert power_sol == approx(power_optimal, rel=1e-4)
         
     def test_unstructured_controller_long_crested_wave(self,
-                                                       hydro_data,
+                                                       unstruct_wec,
                                                        long_crested_wave,
-                                                       pto,
-                                                       nfreq,
-                                                       hydro_impedance):
+                                                       hydro_impedance,
+                                                       long_crested_wave_unstruct_res,
+                                                       pto):
         """Unstructured (numerical optimal) controller matches optimal for any
         irregular (long crested) wave when unconstrained"""
 
-        f_add = {"PTO": pto.force_on_wec}
-        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
+        power_sol = -1*long_crested_wave_unstruct_res[0]['fun']
 
-        res = wec.solve(waves=long_crested_wave,
-                        obj_fun=pto.average_power,
-                        nstate_opt=2*nfreq,
-                        x_wec_0=1e-3*np.ones(wec.nstate_wec),
-                        scale_x_wec=1e1,
-                        scale_x_opt=1e-3,
-                        scale_obj=5e-2,
-                        )
-
-        power_sol = -1*res[0]['fun']
-
-        res_fd, _ = wec.post_process(res[0], 
+        res_fd, _ = unstruct_wec.post_process(long_crested_wave_unstruct_res[0], 
                                         long_crested_wave.sel(realization=0), 
                                         nsubsteps=1)
         Fex = res_fd.force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                            ).squeeze().sum('omega').item()
+                         ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-2)
+
+    def test_unconstrained_solutions_multiple_phase_realizations(self,
+                                                                 long_crested_wave_unstruct_res):
+        """Solutions for average power with an unstructured controller 
+        (no constraints) match for different phase realizations"""
+
+        pow = [res['fun'] for res in long_crested_wave_unstruct_res]
+
+        assert pow[0] == approx(pow[1], rel=1e-6)
 
     def test_saturated_pi_controller(self,
                                     hydro_data,
