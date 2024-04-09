@@ -762,7 +762,7 @@ class WEC:
             
             # objective function
             sign = -1.0 if maximize else 1.0
-
+            
             def obj_fun_scaled(x):
                 x_wec, x_opt = self.decompose_state(x/scale)
                 return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
