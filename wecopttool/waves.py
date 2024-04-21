@@ -5,13 +5,14 @@ This module provides the (empty) data structure for waves in
 :python:`wecopttool`.
 It also provides functions for creating common types of waves such as
 regular waves and irregular waves.
-The data structure is a 2D complex :py:module:xarray.DataArray
+The data structure is a 2D complex :py:class:`xarray.DataArray`
 containing the complex amplitude.
 The 2D coordinates are: wave angular frequency :python:`omega` (rad/s)
 and direction :python:`wave_direction` (rad).
 
 This module uses wave spectrum data in the
-:py:class:`wavespectra.SpecArray` format.
+:py:class:`wavespectra.SpecArray` format, but does not require that you
+use :py:class:`wavespectra.SpecArray` objects.
 """
 
 
@@ -203,8 +204,8 @@ def long_crested_wave(
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
 
-    The omnidirectional spectrum is in the
-    :py:class:`wavespectra.SpecArray` format.
+    The spectrum is a :py:class:`xarray.DataArray` in the format used 
+    by :py:class:`wavespectra.SpecArray`.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
@@ -245,8 +246,8 @@ def irregular_wave(efth: DataArray,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
-    The omnidirectional spectrum is in the
-    :py:class:`wavespectra.SpecArray` format.
+    The spectrum is a :py:class:`xarray.DataArray` in the format used 
+    by :py:class:`wavespectra.SpecArray`.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
@@ -308,8 +309,8 @@ def omnidirectional_spectrum(
     spectrum_func: Callable,
     spectrum_name: str = '',
 ) -> DataArray:
-    """Create the dataset for an omnidirectional wave spectrum in the
-    :py:class:`wavespectra.SpecArray` format.
+    """Create the :py:class:`xarray.DataArray` for an omnidirectional 
+    wave spectrum in the :py:class:`wavespectra.SpecArray` format.
 
     Examples
     --------
@@ -378,8 +379,8 @@ def spectrum(
     spectrum_name: str = '',
     spread_name: str = '',
 ) -> DataArray:
-    """Create the dataset for an irregular wave in the
-    :py:class:`wavespectra.SpecArray` format.
+    """Create the :py:class:`xarray.DataArray` for an irregular wave 
+    in the :py:class:`wavespectra.SpecArray` format.
 
     Examples
     --------

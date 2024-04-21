@@ -31,7 +31,7 @@ __all__ = [
     "td_to_fd",
     "read_netcdf",
     "write_netcdf",
-    "check_linear_damping",
+    "check_radiation_damping",
     "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
@@ -311,8 +311,8 @@ class WEC:
         :py:func:`wecopttool.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
-        using :py:func:`wecopttool.write_netcdf`. 
-        :py:func:`wecopttool.run_bem` also computes the inertia and 
+        using :py:func:`wecopttool.write_netcdf`.
+        :py:func:`wecopttool.run_bem` also computes the inertia and
         hydrostatic stiffness which should be included in bem_data.
 
         Parameters
@@ -323,7 +323,7 @@ class WEC:
             corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
-            :python:`(nodf, ndof)`.
+            :python:`(ndof, ndof)`.
             :python:`None` if included in :python:`bem_data` or to set
             to zero.
         f_add
@@ -339,12 +339,12 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
         uniform_shift
             Boolean determining whether damping corrections shifts the damping
             values uniformly for all frequencies or only for frequencies below
             :python:`min_damping`.
-            See :py:func:`wecopttool.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
         dof_names
             Names of the different degrees of freedom (e.g.
             :python:`'Heave'`).
@@ -354,7 +354,7 @@ class WEC:
         See Also
         --------
         run_bem, add_linear_friction, change_bem_convention,
-        write_netcdf, check_linear_damping
+        write_netcdf, check_radiation_damping
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
@@ -368,7 +368,7 @@ class WEC:
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
-            hydro_data = check_linear_damping(
+            hydro_data = check_radiation_damping(
                 hydro_data, min_damping, uniform_shift)
 
         # forces in the dynamics equations
@@ -442,7 +442,7 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.check_linear_damping` for
+            See :py:func:`wecopttool.check_radiation_damping` for
             more details.
         wave_directions
             List of wave directions [degrees] to evaluate BEM at.
@@ -530,7 +530,7 @@ class WEC:
             Boolean determining whether damping corrections shifts the damping
             values uniformly for all frequencies or only for frequencies below
             :python:`min_damping`.
-            See :py:func:`wecopttool.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
 
         Raises
         ------
@@ -705,7 +705,7 @@ class WEC:
         results = []
 
         # x_wec scaling vector
-        if scale_x_wec == None:
+        if scale_x_wec is None:
             scale_x_wec = [1.0] * self.ndof
         elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
             scale_x_wec = [scale_x_wec] * self.ndof
@@ -720,13 +720,13 @@ class WEC:
 
         # composite scaling vector
         scale = np.concatenate([scale_x_wec, scale_x_opt])
-        
+
         # decision variable initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -754,11 +754,11 @@ class WEC:
         for realization, wave in waves.groupby('realization'):
 
             _log.info("Solving pseudo-spectral control problem "
-                      + f"for realization number {realization}.") 
-            
+                      + f"for realization number {realization}.")
+
             # objective function
             sign = -1.0 if maximize else 1.0
-            
+
             def obj_fun_scaled(x):
                 x_wec, x_opt = self.decompose_state(x/scale)
                 return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
@@ -790,7 +790,7 @@ class WEC:
             if use_grad:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
-            
+
             # callback
             if callback is None:
                 def callback_scipy(x):
@@ -834,9 +834,9 @@ class WEC:
             optim_res.x = optim_res.x / scale
             optim_res.fun = optim_res.fun / scale_obj
             optim_res.jac = optim_res.jac / scale_obj * scale
-            
+
             results.append(optim_res)
-        
+
         return results
 
     def post_process(self,
@@ -1752,7 +1752,8 @@ def fd_to_td(
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        fd = np.concatenate((fd[:1, :], fd[1:-1, :]/2, fd[-1:, :]))
+        td = np.fft.irfft(fd, n=n, axis=0, norm='forward')
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
@@ -1788,10 +1789,10 @@ def td_to_fd(
     td= atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
-    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
@@ -1839,7 +1840,7 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
     cpy.io.xarray.separate_complex_values(data).to_netcdf(fpath)
 
 
-def check_linear_damping(
+def check_radiation_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
     uniform_shift: Optional[bool] = False,
@@ -1881,9 +1882,9 @@ def check_linear_damping(
                 delta = min_damping-dmin
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close ' +
-                    'to zero terms. Shifting up via linear friction of ' +
+                    'to zero terms. Shifting up radiation damping by ' +
                     f'{delta.values} N/(m/s).')
-                hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+                hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
             new_damping = iradiation.where(
                 iradiation+ifriction>min_damping, other=min_damping)
@@ -1931,7 +1932,7 @@ def check_impedance(
         else:
             points = np.where(np.real(Zi_diag[:, dof])<min_damping)
             Zi_dof_real = Zi_diag[:,dof].real.copy()
-            Zi_dof_imag = Zi_diag[:,dof].imag.copy() 
+            Zi_dof_imag = Zi_diag[:,dof].imag.copy()
             Zi_dof_real[Zi_dof_real < min_damping] = min_damping
             Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
             if (Zi_dof_real==min_damping).any():
@@ -2203,12 +2204,12 @@ def add_linear_friction(
         corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
-        :python:`(nodf, ndof)`.
+        :python:`(ndof, ndof)`.
         :python:`None` if included in :python:`bem_data` or to set to zero.
     """
     dims = ['radiating_dof', 'influenced_dof']
     hydro_data = bem_data.copy(deep=True)
-    
+
     if friction is not None:
         if 'friction' in hydro_data.variables.keys():
             if not np.allclose(data, hydro_data.variables[name]):
@@ -2225,7 +2226,7 @@ def add_linear_friction(
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
-            
+
     return hydro_data
 
 
@@ -2542,7 +2543,7 @@ def set_fb_centers(
         - `rotation_center` is set to the center of mass
     """
     valid_properties = ['center_of_mass', 'rotation_center']
-    
+
     for property in valid_properties:
         if not hasattr(fb, property):
             setattr(fb, property, None)
@@ -2561,5 +2562,5 @@ def set_fb_centers(
         elif getattr(fb, property) is not None:
             _log.warning(
                 f'{property} already defined as {getattr(fb, property)}.')
-            
+
     return fb
