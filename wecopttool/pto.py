@@ -659,7 +659,7 @@ class PTO:
         res: Union[OptimizeResult, list],
         waves: Optional[DataArray] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+    ) -> tuple[list[Dataset], list[Dataset]]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
 
@@ -680,9 +680,9 @@ class PTO:
         For smoother plots, you can set :python:`nsubsteps` to a value
         greater than 1.
 
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[0],
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,
                                                       nsubsteps=4)
-        >>> res_pto_td.power.plot()
+        >>> res_pto_td[0].power.plot()
 
         Parameters
         ----------
@@ -701,21 +701,12 @@ class PTO:
         Returns
         -------
         results_fd
-            :py:class:`xarray.Dataset` with frequency domain results.
+            list of :py:class:`xarray.Dataset` with frequency domain results.
         results_td
-            :py:class:`xarray.Dataset` with time domain results.
+            list of :py:class:`xarray.Dataset` with time domain results.
         """
-        
-        if isinstance(res, list):
-            results_fd = []
-            results_td = []
-            for idx, resi in enumerate(res):
-                tmp_results_td, tmp_results_fd = self.post_process(
-                    wec, resi, waves.sel(realization=idx), nsubsteps)
-                results_fd.append(tmp_results_fd)
-                results_td.append(tmp_results_td)
-        else:
-        
+        def _postproc(wec, res, waves, nsubsteps)
+
             create_time = f"{datetime.utcnow()}"
 
             x_wec, x_opt = wec.decompose_state(res.x)
@@ -822,6 +813,17 @@ class PTO:
 
 
             return results_fd, results_td
+
+        results_fd = []
+        results_td = []
+        for idx, resi in enumerate(res):
+            ifd, itd = _postproc(wec, resi, waves.sel(realization=idx), nsubsteps)
+
+            results_fd.append(tmp_results_fd)
+            results_td.append(tmp_results_td)
+            results_fd.append(ifd)
+            results_td.append(itd)
+        return results_fd, results_td
 
 
 # power conversion chain

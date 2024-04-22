@@ -845,7 +845,7 @@ class WEC:
         res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+    ) -> tuple[list[Dataset], list[Dataset]]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
@@ -879,21 +879,12 @@ class WEC:
         To get the post-processed results we may call
 
         >>> res_wec_fd, res_wec_td = wec.post_process(res_opt,wave)
-        
-        Note that :py:meth:`wecopttool.WEC.solve` method produces a list of 
+
+        Note that :py:meth:`wecopttool.WEC.solve` method produces a list of
         results objects (one for each phase realization).
         """
-        
-        if isinstance(res, list):
-            results_fd = []
-            results_td = []
-            for idx, resi in enumerate(res):
-                tmp_results_td, tmp_results_fd = self.post_process(
-                    resi, waves.sel(realization=idx), nsubsteps)
-                results_fd.append(tmp_results_fd)
-                results_td.append(tmp_results_td)
-                
-        else:
+
+        def _postproc(res, waves, nsubsteps)
             create_time = f"{datetime.utcnow()}"
 
             omega_vals = np.concatenate([[0], waves.omega.values])
@@ -976,7 +967,14 @@ class WEC:
             results_td['force'].attrs = force_attr
             results_td['time'].attrs = time_attr
             results_td.attrs['time_created_utc'] = create_time
+            return results_fd, results_td
 
+        results_fd = []
+        results_td = []
+        for idx, ires in enumerate(res):
+            ifd, itd = _postproc(resi, waves.sel(realization=idx), nsubsteps)
+            results_fd.append(ifd)
+            results_td.append(itd)
         return results_fd, results_td
 
     # properties
