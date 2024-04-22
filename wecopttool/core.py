@@ -842,7 +842,7 @@ class WEC:
         return results
 
     def post_process(self,
-        res: Union[OptimizeResult,list],
+        res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[Dataset, Dataset]:
