@@ -694,8 +694,8 @@ class WEC:
         may call
 
         >>> realization = 0 # realization index
-        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt[realization],wave)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[realization],wave)
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,wave,nsubsteps)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,wave,nsubsteps)
 
         See Also
         --------
@@ -842,6 +842,7 @@ class WEC:
         return results
 
     def post_process(self,
+        wec: TWEC,
         res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
@@ -884,7 +885,7 @@ class WEC:
         results objects (one for each phase realization).
         """
 
-        def _postproc(res, waves, nsubsteps)
+        def _postproc(res, waves, nsubsteps):
             create_time = f"{datetime.utcnow()}"
 
             omega_vals = np.concatenate([[0], waves.omega.values])
@@ -972,7 +973,7 @@ class WEC:
         results_fd = []
         results_td = []
         for idx, ires in enumerate(res):
-            ifd, itd = _postproc(resi, waves.sel(realization=idx), nsubsteps)
+            ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
             results_fd.append(ifd)
             results_td.append(itd)
         return results_fd, results_td

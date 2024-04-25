@@ -705,7 +705,7 @@ class PTO:
         results_td
             list of :py:class:`xarray.Dataset` with time domain results.
         """
-        def _postproc(wec, res, waves, nsubsteps)
+        def _postproc(wec, res, waves, nsubsteps):
 
             create_time = f"{datetime.utcnow()}"
 
@@ -816,11 +816,8 @@ class PTO:
 
         results_fd = []
         results_td = []
-        for idx, resi in enumerate(res):
-            ifd, itd = _postproc(wec, resi, waves.sel(realization=idx), nsubsteps)
-
-            results_fd.append(tmp_results_fd)
-            results_td.append(tmp_results_td)
+        for idx, ires in enumerate(res):
+            ifd, itd = _postproc(wec, ires, waves.sel(realization=idx), nsubsteps)
             results_fd.append(ifd)
             results_td.append(itd)
         return results_fd, results_td

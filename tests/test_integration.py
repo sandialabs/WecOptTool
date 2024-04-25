@@ -306,8 +306,8 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res[0], resonant_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
+        res_fd, _ = wec.post_process(wec, res, resonant_wave, nsubsteps=1)
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -338,8 +338,8 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
+        res_fd, _ = wec.post_process(wec, res, regular_wave, nsubsteps=1)
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -357,10 +357,10 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*long_crested_wave_unstruct_res[0]['fun']
 
-        res_fd, _ = unstruct_wec.post_process(long_crested_wave_unstruct_res[0], 
-                                        long_crested_wave.sel(realization=0), 
+        res_fd, _ = unstruct_wec.post_process(unstruct_wec, long_crested_wave_unstruct_res, 
+                                        long_crested_wave, 
                                         nsubsteps=1)
-        Fex = res_fd.force.sel(
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -447,13 +447,13 @@ class TestTheoreticalPowerLimits:
             
             nsubstep_postprocess = 4
             pto_fdom[key], pto_tdom[key] = pto[key].post_process(wec[key], 
-                                                                 res[key][0], 
-                                                                 regular_wave.sel(realization=0), 
+                                                                 res[key], 
+                                                                 regular_wave, 
                                                                  nsubstep_postprocess)
         
-        xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
-                                   pto_tdom['us'].power.squeeze().mean('time'),
+        xr.testing.assert_allclose(pto_tdom['pi'][0].power.squeeze().mean('time'), 
+                                   pto_tdom['us'][0].power.squeeze().mean('time'),
                                    rtol=1e-1)
         
-        xr.testing.assert_allclose(pto_tdom['us'].force.max(),
-                                   pto_tdom['pi'].force.max())
+        xr.testing.assert_allclose(pto_tdom['us'][0].force.max(),
+                                   pto_tdom['pi'][0].force.max())
