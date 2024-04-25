@@ -323,7 +323,7 @@ class WEC:
             corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
-            :python:`(nodf, ndof)`.
+            :python:`(ndof, ndof)`.
             :python:`None` if included in :python:`bem_data` or to set
             to zero.
         f_add
@@ -2216,7 +2216,7 @@ def add_linear_friction(
         corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
-        :python:`(nodf, ndof)`.
+        :python:`(ndof, ndof)`.
         :python:`None` if included in :python:`bem_data` or to set to zero.
     """
     dims = ['radiating_dof', 'influenced_dof']
