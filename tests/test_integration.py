@@ -151,26 +151,7 @@ def resonant_wave(f1, nfreq, fb, bem):
     return waves
 
 
-def test_solve_callback(wec_from_bem, regular_wave, pto, nfreq, capfd):
-    """Check that user can set a custom callback"""
-
-    cbstring = 'hello world!'
-
-    def my_callback(my_wec, x_wec, x_opt, wave):
-        print(cbstring)
-
-    _ = wec_from_bem.solve(regular_wave,
-                           obj_fun=pto.average_power,
-                           nstate_opt=2*nfreq,
-                           scale_x_wec=1.0,
-                           scale_x_opt=0.01,
-                           scale_obj=1e-1,
-                           callback=my_callback,
-                           optim_options={'maxiter': 1})
-
-    out, err = capfd.readouterr()
-
-    assert out.split('\n')[0] == cbstring
+#removed call back test since ipopt doesn't have a callback function
 
 
 @pytest.mark.parametrize("bounds_opt",
@@ -257,7 +238,7 @@ class TestTheoreticalPowerLimits:
                         scale_x_wec=1e2,
                         scale_x_opt=1e-3,
                         scale_obj=1e-1,
-                        optim_options={'ftol': 1e-10},
+                        optim_options={'tol': 1e-10},
                         bounds_opt=((-1*np.infty, 0),),
                         )
 
