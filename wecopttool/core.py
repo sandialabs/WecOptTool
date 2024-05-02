@@ -851,6 +851,8 @@ class WEC:
 
         Parameters
         ----------
+        wec
+            :py:class:`wecopttool.WEC` object.
         res
             Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
@@ -879,11 +881,13 @@ class WEC:
 
         To get the post-processed results we may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(res_opt,wave)
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec, res_opt,wave)
 
         Note that :py:meth:`wecopttool.WEC.solve` method produces a list of
         results objects (one for each phase realization).
         """
+        assert self == wec , ("The same wec object should be used to call " +
+                                "post-process and be passed as an input.")
 
         def _postproc(res, waves, nsubsteps):
             create_time = f"{datetime.utcnow()}"
