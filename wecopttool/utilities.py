@@ -10,8 +10,6 @@ __all__ = [
     "plot_bode_impedance",
     "calculate_power_flows",
     "plot_power_flow",
-    # "add_zerofreq_to_xr",
-    # "natural_frequency",
 ]
 
 
@@ -369,45 +367,3 @@ def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
     # plt.show()
 
     return fig, ax
-
-
-# def add_zerofreq_to_xr(data):
-#     """Add a zero-frequency component to an :python:`xarray.Dataset`.  
-#       Frequency variable must be called :python:`omega`.    """    
-#     if not np.isclose(data.coords['omega'][0].values, 0):
-#         tmp = data.isel(omega=0).copy(deep=True) * 0   
-#         tmp['omega'] = tmp['omega'] * 0                      
-#         data = concat([tmp, data], dim='omega')
-#     return data
-
-# def natural_frequency(impedance: DataArray, freq: ArrayLike
-#                       ) -> tuple[ArrayLike, int]:
-#     """Find the natural frequency based on the lowest magnitude impedance,
-#        for restoring degrees of freedom (Heave, Roll, Pitch).
-
-#     Parameters
-#     ----------
-#     impedance: DataArray
-#         Complex intrinsic impedance matrix produced by
-#         :py:func:`wecopttool.hydrodynamic_impedance`.
-#         Dimensions: omega, radiating_dofs, influenced_dofs
-#     freq: list[float]
-#         Frequencies.
-
-#     Returns
-#     -------
-#     f_n: float
-#         Natural frequencies.
-#     ind: int
-#         Index of natural frequencies.
-#     """
-
-#     restoring_dofs = ['Heave','Roll','Pitch']
-#     indeces = [np.abs(impedance.loc[rdof,idof]).argmin(dim = 'omega') 
-#                 for rdof in impedance.radiating_dof 
-#                 for idof in impedance.influenced_dof 
-#                 if rdof == idof  #considering modes to be independent
-#                 and any([df in str(rdof.values) for df in restoring_dofs])]
-#     f_n = [freq[indx.values] for indx in indeces]
-
-#     return f_n, indeces
