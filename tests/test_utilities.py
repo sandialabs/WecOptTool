@@ -198,8 +198,8 @@ def test_calculate_power_flow(wb_bem,
 
     pflows = wot.utilities.calculate_power_flows(wec, 
                           pi_controller_pto, 
-                          res[0], 
-                          regular_wave.sel(realization = 0), 
+                          res, 
+                          regular_wave, 
                           wb_hydro_impedance)
 
     assert pflows['Absorbed'] == approx(pflows['Radiated'], rel=1e-4)
