@@ -87,7 +87,7 @@ def plot_hydrodynamic_coefficients(bem_data,
         figsize=(3, 3*len(radiating_dofs)), 
         squeeze=False
         )
-
+    [ax.grid(True) for axs in (ax_am, ax_rd, ax_ex) for ax in axs.flatten()]
     # plot titles
     fig_am.suptitle('Added Mass Coefficients', fontweight='bold')
     fig_rd.suptitle('Radiation Damping Coefficients', fontweight='bold')
@@ -99,9 +99,9 @@ def plot_hydrodynamic_coefficients(bem_data,
             sp_idx += 1
             if i == 0:
                 np.abs(bem_data.diffraction_force.sel(influenced_dof=idof)).plot(
-                    ax=ax_ex[j,0], linestyle='dashed', label='Diffraction force')
+                    ax=ax_ex[j,0], linestyle='dashed', label='Diffraction')
                 np.abs(bem_data.Froude_Krylov_force.sel(influenced_dof=idof)).plot(
-                    ax=ax_ex[j,0], linestyle='dashdot', label='Froude-Krylov force')
+                    ax=ax_ex[j,0], linestyle='dashdot', label='Froude-Krylov')
                 ex_handles, ex_labels = ax_ex[j,0].get_legend_handles_labels()
                 ax_ex[j,0].set_title(f'{idof}')
                 ax_ex[j,0].set_xlabel('')
