@@ -219,7 +219,7 @@ def calculate_power_flows(wec,
 
 
     """
-    wec_fdom, _ = wec.post_process(results, waves)
+    wec_fdom, _ = wec.post_process(wec, results, waves)
     x_wec, x_opt = wec.decompose_state(results.x)
 
     #power quntities from solver
