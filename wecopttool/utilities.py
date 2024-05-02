@@ -220,16 +220,16 @@ def calculate_power_flows(wec,
 
     """
     wec_fdom, _ = wec.post_process(wec, results, waves)
-    x_wec, x_opt = wec.decompose_state(results.x)
+    x_wec, x_opt = wec.decompose_state(results[0].x)
 
     #power quntities from solver
     P_mech = pto.mechanical_average_power(wec, x_wec, x_opt, waves)
     P_elec = pto.average_power(wec, x_wec, x_opt, waves)
 
     #compute analytical power flows
-    Fex_FD = wec_fdom.force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')
+    Fex_FD = wec_fdom[0].force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')
     Rad_res = np.real(intrinsic_impedance.squeeze())
-    Vel_FD = wec_fdom.vel
+    Vel_FD = wec_fdom[0].vel
 
     P_max, P_e, P_r = [], [], []
 
