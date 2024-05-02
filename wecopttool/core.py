@@ -2288,11 +2288,11 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
         :py:func:`wecopttool.add_linear_friction`.
     """
 
-    Zi = (hydro_data['inertia_matrix'] \
+    hydro_impedance = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
+    return hydro_impedance.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
