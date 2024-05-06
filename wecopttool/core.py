@@ -31,7 +31,7 @@ __all__ = [
     "td_to_fd",
     "read_netcdf",
     "write_netcdf",
-    "check_linear_damping",
+    "check_radiation_damping",
     "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
@@ -289,7 +289,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
-        uniform_shift: Optional[bool] = True,
+        uniform_shift: Optional[bool] = False,
         dof_names: Optional[Iterable[str]] = None,
         ) -> TWEC:
         """Create a WEC object from linear hydrodynamic coefficients
@@ -311,8 +311,8 @@ class WEC:
         :py:func:`wecopttool.run_bem`,
         rather than running Capytaine directly, which outputs the
         results in the correct convention. The results can be saved
-        using :py:func:`wecopttool.write_netcdf`. 
-        :py:func:`wecopttool.run_bem` also computes the inertia and 
+        using :py:func:`wecopttool.write_netcdf`.
+        :py:func:`wecopttool.run_bem` also computes the inertia and
         hydrostatic stiffness which should be included in bem_data.
 
         Parameters
@@ -323,7 +323,7 @@ class WEC:
             corrected. Also includes inertia and hydrostatic stiffness.
         friction
             Linear friction, in addition to radiation damping, of size
-            :python:`(nodf, ndof)`.
+            :python:`(ndof, ndof)`.
             :python:`None` if included in :python:`bem_data` or to set
             to zero.
         f_add
@@ -339,12 +339,12 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
         uniform_shift
             Boolean determining whether damping corrections shifts the damping
             values uniformly for all frequencies or only for frequencies below
             :python:`min_damping`.
-            See :py:func:`wecopttool.check_linear_damping` for more details.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
         dof_names
             Names of the different degrees of freedom (e.g.
             :python:`'Heave'`).
@@ -354,7 +354,7 @@ class WEC:
         See Also
         --------
         run_bem, add_linear_friction, change_bem_convention,
-        write_netcdf, check_linear_damping
+        write_netcdf, check_radiation_damping
         """
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
@@ -368,7 +368,7 @@ class WEC:
 
         # check real part of damping diagonal > 0
         if min_damping is not None:
-            hydro_data = check_linear_damping(
+            hydro_data = check_radiation_damping(
                 hydro_data, min_damping, uniform_shift)
 
         # forces in the dynamics equations
@@ -442,7 +442,7 @@ class WEC:
             If :python:`None`: empty list :python:`[]`.
         min_damping
             Minimum damping level to ensure a stable system.
-            See :py:func:`wecopttool.check_linear_damping` for
+            See :py:func:`wecopttool.check_radiation_damping` for
             more details.
         wave_directions
             List of wave directions [degrees] to evaluate BEM at.
@@ -483,6 +483,7 @@ class WEC:
         f_add: Optional[TIForceDict] = None,
         constraints: Optional[Iterable[Mapping]] = None,
         min_damping: Optional[float] = _default_min_damping,
+        uniform_shift: Optional[bool] = False,
     ) -> TWEC:
         """Create a WEC object from the intrinsic impedance and
         excitation coefficients.
@@ -525,6 +526,11 @@ class WEC:
             Minimum damping level to ensure a stable system.
             See :py:func:`wecopttool.check_impedance` for
             more details.
+        uniform_shift
+            Boolean determining whether damping corrections shifts the damping
+            values uniformly for all frequencies or only for frequencies below
+            :python:`min_damping`.
+            See :py:func:`wecopttool.check_radiation_damping` for more details.
 
         Raises
         ------
@@ -688,18 +694,20 @@ class WEC:
         may call
 
         >>> realization = 0 # realization index
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt[realization])
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[realization])
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,wave,nsubsteps)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,wave,nsubsteps)
 
         See Also
         --------
         wecopttool.waves,
+        wecopttool.core.wec.post_process,
+        wecopttool.core.pto.post_process,
         """
 
         results = []
 
         # x_wec scaling vector
-        if scale_x_wec == None:
+        if scale_x_wec is None:
             scale_x_wec = [1.0] * self.ndof
         elif isinstance(scale_x_wec, float) or isinstance(scale_x_wec, int):
             scale_x_wec = [scale_x_wec] * self.ndof
@@ -714,13 +722,13 @@ class WEC:
 
         # composite scaling vector
         scale = np.concatenate([scale_x_wec, scale_x_opt])
-        
+
         # decision variable initial guess
         if x_wec_0 is None:
             x_wec_0 = np.random.randn(self.nstate_wec)
         if x_opt_0 is None:
             x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale 
+        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -748,11 +756,11 @@ class WEC:
         for realization, wave in waves.groupby('realization'):
 
             _log.info("Solving pseudo-spectral control problem "
-                      + f"for realization number {realization}.") 
-            
+                      + f"for realization number {realization}.")
+
             # objective function
             sign = -1.0 if maximize else 1.0
-            
+
             def obj_fun_scaled(x):
                 x_wec, x_opt = self.decompose_state(x/scale)
                 return obj_fun(self, x_wec, x_opt, wave)*scale_obj*sign
@@ -784,7 +792,7 @@ class WEC:
             if use_grad:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
-            
+
             # callback
             if callback is None:
                 def callback_scipy(x):
@@ -828,26 +836,28 @@ class WEC:
             optim_res.x = optim_res.x / scale
             optim_res.fun = optim_res.fun / scale_obj
             optim_res.jac = optim_res.jac / scale_obj * scale
-            
+
             results.append(optim_res)
-        
+
         return results
 
     def post_process(self,
-        res: OptimizeResult,
+        wec: TWEC,
+        res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
-        """Post-process the results from
-        :py:meth:`wecopttool.WEC.solve`.
+    ) -> tuple[list[Dataset], list[Dataset]]:
+        """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
         ----------
+        wec
+            :py:class:`wecopttool.WEC` object.
+        res
+            Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
             :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
-        res
-            Results produced by :py:func:`scipy.optimize.minimize`.
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
@@ -869,95 +879,107 @@ class WEC:
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
-        To get the post-processed results for the
-        :py:class:`wecopttool.pto.PTO`, you may call
+        To get the post-processed results we may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec, res_opt,wave)
+
+        Note that :py:meth:`wecopttool.WEC.solve` method produces a list of
+        results objects (one for each phase realization).
         """
-        create_time = f"{datetime.utcnow()}"
+        assert self == wec , ("The same wec object should be used to call " +
+                                "post-process and be passed as an input.")
 
-        omega_vals = np.concatenate([[0], waves.omega.values])
-        freq_vals = np.concatenate([[0], waves.freq.values])
-        period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
-        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
-        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
-        omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
-        freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
-        period_attr = {'long_name': 'Period', 'units': 's'}
-        time_attr = {'long_name': 'Time', 'units': 's'}
-        dof_attr = {'long_name': 'Degree of freedom'}
-        force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
-        wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
-        x_wec, x_opt = self.decompose_state(res.x)
-        omega_coord = ("omega", omega_vals, omega_attr)
-        freq_coord = ("omega", freq_vals, freq_attr)
-        period_coord = ("omega", period_vals, period_attr)
-        dof_coord = ("influenced_dof", self.dof_names, dof_attr)
+        def _postproc(res, waves, nsubsteps):
+            create_time = f"{datetime.utcnow()}"
 
-        # frequency domain
-        force_da_list = []
-        for name, force in self.forces.items():
-            force_td_tmp = force(self, x_wec, x_opt, waves)
-            force_fd = self.td_to_fd(force_td_tmp)
-            force_da = DataArray(data=force_fd,
-                                 dims=["omega", "influenced_dof"],
-                                 coords={
-                                     'omega': omega_coord,
-                                     'freq': freq_coord,
-                                     'period': period_coord,
-                                     'influenced_dof': dof_coord},
-                                 attrs=force_attr
-                                 ).expand_dims({'type': [name]})
-            force_da_list.append(force_da)
+            omega_vals = np.concatenate([[0], waves.omega.values])
+            freq_vals = np.concatenate([[0], waves.freq.values])
+            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+            pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+            vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+            acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
+            omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+            freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+            period_attr = {'long_name': 'Period', 'units': 's'}
+            time_attr = {'long_name': 'Time', 'units': 's'}
+            dof_attr = {'long_name': 'Degree of freedom'}
+            force_attr = {'long_name': 'Force or moment', 'units': 'N or Nm'}
+            wave_elev_attr = {'long_name': 'Wave elevation', 'units': 'm'}
+            x_wec, x_opt = self.decompose_state(res.x)
+            omega_coord = ("omega", omega_vals, omega_attr)
+            freq_coord = ("omega", freq_vals, freq_attr)
+            period_coord = ("omega", period_vals, period_attr)
+            dof_coord = ("influenced_dof", self.dof_names, dof_attr)
 
-        fd_forces = xr.concat(force_da_list, dim='type')
-        fd_forces.type.attrs['long_name'] = 'Type'
-        fd_forces.name = 'force'
-        fd_forces.attrs['long_name'] = 'Force'
+            # frequency domain
+            force_da_list = []
+            for name, force in self.forces.items():
+                force_td_tmp = force(self, x_wec, x_opt, waves)
+                force_fd = self.td_to_fd(force_td_tmp)
+                force_da = DataArray(data=force_fd,
+                                    dims=["omega", "influenced_dof"],
+                                    coords={
+                                        'omega': omega_coord,
+                                        'freq': freq_coord,
+                                        'period': period_coord,
+                                        'influenced_dof': dof_coord},
+                                    attrs=force_attr
+                                    ).expand_dims({'type': [name]})
+                force_da_list.append(force_da)
 
-        pos = self.vec_to_dofmat(x_wec)
-        pos_fd = real_to_complex(pos)
+            fd_forces = xr.concat(force_da_list, dim='type')
+            fd_forces.type.attrs['long_name'] = 'Type'
+            fd_forces.name = 'force'
+            fd_forces.attrs['long_name'] = 'Force'
 
-        vel = self.derivative_mat @ pos
-        vel_fd = real_to_complex(vel)
+            pos = self.vec_to_dofmat(x_wec)
+            pos_fd = real_to_complex(pos)
 
-        acc = self.derivative2_mat @ pos
-        acc_fd = real_to_complex(acc)
+            vel = self.derivative_mat @ pos
+            vel_fd = real_to_complex(vel)
 
-        fd_state = Dataset(
-            data_vars={
-                'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
-                'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
-                'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
-            coords={
-                'omega': omega_coord,
-                'freq': freq_coord,
-                'period': period_coord,
-                'influenced_dof': dof_coord},
-            attrs={"time_created_utc": create_time}
-        )
+            acc = self.derivative2_mat @ pos
+            acc_fd = real_to_complex(acc)
 
-        results_fd = xr.merge([fd_state, fd_forces, waves])
-        results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
-                                          'wave_direction')
-        results_fd = results_fd.fillna(0)
+            fd_state = Dataset(
+                data_vars={
+                    'pos': (['omega', 'influenced_dof'], pos_fd, pos_attr),
+                    'vel': (['omega', 'influenced_dof'], vel_fd, vel_attr),
+                    'acc': (['omega', 'influenced_dof'], acc_fd, acc_attr)},
+                coords={
+                    'omega': omega_coord,
+                    'freq': freq_coord,
+                    'period': period_coord,
+                    'influenced_dof': dof_coord},
+                attrs={"time_created_utc": create_time}
+            )
 
-        # time domain
-        t_dat = self.time_nsubsteps(nsubsteps)
-        time = DataArray(
-            data=t_dat, name='time', dims='time', coords=[t_dat])
-        results_td = results_fd.map(lambda x: time_results(x, time))
+            results_fd = xr.merge([fd_state, fd_forces, waves])
+            results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
+                                            'wave_direction')
+            results_fd = results_fd.fillna(0)
 
-        results_td['pos'].attrs = pos_attr
-        results_td['vel'].attrs = vel_attr
-        results_td['acc'].attrs = acc_attr
-        results_td['wave_elev'].attrs = wave_elev_attr
-        results_td['force'].attrs = force_attr
-        results_td['time'].attrs = time_attr
-        results_td.attrs['time_created_utc'] = create_time
+            # time domain
+            t_dat = self.time_nsubsteps(nsubsteps)
+            time = DataArray(
+                data=t_dat, name='time', dims='time', coords=[t_dat])
+            results_td = results_fd.map(lambda x: time_results(x, time))
 
+            results_td['pos'].attrs = pos_attr
+            results_td['vel'].attrs = vel_attr
+            results_td['acc'].attrs = acc_attr
+            results_td['wave_elev'].attrs = wave_elev_attr
+            results_td['force'].attrs = force_attr
+            results_td['time'].attrs = time_attr
+            results_td.attrs['time_created_utc'] = create_time
+            return results_fd, results_td
+
+        results_fd = []
+        results_td = []
+        for idx, ires in enumerate(res):
+            ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
+            results_fd.append(ifd)
+            results_td.append(itd)
         return results_fd, results_td
 
     # properties
@@ -1746,7 +1768,8 @@ def fd_to_td(
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
-        td = np.fft.irfft(fd/2, n=n, axis=0, norm='forward')
+        fd = np.concatenate((fd[:1, :], fd[1:-1, :]/2, fd[-1:, :]))
+        td = np.fft.irfft(fd, n=n, axis=0, norm='forward')
     else:
         raise ValueError(
             "Provide either both 'f1' and 'nfreq' or neither.")
@@ -1782,10 +1805,10 @@ def td_to_fd(
     td= atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td*2, n=n, axis=0, norm='forward')
+        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td*2)
-    fd = np.concatenate((fd[:1, :]/2, fd[1:-1, :], fd[-1:, :]/2))
+        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
@@ -1833,10 +1856,10 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
     cpy.io.xarray.separate_complex_values(data).to_netcdf(fpath)
 
 
-def check_linear_damping(
+def check_radiation_damping(
     hydro_data: Dataset,
     min_damping: Optional[float] = 1e-6,
-    uniform_shift: Optional[bool] = True,
+    uniform_shift: Optional[bool] = False,
 ) -> Dataset:
     """Ensure that the linear hydrodynamics (friction + radiation
     damping) have positive damping.
@@ -1858,7 +1881,7 @@ def check_linear_damping(
         damping for all frequencies. If :python:`False`, the damping correction
         is applied to :python:`radiation_damping` and only shifts the
         damping for frequencies with negative damping values. Default is
-        :python:`True`.
+        :python:`False`.
     """
     hydro_data_new = hydro_data.copy(deep=True)
     radiation = hydro_data_new['radiation_damping']
@@ -1875,9 +1898,9 @@ def check_linear_damping(
                 delta = min_damping-dmin
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close ' +
-                    'to zero terms. Shifting up via linear friction of ' +
+                    'to zero terms. Shifting up radiation damping by ' +
                     f'{delta.values} N/(m/s).')
-                hydro_data_new['friction'][idof, idof] = (ifriction + delta)
+                hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
             new_damping = iradiation.where(
                 iradiation+ifriction>min_damping, other=min_damping)
@@ -1885,7 +1908,8 @@ def check_linear_damping(
             if (new_damping==min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
-                    'zero terms. Shifting up damping terms to a minimum of ' +
+                    'zero terms. Shifting up damping terms ' +
+                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
@@ -1894,6 +1918,7 @@ def check_linear_damping(
 def check_impedance(
     Zi: DataArray,
     min_damping: Optional[float] = 1e-6,
+    uniform_shift: Optional[bool] = False,
 ) -> DataArray:
     """Ensure that the real part of the impedance (resistive) is positive.
 
@@ -1911,14 +1936,27 @@ def check_impedance(
     Zi_diag = np.diagonal(Zi,axis1=1,axis2=2)
     Zi_shifted = Zi.copy()
     for dof in range(Zi_diag.shape[1]):
-        dmin = np.min(np.real(Zi_diag[:, dof]))
-        if dmin < min_damping:
-            delta = min_damping - dmin
-            Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
-                + np.abs(delta)
-            _log.warning(
-                f'Real part of impedance for {dof} has negative or close to ' +
-                f'zero terms. Shifting up by {delta:.2f}')
+        if uniform_shift:
+            dmin = np.min(np.real(Zi_diag[:, dof]))
+            if dmin < min_damping:
+                delta = min_damping - dmin
+                Zi_shifted[:, dof, dof] = Zi_diag[:, dof] \
+                    + np.abs(delta)
+                _log.warning(
+                    f'Real part of impedance for {dof} has negative or close to ' +
+                    f'zero terms. Shifting up by {delta:.2f}')
+        else:
+            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
+            Zi_dof_real = Zi_diag[:,dof].real.copy()
+            Zi_dof_imag = Zi_diag[:,dof].imag.copy()
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
+            if (Zi_dof_real==min_damping).any():
+                _log.warning(
+                    f'Real part of impedance for {dof} has negative or close to ' +
+                    f'zero terms. Shifting up elements '
+                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
+                    f' {min_damping} N/(m/s)')
     return Zi_shifted
 
 
@@ -2182,12 +2220,12 @@ def add_linear_friction(
         corrected. Also includes inertia and hydrostatic stiffness.
     friction
         Linear friction, in addition to radiation damping, of size
-        :python:`(nodf, ndof)`.
+        :python:`(ndof, ndof)`.
         :python:`None` if included in :python:`bem_data` or to set to zero.
     """
     dims = ['radiating_dof', 'influenced_dof']
     hydro_data = bem_data.copy(deep=True)
-    
+
     if friction is not None:
         if 'friction' in hydro_data.variables.keys():
             if not np.allclose(data, hydro_data.variables[name]):
@@ -2204,7 +2242,7 @@ def add_linear_friction(
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
-            
+
     return hydro_data
 
 
@@ -2266,11 +2304,11 @@ def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
         :py:func:`wecopttool.add_linear_friction`.
     """
 
-    Zi = (hydro_data['inertia_matrix'] \
+    hydro_impedance = (hydro_data['inertia_matrix'] \
         + hydro_data['added_mass'])*1j*hydro_data['omega'] \
             + hydro_data['radiation_damping'] + hydro_data['friction'] \
                 + hydro_data['hydrostatic_stiffness']/1j/hydro_data['omega']
-    return Zi.transpose('omega', 'radiating_dof', 'influenced_dof')
+    return hydro_impedance.transpose('omega', 'radiating_dof', 'influenced_dof')
 
 
 def atleast_2d(array: ArrayLike) -> ndarray:
@@ -2521,7 +2559,7 @@ def set_fb_centers(
         - `rotation_center` is set to the center of mass
     """
     valid_properties = ['center_of_mass', 'rotation_center']
-    
+
     for property in valid_properties:
         if not hasattr(fb, property):
             setattr(fb, property, None)
@@ -2540,5 +2578,5 @@ def set_fb_centers(
         elif getattr(fb, property) is not None:
             _log.warning(
                 f'{property} already defined as {getattr(fb, property)}.')
-            
+
     return fb

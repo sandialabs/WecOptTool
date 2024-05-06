@@ -10,7 +10,7 @@ import xarray as xr
 
 
 kplim = -1e1
-
+min_damping = 45
 
 @pytest.fixture(scope="module")
 def f1():
@@ -73,10 +73,13 @@ def fb():
 
 
 @pytest.fixture(scope="module")
-def bem(f1, nfreq, fb):
-    """Boundary elemement model (Capytaine) results"""
+def hydro_data(f1, nfreq, fb):
+    """Boundary element model (Capytaine) results (with friction added)"""
     freq = wot.frequency(f1, nfreq, False)
-    return wot.run_bem(fb, freq)
+    hydro_data = wot.run_bem(fb, freq)
+    hd = wot.add_linear_friction(hydro_data)
+    hd = wot.check_radiation_damping(hd, min_damping=min_damping)
+    return hd
 
 
 @pytest.fixture(scope='module')
@@ -91,21 +94,26 @@ def regular_wave(f1, nfreq):
 
 
 @pytest.fixture(scope='module')
-def irregular_wave(f1, nfreq):
+def long_crested_wave(f1, nfreq):
     """Idealized (Pierson-Moskowitz) spectrum wave"""
     freq = wot.frequency(f1, nfreq, False)
     fp = 0.3
     hs = 0.0625*1.9
-    spec = wot.waves.pierson_moskowitz_spectrum(freq, fp, hs)
-    waves = wot.waves.long_crested_wave(spec)
+    spec_fun = lambda f: wot.waves.pierson_moskowitz_spectrum(freq=f, 
+                                                              fp=fp, 
+                                                              hs=hs)
+    efth = wot.waves.omnidirectional_spectrum(f1=f1, nfreq=nfreq, 
+                                              spectrum_func=spec_fun,
+                                              )
+    waves = wot.waves.long_crested_wave(efth, nrealizations=2)
     return waves
 
 
 @pytest.fixture(scope='module')
-def wec_from_bem(f1, nfreq, bem, fb, pto):
+def wec_from_bem(f1, nfreq, hydro_data, fb, pto):
     """Simple WEC: 1 DOF, no constraints."""
     f_add = {"PTO": pto.force_on_wec}
-    wec = wot.WEC.from_bem(bem, f_add=f_add)
+    wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
     return wec
 
 
@@ -113,14 +121,15 @@ def wec_from_bem(f1, nfreq, bem, fb, pto):
 def wec_from_floatingbody(f1, nfreq, fb, pto):
     """Simple WEC: 1 DOF, no constraints."""
     f_add = {"PTO": pto.force_on_wec}
-    wec = wot.WEC.from_floating_body(fb, f1, nfreq, f_add=f_add)
+    wec = wot.WEC.from_floating_body(fb, f1, nfreq, f_add=f_add, 
+                                     min_damping=min_damping)
     return wec
 
 
 @pytest.fixture(scope='module')
-def wec_from_impedance(bem, pto, fb):
+def wec_from_impedance(hydro_data, pto, fb):
     """Simple WEC: 1 DOF, no constraints."""
-    bemc = bem.copy()
+    bemc = hydro_data.copy()
     omega = bemc['omega'].values
     w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
@@ -134,17 +143,18 @@ def wec_from_impedance(bem, pto, fb):
     
     freqs = omega / (2 * np.pi)
     impedance = (A + mass)*(1j*w) + B + K/(1j*w)
-    exc_coeff = bem['Froude_Krylov_force'] + bem['diffraction_force']
+    exc_coeff = hydro_data['Froude_Krylov_force'] + hydro_data['diffraction_force']
     f_add = {"PTO": pto.force_on_wec}
 
-    wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add)
+    wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add, 
+                                 min_damping=min_damping)
     return wec
 
 
 @pytest.fixture(scope='module')
-def resonant_wave(f1, nfreq, fb, bem):
+def resonant_wave(f1, nfreq, fb, hydro_data):
     """Regular wave at natural frequency of the WEC"""
-    hd = wot.add_linear_friction(bem)
+    hd = wot.add_linear_friction(hydro_data)
     Zi = wot.hydrodynamic_impedance(hd)
     wn = Zi['omega'][np.abs(Zi).argmin(dim='omega')].item()
     waves = wot.waves.regular_wave(f1, nfreq, freq=wn/2/np.pi, amplitude=0.1)
@@ -231,15 +241,48 @@ class TestTheoreticalPowerLimits:
         return fb.compute_hydrostatic_stiffness()
 
     @pytest.fixture(scope='class')
-    def hydro_impedance(self, bem):
+    def hydro_impedance(self, hydro_data):
         """Intrinsic hydrodynamic impedance"""
-        hd = wot.add_linear_friction(bem)
-        hd = wot.check_linear_damping(hd)
-        Zi = wot.hydrodynamic_impedance(hd)
+        Zi = wot.hydrodynamic_impedance(hydro_data)
         return Zi
+    
+    @pytest.fixture(scope='class')
+    def unstruct_wec(self,
+                     hydro_data,
+                     pto):
+        """WaveBot WEC object with unstructured controller"""
+
+        f_add = {"PTO": pto.force_on_wec}
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
+
+        return wec
+
+    @pytest.fixture(scope='class')
+    def long_crested_wave_unstruct_res(self,
+                                       unstruct_wec,
+                                       long_crested_wave,
+                                       pto,
+                                       hydro_data,
+                                       nfreq):
+        """Solution for an unstructured controller with multiple long crested 
+        waves"""
+
+        f_add = {"PTO": pto.force_on_wec}
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
+
+        res = unstruct_wec.solve(waves=long_crested_wave,
+                                 obj_fun=pto.average_power,
+                                 nstate_opt=2*nfreq,
+                                 x_wec_0=1e-3*np.ones(wec.nstate_wec),
+                                 scale_x_wec=1e1,
+                                 scale_x_opt=1e-3,
+                                 scale_obj=5e-2,
+                                 )
+
+        return res
 
     def test_p_controller_resonant_wave(self,
-                                        bem,
+                                        hydro_data,
                                         resonant_wave,
                                         p_controller_pto,
                                         hydro_impedance):
@@ -247,7 +290,7 @@ class TestTheoreticalPowerLimits:
         wave"""
         
         f_add = {"PTO": p_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
 
         res = wec.solve(waves=resonant_wave,
                         obj_fun=p_controller_pto.average_power,
@@ -263,8 +306,8 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res[0], resonant_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
+        res_fd, _ = wec.post_process(wec, res, resonant_wave, nsubsteps=1)
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -272,14 +315,14 @@ class TestTheoreticalPowerLimits:
         assert power_sol == approx(power_optimal, rel=0.03)
 
     def test_pi_controller_regular_wave(self,
-                                        bem,
+                                        hydro_data,
                                         regular_wave,
                                         pi_controller_pto,
                                         hydro_impedance):
         """PI controller matches optimal for any regular wave"""
 
         f_add = {"PTO": pi_controller_pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        wec = wot.WEC.from_bem(hydro_data, f_add=f_add)
 
         res = wec.solve(waves=regular_wave,
                         obj_fun=pi_controller_pto.average_power,
@@ -295,47 +338,46 @@ class TestTheoreticalPowerLimits:
 
         power_sol = -1*res[0]['fun']
 
-        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
+        res_fd, _ = wec.post_process(wec, res, regular_wave, nsubsteps=1)
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-4)
-    def test_unstructured_controller_irregular_wave(self,
-                                                    fb,
-                                                    bem,
-                                                    regular_wave,
-                                                    pto,
-                                                    nfreq,
-                                                    hydro_impedance):
+        
+    def test_unstructured_controller_long_crested_wave(self,
+                                                       unstruct_wec,
+                                                       long_crested_wave,
+                                                       hydro_impedance,
+                                                       long_crested_wave_unstruct_res,
+                                                       pto):
         """Unstructured (numerical optimal) controller matches optimal for any
-        irregular wave when unconstrained"""
+        irregular (long crested) wave when unconstrained"""
 
-        f_add = {"PTO": pto.force_on_wec}
-        wec = wot.WEC.from_bem(bem, f_add=f_add)
+        power_sol = -1*long_crested_wave_unstruct_res[0]['fun']
 
-        res = wec.solve(waves=regular_wave,
-                        obj_fun=pto.average_power,
-                        nstate_opt=2*nfreq,
-                        x_wec_0=1e-1*np.ones(wec.nstate_wec),
-                        scale_x_wec=1e2,
-                        scale_x_opt=1e-2,
-                        scale_obj=1e-2,
-                        )
-
-        power_sol = -1*res[0]['fun']
-
-        res_fd, _ = wec.post_process(res[0], regular_wave.sel(realization=0), nsubsteps=1)
-        Fex = res_fd.force.sel(
+        res_fd, _ = unstruct_wec.post_process(unstruct_wec, long_crested_wave_unstruct_res, 
+                                        long_crested_wave, 
+                                        nsubsteps=1)
+        Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
 
-        assert power_sol == approx(power_optimal, rel=1e-3)
+        assert power_sol == approx(power_optimal, rel=1e-2)
+
+    def test_unconstrained_solutions_multiple_phase_realizations(self,
+                                                                 long_crested_wave_unstruct_res):
+        """Solutions for average power with an unstructured controller 
+        (no constraints) match for different phase realizations"""
+
+        pow = [res['fun'] for res in long_crested_wave_unstruct_res]
+
+        assert pow[0] == approx(pow[1], rel=1e-6)
 
     def test_saturated_pi_controller(self,
-                                    bem,
+                                    hydro_data,
                                     regular_wave,
                                     pto,
                                     nfreq):
@@ -357,7 +399,7 @@ class TestTheoreticalPowerLimits:
             f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
                                        nsubsteps=4)
             return f_max - np.abs(f.flatten())
-        wec['us'] = wot.WEC.from_bem(bem,
+        wec['us'] = wot.WEC.from_bem(hydro_data,
                                      f_add={"PTO": pto['us'].force_on_wec},
                                      constraints=[{'type': 'ineq',
                                                    'fun': const_f_pto, }])
@@ -372,7 +414,7 @@ class TestTheoreticalPowerLimits:
         pto['pi'] = wot.pto.PTO(ndof=ndof,
                                 kinematics=np.eye(ndof),
                                 controller=saturated_pi,)
-        wec['pi'] = wot.WEC.from_bem(bem,
+        wec['pi'] = wot.WEC.from_bem(hydro_data,
                                      f_add={"PTO": pto['pi'].force_on_wec},
                                      constraints=[])
         
@@ -405,13 +447,13 @@ class TestTheoreticalPowerLimits:
             
             nsubstep_postprocess = 4
             pto_fdom[key], pto_tdom[key] = pto[key].post_process(wec[key], 
-                                                                 res[key][0], 
-                                                                 regular_wave.sel(realization=0), 
+                                                                 res[key], 
+                                                                 regular_wave, 
                                                                  nsubstep_postprocess)
         
-        xr.testing.assert_allclose(pto_tdom['pi'].power.squeeze().mean('time'), 
-                                   pto_tdom['us'].power.squeeze().mean('time'),
+        xr.testing.assert_allclose(pto_tdom['pi'][0].power.squeeze().mean('time'), 
+                                   pto_tdom['us'][0].power.squeeze().mean('time'),
                                    rtol=1e-1)
         
-        xr.testing.assert_allclose(pto_tdom['us'].force.max(),
-                                   pto_tdom['pi'].force.max())
+        xr.testing.assert_allclose(pto_tdom['us'][0].force.max(),
+                                   pto_tdom['pi'][0].force.max())

@@ -656,10 +656,10 @@ class PTO:
 
     def post_process(self,
         wec: TWEC,
-        res: OptimizeResult,
+        res: Union[OptimizeResult, list],
         waves: Optional[DataArray] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+    ) -> tuple[list[Dataset], list[Dataset]]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
 
@@ -675,22 +675,21 @@ class PTO:
         To get the post-processed results for the
         :py:class:`wecopttool.pto.PTO`, you may call
 
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt[0],wave)
 
         For smoother plots, you can set :python:`nsubsteps` to a value
         greater than 1.
 
         >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,
                                                       nsubsteps=4)
-        >>> res_pto_td.power.plot()
+        >>> res_pto_td[0].power.plot()
 
         Parameters
         ----------
         wec
             :py:class:`wecopttool.WEC` object.
         res
-            Results produced by :py:func:`scipy.optimize.minimize`.
+            Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
             :py:class:`xarray.Dataset` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
@@ -702,115 +701,125 @@ class PTO:
         Returns
         -------
         results_fd
-            :py:class:`xarray.Dataset` with frequency domain results.
+            list of :py:class:`xarray.Dataset` with frequency domain results.
         results_td
-            :py:class:`xarray.Dataset` with time domain results.
+            list of :py:class:`xarray.Dataset` with time domain results.
         """
-        create_time = f"{datetime.utcnow()}"
+        def _postproc(wec, res, waves, nsubsteps):
 
-        x_wec, x_opt = wec.decompose_state(res.x)
+            create_time = f"{datetime.utcnow()}"
 
-        # position
-        pos_td = self.position(wec, x_wec, x_opt, waves, nsubsteps)
-        pos_fd = wec.td_to_fd(pos_td[::nsubsteps])
+            x_wec, x_opt = wec.decompose_state(res.x)
 
-        # velocity
-        vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-        vel_fd = wec.td_to_fd(vel_td[::nsubsteps])
+            # position
+            pos_td = self.position(wec, x_wec, x_opt, waves, nsubsteps)
+            pos_fd = wec.td_to_fd(pos_td[::nsubsteps])
 
-        # acceleration
-        acc_td = self.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
-        acc_fd = wec.td_to_fd(acc_td[::nsubsteps])
+            # velocity
+            vel_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+            vel_fd = wec.td_to_fd(vel_td[::nsubsteps])
 
-        # force
-        force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
-        force_fd = wec.td_to_fd(force_td[::nsubsteps])
+            # acceleration
+            acc_td = self.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
+            acc_fd = wec.td_to_fd(acc_td[::nsubsteps])
 
-        # power
-        elec_power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
-        elec_power_fd = wec.td_to_fd(elec_power_td[::nsubsteps])
+            # force
+            force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
+            force_fd = wec.td_to_fd(force_td[::nsubsteps])
 
-        # mechanical power
-        mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
-                                              nsubsteps)
-        mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
+            # power
+            elec_power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
+            elec_power_fd = wec.td_to_fd(elec_power_td[::nsubsteps])
 
-        # stack mechanical and electrical power
-        power_names = ['mech','elec']
-        power_fd = np.stack((mech_power_fd,elec_power_fd))
-        power_td = np.stack((mech_power_td,elec_power_td))
+            # mechanical power
+            mech_power_td = self.mechanical_power(wec, x_wec, x_opt, waves,
+                                                nsubsteps)
+            mech_power_fd = wec.td_to_fd(mech_power_td[::nsubsteps])
 
-        pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
-        vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
-        acc_attr = {'long_name': 'Acceleration',
-                    'units': 'm/s^2 or rad/s^2'}
-        force_attr = {'long_name': 'Force or moment on WEC',
-                      'units': 'N or Nm'}
-        power_attr = {'long_name': 'Power', 'units': 'W'}
-        mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
-        omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
-        freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
-        period_attr = {'long_name': 'Period', 'units': 's'}
-        dof_attr = {'long_name': 'PTO degree of freedom'}
-        time_attr = {'long_name': 'Time', 'units': 's'}
-        type_attr = {'long_name': 'Power type'}
+            # stack mechanical and electrical power
+            power_names = ['mech','elec']
+            power_fd = np.stack((mech_power_fd,elec_power_fd))
+            power_td = np.stack((mech_power_td,elec_power_td))
 
-        t_dat = wec.time_nsubsteps(nsubsteps)
+            pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
+            vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
+            acc_attr = {'long_name': 'Acceleration',
+                        'units': 'm/s^2 or rad/s^2'}
+            force_attr = {'long_name': 'Force or moment on WEC',
+                        'units': 'N or Nm'}
+            power_attr = {'long_name': 'Power', 'units': 'W'}
+            mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
+            omega_attr = {'long_name': 'Radial frequency', 'units': 'rad/s'}
+            freq_attr = {'long_name': 'Frequency', 'units': 'Hz'}
+            period_attr = {'long_name': 'Period', 'units': 's'}
+            dof_attr = {'long_name': 'PTO degree of freedom'}
+            time_attr = {'long_name': 'Time', 'units': 's'}
+            type_attr = {'long_name': 'Power type'}
 
-        results_fd = Dataset(
-            data_vars={
-                'pos': (['omega','dof'], pos_fd, pos_attr),
-                'vel': (['omega','dof'], vel_fd, vel_attr),
-                'acc': (['omega','dof'], acc_fd, acc_attr),
-                'force': (['omega','dof'], force_fd, force_attr),
-                'power': (['type','omega','dof'], power_fd, power_attr),
-            },
-            coords={
-                'omega':('omega', wec.omega, omega_attr),
-                'freq':('omega', wec.frequency, freq_attr),
-                'period':('omega', wec.period, period_attr),
-                'dof':('dof', self.names, dof_attr),
-                'type':('type', power_names, power_attr)},
-            attrs={"time_created_utc": create_time}
-            )
+            t_dat = wec.time_nsubsteps(nsubsteps)
 
-        results_td = Dataset(
-            data_vars={
-                'pos': (['time','dof'], pos_td, pos_attr),
-                'vel': (['time','dof'], vel_td, vel_attr),
-                'acc': (['time','dof'], acc_td, acc_attr),
-                'force': (['time','dof'], force_td, force_attr),
-                'power': (['type','time','dof'], power_td, power_attr),
-            },
-            coords={
-                'time':('time', t_dat, time_attr),
-                'dof':('dof', self.names, dof_attr),
-                'type':('type', power_names, power_attr)},
-            attrs={"time_created_utc": create_time}
-            )
+            results_fd = Dataset(
+                data_vars={
+                    'pos': (['omega','dof'], pos_fd, pos_attr),
+                    'vel': (['omega','dof'], vel_fd, vel_attr),
+                    'acc': (['omega','dof'], acc_fd, acc_attr),
+                    'force': (['omega','dof'], force_fd, force_attr),
+                    'power': (['type','omega','dof'], power_fd, power_attr),
+                },
+                coords={
+                    'omega':('omega', wec.omega, omega_attr),
+                    'freq':('omega', wec.frequency, freq_attr),
+                    'period':('omega', wec.period, period_attr),
+                    'dof':('dof', self.names, dof_attr),
+                    'type':('type', power_names, power_attr)},
+                attrs={"time_created_utc": create_time}
+                )
 
-        if self.impedance is not None:
-        #transduced flow and effort variables
-            q2_td, e2_td = self.power_variables(wec, x_wec, x_opt,
-                                                waves, nsubsteps)
-            q2_fd = wec.td_to_fd(q2_td[::nsubsteps])
-            e2_fd = wec.td_to_fd(e2_td[::nsubsteps])
+            results_td = Dataset(
+                data_vars={
+                    'pos': (['time','dof'], pos_td, pos_attr),
+                    'vel': (['time','dof'], vel_td, vel_attr),
+                    'acc': (['time','dof'], acc_td, acc_attr),
+                    'force': (['time','dof'], force_td, force_attr),
+                    'power': (['type','time','dof'], power_td, power_attr),
+                },
+                coords={
+                    'time':('time', t_dat, time_attr),
+                    'dof':('dof', self.names, dof_attr),
+                    'type':('type', power_names, power_attr)},
+                attrs={"time_created_utc": create_time}
+                )
 
-            q2_attr = {'long_name': 'Transduced Flow',
-                       'units': 'A or m^3/s or rad/s or m/s'}
-            e2_attr = {'long_name': 'Transduced Effort',
-                       'units': 'V or N/m^2 or Nm or Ns'}
+            if self.impedance is not None:
+            #transduced flow and effort variables
+                q2_td, e2_td = self.power_variables(wec, x_wec, x_opt,
+                                                    waves, nsubsteps)
+                q2_fd = wec.td_to_fd(q2_td[::nsubsteps])
+                e2_fd = wec.td_to_fd(e2_td[::nsubsteps])
 
-            results_td = results_td.assign({
-                        'trans_flo': (['time','dof'], q2_td, q2_attr),
-                        'trans_eff': (['time','dof'], e2_td, e2_attr),
-                    })
-            results_fd = results_fd.assign({
-                        'trans_flo': (['omega','dof'], q2_fd, q2_attr),
-                        'trans_eff': (['omega','dof'], e2_fd, e2_attr),
-                    })
+                q2_attr = {'long_name': 'Transduced Flow',
+                        'units': 'A or m^3/s or rad/s or m/s'}
+                e2_attr = {'long_name': 'Transduced Effort',
+                        'units': 'V or N/m^2 or Nm or Ns'}
+
+                results_td = results_td.assign({
+                            'trans_flo': (['time','dof'], q2_td, q2_attr),
+                            'trans_eff': (['time','dof'], e2_td, e2_attr),
+                        })
+                results_fd = results_fd.assign({
+                            'trans_flo': (['omega','dof'], q2_fd, q2_attr),
+                            'trans_eff': (['omega','dof'], e2_fd, e2_attr),
+                        })
 
 
+            return results_fd, results_td
+
+        results_fd = []
+        results_td = []
+        for idx, ires in enumerate(res):
+            ifd, itd = _postproc(wec, ires, waves.sel(realization=idx), nsubsteps)
+            results_fd.append(ifd)
+            results_td.append(itd)
         return results_fd, results_td
 
 

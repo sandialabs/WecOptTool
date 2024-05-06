@@ -919,8 +919,8 @@ class TestReadWriteNetCDF:
         assert hydro_data.equals(hydro_data_new)
 
 
-class TestCheckLinearDamping:
-    """Test function :python:`check_linear_damping`."""
+class TestCheckRadiationDamping:
+    """Test function :python:`check_radiation_damping`."""
 
     @pytest.fixture(scope="class")
     def data(self, hydro_data):
@@ -933,44 +933,39 @@ class TestCheckLinearDamping:
 
     @pytest.fixture(scope="class")
     def tol(self, data):
-        """Tolerance for function :python:`check_linear_damping`."""
+        """Tolerance for function :python:`check_radiation_damping`."""
         return 0.01
 
     @pytest.fixture(scope="class")
     def data_new_uniform(self, data, tol):
         """Hydrodynamic data structure for which the function
-        :python:`check_linear_damping` has been called.
+        :python:`check_radiation_damping` has been called.
         """
-        return wot.check_linear_damping(data, tol)
+        return wot.check_radiation_damping(data, tol, True)
 
     @pytest.fixture(scope="class")
     def data_new_nonuniform(self, data, tol):
         """Hydrodynamic data structure for which the function
-        :python:`check_linear_damping` has been called.
+        :python:`check_radiation_damping` has been called.
         """
-        return wot.check_linear_damping(data, tol, False)
+        return wot.check_radiation_damping(data, tol, False)
 
-    def test_friction(self, data_new_uniform, tol):
+    def test_radiation(self, data, data_new_uniform, tol):
         """Test that the modified friction diagonal has the expected
         value for a uniform shift.
         """
-        assert np.allclose(np.diagonal(data_new_uniform.friction.values), tol)
+        radiation_diff = (data_new_uniform.radiation_damping.values
+                            - data.radiation_damping.values)
+        assert np.allclose(radiation_diff, radiation_diff[0], tol)
 
-    def test_only_diagonal_friction(self, data, data_new_uniform):
-        """Test that only the diagonal was changed for a uniform shift."""
-        data_org = data.copy(deep=True)
-        def nodiag(x):
-            return x.friction.values - np.diag(np.diagonal(x.friction.values))
-        assert np.allclose(nodiag(data_new_uniform), nodiag(data_org))
-
-    def test_only_friction(self, data, data_new_uniform):
-        """Test that only the friction is changed in the hydrodynamic
+    def test_only_radiation(self, data, data_new_uniform):
+        """Test that only the radiation is changed in the hydrodynamic
         data for a uniform shift.
         """
-        data_new_nofric = data_new_uniform.copy(deep=True
-                                                ).drop_vars('friction')
-        data_org_nofric = data.copy(deep=True).drop_vars('friction')
-        assert data_new_nofric.equals(data_org_nofric)
+        data_new_norad = data_new_uniform.copy(deep=True
+                                               ).drop_vars('radiation_damping')
+        data_org_norad = data.copy(deep=True).drop_vars('radiation_damping')
+        assert data_new_norad.equals(data_org_norad)
 
     def test_damping(self, data_new_nonuniform, tol):
         """Test that the modified radiation damping diagonal has the expected
