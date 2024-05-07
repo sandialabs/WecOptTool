@@ -39,6 +39,8 @@ extensions = [
     'nbsphinx',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'sphinxext.remoteliteralinclude',
+    'sphinx_multiversion',
 ]
 
 templates_path = ['_templates']
@@ -48,6 +50,11 @@ html_theme_options = {
     'navigation_depth': 5,
 }
 html_static_path = ['_static']
+html_sidebars = {
+    '**': [
+        'versioning.html',
+    ],
+}
 
 def setup(app):
     app.add_css_file('css/custom.css')
@@ -56,6 +63,11 @@ suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do n
                      'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these
                      'app.add_directive',
                      'app.add_role',]
+
+# sphinx_multiversion settings
+smv_branch_whitelist = r'(master|dev)$'
+smv_tag_whitelist = None
+smv_remote_whitelist = r'^(origin)$'
 
 # -- References (BibTex) -----------------------------------------------------
 bibtex_bibfiles = ['wecopttool_refs.bib']
