@@ -55,13 +55,13 @@ def cleanup():
         f.write(data2)
 
 
-def build_doc(version, tag, latest):
+def build_doc(version, tag, home_branch):
     os.environ['current_version'] = version
     subprocess.run(f'git checkout {tag}', shell=True)
     subprocess.run(
-        f"git checkout {latest} -- {os.path.join(source_dir, 'conf.py')}", shell=True)
+        f"git checkout {home_branch} -- {os.path.join(source_dir, 'conf.py')}", shell=True)
     subprocess.run(
-        f"git checkout {latest} -- {os.path.join(docs_dir, 'versions.yaml')}", shell=True)
+        f"git checkout {home_branch} -- {os.path.join(docs_dir, 'versions.yaml')}", shell=True)
     source.make_theory_animations
     linkcheck()
     html()
@@ -71,8 +71,8 @@ def build_doc(version, tag, latest):
 if __name__ == '__main__':
     with open(os.path.join(docs_dir, 'versions.yaml'), 'r') as v_file:
         versions = yaml.safe_load(v_file)
-    latest = versions['latest']
+    home_branch = versions['main']
     for name, tag in versions.items():
-        build_doc(name, tag, latest)
+        build_doc(name, tag, home_branch)
         shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
     shutil.rmtree(html_dir)
