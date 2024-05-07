@@ -72,7 +72,6 @@ bibtex_reference_style = 'label'
 bibtex_foot_reference_style = 'foot'
 
 # -- Tutorials (Jupyter) -----------------------------------------------------
-nbsphinx_execute = 'never'
 print("Copy example notebooks into docs/_examples")
 
 def all_but_ipynb(dir, contents):

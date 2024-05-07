@@ -63,7 +63,7 @@ def build_doc(version, tag, latest):
     subprocess.run(
         f"git checkout {latest} -- {os.path.join(docs_dir, 'versions.yaml')}", shell=True)
     source.make_theory_animations
-    # linkcheck()
+    linkcheck()
     html()
     cleanup()
 
