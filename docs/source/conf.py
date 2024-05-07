@@ -1,8 +1,7 @@
 import os
 import sys
 import shutil
-
-import sphinx
+import yaml
 
 from wecopttool import __version__, __version_info__
 
@@ -48,6 +47,14 @@ html_theme_options = {
     'navigation_depth': 5,
 }
 html_static_path = ['_static']
+html_context = {
+  'current_version' : os.environ.get('current_version'),
+  'other_versions' : [],
+}
+with open('versions.yaml', 'r') as v_file:
+    versions = yaml.safe_load(v_file)
+for name in versions.keys():
+    html_context['other_versions'].append(name)
 
 def setup(app):
     app.add_css_file('css/custom.css')
