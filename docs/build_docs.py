@@ -69,9 +69,12 @@ def build_doc(version, tag, home_branch):
 
 
 if __name__ == '__main__':
+    home_name = 'main'
     with open(os.path.join(docs_dir, 'versions.yaml'), 'r') as v_file:
         versions = yaml.safe_load(v_file)
-    home_branch = versions['main']
+    home_branch = versions[home_name]
+    build_doc(home_name, home_branch, home_branch)
+    shutil.copytree(html_dir, os.path.join(docs_dir, 'pages'))
     for name, tag in versions.items():
         build_doc(name, tag, home_branch)
         shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
