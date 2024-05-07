@@ -1,5 +1,6 @@
 import os
 import subprocess
+import shutil
 import re
 import yaml
 
@@ -18,8 +19,7 @@ doctree_dir = os.path.join(build_dir, 'doctrees')
 
 
 def move_dir(src, dst):
-  subprocess.run(f'mkdir -p {dst}')
-  subprocess.run(f'mv {src}/* {dst}', shell=True)
+    shutil.copytree(src, dst)
 
 
 def linkcheck():
@@ -74,4 +74,5 @@ if __name__ == '__main__':
     latest = versions['latest']
     for name, tag in versions.items():
         build_doc(name, tag, latest)
-        move_dir(html_dir, os.path.join(docs_dir, 'pages', name))
+        shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
+    shutil.rmtree(html_dir)
