@@ -151,9 +151,6 @@ def resonant_wave(f1, nfreq, fb, bem):
     return waves
 
 
-#removed call back test since ipopt doesn't have a callback function
-
-
 @pytest.mark.parametrize("bounds_opt",
                          [Bounds(lb=kplim, ub=0), ((kplim, 0),)])
 def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,

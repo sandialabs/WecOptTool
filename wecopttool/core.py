@@ -70,7 +70,6 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
-import cyipopt
 from cyipopt import minimize_ipopt
 
 # logger
@@ -785,8 +784,6 @@ class WEC:
             if use_grad:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
-            
-            # removed callback since it is not present in cyipopt
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
