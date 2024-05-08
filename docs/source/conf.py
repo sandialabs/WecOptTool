@@ -27,6 +27,12 @@ author = 'Sandia National Laboratories'
 version = '.'.join(__version_info__[:2])
 release = __version__
 
+current_branch = os.environ.get('current_version')
+if current_branch == 'main':
+    url_prefix = '.'
+else:
+    url_prefix = '..'
+
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.autodoc',
@@ -48,13 +54,16 @@ html_theme_options = {
 }
 html_static_path = ['_static']
 html_context = {
-  'current_version' : os.environ.get('current_version'),
+  'current_version' : current_branch,
   'other_versions' : [],
 }
 with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
     versions = yaml.safe_load(v_file)
 for name in versions.keys():
-    html_context['other_versions'].append(name)
+    if name == 'main':
+        html_context['other_versions'].append([name, f'../{name}'])
+    else:
+        html_context['other_versions'].append([name, f'{url_prefix}/{name}'])
 
 def setup(app):
     app.add_css_file('css/custom.css')

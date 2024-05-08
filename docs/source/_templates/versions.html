@@ -8,8 +8,8 @@
     {%- if other_versions|length > 1 %}
     <dl>
       <dt>Branches</dt>
-      {%- for version in other_versions %}
-      <dd><a href="../{{ version }}/index.html">{{ version }}</a></dd>
+      {%- for name, url in other_versions %}
+      <dd><a href="{{ url }}/index.html">{{ name }}</a></dd>
       {%- endfor %}
     </dl>
     {%- endif %}
