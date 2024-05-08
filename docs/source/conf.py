@@ -28,7 +28,7 @@ version = '.'.join(__version_info__[:2])
 release = __version__
 
 current_branch = os.environ.get('current_version')
-if current_branch == 'main':
+if current_branch == 'latest':
     url_prefix = '.'
 else:
     url_prefix = '..'
@@ -60,7 +60,7 @@ html_context = {
 with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
     versions = yaml.safe_load(v_file)
 for name in versions.keys():
-    if name == 'main':
+    if name == 'latest':
         html_context['other_versions'].append([name, f'../{name}'])
     else:
         html_context['other_versions'].append([name, f'{url_prefix}/{name}'])

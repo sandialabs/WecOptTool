@@ -62,6 +62,8 @@ def build_doc(version, tag, home_branch):
         f"git checkout {home_branch} -- {os.path.join(source_dir, 'conf.py')}", shell=True)
     subprocess.run(
         f"git checkout {home_branch} -- {os.path.join(docs_dir, 'versions.yaml')}", shell=True)
+    subprocess.run(
+        f"git checkout {home_branch} -- {os.path.join(source_dir, '_templates/version_select.html')}", shell=True)
     source.make_theory_animations
     linkcheck()
     html()
@@ -69,7 +71,7 @@ def build_doc(version, tag, home_branch):
 
 
 if __name__ == '__main__':
-    home_name = 'main'
+    home_name = 'latest'
     with open(os.path.join(docs_dir, 'versions.yaml'), 'r') as v_file:
         versions = yaml.safe_load(v_file)
     home_branch = versions[home_name]
