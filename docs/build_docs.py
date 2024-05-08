@@ -76,8 +76,9 @@ if __name__ == '__main__':
     shutil.copytree(html_dir, os.path.join(docs_dir, 'pages'))
     print('Done.')
     for name, tag in versions.items():
-        build_doc(name, tag, home_branch)
-        print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages', name)}...")
-        shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
-        print('Done.')
+        if name != home_name:
+            build_doc(name, tag, home_branch)
+            print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages', name)}...")
+            shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
+            print('Done.')
     shutil.rmtree(html_dir)

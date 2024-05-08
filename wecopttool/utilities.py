@@ -51,7 +51,7 @@ def plot_hydrodynamic_coefficients(bem_data,
         element method (BEM) code Capytaine, with sign convention
         corrected.
     wave_dir
-        Wave direction(s) to plot the 
+        Wave direction(s) to plot.
     """
 
     bem_data = bem_data.sel(wave_direction = wave_dir, method='nearest')
