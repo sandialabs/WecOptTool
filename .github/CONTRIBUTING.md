@@ -63,13 +63,13 @@ The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/)
 The source code (restructured text) is in `./docs/source` and images are in `./docs/source/_static`.
 The homepage source code is in `./docs/source/index.rst`.
 
-To build the documentation locally (not required but good check)
+To build the documentation locally (not required but good check), go to `./docs/versions.yaml` and change the value of `latest` to be your local branch. Then run:
 
 ```bash
 python3 docs/build_docs.py
 ```
 
-The built documentation will be in `./docs/_build` and the homepage is `./docs/_build/index.html`.
+The built documentation will be in `./docs/pages` and the homepage is `./docs/pages/index.html`.
 To delete, do `python3 docs/clean_docs.py`.
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
