@@ -64,6 +64,8 @@ def build_doc(version, tag, home_branch):
     linkcheck()
     html()
     cleanup()
+    subprocess.run(
+        f"git checkout {home_branch}", shell=True)
 
 
 if __name__ == '__main__':

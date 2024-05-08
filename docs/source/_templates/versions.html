@@ -5,13 +5,17 @@
     <span class="fa fa-caret-down"></span>
   </span>
   <div class="rst-other-versions">
-    {%- if other_versions|length > 1 %}
+    {%- if other_versions|length > 1 -%}
     <dl>
       <dt>Branches</dt>
-      {%- for name, url in other_versions %}
-      <dd><a href="{{ url }}/index.html">{{ name }}</a></dd>
-      {%- endfor %}
+      {%- for name, url in other_versions -%}
+        {%- if "api_docs/" in pagename or "_examples/" in pagename -%}
+          <dd><a href="../{{url}}/{{pagename}}.html">{{ name }}</a></dd>
+        {%- else -%}
+          <dd><a href="{{url}}/{{pagename}}.html">{{ name }}</a></dd>
+        {%- endif -%}
+      {%- endfor -%}
     </dl>
-    {%- endif %}
+    {%- endif -%}
   </div>
 </div>
