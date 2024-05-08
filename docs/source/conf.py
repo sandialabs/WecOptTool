@@ -63,7 +63,7 @@ for name in versions.keys():
     if name == 'latest':
         html_context['other_versions'].append([name, url_prefix])
     else:
-        html_context['other_versions'].append([name, os.path.join(url_prefix, name)'])
+        html_context['other_versions'].append([name, os.path.join(url_prefix, name)])
 
 def setup(app):
     app.add_css_file('css/custom.css')
