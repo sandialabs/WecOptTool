@@ -76,12 +76,12 @@ if __name__ == '__main__':
         versions = yaml.safe_load(v_file)
     home_branch = versions[home_name]
     build_doc(home_name, home_branch, home_branch)
-    print(f'Moving HTML pages to {os.path.join(docs_dir, 'pages')}...')
+    print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages')}...")
     shutil.copytree(html_dir, os.path.join(docs_dir, 'pages'))
     print('Done.')
     for name, tag in versions.items():
         build_doc(name, tag, home_branch)
-        print(f'Moving HTML pages to {os.path.join(docs_dir, 'pages', name)}...')
+        print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages', name)}...")
         shutil.copytree(html_dir, os.path.join(docs_dir, 'pages', name))
         print('Done.')
     shutil.rmtree(html_dir)
