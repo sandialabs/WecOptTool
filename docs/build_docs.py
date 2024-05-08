@@ -18,10 +18,6 @@ html_dir = os.path.join(build_dir, 'html')
 doctree_dir = os.path.join(build_dir, 'doctrees')
 
 
-def move_dir(src, dst):
-    shutil.copytree(src, dst)
-
-
 def linkcheck():
     app = Sphinx(source_dir,
                  conf_dir,
