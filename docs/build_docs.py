@@ -63,7 +63,7 @@ def build_doc(version, tag, home_branch):
     subprocess.run(
         f"git checkout {home_branch} -- {os.path.join(docs_dir, 'versions.yaml')}", shell=True)
     subprocess.run(
-        f"git checkout {home_branch} -- {os.path.join(source_dir, '_templates/version_select.html')}", shell=True)
+        f"git checkout {home_branch} -- {os.path.join(source_dir, '_templates/versions.html')}", shell=True)
     source.make_theory_animations
     linkcheck()
     html()
