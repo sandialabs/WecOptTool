@@ -2182,11 +2182,9 @@ def run_bem(
                      'be used to auto-populate.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
-        _log.warning('FloatingBody has no hydrostatic_stiffness field. ' + 
-                     'If the FloatingBody mass is defined, it will be ' + 
-                     'used for calculating the hydrostatic stiffness here. ' + 
-                     'Otherwise, the neutral buoyancy assumption will ' + 
-                     'be used to auto-populate.')
+        _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
+                     'Capytaine will auto-populate the hydrostatic ' +
+                     'stiffness based on the provided mesh.'
         wec_im.hydrostatic_stiffness = wec_im.compute_hydrostatic_stiffness(rho=rho, g=g)
     bem_data = solver.fill_dataset(
         test_matrix, wec_im, n_jobs=njobs, **write_info)
