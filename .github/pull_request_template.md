@@ -9,7 +9,7 @@ Concise description of the pull request with references to any [issues](https://
 
 ## Checklist for PR
 - [ ] Authors read the [contribution guidelines](https://github.com/sandialabs/WecOptTool/blob/main/.github/CONTRIBUTING.md)
-- [ ] The pull request is from an issue branch (not main) on *your* fork, to the [main branch in WecOptTool](https://github.com/sandialabs/WecOptTool).
+- [ ] The pull request is from an issue branch (not main) on *your* fork, to the [dev branch in WecOptTool](https://github.com/sandialabs/WecOptTool/tree/dev).
 - [ ] The authors have given the admins edit access
 - [ ] All changes adhere to the style guide including PEP8, Docstrings, and Type Hints.
 - [ ] Modified the documentation if applicable
