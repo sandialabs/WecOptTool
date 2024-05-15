@@ -145,6 +145,6 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org/stable', None),
     'xarray': ('https://docs.xarray.dev/en/stable', None),
-    'capytaine': ('https://ancell.in/capytaine/latest', None),
+    'capytaine': ('https://capytaine.github.io/stable/', None),
     'wavespectra': ('https://wavespectra.readthedocs.io/en/latest', None),
 }
