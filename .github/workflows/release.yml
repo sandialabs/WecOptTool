@@ -49,14 +49,24 @@ jobs:
       with:
         python-version: '3.11'
 
+    - name: Setup Miniforge
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-version: latest
+        mamba-version: "*"
+        python-version: '3.11'
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: test-env
+
     - name: Install dependencies
       run: sudo apt-get install libglu1 pandoc gifsicle
 
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
-        python3 -m pip install --upgrade pip
         mamba install cyipopt
+        python3 -m pip install --upgrade pip
         pip3 install wheel coveralls
         pip3 install .[dev,geometry]
 

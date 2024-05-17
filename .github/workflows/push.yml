@@ -32,13 +32,15 @@ jobs:
     #   - the content of pyproject.toml changes
     #   - you manually change the value of the CACHE_NUMBER below
     # Else the existing cache is used.
-    - name: Setup Mambaforge
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Setup Miniforge
+      uses: conda-incubator/setup-miniconda@v3
       with:
-          miniforge-variant: Mambaforge
-          miniforge-version: latest
-          activate-environment: test-env
-          use-mamba: true
+        miniforge-version: latest
+        mamba-version: "*"
+        python-version: '3.11'
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: test-env
 
     # save the date to include in the cache key
     - name: Get Date
@@ -128,6 +130,16 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.11'  # CHANGE: Python version
+    
+    - name: Setup Miniforge
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        miniforge-version: latest
+        mamba-version: "*"
+        python-version: '3.11'
+        channels: conda-forge
+        channel-priority: true
+        activate-environment: test-env
 
     - name: Install dependencies
       run: sudo apt-get install libglu1 pandoc gifsicle
@@ -135,8 +147,8 @@ jobs:
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
-        python3 -m pip install --upgrade pip
         mamba install cyipopt
+        python3 -m pip install --upgrade pip
         pip3 install wheel coveralls
         pip3 install .[dev,geometry]
 
