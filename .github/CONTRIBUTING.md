@@ -4,7 +4,7 @@ Community contributions are welcomed! 🎊
 ## Installation for developers
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
-* If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle). On *Windows*, We recommend installing pandoc using `conda` (i.e. `conda install -c conda-forge pandoc`)
+* If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle). On *Windows*, we recommend installing pandoc using `conda` (i.e. `conda install -c conda-forge pandoc`)
 * On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
 Using `conda` this looks like:
