@@ -24,9 +24,14 @@ jobs:
     steps:
     # Checkout the WecOptTool repo
     - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+
+    # Setup conda environment
+    - name: Setup Miniforge
+      uses: conda-incubator/setup-miniconda@v3
       with:
+        miniforge-version: latest
         python-version: ${{ matrix.python-version }}
+        activate-environment: test-env
 
     # install libglu on ubuntu.
     - name: Install libglu
