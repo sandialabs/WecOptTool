@@ -5,14 +5,15 @@ Community contributions are welcomed! 🎊
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
 * If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
-* If you do not have Fortran compilers properly setup in your system, install `capytaine` and `wavesspectra` using `conda`. In this case you will need to have a `conda` virtual environment. This is recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+* If you do not have Fortran compilers properly setup in your system, install `capytaine` and `wavespectra` using `conda`. In this case you will need to have a `conda` virtual environment. This is recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+* Similarly, if you do not have the prerequisites listed [here](https://cyipopt.readthedocs.io/en/stable/install.html#from-source) to install `cyipopt` from source, install it using `conda` as well.
 * On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
 Using `conda` this looks like:
 ```bash
 conda create -n wecopttool python=3.11
 conda activate wecopttool
-conda install -c conda-forge capytaine wavespectra
+conda install -c conda-forge capytaine wavespectra cyipopt
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
 pip install -e .[dev]

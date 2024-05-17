@@ -70,7 +70,7 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
-
+from cyipopt import minimize_ipopt
 
 # logger
 _log = logging.getLogger(__name__)
@@ -793,21 +793,6 @@ class WEC:
                 eq_cons['jac'] = jacobian(scaled_resid_fun)
             constraints.append(eq_cons)
 
-            # callback
-            if callback is None:
-                def callback_scipy(x):
-                    x_wec, x_opt = self.decompose_state(x)
-                    max_x_opt = np.nan if np.size(x_opt)==0 else np.max(np.abs(x_opt))
-                    _log.info("Scaled [max(x_wec), max(x_opt), obj_fun(x)]: "
-                              + f"[{np.max(np.abs(x_wec)):.2e}, "
-                              + f"{max_x_opt:.2e}, "
-                              + f"{obj_fun_scaled(x):.2e}]")
-            else:
-                def callback_scipy(x):
-                    x_s = x/scale
-                    x_wec, x_opt = self.decompose_state(x_s)
-                    return callback(self, x_wec, x_opt, wave)
-
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
             problem = {'fun': obj_fun_scaled,
@@ -816,13 +801,12 @@ class WEC:
                         'constraints': constraints,
                         'options': optim_options,
                         'bounds': bounds,
-                        'callback': callback_scipy,
                         }
             if use_grad:
                 problem['jac'] = grad(obj_fun_scaled)
 
             # minimize
-            optim_res = minimize(**problem)
+            optim_res = minimize_ipopt(**problem)
 
             msg = f'{optim_res.message}    (Exit mode {optim_res.status})'
             if optim_res.status == 0:
