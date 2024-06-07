@@ -5,12 +5,14 @@ Community contributions are welcomed! 🎊
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
 * If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle). On *Windows*, we recommend installing pandoc using `conda` (i.e. `conda install -c conda-forge pandoc`)
+* Building using `pip` on *MacOS* requires the manual installation of Fortran compilers, see discussion [here](https://github.com/sandialabs/WecOptTool/discussions/111). For ARM-based Macs, see [issue #324](https://github.com/sandialabs/WecOptTool/issues/324)
 * On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
 Using `conda` this looks like:
 ```bash
 conda create -n wecopttool
 conda activate wecopttool
+conda install -c conda-forge python=3.11 capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
 pip install -e .[dev]
