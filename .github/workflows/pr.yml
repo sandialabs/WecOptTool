@@ -61,7 +61,7 @@ jobs:
     # use the cache if it exists
     - uses: actions/cache@v3
       env:
-        CACHE_NUMBER: 0  # increase to reset cache manually
+        CACHE_NUMBER: 1  # increase to reset cache manually
       with:
         path: ${{ env.CONDA }}/envs
         key: conda-${{ runner.os }}--${{ runner.arch }}--${{ env.DATE }}-${{ hashFiles('pyproject.toml') }}-${{ env.CACHE_NUMBER }}
