@@ -1,4 +1,4 @@
-name: Build and Test
+name: Test and Deploy
 # 1. Build and test WecOptTool
 #   - check that WecOptTool builds on a matrix of OS + Python versions
 #   - check that all tests pass on the same matrix
@@ -30,9 +30,10 @@ jobs:
     #   - the content of pyproject.toml changes
     #   - you manually change the value of the CACHE_NUMBER below
     # Else the existing cache is used.
-    - name: Setup Miniforge
+    - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v3
       with:
+          miniforge-variant: Mambaforge
           miniforge-version: latest
           python-version: ${{ matrix.python-version }}
           activate-environment: test-env
