@@ -31,11 +31,10 @@ jobs:
     #   - you manually change the value of the CACHE_NUMBER below
     # Else the existing cache is used.
     - name: Setup Mambaforge
-      uses: conda-incubator/setup-miniconda@v3
+      uses: conda-incubator/setup-miniconda@v2
       with:
           miniforge-variant: Mambaforge
           miniforge-version: latest
-          python-version: ${{ matrix.python-version }}
           activate-environment: test-env
           use-mamba: true
 
