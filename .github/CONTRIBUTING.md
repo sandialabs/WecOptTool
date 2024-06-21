@@ -4,15 +4,15 @@ Community contributions are welcomed! 🎊
 ## Installation for developers
 
 * It is recommended that you create a *virtual environment*, e.g. using `conda`, `venv`, or similar.
-* If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
-* If you do not have Fortran compilers properly setup in your system, install `capytaine` and `wavesspectra` using `conda`. In this case you will need to have a `conda` virtual environment. This is recommended for *Windows* users since compiling `capytaine` on *Windows* requires [extra steps](https://github.com/capytaine/capytaine/issues/115).
+* If you want to build the documentation locally you will also need to install [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle). On *Windows*, we recommend installing pandoc using `conda` (i.e. `conda install -c conda-forge pandoc`)
+* Building using `pip` on *MacOS* requires the manual installation of Fortran compilers, see discussion [here](https://github.com/sandialabs/WecOptTool/discussions/111). For ARM-based Macs, see [issue #324](https://github.com/sandialabs/WecOptTool/issues/324)
 * On a ZSH shell (*MacOS*) do `pip install -e .\[dev]` instead of `pip install -e .[dev]` in the instructions below (i.e., escape the opening square bracket).
 
 Using `conda` this looks like:
 ```bash
-conda create -n wecopttool python=3.11
+conda create -n wecopttool
 conda activate wecopttool
-conda install -c conda-forge capytaine wavespectra
+conda install -c conda-forge python=3.11 capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
 pip install -e .[dev]
@@ -63,13 +63,13 @@ The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/)
 The source code (restructured text) is in `./docs/source` and images are in `./docs/source/_static`.
 The homepage source code is in `./docs/source/index.rst`.
 
-To build the documentation locally (not required but good check)
+To build the documentation locally (not required but good check), go to `./docs/versions.yaml` and change the value of `latest` to be your local branch. Then run:
 
 ```bash
 python3 docs/build_docs.py
 ```
 
-The built documentation will be in `./docs/_build` and the homepage is `./docs/_build/index.html`.
+The built documentation will be in `./docs/pages` and the homepage is `./docs/pages/index.html`.
 To delete, do `python3 docs/clean_docs.py`.
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.

@@ -44,7 +44,6 @@ def plot_hydrodynamic_coefficients(bem_data,
     """Plots hydrodynamic coefficients (added mass, radiation damping,
        and wave excitation) based on BEM data.
 
-
     Parameters
     ----------
     bem_data
@@ -52,8 +51,7 @@ def plot_hydrodynamic_coefficients(bem_data,
         element method (BEM) code Capytaine, with sign convention
         corrected.
     wave_dir
-        Wave direction(s) to plot the
-    
+        Wave direction(s) to plot.
     """
 
     bem_data = bem_data.sel(wave_direction = wave_dir, method='nearest')
@@ -142,13 +140,12 @@ def plot_bode_impedance(impedance: DataArray,
 
     Parameters
     ----------
-    impedance: DataArray
+    impedance
         Complex impedance matrix produced by for example by
         :py:func:`wecopttool.hydrodynamic_impedance`.
         Dimensions: omega, radiating_dofs, influenced_dofs
-    title: String
+    title
         Title string to be displayed in the plot.
-
     """
     radiating_dofs = impedance.radiating_dof.values
     influenced_dofs = impedance.influenced_dof.values
@@ -189,8 +186,6 @@ def plot_bode_impedance(impedance: DataArray,
     return fig, axes
 
 
-
-
 def calculate_power_flows(wec, 
                           pto, 
                           results, 
@@ -216,8 +211,6 @@ def calculate_power_flows(wec,
         Complex intrinsic impedance matrix produced by 
         :py:func:`wecopttool.hydrodynamic_impedance`.
         Dimensions: omega, radiating_dofs, influenced_dofs
-
-
     """
     wec_fdom, _ = wec.post_process(wec, results, waves)
     x_wec, x_opt = wec.decompose_state(results[0].x)
@@ -282,14 +275,12 @@ def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
 
     Parameters
     ----------
-    power_flows: dictionary
+    power_flows
         Power flow dictionary produced by for example by
         :py:func:`wecopttool.utilities.calculate_power_flows`.
         Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation'
-                        'Electrical (solver)', 'Mechanical (solver)',
-                        'Absorbed', 'Unused Potential', 'PTO Loss'
-
-
+        'Electrical (solver)', 'Mechanical (solver)',
+        'Absorbed', 'Unused Potential', 'PTO Loss'
     """
     # fig = plt.figure(figsize = [8,4])
     # ax = fig.add_subplot(1, 1, 1,)

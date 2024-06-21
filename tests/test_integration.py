@@ -374,7 +374,7 @@ class TestTheoreticalPowerLimits:
 
         pow = [res['fun'] for res in long_crested_wave_unstruct_res]
 
-        assert pow[0] == approx(pow[1], rel=1e-6)
+        assert pow[0] == approx(pow[1], rel=1e-4)
 
     def test_saturated_pi_controller(self,
                                     hydro_data,

@@ -1,7 +1,6 @@
 name: Release new version
 # 1. Publish to TestPyPi and PyPi, sequentially
-# 2. Publish to conda-forge
-# 3. Deploy documentation website
+# 2. Deploy documentation website
 
 on:
   release:
@@ -17,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.11' # CHANGE: Python version
 
     - name: Build a binary wheel and a source tarball
       run: |
@@ -47,7 +46,7 @@ jobs:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: '3.11' # CHANGE: Python version
 
     - name: Install dependencies
       run: sudo apt-get install libglu1 pandoc gifsicle
@@ -62,10 +61,11 @@ jobs:
     - name: Build documentation
       shell: bash -l {0}
       run: |
+        git fetch --tags
         python3 docs/build_docs.py
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html
+        publish_dir: ./docs/pages

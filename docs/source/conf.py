@@ -1,8 +1,7 @@
 import os
 import sys
 import shutil
-
-import sphinx
+import yaml
 
 from wecopttool import __version__, __version_info__
 
@@ -28,6 +27,12 @@ author = 'Sandia National Laboratories'
 version = '.'.join(__version_info__[:2])
 release = __version__
 
+current_branch = os.environ.get('current_version')
+if current_branch == 'latest':
+    url_prefix = '.'
+else:
+    url_prefix = '..'
+
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.autodoc',
@@ -48,6 +53,17 @@ html_theme_options = {
     'navigation_depth': 5,
 }
 html_static_path = ['_static']
+html_context = {
+  'current_version' : current_branch,
+  'other_versions' : [],
+}
+with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
+    versions = yaml.safe_load(v_file)
+for name in versions.keys():
+    if name == 'latest':
+        html_context['other_versions'].append([name, os.path.join(url_prefix)])
+    else:
+        html_context['other_versions'].append([name, os.path.join(url_prefix, name)])
 
 def setup(app):
     app.add_css_file('css/custom.css')
@@ -129,6 +145,6 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org/stable', None),
     'xarray': ('https://docs.xarray.dev/en/stable', None),
-    'capytaine': ('https://ancell.in/capytaine/latest', None),
+    'capytaine': ('https://capytaine.github.io/stable/', None),
     'wavespectra': ('https://wavespectra.readthedocs.io/en/latest', None),
 }
