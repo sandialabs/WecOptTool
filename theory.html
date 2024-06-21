@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theory &amp; Practice &mdash; WecOptTool 2.7.0 documentation</title>
+  <title>Theory &amp; Practice &mdash; WecOptTool 3.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=a0fb6060" />
@@ -16,8 +16,8 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=dfec817d"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -41,7 +41,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.7
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -62,6 +62,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#buoyancy-gravity">Buoyancy/gravity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#pto-kinematics">PTO Kinematics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phase-realizations">Phase Realizations</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
@@ -229,6 +230,13 @@ f_w^T x = f_p^T K x \\
 f_w^T = f_p^T K \\
 f_w = K^T f_p \\\end{split}\]</div>
 </section>
+<section id="phase-realizations">
+<h3>Phase Realizations<a class="headerlink" href="#phase-realizations" title="Link to this heading"></a></h3>
+<p>Irregular waves are defined in WecOptTool as a spectrum of complex frequency-domain wave elevations. The phase of each of the elevation elements impacts the time-domain result. Thus, the standard calculation of the objective function (average power) may change across a range of phase realizations. The amount of variance in power depends on multiple factors such as the optimization problem and the frequency array. When creating an irregular wave using <a class="reference internal" href="api_docs/wecopttool.waves.long_crested_wave.html#wecopttool.waves.long_crested_wave" title="wecopttool.waves.long_crested_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.long_crested_wave()</span></code></a> or <a class="reference internal" href="api_docs/wecopttool.waves.irregular_wave.html#wecopttool.waves.irregular_wave" title="wecopttool.waves.irregular_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.irregular_wave()</span></code></a>, <code class="code docutils literal notranslate"><span class="pre">nrealizations</span></code> can be used to select the number of phase realizations to be used. By default, random realizations will be used to create the selected number of wave elevation spectra. The <a class="reference internal" href="api_docs/wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a> function will automatically iterate through and solve the optimization problem for each realization, and the overall result can be found by averaging the value of the objective function across all realizations. A general recommendation is to use sufficient random phase realizations such that the total simulation time sums to 20 minutes.</p>
+<div class="math notranslate nohighlight" id="equation-total-time">
+<span class="eqno">(5)<a class="headerlink" href="#equation-total-time" title="Link to this equation"></a></span>\[t_{total} = \frac{nrealizations}{f1}\]</div>
+<p>The selection of the number of realizations is further detailed in <a class="reference internal" href="_examples/tutorial_4_Pioneer.html"><span class="doc">Tutorial 4 - Pioneer</span></a>.</p>
+</section>
 </section>
 <section id="troubleshooting">
 <h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
@@ -275,7 +283,15 @@ f_w = K^T f_p \\\end{split}\]</div>
       </div>
     </section>
   </div>
-  <script>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: latest
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href="./theory.html">latest</a></dd><dd><a href="./dev/theory.html">dev</a></dd></dl></div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });

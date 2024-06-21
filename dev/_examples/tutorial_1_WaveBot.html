@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 1 - WaveBot &mdash; WecOptTool 3.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial 2 - AquaHarmonics" href="tutorial_2_AquaHarmonics.html" />
+    <link rel="prev" title="Tutorials" href="../tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            WecOptTool
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation.html">Implementation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 1 - WaveBot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-Optimal-control-for-maximum-mechanical-power">1. Optimal control for maximum mechanical power</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Waves-and-WEC-geometry">Waves and WEC geometry</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#Frequency-selection">Frequency selection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Waves">Waves</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#WEC-geometry-mesh">WEC geometry mesh</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Minimum-wavelength-check">Minimum wavelength check</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#WEC-object">WEC object</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#Degrees-of-freedom">Degrees of freedom</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#BEM-solution">BEM solution</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#PTO">PTO</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#WEC-creation"><code class="docutils literal notranslate"><span class="pre">WEC</span></code> creation</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#Objective-function">Objective function</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Solve">Solve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Analyzing-results">Analyzing results</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-Optimal-control-for-maximum-electrical-power">2. Optimal control for maximum electrical power</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power">3. Control co-design of the WEC geometry for maximum electrical power</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Problem-setup">Problem setup</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Solve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Results">Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_2_AquaHarmonics.html">Tutorial 2 - AquaHarmonics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_3_LUPA.html">Tutorial 3 - LUPA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_4_Pioneer.html">Tutorial 4 - Pioneer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_docs/wecopttool.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Tutorial 1 - WaveBot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial-1---WaveBot">
+<h1>Tutorial 1 - WaveBot<a class="headerlink" href="#Tutorial-1---WaveBot" title="Link to this heading"></a></h1>
+<p>The goal of this tutorial is to familiarize new users with how to set up and run optimization problems using WecOptTool. This tutorial uses a one-body WEC, the WaveBot, in one degree of freedom in regular waves.</p>
+<p><img alt="WaveBot Photo" src="https://live.staticflickr.com/65535/51855905347_de87ccaaba_z.jpg" /></p>
+<p>At the end of this tutorial the user will perform control co-design of the WEC geometry and a corresponding optimal controller to maximize electrical power. We build up to this problem in three parts of successive complexity:</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#1.-Optimal-control-for-maximum-mechanical-power"><span class="std std-ref">Optimal control for maximum mechanical power</span></a></p></li>
+<li><p><a class="reference internal" href="#2.-Optimal-control-for-maximum-electrical-power"><span class="std std-ref">Optimal control for maximum electrical power</span></a></p></li>
+<li><p><a class="reference internal" href="#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power"><span class="std std-ref">Control co-design of the WEC’s geometry for maximum electrical power</span></a></p></li>
+</ol>
+<p>We will start by loading the necessary modules:</p>
+<ul class="simple">
+<li><p>Import Autograd (wrapper on NumPy, required) for <a class="reference external" href="https://sandialabs.github.io/WecOptTool/theory.html#automatic-differentiation">automatic differentiation</a></p></li>
+<li><p>Import other packages we will use in this tutorial</p></li>
+<li><p>Import WecOptTool</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brute</span>
+
+<span class="kn">import</span> <span class="nn">wecopttool</span> <span class="k">as</span> <span class="nn">wot</span>
+
+<span class="c1">## set colorblind-friendly colormap for plots</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;tableau-colorblind10&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="1.-Optimal-control-for-maximum-mechanical-power">
+<h2>1. Optimal control for maximum mechanical power<a class="headerlink" href="#1.-Optimal-control-for-maximum-mechanical-power" title="Link to this heading"></a></h2>
+<p>This example illustrates how to set up, run, and analyze a basic optimization problem using WecOptTool.</p>
+<p>The objective of this example is to <strong>find the optimal PTO force time series</strong> that produces the most mechanical power subject to the WEC dynamics and a maximum force the PTO can exert.</p>
+<p>WecOptTool requires the following to be defined to successfully run its optimization routines:</p>
+<ul class="simple">
+<li><p>The wave environment</p></li>
+<li><p>The WEC object, including all of its properties and constraints</p></li>
+<li><p>The objective function</p></li>
+</ul>
+<p>The graphic below shows all the requirements for this first part of the tutorial: the wave environment on the left, the WEC object(with its relevant subcomponents) in the blue box in the middle, and the objective function (mechanical power) on the right.</p>
+<div><p><img alt="f81f4c60834549bdab072dd3ccae74e2" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
+</div><section id="Waves-and-WEC-geometry">
+<h3>Waves and WEC geometry<a class="headerlink" href="#Waves-and-WEC-geometry" title="Link to this heading"></a></h3>
+<p>The pseudo-spectral solution used in WecOptTool requires a specified set of frequencies to analyze. To model the WEC accurately, we need to ensure the set of selected frequencies captures the full hydrodynamic response range of the WEC.</p>
+<p>Therefore, we start our WecOptTool model by defining this set of frequencies, the wave environment, and the mesh of the WEC geometry. This ensures the minimum wavelength in the selected frequencies is larger than the minimum wavelength that can be analyzed with the mesh using the Boundary Element Method (BEM), which we will do <a class="reference internal" href="#BEM-solution"><span class="std std-ref">later</span></a>. This is a good initial check to make sure the hydrodynamic properties results calculated with the BEM will be accurate.</p>
+<section id="Frequency-selection">
+<h4>Frequency selection<a class="headerlink" href="#Frequency-selection" title="Link to this heading"></a></h4>
+<p>To start with a simple case in this tutorial, we are interested in modeling a regular wave at 0.3 Hz. In regular waves, the linear WEC system response will always occur at the wave frequency, with the nonlinear system response also occurring at the corresponding odd harmonics (3rd, 5th, etc.) of the wave frequency. Thus, we can set the fundamental frequency in our set, <span class="math notranslate nohighlight">\(f_1\)</span>, equal to the wave frequency. Prior WaveBot analysis has found that the nonlinear dynamics are sufficiently captured
+with the 3rd, 5th, 7th, and 9th harmonics. WecOptTool assumes the spacing between frequencies equals the magnitude of <span class="math notranslate nohighlight">\(f_1\)</span>. Therefore, we will model 10 frequencies to encompass these harmonics.</p>
+<p>These frequencies will be used for the Fourier representation of both the wave and the desired PTO force in the pseudo-spectral problem. See the <a class="reference external" href="https://sandialabs.github.io/WecOptTool/theory.html">Theory</a> section of the WecOptTool documentation for more details on the pseudo-spectral problem formulation.</p>
+<p>It is important to use the lowest number of frequencies possible while still maintaining accuracy in order to minimize degrees of freedom and computation time for the optimization solver.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wavefreq</span> <span class="o">=</span> <span class="mf">0.3</span> <span class="c1"># Hz</span>
+<span class="n">f1</span> <span class="o">=</span> <span class="n">wavefreq</span>
+<span class="n">nfreq</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="n">freq</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># False -&gt; no zero frequency</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Waves">
+<h4>Waves<a class="headerlink" href="#Waves" title="Link to this heading"></a></h4>
+<p>WecOptTool is configured to have the wave environment specified as a 2-dimensional <code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code> containing the complex wave amplitudes (in meters), wave phases (in degrees), and directions (in degrees). We will use an amplitude of 0.0625 meters, a phase of 30 degrees, and direction 0 for this tutorial. The two coordinates are the radial frequency <code class="docutils literal notranslate"><span class="pre">omega</span></code> (in rad/s) and the direction <code class="docutils literal notranslate"><span class="pre">wave_direction</span></code> (in radians).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">xarray</span></code> package has a pretty steep learning curve, so WecOptTool includes the <code class="docutils literal notranslate"><span class="pre">waves</span></code> module containing more intuitive functions that create <code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code> objects for different types of wave environments. See the <code class="docutils literal notranslate"><span class="pre">xarray</span></code> documentation <a class="reference external" href="https://docs.xarray.dev/en/latest/index.html">here</a> if you are interested in learning more about the package. In this case, we will use the <code class="docutils literal notranslate"><span class="pre">wecopttool.waves.regular_wave</span></code> function with our wave frequency, amplitude, phase, and direction:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">amplitude</span> <span class="o">=</span> <span class="mf">0.0625</span> <span class="c1"># m</span>
+<span class="n">phase</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1"># degrees</span>
+<span class="n">wavedir</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># degrees</span>
+
+<span class="n">waves</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">regular_wave</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">wavefreq</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">wavedir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="WEC-geometry-mesh">
+<h4>WEC geometry mesh<a class="headerlink" href="#WEC-geometry-mesh" title="Link to this heading"></a></h4>
+<p>Now we will create a surface mesh for the WEC hull and store it using the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> object from Capytaine. The WaveBot mesh is pre-defined in the <code class="docutils literal notranslate"><span class="pre">wecopttool.geom</span></code> module, so we will call it directly from there. Note that the Capytaine <code class="docutils literal notranslate"><span class="pre">from_meshio</span></code> method can also import from other file types (STL, VTK, MSH, etc.), click <a class="reference external" href="https://pypi.org/project/meshio/">here</a> for the full list of compatible mesh file types.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wb</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">()</span>  <span class="c1"># use standard dimensions</span>
+<span class="n">mesh_size_factor</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># 1.0 for default, smaller to refine mesh</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">mesh_size_factor</span><span class="p">)</span>
+<span class="n">fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;WaveBot&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="line-block">
+<div class="line">We can also visualize the mesh for inspection. Capytaine has built-in methods for visualizing meshes (<code class="docutils literal notranslate"><span class="pre">fb.show</span></code>, and <code class="docutils literal notranslate"><span class="pre">fb.show_matplotlib</span></code>). These methods are interactive when used outside a Jupyter notebook.</div>
+<div class="line">The included WaveBot example also has a method for plotting the cross-section of the device, <code class="docutils literal notranslate"><span class="pre">plot_cross_section</span></code>.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fb</span><span class="o">.</span><span class="n">show_matplotlib</span><span class="p">()</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">plot_cross_section</span><span class="p">(</span><span class="n">show</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># specific to WaveBot</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_10_0.png" src="../_images/_examples_tutorial_1_WaveBot_10_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_10_1.png" src="../_images/_examples_tutorial_1_WaveBot_10_1.png" />
+</div>
+</div>
+</section>
+<section id="Minimum-wavelength-check">
+<h4>Minimum wavelength check<a class="headerlink" href="#Minimum-wavelength-check" title="Link to this heading"></a></h4>
+<p>With the frequency vector, wave environment, and geometry mesh all defined, we can now check to make sure they are all suitable to accurately simulate the WEC dynamics. The <code class="docutils literal notranslate"><span class="pre">fb.minimal_computable_wavelength</span></code> method checks the mesh to determine the minimum wavelength that can be reliably computed using Capytaine. We compare this value to the minimum wavelength our frequency vector will compute; we want this number to be larger than Capytaine’s minimum wavelength. A warning is printed if this is
+not the case. This warning is ignored here because the BEM results have been validated, but can be used as a guide for mesh refinement to ensure accurate BEM results.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">min_computable_wavelength</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">minimal_computable_wavelength</span>
+<span class="n">g</span> <span class="o">=</span> <span class="mf">9.81</span>
+<span class="n">min_period</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">f1</span><span class="o">*</span><span class="n">nfreq</span><span class="p">)</span>
+<span class="n">min_wavelength</span> <span class="o">=</span> <span class="p">(</span><span class="n">g</span><span class="o">*</span><span class="p">(</span><span class="n">min_period</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">min_wavelength</span> <span class="o">&lt;</span> <span class="n">min_computable_wavelength</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Warning: Minimum wavelength in frequency spectrum (</span><span class="si">{</span><span class="n">min_wavelength</span><span class="si">}</span><span class="s1">) is smaller&#39;</span>
+         <span class="sa">f</span><span class="s1">&#39; than the minimum computable wavelength (</span><span class="si">{</span><span class="n">min_computable_wavelength</span><span class="si">}</span><span class="s1">).&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Warning: Minimum wavelength in frequency spectrum (0.17347888797016595) is smaller than the minimum computable wavelength (0.8062438881017548).
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="WEC-object">
+<h3>WEC object<a class="headerlink" href="#WEC-object" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object in WecOptTool contains all the information about the WEC and its properties and dynamics. This constitutes the vast majority of the setup required to run a WecOptTool optimization. The WEC object handles three categoreis of data that are passed on to the optimizer:</p>
+<ol class="arabic simple">
+<li><p>The intrinsic impedance of the WEC</p></li>
+<li><p>The WEC and PTO kinematic</p></li>
+<li><p>The PTO dynamics</p></li>
+</ol>
+<p>In order for the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object to be able to compute these data, we must provide information when we declare the object in the code. The required information includes:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#Degrees-of-freedom"><span class="std std-ref">Degrees of freedom to consider</span></a></p></li>
+<li><p><a class="reference internal" href="#BEM-solution"><span class="std std-ref">Linear hydrodynamic coefficients</span></a></p></li>
+<li><p>Any additional loads (e.g. PTO force, mooring, non-linear hydrodynamics)</p></li>
+<li><p>Device constraints</p></li>
+</ul>
+<p>Again, we will keep things simple to start. We will only consider heave motion and assume a lossless PTO, and the WaveBot has trivial WEC-PTO kinematics (unity). We will apply one additional force (the PTO force on the WEC) and one constraint (the maximum PTO force), which <a class="reference internal" href="#PTO"><span class="std std-ref">we define below using the PTO class</span></a>.</p>
+<section id="Degrees-of-freedom">
+<h4>Degrees of freedom<a class="headerlink" href="#Degrees-of-freedom" title="Link to this heading"></a></h4>
+<p>The degrees of freedom can be added directly to the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> using the <code class="docutils literal notranslate"><span class="pre">add_translation_dof</span></code> and <code class="docutils literal notranslate"><span class="pre">add_rotation_dof</span></code> methods. The axis of rotation is automatically defined if the method is supplied a name of <code class="docutils literal notranslate"><span class="pre">&quot;Surge&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Sway&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Heave&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Roll&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Pitch&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;Yaw&quot;</span></code>. We will only model the heave degree of freedom in this case.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Heave&quot;</span><span class="p">)</span>
+<span class="n">ndof</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="BEM-solution">
+<h4>BEM solution<a class="headerlink" href="#BEM-solution" title="Link to this heading"></a></h4>
+<p>We can use the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> and frequency vector created earlier to run the Boundary Element Method solver in Capytaine to get the hydrostatic and hydrodynamic coefficients of our WEC object. This is wrapped into the <code class="docutils literal notranslate"><span class="pre">wecopttool.run_bem</span></code> function.</p>
+<p>If you would like to save the BEM data to a NetCDF file for future use, uncomment the second line of the cell below to use the <code class="docutils literal notranslate"><span class="pre">wot.write_netcdf</span></code> function.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+<span class="c1"># wot.write_netcdf(&#39;bem_data.nc&#39;, bem_data) # saves BEM data to file</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.green_functions.delhommeau:Precomputing tabulation, it may take a few seconds.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:11:16] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Precomputing tabulation, it may take a few seconds.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:11:34] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:FloatingBody has no inertia_matrix field. If the FloatingBody mass is defined, it will be used for calculating the inertia matrix here. Otherwise, the neutral buoyancy assumption will be used to auto-populate.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> FloatingBody has no inertia_matrix field. If the FloatingBody mass is defined, it will be used
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         for calculating the inertia matrix here. Otherwise, the neutral buoyancy assumption will be
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         used to auto-populate.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:FloatingBody has no hydrostatic_stiffness field. Capytaine will auto-populate the hydrostatic stiffness based on the provided mesh.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> FloatingBody has no hydrostatic_stiffness field. Capytaine will auto-populate the hydrostatic
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         stiffness based on the provided mesh.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.bem.solver:Mesh resolution for 12 problems:
+The resolution of the mesh might be insufficient for omega ranging from 9.425 to 18.850.
+This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> problems:
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9.425</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">18.850</span>.
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "3b889afcd0fb46c4a517a3ccb9a344a2"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<p>Next, we use the utilities class <code class="docutils literal notranslate"><span class="pre">wecopttool.utilities</span></code>, which has functions that help you analyze and design WECs, but are not needed for the core function of WecOptTool. For example, we calculate the WEC’s intrinsic impedance with its hydrodynamic coefficients and inherent inertial properties. We make use of <code class="docutils literal notranslate"><span class="pre">wecopttool.add_linear_friction()</span></code> to convert the <code class="docutils literal notranslate"><span class="pre">bem_data</span></code> into a dataset which contains all zero friction data, because <code class="docutils literal notranslate"><span class="pre">wecopttool.check_radiation_damping()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">wecopttool.hydrodynamic_impedance()</span></code> excpect a data variable called ‘friction’.</p>
+<p>The intrinsic impedance tells us how a hydrodynamic body responds to different excitation frequencies. For oscillating systems we are intersted in both, the amplitude of the resulting velocity as well as the phase between velocity and excitation force. Bode plots are useful tool to visualize the frequency response function.</p>
+<p>The natural frequency reveals itself as a trough in the intrinsic impedance for restoring degrees of freedom (heave, roll, pitch).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hd</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">add_linear_friction</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span> <span class="n">friction</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+<span class="c1">#we&#39;re not actually adding friction, but need the datavariables in hd</span>
+<span class="n">hd</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">check_radiation_damping</span><span class="p">(</span><span class="n">hd</span><span class="p">)</span>
+
+<span class="n">intrinsic_impedance</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrodynamic_impedance</span><span class="p">(</span><span class="n">hd</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">plot_bode_impedance</span><span class="p">(</span><span class="n">intrinsic_impedance</span><span class="p">,</span>
+                                              <span class="s1">&#39;WaveBot Intrinsic Impedance&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up damping terms [5 7 8 9] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:11:36] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_20_2.png" src="../_images/_examples_tutorial_1_WaveBot_20_2.png" />
+</div>
+</div>
+</section>
+<section id="PTO">
+<h4>PTO<a class="headerlink" href="#PTO" title="Link to this heading"></a></h4>
+<p>WecOptTool includes the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class to encompass all properties of the power take-off system of the WEC. Data wrapped into our <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class will be used to provide the additional force and constraint for our <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object definition, as well as our optimization problem later.</p>
+<p>To create an instance of the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class, we need:</p>
+<ul class="simple">
+<li><p>The kinematics matrix, which converts from the WEC degrees of freedom to the PTO degrees of freedom. In this case, the PTO extracts power directly from the heaving motion of the WEC, so the kinematics matrix is simply a <span class="math notranslate nohighlight">\(1 \times 1\)</span> identity matrix.</p></li>
+<li><p>The definition of the PTO controller. The <code class="docutils literal notranslate"><span class="pre">wecopttool.pto</span></code> submodule includes P, PI, and PID controller functions that can be provided to the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> class and return the PTO force. However, we will be using an unstructured controller in this case, which is the default when <code class="docutils literal notranslate"><span class="pre">controller=None</span></code>.</p></li>
+<li><p>Any PTO impedance. We are only interested in mechanical power for this first problem, so we will leave this empty for now.</p></li>
+<li><p>The non-linear power conversion loss (assumed 0% if <code class="docutils literal notranslate"><span class="pre">None</span></code>)</p></li>
+<li><p>The PTO system name, if desired</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PTO_Heave&quot;</span><span class="p">,]</span>
+<span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndof</span><span class="p">)</span>
+<span class="n">controller</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">pto_impedance</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">pto</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PTO</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">,</span> <span class="n">controller</span><span class="p">,</span> <span class="n">pto_impedance</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Now we define the PTO forcing on the WEC and the PTO constraints. We set the maximum PTO force as 750 Newtons. This value is chosen somewhat arbitrary to highlight different effects throughout this tutorial. In practice, the user would need to identify their limiting component in the PTO and then compute a suitable value. For example, if the generator drive has a maximal current <span class="math notranslate nohighlight">\(I_{max}\)</span> of 10 A, with a generator torque constant <span class="math notranslate nohighlight">\(K_t\)</span> of 8 Nm/A and a gear ratio <span class="math notranslate nohighlight">\(N\)</span> of 9 rad/m,
+this results in a max PTO linear force of <span class="math notranslate nohighlight">\(F = N K_{t} I_{max} = 9\)</span> rad/m <span class="math notranslate nohighlight">\(\times 8\)</span> Nm <span class="math notranslate nohighlight">\(\times 10\)</span> A <span class="math notranslate nohighlight">\(= 720\)</span> N.</p>
+<p>We will enforce the constraint at 4 times more points than the dynamics; see <a class="reference external" href="(https://sandialabs.github.io/WecOptTool/theory.html)">Theory</a> for why this is helpful for the pseudo-spectral problem. The constraints must be in the correct format for <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>, which is the solver WecOptTool uses. See the documentation for the solver <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">here</a> and note the matching syntax of <code class="docutils literal notranslate"><span class="pre">ineq_cons</span></code> below.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># PTO dynamics forcing function</span>
+<span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PTO&#39;</span><span class="p">:</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">}</span>
+
+<span class="c1"># Constraint</span>
+<span class="n">f_max</span> <span class="o">=</span> <span class="mf">750.0</span>
+<span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="k">def</span> <span class="nf">const_f_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span> <span class="c1"># Format for scipy.optimize.minimize</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+<span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto</span><span class="p">,</span>
+             <span class="p">}</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="WEC-creation">
+<h4><code class="docutils literal notranslate"><span class="pre">WEC</span></code> creation<a class="headerlink" href="#WEC-creation" title="Link to this heading"></a></h4>
+<p>We are now ready to create the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object itself! Since we ran the BEM already, we can define the object using the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.from_bem</span></code> function. If we saved BEM data to a NetCDF file, we can also provide the path to that file instead of specifying the BEM <code class="docutils literal notranslate"><span class="pre">Dataset</span></code> directly.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
+    <span class="n">bem_data</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
+    <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up damping terms [5 7 8 9] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+<p><em>Note: You may receive a warning regarding negative linear damping values.</em> <em>By default, WecOptTool ensures that the BEM data does not contain non-negative damping values.</em> <em>If you would like to correct the BEM solution to a different minimum damping value besides zero, you can specify</em> <code class="docutils literal notranslate"><span class="pre">min_damping</span></code>.</p>
+</section>
+</section>
+<section id="Objective-function">
+<h3>Objective function<a class="headerlink" href="#Objective-function" title="Link to this heading"></a></h3>
+<p>The objective function is the quantity we want to optimize—in this case, the average mechanical power. The function to compute this can be taken directly from the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> object we created:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obj_fun</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">mechanical_average_power</span>
+</pre></div>
+</div>
+</div>
+<p>The objective function is itself a function of the optimization state <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>. The length of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>, <code class="docutils literal notranslate"><span class="pre">nstate_opt</span></code>, needs to be properly defined to successfully call <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code>. In other words, it should match the quantities we are interested in optimizing. In this case, we are optimizing for the control trajectories of an unstructured PTO, which can be represented in the Fourier domain by the DC (zero frequency) component, then the real and imaginary components for each
+frequency.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nstate_opt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span>
+</pre></div>
+</div>
+</div>
+<p>One technical quirk here: <code class="docutils literal notranslate"><span class="pre">nstate_opt</span></code> is one smaller than would be expected for a state space representing the mean (DC) component and the real and imaginary Fourier coefficients. This is because WecOptTool excludes the imaginary Fourier component of the highest frequency (the 2-point wave). Since the 2-point wave is sampled at multiples of <span class="math notranslate nohighlight">\(\pi\)</span>, the imaginary component is evaluated as <span class="math notranslate nohighlight">\(sin(n\pi); n = 0, 1, 2, ..., n_{freq}\)</span>, which is always zero.</p>
+</section>
+<section id="Solve">
+<h3>Solve<a class="headerlink" href="#Solve" title="Link to this heading"></a></h3>
+<p>We are now ready to solve the problem. WecOptTool uses <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> as its optimization driver, which is wrapped into <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve</span></code> for ease of use.</p>
+<p>The only required inputs for defining and solving the problem are:</p>
+<ol class="arabic simple">
+<li><p>The wave environment</p></li>
+<li><p>The objective function</p></li>
+<li><p>The size of the optimization state (<code class="docutils literal notranslate"><span class="pre">nstate_opt</span></code>)</p></li>
+</ol>
+<p>Optional inputs can be provided to control the optimization execution if desired, which we do here to change the default iteration maximum and tolerance. See the <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> documentation <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">here</a> for more details.</p>
+<p>To help the problem converge faster, we will scale the problem before solving it (see the <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html">Scaling</a> section of the Theory documentation). WecOptTool allows you to scale the WEC dynamics state, the optimization state, and the objective function separately. See the <code class="docutils literal notranslate"><span class="pre">wecopttool.WEC.solve</span></code> documentation <a class="reference external" href="https://sandialabs.github.io/WecOptTool/api_docs/wecopttool.WEC.solve.html#wecopttool-wec-solve">here</a>.</p>
+<p>Pay attention to the <code class="docutils literal notranslate"><span class="pre">Exit</span> <span class="pre">mode</span></code>: an exit mode of <code class="docutils literal notranslate"><span class="pre">0</span></code> indicates a successful solution. A simple problem (linear, single degree of freedom, unconstrained, etc.) should converge in well under 100 iterations. If you exceed this, try adjusting the scales by orders of magnitude, one at a time.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;maxiter&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">}</span>
+<span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1e1</span>
+<span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1e-2</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves</span><span class="p">,</span>
+    <span class="n">obj_fun</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="p">,</span>
+    <span class="n">optim_options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+    <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
+    <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
+    <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">opt_mechanical_average_power</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average mechanical power: </span><span class="si">{</span><span class="n">opt_mechanical_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.48845021356992774
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
+Optimal average mechanical power: -48.845021356992774 W
+</pre></div></div>
+</div>
+</section>
+<section id="Analyzing-results">
+<h3>Analyzing results<a class="headerlink" href="#Analyzing-results" title="Link to this heading"></a></h3>
+<p>We will use two post-processing functions to obtain frequency and time domain results for the WEC and PTO responses. The <code class="docutils literal notranslate"><span class="pre">wec.post_process</span></code> and <code class="docutils literal notranslate"><span class="pre">pto.post_process</span></code> functions both post-process the results for each wave phase realization. The pseudo-spectral method gives continuous in time results. To get smoother looking plots, we specify five subpoints betweeen co-location points.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">pto_fdom</span><span class="p">,</span> <span class="n">pto_tdom</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">pto.post_process</span></code> function returns a list of <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> objects, each element of which has built-in integration with PyPlot for smart plotting with automatic titles and formatting. We will plot the mechanical power (<code class="docutils literal notranslate"><span class="pre">mech_power</span></code>), position (<code class="docutils literal notranslate"><span class="pre">pos</span></code>), and the PTO force (<code class="docutils literal notranslate"><span class="pre">force</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">pto_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&#39;mech&#39;</span><span class="p">,:,:]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&lt;matplotlib.lines.Line2D at 0x7f31f90b2110&gt;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_38_1.png" src="../_images/_examples_tutorial_1_WaveBot_38_1.png" />
+</div>
+</div>
+<p>We could similarly plot any time or frequency domain response of the WEC or PTO by calling the specific type of response (position, velocity, force, etc.). For example, to plot the WEC heave position and PTO force:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">pto_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&lt;matplotlib.lines.Line2D at 0x7f31f41e30d0&gt;]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_40_1.png" src="../_images/_examples_tutorial_1_WaveBot_40_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_40_2.png" src="../_images/_examples_tutorial_1_WaveBot_40_2.png" />
+</div>
+</div>
+<p>Note that there are other dynamic responses available in the post-processed WEC and PTO variables (<code class="docutils literal notranslate"><span class="pre">wec_tdom</span></code>, <code class="docutils literal notranslate"><span class="pre">pto_tdom</span></code>, <code class="docutils literal notranslate"><span class="pre">wec_fdom</span></code>, <code class="docutils literal notranslate"><span class="pre">pto_fdom</span></code>). For example, the time domain PTO variable contains the following response:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pto_tdom</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&lt;xarray.Dataset&gt; Size: 6kB
+ Dimensions:  (time: 100, dof: 1, type: 2)
+ Coordinates:
+   * time     (time) float64 800B 0.0 0.03333 0.06667 0.1 ... 3.2 3.233 3.267 3.3
+   * dof      (dof) &lt;U9 36B &#39;PTO_Heave&#39;
+   * type     (type) &lt;U4 32B &#39;mech&#39; &#39;elec&#39;
+ Data variables:
+     pos      (time, dof) float64 800B 0.06408 0.06588 ... 0.06093 0.06242
+     vel      (time, dof) float64 800B 0.05229 0.05579 ... 0.04135 0.04733
+     acc      (time, dof) float64 800B 0.1287 0.07954 0.02329 ... 0.1888 0.1667
+     force    (time, dof) float64 800B 750.0 750.5 747.9 ... 671.5 717.0 741.0
+     power    (type, time, dof) float64 2kB 39.22 41.87 43.01 ... 29.65 35.07
+ Attributes:
+     time_created_utc:  2024-06-21 18:11:37.511103]
+</pre></div></div>
+</div>
+<p>Lastly, we will visualize the average power at different stages and how the power flows through the system.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p_flows</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">calculate_power_flows</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span>
+                                              <span class="n">pto</span><span class="p">,</span>
+                                              <span class="n">results</span><span class="p">,</span>
+                                              <span class="n">waves</span><span class="p">,</span>
+                                              <span class="n">intrinsic_impedance</span><span class="p">)</span>
+<span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">plot_power_flow</span><span class="p">(</span><span class="n">p_flows</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Figure size 800x400 with 1 Axes&gt;, &lt;Axes: &gt;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_44_1.png" src="../_images/_examples_tutorial_1_WaveBot_44_1.png" />
+</div>
+</div>
+<p>On the very left of the power flow Sankey diagram we start with the <em>Optimal Excitation</em>, which is only determined by the incident wave and the hydrodynamic damping and friction. In order for the actual <em>Excited</em> power to equal the <em>Optimal Excitation</em> the absorbed <em>Mechanical</em> power would need to equal the <em>Radiated</em> power (power that is radiated away from the WEC). In this case the <em>Unused Potential</em> would be zero. In other words, you can never convert more than 50% of the incident wave energy
+into kinetic energy. For more information on this we refer to Johannes Falnes Book - Ocean Waves and Oscillating System, specifically Chapter 6.</p>
+<p>However, the optimal 50% absorption is an overly optimistic goal considering that real world systems are likely constrained in their oscillation velocity amplitude and phase, due to limitations in stroke and applicable force.</p>
+<p>The PTO force constraint used in this optimization also stopped us from absorbing the maximal potential wave energy. It is notable that we absorbed approximately 3/4 of the maximal absorbable power (<em>Mechanical</em> / (1/2 <em>Optimal Excitation</em>)), with relatively little <em>Radiated</em> power (about 1/2 of the absorbed power). To also absorb the last 1/4 of the potential wave power, we would need to increase the <em>Radiated</em> power three times!!</p>
+<p>A more important question than “How to achieve optimal absorption?” is “How do we optimize usable output power?”, i.e. <em>Electrical</em> power. For this optimization case we used a lossless PTO that has no impedance in itself. Therefore, the <em>Electrical</em> power equals the absorbed <em>Mechanical</em> power. We’ll show in the following sections that this a poor assumption and that the power flow looks fundamentally different when taking the PTO dynamics into account!!</p>
+</section>
+</section>
+<section id="2.-Optimal-control-for-maximum-electrical-power">
+<h2>2. Optimal control for maximum electrical power<a class="headerlink" href="#2.-Optimal-control-for-maximum-electrical-power" title="Link to this heading"></a></h2>
+<p>The rest of this tutorial will focus on a different objective function: we will now optimize for electrical power rather than mechanical, as this is a form of power that is usable and transportable.</p>
+<p>Since we are still dealing with the same WaveBot as in Part 1, we can reuse the BEM, WEC-PTO kinematics, and wave data from before.</p>
+<div><p><img alt="7dac889f62454f3ca18351a41449b3e4" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
+</div><p>The biggest difference when considering electrical power is the addition of the PTO dynamics. In other words, we no longer assume a lossless PTO. We will express the PTO dynamics in the form of a <a class="reference external" href="https://en.wikipedia.org/wiki/Impedance_parameters">2-port impedance model</a> to incorporate the dynamics of the drivetrain and generator. The additional mechanical energy storage through the drivetrain is modeled using Newton’s second law, and we assume a linear generator using a power-invariant park
+transform.</p>
+<p>The PTO impedance matrix components are then obtained under open-circuit conditions: no load current (<span class="math notranslate nohighlight">\(i_{pto}\)</span> in figure above) or no WEC velocity (<span class="math notranslate nohighlight">\(vel_{pto}\)</span> above), respectively. See Section II of Michelén et al. <a class="reference external" href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10114969">here</a> for more details about how the code below is derived.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## PTO impedance definition</span>
+<span class="n">omega</span> <span class="o">=</span> <span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
+<span class="n">gear_ratio</span> <span class="o">=</span> <span class="mf">12.0</span>
+<span class="n">torque_constant</span> <span class="o">=</span> <span class="mf">6.7</span>
+<span class="n">winding_resistance</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">winding_inductance</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">drivetrain_inertia</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="n">drivetrain_friction</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">drivetrain_stiffness</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="n">drivetrain_impedance</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="o">*</span><span class="n">drivetrain_inertia</span> <span class="o">+</span>
+                        <span class="n">drivetrain_friction</span> <span class="o">+</span>
+                        <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="p">)</span><span class="o">*</span><span class="n">drivetrain_stiffness</span><span class="p">)</span>
+
+<span class="n">winding_impedance</span> <span class="o">=</span> <span class="n">winding_resistance</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="o">*</span><span class="n">winding_inductance</span>
+
+
+<span class="n">pto_impedance_11</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span> <span class="n">gear_ratio</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">drivetrain_impedance</span>
+<span class="n">off_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">torque_constant</span> <span class="o">*</span> <span class="n">gear_ratio</span>
+<span class="n">pto_impedance_12</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">pto_impedance_21</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="n">pto_impedance_22</span> <span class="o">=</span> <span class="n">winding_impedance</span>
+<span class="n">pto_impedance_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">pto_impedance_11</span><span class="p">,</span> <span class="n">pto_impedance_12</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">pto_impedance_21</span><span class="p">,</span> <span class="n">pto_impedance_22</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+<p>Next, we will create a new <code class="docutils literal notranslate"><span class="pre">PTO</span></code> object with this impedance matrix. We will also update the definitions of our PTO constraint and additional dynamic forcing function to use the new object. We will again set our maximum PTO force to 750 Newtons in this example, so we do not need to redefine <code class="docutils literal notranslate"><span class="pre">f_max</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Update PTO</span>
+<span class="n">name_2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PTO_Heave_Ex2&#39;</span><span class="p">]</span>
+<span class="n">pto_2</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PTO</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">,</span> <span class="n">controller</span><span class="p">,</span> <span class="n">pto_impedance_2</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">name_2</span><span class="p">)</span>
+
+<span class="c1">## Update PTO constraints and forcing</span>
+<span class="k">def</span> <span class="nf">const_f_pto_2</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="n">f</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+<span class="n">ineq_cons_2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto_2</span><span class="p">}</span>
+<span class="n">constraints_2</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons_2</span><span class="p">]</span>
+<span class="n">f_add_2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PTO&#39;</span><span class="p">:</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>Finally, we will update our <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object with the new PTO and objective function, then run our optimization problem. Note we are now using <code class="docutils literal notranslate"><span class="pre">average_power</span></code> instead of <code class="docutils literal notranslate"><span class="pre">mechanical_average_power</span></code> as our objective function.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Update WEC</span>
+<span class="n">wec_2</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
+                         <span class="n">constraints</span><span class="o">=</span><span class="n">constraints_2</span><span class="p">,</span>
+                         <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">f_add</span><span class="o">=</span><span class="n">f_add_2</span>
+<span class="p">)</span>
+
+<span class="c1"># Update objective function</span>
+<span class="n">obj_fun_2</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">average_power</span>
+
+<span class="c1"># Solve</span>
+<span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1e1</span>
+<span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1e-2</span>
+
+<span class="n">results_2</span> <span class="o">=</span> <span class="n">wec_2</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves</span><span class="p">,</span>
+    <span class="n">obj_fun_2</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="p">,</span>
+    <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
+    <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
+    <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">opt_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
+
+<span class="c1"># Post-process</span>
+<span class="n">wec_fdom_2</span><span class="p">,</span> <span class="n">wec_tdom_2</span> <span class="o">=</span> <span class="n">wec_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec_2</span><span class="p">,</span> <span class="n">results_2</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_fdom_2</span><span class="p">,</span> <span class="n">pto_tdom_2</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec_2</span><span class="p">,</span> <span class="n">results_2</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up damping terms [5 7 8 9] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:11:38] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.28010107170971515
+            Iterations: 9
+            Function evaluations: 10
+            Gradient evaluations: 9
+Optimal average electrical power: -28.010107170971516 W
+</pre></div></div>
+</div>
+<p>We will compare our optimal results to the unconstrained case to gain some insight into the effect of the constraint on the optimal PTO force. Let’s do the same process as before, but unset the <code class="docutils literal notranslate"><span class="pre">constraints</span></code> parameter in a new <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec_2_nocon</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
+    <span class="n">bem_data</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">f_add</span><span class="o">=</span><span class="n">f_add_2</span><span class="p">)</span>
+
+<span class="n">results_2_nocon</span> <span class="o">=</span> <span class="n">wec_2_nocon</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves</span><span class="p">,</span>
+    <span class="n">obj_fun_2</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="p">,</span>
+    <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
+    <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
+    <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">opt_average_power</span> <span class="o">=</span> <span class="n">results_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average electrical power: </span><span class="si">{</span><span class="n">opt_average_power</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
+<span class="n">wec_fdom_2_nocon</span><span class="p">,</span> <span class="n">wec_tdom_2_nocon</span> <span class="o">=</span> <span class="n">wec_2_nocon</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span>
+    <span class="n">wec_2_nocon</span><span class="p">,</span> <span class="n">results_2_nocon</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_fdom_2_nocon</span><span class="p">,</span> <span class="n">pto_tdom_2_nocon</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span>
+    <span class="n">wec_2_nocon</span><span class="p">,</span> <span class="n">results_2_nocon</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or close to zero terms. Shifting up damping terms [5 7 8 9] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:11:39] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2918621517010816
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
+Optimal average electrical power: -29.18621517010816 W
+</pre></div></div>
+</div>
+<p>Note that the optimal constrained PTO force follows the optimal unconstrained solution (sinusoidal) whenever the unconstrained solution is within the constraint. When the constraint is active the optimal PTO force is the maximum PTO force of 750 Newtons.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal mechanical&#39;</span><span class="p">)</span>
+<span class="n">wec_tdom_2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, constrained&#39;</span><span class="p">)</span>
+<span class="n">wec_tdom_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, unconstrained&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">pto_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal mechanical&#39;</span><span class="p">)</span>
+<span class="n">pto_tdom_2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, constrained&#39;</span><span class="p">)</span>
+<span class="n">pto_tdom_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, unconstrained&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">pto_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;mech&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal mechanical&#39;</span><span class="p">)</span>
+<span class="n">pto_tdom_2</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;elec&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, constrained&#39;</span><span class="p">)</span>
+<span class="n">pto_tdom_2_nocon</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;power&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;elec&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimal electrical, unconstrained&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x7f31f40cf950&gt;
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_55_1.png" src="../_images/_examples_tutorial_1_WaveBot_55_1.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_55_2.png" src="../_images/_examples_tutorial_1_WaveBot_55_2.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_55_3.png" src="../_images/_examples_tutorial_1_WaveBot_55_3.png" />
+</div>
+</div>
+<p>The attentive user might have noticed that the amplitude of the mechanical power is less compared to Part 1 of the tutorial. We can see that optimizing for electrical power requires optimal state trajectories with less reactive mechanical power (i.e. power that is put into the system).</p>
+<p>The PTO force trajectory for optimizing mechanical power is saturated at the maximum for longer compared to the electrical power. This could inform the WEC designer optimizing for mechanical power to consider larger components that would not be utilized at their limit as frequently. However, the electrical power (<em>not</em> the mechanical power) is the usable form of power, thus designing the WEC for optimal electrical power does not indicate a need for larger components and prevents this
+over-design.</p>
+<p>The Sankey power flow diagram confirm this observation.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">p_flows_2</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">calculate_power_flows</span><span class="p">(</span><span class="n">wec_2</span><span class="p">,</span> <span class="n">pto_2</span><span class="p">,</span> <span class="n">results_2</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">intrinsic_impedance</span><span class="p">)</span>
+<span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">plot_power_flow</span><span class="p">(</span><span class="n">p_flows_2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Figure size 800x400 with 1 Axes&gt;, &lt;Axes: &gt;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_57_1.png" src="../_images/_examples_tutorial_1_WaveBot_57_1.png" />
+</div>
+</div>
+</section>
+<section id="3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power">
+<h2>3. Control co-design of the WEC geometry for maximum electrical power<a class="headerlink" href="#3.-Control-co-design-of-the-WEC-geometry-for-maximum-electrical-power" title="Link to this heading"></a></h2>
+<p>The first two examples only used the inner optimization loop in WecOptTool to optimize PTO power. In Part 3, we bring it all together and show how to use both the inner and outer optimization loops in WecOptTool to do control co-optimization of a hull design in conjunction with an optimal controller for electrical power.</p>
+<p>Again, we use the WaveBot WEC in one degree of freedom in regular waves. The goal is to <strong>find the optimal keel radius</strong> (<code class="docutils literal notranslate"><span class="pre">r2</span></code>) that maximizes the average produced electrical power, while maintaining a constant hull volume. A constant volume is achieved by setting the height of the conical section (<code class="docutils literal notranslate"><span class="pre">h2</span></code>) in conjunction with the keel radius.</p>
+<p>This example demonstrates a complete case of the control co-optimization studies WecOptTool is meant for. The inner optimization loop finds the control trajectory that produces the optimal PTO force for a given hull geometry, and the outer optimization loop finds the optimal hull geometry <em>amongst designs with optimal control trajectories</em>.</p>
+<p>The inner loop is consolidated into the <code class="docutils literal notranslate"><span class="pre">WEC.solve()</span></code> method, but the outer loop needs to be configured by the user for their particular design problem. In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code> (click <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brute.html">here</a> for documentation).</p>
+<p><img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" /></p>
+<div><p><img alt="680288e32dfe498c99e261e142a2909f" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
+</div><section id="Problem-setup">
+<h3>Problem setup<a class="headerlink" href="#Problem-setup" title="Link to this heading"></a></h3>
+<p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r1</span> <span class="o">=</span> <span class="mf">0.88</span>
+<span class="n">r2_0</span> <span class="o">=</span> <span class="mf">0.35</span>
+<span class="n">h2_0</span> <span class="o">=</span> <span class="mf">0.37</span>
+<span class="n">V0</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">h2_0</span><span class="o">*</span><span class="p">(</span><span class="n">r1</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">r2_0</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">r1</span><span class="o">*</span><span class="n">r2_0</span><span class="p">))</span>
+
+<span class="n">r2_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.88</span><span class="o">*</span><span class="mf">0.999</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="n">V0</span><span class="p">,</span> <span class="n">r1</span><span class="o">=</span><span class="n">r1</span><span class="p">):</span>
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">V</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">3</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">r1</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="n">r2</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">r1</span><span class="o">*</span><span class="n">r2</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">h2</span>
+
+
+<span class="c1"># plot</span>
+<span class="n">mapres</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">h2_from_r2</span><span class="p">,</span> <span class="n">r2_vals</span><span class="p">)</span>
+<span class="n">h2_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mapres</span><span class="p">)</span>
+
+<span class="n">fig1</span><span class="p">,</span> <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">r2</span><span class="p">,</span> <span class="n">h2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">r2_vals</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">h2_vals</span><span class="p">):</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">(</span><span class="n">r2</span><span class="o">=</span><span class="n">r2</span><span class="p">,</span> <span class="n">h2</span><span class="o">=</span><span class="n">h2</span><span class="p">,</span> <span class="n">freeboard</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span><span class="o">.</span><span class="n">plot_cross_section</span><span class="p">(</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;r2=</span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, h2=</span><span class="si">{</span><span class="n">h2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;best&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s1">&#39;small&#39;</span><span class="p">,</span><span class="n">ncol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;WaveBot hull cross-sections&#39;</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_60_0.png" src="../_images/_examples_tutorial_1_WaveBot_60_0.png" />
+</div>
+</div>
+<p>Next we will define an objective function for our design optimization problem. We use the same workflow used in Part 2 to set up a WaveBot device and solve for the optimal solution, but wrap this in a function definition which sets <code class="docutils literal notranslate"><span class="pre">r2</span></code> and (indirectly) <code class="docutils literal notranslate"><span class="pre">h2</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+
+    <span class="c1"># Unpack geometry variables</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">h2</span> <span class="o">=</span> <span class="n">h2_from_r2</span><span class="p">(</span><span class="n">r2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">r2 = </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Set up Capytaine floating body</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">(</span><span class="n">r2</span><span class="o">=</span><span class="n">r2</span><span class="p">,</span> <span class="n">h2</span><span class="o">=</span><span class="n">h2</span><span class="p">)</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">mesh_size_factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;WaveBot&quot;</span><span class="p">)</span>
+    <span class="n">fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Heave&quot;</span><span class="p">)</span>
+    <span class="n">ndof</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">nb_dofs</span>
+
+    <span class="c1"># Run BEM</span>
+    <span class="n">f1</span> <span class="o">=</span> <span class="mf">0.05</span>
+    <span class="n">nfreq</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+
+    <span class="c1"># Impedance definition</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">gear_ratio</span> <span class="o">=</span> <span class="mf">12.0</span>
+    <span class="n">torque_constant</span> <span class="o">=</span> <span class="mf">6.7</span>
+    <span class="n">winding_resistance</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">winding_inductance</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">drivetrain_inertia</span> <span class="o">=</span> <span class="mf">2.0</span>
+    <span class="n">drivetrain_friction</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">drivetrain_stiffness</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">drivetrain_impedance</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="o">*</span><span class="n">drivetrain_inertia</span> <span class="o">+</span>
+                            <span class="n">drivetrain_friction</span> <span class="o">+</span>
+                            <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="p">)</span><span class="o">*</span><span class="n">drivetrain_stiffness</span><span class="p">)</span>
+
+    <span class="n">winding_impedance</span> <span class="o">=</span> <span class="n">winding_resistance</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega</span><span class="o">*</span><span class="n">winding_inductance</span>
+
+
+    <span class="n">pto_impedance_11</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span> <span class="n">gear_ratio</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">drivetrain_impedance</span>
+    <span class="n">off_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">torque_constant</span> <span class="o">*</span> <span class="n">gear_ratio</span>
+    <span class="n">pto_impedance_12</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">pto_impedance_21</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">pto_impedance_22</span> <span class="o">=</span> <span class="n">winding_impedance</span>
+    <span class="n">pto_impedance_3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">pto_impedance_11</span><span class="p">,</span> <span class="n">pto_impedance_12</span><span class="p">],</span>
+                            <span class="p">[</span><span class="n">pto_impedance_21</span><span class="p">,</span> <span class="n">pto_impedance_22</span><span class="p">]])</span>
+
+    <span class="c1"># Set PTO object</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PTO_Heave&quot;</span><span class="p">,]</span>
+    <span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">ndof</span><span class="p">)</span>
+    <span class="n">efficiency</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">controller</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">pto</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PTO</span><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">kinematics</span><span class="p">,</span> <span class="n">controller</span><span class="p">,</span> <span class="n">pto_impedance_3</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+    <span class="c1"># Set PTO constraint and additional dynamic force</span>
+    <span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">f_max</span> <span class="o">=</span> <span class="mf">750.0</span>
+
+    <span class="k">def</span> <span class="nf">const_f_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+
+    <span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto</span><span class="p">}</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
+
+    <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PTO&#39;</span><span class="p">:</span> <span class="n">pto</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">}</span>
+
+    <span class="c1"># Create WEC</span>
+    <span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
+            <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
+            <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Objective function</span>
+    <span class="n">obj_fun</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">average_power</span>
+    <span class="n">nstate_opt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span>
+
+    <span class="c1"># Solve</span>
+    <span class="n">scale_x_wec</span> <span class="o">=</span> <span class="mf">1e1</span>
+    <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="mf">1e-3</span>
+    <span class="n">scale_obj</span> <span class="o">=</span> <span class="mf">1e-2</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+        <span class="n">waves</span><span class="p">,</span>
+        <span class="n">obj_fun</span><span class="p">,</span>
+        <span class="n">nstate_opt</span><span class="p">,</span>
+        <span class="n">scale_x_wec</span><span class="o">=</span><span class="n">scale_x_wec</span><span class="p">,</span>
+        <span class="n">scale_x_opt</span><span class="o">=</span><span class="n">scale_x_opt</span><span class="p">,</span>
+        <span class="n">scale_obj</span><span class="o">=</span><span class="n">scale_obj</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="id1">
+<h3>Solve<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>Finally, we call our wrapped function using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code>. The optimization algorithm will call our objective function, which in turn will create a new WaveBot hull, run the necessary BEM calculations for the hull, and find the PTO force that provides the most electric power for that hull. This process will be conducted for the range of <code class="docutils literal notranslate"><span class="pre">r2</span></code> values that we specify.</p>
+<p><em>(note: the cell below will take longer to run than the cells above, up to several minutes)</em></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wot</span><span class="o">.</span><span class="n">set_loglevel</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>  <span class="c1"># Suppress warnings</span>
+
+<span class="c1"># range over which to search</span>
+<span class="n">ranges</span> <span class="o">=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">r2_vals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">r2_vals</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),)</span>
+
+<span class="c1"># solve</span>
+<span class="n">opt_x0</span><span class="p">,</span> <span class="n">opt_fval</span><span class="p">,</span> <span class="n">x0s</span><span class="p">,</span> <span class="n">fvals</span> <span class="o">=</span> <span class="n">brute</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">design_obj_fun</span><span class="p">,</span> <span class="n">ranges</span><span class="o">=</span><span class="n">ranges</span><span class="p">,</span> <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">finish</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "18c53d8feadf41e7996ef2928686114a"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+r2 = 0.05:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "37cdcc80e142479497d7220eda7435d0"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2799340501361001
+            Iterations: 10
+            Function evaluations: 11
+            Gradient evaluations: 10
+
+r2 = 0.17:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "5dfcaa2ae9254d939d61c3bba7eb0b4e"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.27987332581804386
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
+
+r2 = 0.29:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "88bfadc3603040eb9e1b9914a866b6e2"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2799813085549944
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
+
+r2 = 0.41:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "f64a0134985b4496ad48146a86405bbb"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.28026143455881064
+            Iterations: 9
+            Function evaluations: 10
+            Gradient evaluations: 9
+
+r2 = 0.52:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "5b4fdb7977554a0ba3442dee25dab985"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.28075343400858227
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
+
+r2 = 0.64:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "93aca918037c4b0f9fb561c5262748bf"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.281674446128396
+            Iterations: 10
+            Function evaluations: 11
+            Gradient evaluations: 10
+
+r2 = 0.76:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "01401c232dfc47e98a3065711f1b8081"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2834866884166226
+            Iterations: 10
+            Function evaluations: 11
+            Gradient evaluations: 10
+
+r2 = 0.88:
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2874538519434861
+            Iterations: 10
+            Function evaluations: 10
+            Gradient evaluations: 10
+</pre></div></div>
+</div>
+</section>
+<section id="Results">
+<h3>Results<a class="headerlink" href="#Results" title="Link to this heading"></a></h3>
+<p>From a quick plot of the results, we see that the power absorption (where negative power is power absorbed by the device) generally improves for larger values of <code class="docutils literal notranslate"><span class="pre">r2</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s1">&#39;axes.prop_cycle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">by_key</span><span class="p">()[</span><span class="s1">&#39;color&#39;</span><span class="p">][:</span><span class="nb">len</span><span class="p">(</span><span class="n">x0s</span><span class="p">)]</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x0s</span><span class="p">,</span> <span class="n">fvals</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x0s</span><span class="p">,</span> <span class="n">fvals</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Keel radius, $r_2$ [m]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Average Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Design optimization results&#39;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_1_WaveBot_66_0.png" src="../_images/_examples_tutorial_1_WaveBot_66_0.png" />
+</div>
+</div>
+<p>Note that in this case the difference in average power between the different keel radii is rather small. This is because the PTO force constraint is active most of the time, therefore all considered geometries perform similarily. If you remove the PTO constraint and re-run the co-optimization study, you will see that the impact of radius on average electrical power is significantly higher.</p>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"5cde039399e3460887cd1dfe61fedcf1": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3b889afcd0fb46c4a517a3ccb9a344a2": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_5cde039399e3460887cd1dfe61fedcf1", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "9f54b8e4e013468ca06634d2abb40d7d": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "18c53d8feadf41e7996ef2928686114a": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_9f54b8e4e013468ca06634d2abb40d7d", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "ae1a377b7f2946158500d3647bc8ee11": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "37cdcc80e142479497d7220eda7435d0": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_ae1a377b7f2946158500d3647bc8ee11", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "2dda02009f764bf080f1676afb1c7394": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "5dfcaa2ae9254d939d61c3bba7eb0b4e": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_2dda02009f764bf080f1676afb1c7394", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "7f786ee9c03843dd83a675f26e84a7c8": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "88bfadc3603040eb9e1b9914a866b6e2": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_7f786ee9c03843dd83a675f26e84a7c8", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "cc86566cc9f5442b845729729cabc97c": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f64a0134985b4496ad48146a86405bbb": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_cc86566cc9f5442b845729729cabc97c", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "3a6981312252492abbeb5af3d1f2834e": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "5b4fdb7977554a0ba3442dee25dab985": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3a6981312252492abbeb5af3d1f2834e", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "bc6a007323c9419484af4f8c423c5c31": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "93aca918037c4b0f9fb561c5262748bf": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_bc6a007323c9419484af4f8c423c5c31", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "856b0291b88641dfa8442b65118ef393": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "01401c232dfc47e98a3065711f1b8081": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_856b0291b88641dfa8442b65118ef393", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:01\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:01</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tutorials.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorial_2_AquaHarmonics.html" class="btn btn-neutral float-right" title="Tutorial 2 - AquaHarmonics" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: dev
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href="../../_examples/tutorial_1_WaveBot.html">latest</a></dd><dd><a href="../../dev/_examples/tutorial_1_WaveBot.html">dev</a></dd></dl></div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

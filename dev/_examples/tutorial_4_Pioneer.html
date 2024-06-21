@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial 4 - Pioneer &mdash; WecOptTool 3.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="References" href="../references.html" />
+    <link rel="prev" title="Tutorial 3 - LUPA" href="tutorial_3_LUPA.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            WecOptTool
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../implementation.html">Implementation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tutorial_1_WaveBot.html">Tutorial 1 - WaveBot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_2_AquaHarmonics.html">Tutorial 2 - AquaHarmonics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial_3_LUPA.html">Tutorial 3 - LUPA</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tutorial 4 - Pioneer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#1.-Model-setup">1. Model setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#1.1-Waves">1.1 Waves</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.2-Basic-properties">1.2 Basic properties</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#Geometry">Geometry</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Design-properties">Design properties</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Pitch-resonator">Pitch resonator</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Hydrodynamics-and-hydrostatics">Hydrodynamics and hydrostatics</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#1.3-PTO">1.3 PTO</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#Capturing-flywheel-motions">Capturing flywheel motions</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#Manually-defining-PTO-equations">Manually defining PTO equations</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#1.4-Constraints">1.4 Constraints</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.5-Additional-forces">1.5 Additional forces</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.6-Flywheel-residual-equation">1.6 Flywheel residual equation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.7-WEC-object">1.7 WEC object</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#2.-Regular-wave-results">2. Regular wave results</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#2.1-Solve">2.1 Solve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#2.2-Post-process-and-plot">2.2 Post-process and plot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#2.3-Sankey-Diagram">2.3 Sankey Diagram</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#3.-Irregular-wave">3. Irregular wave</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#3.1-Solve">3.1 Solve</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#3.2-Post-process-and-plot">3.2 Post-process and plot</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#3.3-Notes-on-selection-of-frequency-array-and-realizations">3.3 Notes on selection of frequency array and realizations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_docs/wecopttool.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Tutorial 4 - Pioneer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial-4---Pioneer">
+<h1>Tutorial 4 - Pioneer<a class="headerlink" href="#Tutorial-4---Pioneer" title="Link to this heading"></a></h1>
+<p>This tutorial models a potential design for a WEC used to provide power to instruments in the <a class="reference external" href="https://oceanobservatories.org/site/cp01cnsm/">Pioneer Central Surface Mooring System</a> within the National Science Foundation Ocean Observatories Initiative <a class="reference external" href="https://oceanobservatories.org/array/coastal-pioneer-array/">Coastal Pioneer Array</a>. This system has instrumentation to measure various meteorological, surface, near-surface, and seabed phenomena on the Continental Shelf-Slope and transmit
+back to shore.</p>
+<p>Unlike previous tutorials, this tutorial does not include an outer optimization loop. Instead, the focus here is on effectively modeling an optimization problem for the control of a unique WEC archetype with a pitch resonator PTO with several co-dependent components. This is completely setup in Part 1, and includes:</p>
+<ul class="simple">
+<li><p>Expanding the control state vector</p></li>
+<li><p>Custom PTO physics</p></li>
+<li><p>Modeling non-hydrodynamic degrees of freedom</p></li>
+</ul>
+<p>This tutorial is divided into three parts. The first sets up the problem including the points above. The second and third show results using a regular and irregular wave, respectively.</p>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#1.-Model-setup"><span class="std std-ref">Model setup</span></a></p></li>
+<li><p><a class="reference internal" href="#2.-Regular-wave-results"><span class="std std-ref">Regular wave results</span></a></p></li>
+<li><p><a class="reference internal" href="#3.-Irregular-wave"><span class="std std-ref">Irregular wave</span></a></p></li>
+</ol>
+<p><p><img alt="Diagram of the Pioneer device" class="no-scaled-link" src="https://oceanobservatories.org/wp-content/uploads/2015/09/Central-Surface-Mooring-Array-01-1.png" style="width: 200px;" /></p>
+</p><div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span>
+
+<span class="kn">import</span> <span class="nn">wecopttool</span> <span class="k">as</span> <span class="nn">wot</span>
+
+<span class="c1">## set colorblind-friendly colormap for plots</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;tableau-colorblind10&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="1.-Model-setup">
+<h2>1. Model setup<a class="headerlink" href="#1.-Model-setup" title="Link to this heading"></a></h2>
+<section id="1.1-Waves">
+<h3>1.1 Waves<a class="headerlink" href="#1.1-Waves" title="Link to this heading"></a></h3>
+<p>We start with setting up the different waves we want to model, as this will inform what to select for our frequency range, which we need throughout the rest of the problem setup. We will consider two waves: a regular wave and an irregular wave, both with typical characteristics of the deployment site. The regular wave is roughly at 0.35 Hz, the known pitch resonance frequency of the buoy. The irregular wave has a peak period of 5 seconds, matching that of the deployment site.</p>
+<p>Please refer to Tutorial 3 for information about selecting the number of realizations. For the purpose of the tutorial, the number of realizations has been set to 2 to reduce runtime.</p>
+<p>The procedure for determining an appropriate frequency array for irregular wave conditions is detailed at the end of this tutorial.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fend</span> <span class="o">=</span> <span class="mf">1.875</span>
+<span class="n">nfreq</span> <span class="o">=</span> <span class="mi">150</span>
+<span class="n">f1</span> <span class="o">=</span> <span class="n">fend</span> <span class="o">/</span> <span class="n">nfreq</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># regular</span>
+<span class="n">amplitude</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="n">wavefreq</span> <span class="o">=</span> <span class="mf">0.35</span>
+<span class="n">waves_regular</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">regular_wave</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">wavefreq</span><span class="p">,</span> <span class="n">amplitude</span><span class="p">)</span>
+
+<span class="c1"># irregular</span>
+<span class="n">Hs</span> <span class="o">=</span> <span class="mf">1.5</span>
+<span class="n">Tp</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="n">nrealizations</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">fp</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">Tp</span>
+<span class="n">spectrum</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">pierson_moskowitz_spectrum</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">Hs</span><span class="p">)</span>
+<span class="n">efth</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">omnidirectional_spectrum</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="s2">&quot;Pierson-Moskowitz&quot;</span><span class="p">)</span>
+<span class="n">waves_irregular</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">long_crested_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="n">nrealizations</span><span class="o">=</span><span class="n">nrealizations</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>We plot the wave elevation spectra to check if the chosen frequency array covers the main excitation frequency, converges to zero for larger frequencies and can capture multiple harmonics which are required for nonlinear dynamics, since the states are multiplied with each other.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">#TODO: highlight the harmonics if wave freq and Tp with other markers+colors</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves_regular</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">marker</span> <span class="o">=</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;regular&quot;</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">marker</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;irregular&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Wave elevation spectrum&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x7f599b39f450&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_6_1.png" src="../_images/_examples_tutorial_4_Pioneer_6_1.png" />
+</div>
+</div>
+</section>
+<section id="1.2-Basic-properties">
+<h3>1.2 Basic properties<a class="headerlink" href="#1.2-Basic-properties" title="Link to this heading"></a></h3>
+<section id="Geometry">
+<h4>Geometry<a class="headerlink" href="#Geometry" title="Link to this heading"></a></h4>
+<p>To get the required hydrodynamic coefficients of the Pioneer design, we only need to be concerned with creating a mesh of the buoy geometry. The buoy has the same general shape as the WaveBot used in Tutorial 1, so we will use the build-in <code class="docutils literal notranslate"><span class="pre">geom.WaveBot</span></code> object and change the dimensions to simplify the mesh creation process.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">in2m</span> <span class="o">=</span> <span class="mf">0.0254</span> <span class="c1"># inch -&gt; meter conversion factor</span>
+<span class="n">draft</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="c1"># meters</span>
+<span class="n">freeboard</span> <span class="o">=</span> <span class="mf">40.</span> <span class="o">*</span> <span class="n">in2m</span> <span class="o">-</span> <span class="n">draft</span>
+<span class="n">hull_geom</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">geom</span><span class="o">.</span><span class="n">WaveBot</span><span class="p">(</span><span class="n">r1</span><span class="o">=</span><span class="mf">130.</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">in2m</span><span class="p">,</span>
+                             <span class="n">r2</span><span class="o">=</span><span class="mf">110.</span><span class="o">/</span><span class="mi">2</span> <span class="o">*</span> <span class="n">in2m</span><span class="p">,</span>
+                             <span class="n">h1</span><span class="o">=</span><span class="mf">22.679</span> <span class="o">*</span> <span class="n">in2m</span><span class="p">,</span>
+                             <span class="n">h2</span><span class="o">=</span><span class="mf">17.321</span> <span class="o">*</span> <span class="n">in2m</span><span class="p">,</span>
+                             <span class="n">scale_factor</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">freeboard</span><span class="o">=</span><span class="n">freeboard</span><span class="p">)</span>
+<span class="n">mesh</span> <span class="o">=</span> <span class="n">hull_geom</span><span class="o">.</span><span class="n">mesh</span><span class="p">(</span><span class="n">mesh_size_factor</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">hull_geom</span><span class="o">.</span><span class="n">plot_cross_section</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Info    : [ 90%] Union - Splitting solids
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_8_1.png" src="../_images/_examples_tutorial_4_Pioneer_8_1.png" />
+</div>
+</div>
+</section>
+<section id="Design-properties">
+<h4>Design properties<a class="headerlink" href="#Design-properties" title="Link to this heading"></a></h4>
+<p>The Pioneer team has developed initial specifications for a full-sized WEC design that fits within the buoy dimensions and operating at resonance. There are several components that we need to capture in the PTO model:</p>
+<ul class="simple">
+<li><p><strong>Buoy</strong>: As mentioned, this has the same basic geometric parameters as the WaveBot used in Tutorial 1. Since we’re only modeling the pitch degree of freedom, we only need the pitch moment of inertia and not the mass of the buoy.</p></li>
+<li><p><strong>Flywheel</strong>: The flywheel is contained and dimensioned to fit on top of the buoy. It rotates in pitch independently of the buoy, but is linked to the buoy through two parallel connections: the torsional spring and the generator. Since the flywheel is protected from wave loading by the buoy, it is <strong>not</strong> subject to hydrostatics or hydrodynamics.</p></li>
+<li><p><strong>Spring</strong>: The magnetic torsional spring provides positive stiffness to the flywheel. It has a linear displacement up to 45 degrees, at which point it “wraps around” and the stiffness begins decreasing. For simplicity, we will model the spring as strictly linear. The spring is connected to a gearbox which makes the position of the spring (and therefore, the generator shaft) different from the relative position of the flywheel and buoy.</p></li>
+</ul>
+<p>A rendering of the Pioneer WEC model is shown here with the buoy pitch in red and the flywheel pitch in green:</p>
+<p><p><img alt="Diagram of the Pioneer device" class="no-scaled-link" src="https://live.staticflickr.com/65535/53025745404_2e75c89894_k.jpg" style="width: 500px;" /></p>
+</p><div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">buoy_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;CG&#39;</span><span class="p">:</span> <span class="mf">0.242</span><span class="p">,</span> <span class="c1"># m</span>
+    <span class="s1">&#39;MOI&#39;</span><span class="p">:</span> <span class="mf">7484.</span><span class="p">,</span> <span class="c1"># kg-m^2</span>
+    <span class="s1">&#39;Resonance frequency&#39;</span><span class="p">:</span> <span class="mf">0.35</span><span class="p">,</span> <span class="c1"># Hz</span>
+<span class="p">}</span>
+
+<span class="n">flywheel_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;MOI&#39;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>  <span class="c1"># kg-m^2</span>
+    <span class="s1">&#39;Coulomb friction&#39;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>  <span class="c1"># N-m</span>
+    <span class="s1">&#39;Viscous friction&#39;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span>  <span class="c1"># N-m/rad</span>
+    <span class="s1">&#39;Gear ratio&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="c1"># -</span>
+<span class="p">}</span>
+
+<span class="n">spring_props</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Max torque&#39;</span><span class="p">:</span> <span class="mi">750</span><span class="p">,</span> <span class="c1"># N-m</span>
+    <span class="s1">&#39;Max displacement&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="mf">45.0</span><span class="p">),</span> <span class="c1"># rad</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Pitch-resonator">
+<h4>Pitch resonator<a class="headerlink" href="#Pitch-resonator" title="Link to this heading"></a></h4>
+<p>This system uses a unique PTO system, where the generator velocity is dependent on the relative pitching rotation of the buoy and the flywheel. The system can be modeled as a coupled spring-mass-damper system, with the generator represented as <span class="math notranslate nohighlight">\(B_{PTO}\)</span>. The spring-mass-damper system and equivalent circuit model are shown below. Note that all of these values are rotational and are drawn here linearly for simplicity.</p>
+<p><p><img alt="Pioneer model as a spring-mass-damper system" class="no-scaled-link" src="https://live.staticflickr.com/65535/53025028262_1a4ba2d5ce_z.jpg" style="width: 500px;" /> <img alt="Pioneer model as a spring-mass-damper system" class="no-scaled-link" src="https://live.staticflickr.com/65535/53025140497_29c5b9d601_z.jpg" style="width: 180px;" /></p>
+</p><p>This corresponds to the following dynamics equations:</p>
+<ol class="arabic simple">
+<li></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[[J_{buoy} + J(\omega))] \ddot{\theta}_{buoy} = T_{hydro} - K_{hydro}\theta_{buoy} - B(\omega)\dot{\theta}_{buoy} - K_{spring}(\theta_{buoy} - \theta_{flywheel})/N^2 - (B_{PTO} + B_{fric})(\dot{\theta}_{buoy} - \dot{\theta}_{flywheel})\]</div>
+<ol class="arabic simple" start="2">
+<li></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[J_{flywheel} \ddot{\theta}_{flywheel} = K_{spring}(\theta_{buoy} - \theta_{flywheel})/N^2 + (B_{PTO} + B_{fric})(\dot{\theta}_{buoy} - \dot{\theta}_{flywheel})\]</div>
+<p>We will explore how to capture these dynamics in WecOptTool in the following sections.</p>
+</section>
+<section id="Hydrodynamics-and-hydrostatics">
+<h4>Hydrodynamics and hydrostatics<a class="headerlink" href="#Hydrodynamics-and-hydrostatics" title="Link to this heading"></a></h4>
+<p>As mentioned above, the <code class="docutils literal notranslate"><span class="pre">FloatingBody</span></code> object in Capytaine only needs to model the buoy, since no other components are being excited by the waves.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pnr_fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Pioneer&quot;</span><span class="p">)</span>
+<span class="n">pnr_fb</span><span class="o">.</span><span class="n">add_rotation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">)</span>
+<span class="n">pnr_fb</span><span class="o">.</span><span class="n">center_of_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">buoy_props</span><span class="p">[</span><span class="s1">&#39;CG&#39;</span><span class="p">]])</span>
+<span class="n">pnr_fb</span><span class="o">.</span><span class="n">rotation_center</span> <span class="o">=</span> <span class="n">pnr_fb</span><span class="o">.</span><span class="n">center_of_mass</span>
+<span class="n">ndof</span> <span class="o">=</span> <span class="n">pnr_fb</span><span class="o">.</span><span class="n">nb_dofs</span>
+<span class="n">pnr_fb</span><span class="o">.</span><span class="n">show_matplotlib</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.bodies.bodies:The rotation dof Pitch has been initialized around the origin of the domain (0, 0, 0).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:19:20] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> The rotation dof Pitch has been initialized around the origin of the domain <span style="font-weight: bold">(</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>, <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span><span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_13_2.png" src="../_images/_examples_tutorial_4_Pioneer_13_2.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rho</span> <span class="o">=</span> <span class="mf">1025.</span> <span class="c1"># kg/m^3</span>
+<span class="n">freq</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># False -&gt; no zero frequency</span>
+<span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">pnr_fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span>
+<span class="n">omega</span> <span class="o">=</span> <span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">pnr_fb</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span>
+<span class="n">k_buoy</span> <span class="o">=</span> <span class="n">pnr_fb</span><span class="o">.</span><span class="n">compute_hydrostatic_stiffness</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+<span class="n">k_spring</span> <span class="o">=</span> <span class="n">spring_props</span><span class="p">[</span><span class="s1">&#39;Max torque&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">spring_props</span><span class="p">[</span><span class="s1">&#39;Max displacement&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Hydrostatic stiffness from Capytaine: </span><span class="si">{</span><span class="n">k_buoy</span><span class="si">}</span><span class="s1"> N-m/rad&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Hydrostatic stiffness from experiment: 37204 N-m/rad&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:center_of_mass already defined as [0.    0.    0.242].
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:19:21] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> center_of_mass already defined as <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>.    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>.    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.242</span><span style="font-weight: bold">]</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:rotation_center already defined as [0.    0.    0.242].
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> rotation_center already defined as <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>.    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span>.    <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0.242</span><span style="font-weight: bold">]</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:FloatingBody has no inertia_matrix field. If the FloatingBody mass is defined, it will be used for calculating the inertia matrix here. Otherwise, the neutral buoyancy assumption will be used to auto-populate.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> FloatingBody has no inertia_matrix field. If the FloatingBody mass is defined, it will be used
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         for calculating the inertia matrix here. Otherwise, the neutral buoyancy assumption will be
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         used to auto-populate.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:FloatingBody has no hydrostatic_stiffness field. Capytaine will auto-populate the hydrostatic stiffness based on the provided mesh.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> FloatingBody has no hydrostatic_stiffness field. Capytaine will auto-populate the hydrostatic
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         stiffness based on the provided mesh.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.bem.solver:Mesh resolution for 134 problems:
+The resolution of the mesh might be insufficient for omega ranging from 6.597 to 11.781.
+This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">134</span> problems:
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6.597</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11.781</span>.
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "4be34be5a49e45b48c9bc0cee66317e2"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">
+</pre></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Hydrostatic stiffness from Capytaine: 40412.42426016398 N-m/rad
+Hydrostatic stiffness from experiment: 37204 N-m/rad
+</pre></div></div>
+</div>
+<p>As with previous tutorials, we will plot the hydrodynamic coefficients to confirm that we are properly capturing the full excitation range of the buoy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plots</span>
+<span class="n">fig_am</span><span class="p">,</span> <span class="n">ax_am</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig_rd</span><span class="p">,</span> <span class="n">ax_rd</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig_ex</span><span class="p">,</span> <span class="n">ax_ex</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">tight_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Excitation</span>
+<span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bem_data</span><span class="o">.</span><span class="n">diffraction_force</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">influenced_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax_ex</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashed&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Diffraction force&#39;</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">bem_data</span><span class="o">.</span><span class="n">Froude_Krylov_force</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">influenced_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax_ex</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Froude-Krylov force&#39;</span><span class="p">)</span>
+<span class="n">ex_handles</span><span class="p">,</span> <span class="n">ex_labels</span> <span class="o">=</span> <span class="n">ax_ex</span><span class="o">.</span><span class="n">get_legend_handles_labels</span><span class="p">()</span>
+<span class="n">ax_ex</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;$\omega$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax_ex</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Wave Excitation Coefficients&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax_ex</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig_ex</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">ex_handles</span><span class="p">,</span> <span class="n">ex_labels</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center right&#39;</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Added mass</span>
+<span class="n">bem_data</span><span class="o">.</span><span class="n">added_mass</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">radiating_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax_am</span><span class="p">)</span>
+<span class="n">ax_am</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;$\omega$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax_am</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Added Mass Coefficients&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax_am</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Radiation damping</span>
+<span class="n">bem_data</span><span class="o">.</span><span class="n">radiation_damping</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">radiating_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="s1">&#39;Pitch&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax_rd</span><span class="p">)</span>
+<span class="n">ax_rd</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;$\omega$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax_rd</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Radiation Damping Coefficients&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+<span class="n">ax_rd</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_16_0.png" src="../_images/_examples_tutorial_4_Pioneer_16_0.png" />
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_16_1.png" src="../_images/_examples_tutorial_4_Pioneer_16_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_16_2.png" src="../_images/_examples_tutorial_4_Pioneer_16_2.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="1.3-PTO">
+<h3>1.3 PTO<a class="headerlink" href="#1.3-PTO" title="Link to this heading"></a></h3>
+<p>The generator shaft velocity is the difference between the buoy velocity and the flywheel velocity. Because the velocity PTO depends not only on the hydrodynamic states (<code class="docutils literal notranslate"><span class="pre">x_wec</span></code>, buoy pitch) but also on an additional non-hydrodynamic state (flywheel pitch), we cannot use the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module we have used in previous tutorials. We will make two adjustments to our previous modeling approach model to accurately model the PTO:</p>
+<ol class="arabic simple">
+<li><p>Adjust the <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> vector to include the flywheel motion</p></li>
+<li><p>Manually define the PTO dynamics and energy equations in place on the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module</p></li>
+</ol>
+<section id="Capturing-flywheel-motions">
+<h4>Capturing flywheel motions<a class="headerlink" href="#Capturing-flywheel-motions" title="Link to this heading"></a></h4>
+<p>In previous tutorials, all the relevant WEC dynamics have been captured in the <code class="docutils literal notranslate"><span class="pre">x_wec</span></code> vector. However, <code class="docutils literal notranslate"><span class="pre">x_wec</span></code> assumes all the degrees of freedom are excited by waves, which is not the case for the flywheel in the Pioneer model. Instead, we will include the flywheel dynamics in the <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> vector.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> vector has previously only been used to model the PTO force. However, there is no limit to what <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> can include; it can theoretically include anything that is needed to model the PTO control. Here, we will append the Fourier coefficients of the flywheel’s position to <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>. The first part of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> will continue to be used for the PTO force (i.e. Fourier coefficients of the force time-series for an unstructured controller).</p>
+<p>Note in the code further down that <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> will be spliced as either <code class="docutils literal notranslate"><span class="pre">x_opt[:nstate_pto]</span></code> to exclude the flywheel position states, or <code class="docutils literal notranslate"><span class="pre">x_opt[nstate_pto:]</span></code> to exclude the PTO force states. Remember, <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> can be defined arbitrarily, and specific meanings to the states are given elsewhere in the model.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nstate_pto</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nfreq</span> <span class="c1"># PTO forces</span>
+<span class="n">nstate_fw</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nfreq</span>  <span class="c1"># Flywheel positions</span>
+<span class="n">nstate_opt</span> <span class="o">=</span> <span class="n">nstate_pto</span> <span class="o">+</span> <span class="n">nstate_fw</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Manually-defining-PTO-equations">
+<h4>Manually defining PTO equations<a class="headerlink" href="#Manually-defining-PTO-equations" title="Link to this heading"></a></h4>
+<p>Instead of calling the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module, we will manually define the dynamics and energy equations needed for WecOptTool to calculate electrical power, our quantity of interest for this optimization problem. These equations are also needed for the additional forces and constraints defined later on.</p>
+<section id="Relative-motion">
+<h5>Relative motion<a class="headerlink" href="#Relative-motion" title="Link to this heading"></a></h5>
+<p>Here we define functions for the relative motion of the buoy and flywheel, derived from <code class="docutils literal notranslate"><span class="pre">x_wec</span></code> and <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> respectively.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">x_rel</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">):</span>
+    <span class="n">pos_wec</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_wec</span><span class="p">)</span>
+    <span class="n">pos_fw</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="n">nstate_pto</span><span class="p">:])</span>
+    <span class="k">return</span> <span class="n">pos_wec</span> <span class="o">-</span> <span class="n">pos_fw</span>
+
+<span class="k">def</span> <span class="nf">rel_position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">pos_rel</span> <span class="o">=</span> <span class="n">x_rel</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+    <span class="n">time_matrix</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_matrix</span><span class="p">,</span> <span class="n">pos_rel</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">pos_rel</span> <span class="o">=</span> <span class="n">x_rel</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span>
+    <span class="n">vel_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">pos_rel</span><span class="p">)</span>
+    <span class="n">time_matrix</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_matrix</span><span class="p">,</span> <span class="n">vel_rel</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Unstructured-controller">
+<h5>Unstructured controller<a class="headerlink" href="#Unstructured-controller" title="Link to this heading"></a></h5>
+<p>This is nearly identical to the <code class="docutils literal notranslate"><span class="pre">wot.pto.controller_unstructured</span></code> function, except <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> is spliced to only include the first part, since we are also including the flywheel positions in the second part of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">motor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[:</span><span class="n">nstate_pto</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+    <span class="n">time_matrix</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_matrix</span><span class="p">,</span> <span class="n">motor</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="PTO-Impedance">
+<h5>PTO Impedance<a class="headerlink" href="#PTO-Impedance" title="Link to this heading"></a></h5>
+<p>The PTO impedance is defined using the same 2-port impedance model as in previous tutorials. The drivetrain inertia, friction, and stiffness are not included here since they are accounted for in the modeling of the additional non-hydrodynamic degree of freedom via additional forces and constraints below.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">torque_constant</span> <span class="o">=</span> <span class="mf">3.512</span>
+<span class="n">winding_resistance</span> <span class="o">=</span> <span class="mf">0.304</span>
+
+<span class="n">z_11</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)]])</span>
+<span class="n">off_diag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">torque_constant</span>
+<span class="n">z_12</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)]])</span>
+<span class="n">z_21</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">off_diag</span><span class="o">+</span><span class="mi">0</span><span class="n">j</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)]])</span>
+<span class="n">z_22</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">winding_resistance</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">omega</span><span class="o">.</span><span class="n">shape</span><span class="p">)]])</span>
+</pre></div>
+</div>
+</div>
+<p>When using the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module, the 2x2 impedance matrix is passed to the <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO</span></code> object and converted into a transfer matrix to calculate the power at each frequency. While we are not using the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module, we will repeat this process almost verbatim here. See the <code class="docutils literal notranslate"><span class="pre">_make_abcd</span></code> and <code class="docutils literal notranslate"><span class="pre">_make_mimo_transfer_mat</span></code> functions in the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module if you are interested in more technical details.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">z_12_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">z_12</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+<span class="n">mmult</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;mnr,mnr-&gt;mnr&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">abcd_11</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_12_inv</span><span class="p">,</span> <span class="n">z_11</span><span class="p">)</span>
+<span class="n">abcd_12</span> <span class="o">=</span> <span class="n">z_12_inv</span>
+<span class="n">abcd_21</span> <span class="o">=</span> <span class="n">z_21</span> <span class="o">-</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_22</span><span class="p">,</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_12_inv</span><span class="p">,</span> <span class="n">z_11</span><span class="p">))</span>
+<span class="n">abcd_22</span> <span class="o">=</span> <span class="n">mmult</span><span class="p">(</span><span class="n">z_22</span><span class="p">,</span> <span class="n">z_12_inv</span><span class="p">)</span>
+<span class="n">row_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">abcd_11</span><span class="p">,</span> <span class="n">abcd_12</span><span class="p">])</span>
+<span class="n">row_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">abcd_21</span><span class="p">,</span> <span class="n">abcd_22</span><span class="p">])</span>
+<span class="n">abcd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">row_1</span><span class="p">,</span> <span class="n">row_2</span><span class="p">])</span>
+
+<span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">Zp</span> <span class="o">=</span> <span class="n">abcd</span><span class="p">[</span><span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">],</span> <span class="p">[</span><span class="n">iim</span><span class="p">,</span> <span class="n">ire</span><span class="p">]])</span>
+                           <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">im</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="n">blocks</span> <span class="o">+</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">jdof</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">row</span><span class="p">,</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)])</span>
+    <span class="k">if</span> <span class="n">idof</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">transfer_mat</span> <span class="o">=</span> <span class="n">row</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">transfer_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">row</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Power-and-Energy">
+<h5>Power and Energy<a class="headerlink" href="#Power-and-Energy" title="Link to this heading"></a></h5>
+<p>Finally, we will wrap the relative motions, force, and impedance functions together to calculate average electrical power. This is again very close to what is found in the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module, except <code class="docutils literal notranslate"><span class="pre">rel_velocity</span></code> replaces <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO.velocity</span></code> and <code class="docutils literal notranslate"><span class="pre">f_motor</span></code> replaces <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO.force</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mechanical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">force_td</span> <span class="o">=</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">vel_td</span> <span class="o">=</span> <span class="n">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vel_td</span> <span class="o">*</span> <span class="n">force_td</span>
+
+<span class="k">def</span> <span class="nf">electrical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">q1_td</span> <span class="o">=</span> <span class="n">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+    <span class="n">e1_td</span> <span class="o">=</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+    <span class="n">q1</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">complex_to_real</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">q1_td</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+    <span class="n">e1</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">complex_to_real</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">e1_td</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+    <span class="n">vars_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">q1</span><span class="p">,</span> <span class="n">e1</span><span class="p">])</span>
+    <span class="n">vars_1_flat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">vars_1</span><span class="p">)</span>
+    <span class="n">vars_2_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">vars_1_flat</span><span class="p">)</span>
+    <span class="n">vars_2</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">vars_2_flat</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">q2</span> <span class="o">=</span> <span class="n">vars_2</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">e2</span> <span class="o">=</span> <span class="n">vars_2</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">time_mat</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">q2_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">q2</span><span class="p">)</span>
+    <span class="n">e2_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">e2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">q2_td</span> <span class="o">*</span> <span class="n">e2_td</span>
+
+<span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">power_td</span> <span class="o">=</span> <span class="n">electrical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span>
+
+<span class="k">def</span> <span class="nf">average_electrical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">e</span> <span class="o">=</span> <span class="n">energy</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">e</span> <span class="o">/</span> <span class="n">wec</span><span class="o">.</span><span class="n">tf</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="1.4-Constraints">
+<h3>1.4 Constraints<a class="headerlink" href="#1.4-Constraints" title="Link to this heading"></a></h3>
+<p>The Pioneer model only contains one constraint based on the motor being used:</p>
+<ul class="simple">
+<li><p><strong>Peak torque</strong> - The motor should avoid torques greater than 120 N-m. This is the same basic constraint as <code class="docutils literal notranslate"><span class="pre">const_f_pto</span></code> from Tutorial 1, except we use our <code class="docutils literal notranslate"><span class="pre">f_motor</span></code> definition instead of <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO.force_on_wec</span></code>.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">torque_peak_max</span> <span class="o">=</span> <span class="mf">120.</span>
+<span class="k">def</span> <span class="nf">const_peak_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">torque</span> <span class="o">=</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">torque_peak_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="1.5-Additional-forces">
+<h3>1.5 Additional forces<a class="headerlink" href="#1.5-Additional-forces" title="Link to this heading"></a></h3>
+<p>Here we add in the forces acting on the bodies other than those generated from wave loading.</p>
+<ul class="simple">
+<li><p><strong>Motor damping</strong> - The resisting torque resulting from the damping on the PTO. This is very similar to the <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO.force_on_wec</span></code> additional force given in previous tutorials. This is already being accounted for by the <code class="docutils literal notranslate"><span class="pre">f_motor</span></code> function above.</p></li>
+<li><p><strong>Flywheel friction</strong> - The dissipative torque from the generator and components. This is defined as a nonlinear force using both Coulomb friction (dependent on the PTO direction) and the viscous friction (dependent on the PTO speed).</p></li>
+<li><p><strong>Magnetic spring</strong> - The restoring torque caused by the torsional spring between the buoy and flywheel. Note the gear ratio is included in this equation, as the gearbox is connected in series with the spring. The position of the spring is the relative position of the flywheel and buoy scaled by the reciprocal of gear ratio squared.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">f_friction</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">rel_vel</span> <span class="o">=</span> <span class="n">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">rel_vel</span><span class="p">)</span> <span class="o">*</span> <span class="n">flywheel_props</span><span class="p">[</span><span class="s1">&#39;Coulomb friction&#39;</span><span class="p">]</span>
+      <span class="o">+</span> <span class="n">rel_vel</span> <span class="o">*</span> <span class="n">flywheel_props</span><span class="p">[</span><span class="s1">&#39;Viscous friction&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">f_spring</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">rel_position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">flywheel_props</span><span class="p">[</span><span class="s1">&#39;Gear ratio&#39;</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">spring_force</span> <span class="o">=</span> <span class="o">-</span><span class="n">k_spring</span>  <span class="o">*</span> <span class="n">pos</span>
+    <span class="k">return</span> <span class="n">spring_force</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="1.6-Flywheel-residual-equation">
+<h3>1.6 Flywheel residual equation<a class="headerlink" href="#1.6-Flywheel-residual-equation" title="Link to this heading"></a></h3>
+<p>To make sure the flywheel dynamics are properly modeled in the pseudo-spectral method, we will introduce an equality constraint consisting of Newton’s 2nd law of motion on the flywheel in residual form:</p>
+<div class="math notranslate nohighlight">
+\[r(x) = I \alpha - \tau = 0\]</div>
+<p>This is the same structure as the residual for the WEC dynamics described in the <a class="reference external" href="https://sandialabs.github.io/WecOptTool/theory.html">WecOptTool theory documentation</a>. Also compare this equation to the 2nd dynamics equation listed <a class="reference internal" href="#Pitch-resonator"><span class="std std-ref">above</span></a>.</p>
+<p>This is required because the equations of motion described by <code class="docutils literal notranslate"><span class="pre">x_wec</span></code> only capture the buoy pitch degree of freedom. This equation provides a second equality constraint to capture the flywheel pitch degree of freedom, resulting in two coupled dynamic equations.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fw_inertia</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">pos_fw</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="n">nstate_pto</span><span class="p">:])</span>
+    <span class="n">acc_fw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative2_mat</span><span class="p">,</span> <span class="n">pos_fw</span><span class="p">)</span>
+    <span class="n">time_matrix</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">acc_fw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_matrix</span><span class="p">,</span> <span class="n">acc_fw</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">flywheel_props</span><span class="p">[</span><span class="s1">&#39;MOI&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">acc_fw</span>
+
+<span class="k">def</span> <span class="nf">const_flywheel_resid</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">fw_inertia</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+          <span class="o">+</span> <span class="n">f_spring</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+          <span class="o">+</span> <span class="n">f_friction</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+          <span class="o">+</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+          <span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>We now create the additional forces and constaints that will be passed to the <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object. Note that <code class="docutils literal notranslate"><span class="pre">f_add</span></code> only pertains to the buoy since that is the only degree of freedom included in the BEM data; our flywheel residual equation handles these forces for the flywheel in the opposite direction.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Motor&#39;</span><span class="p">:</span> <span class="n">f_motor</span><span class="p">,</span>
+    <span class="s1">&#39;Friction&#39;</span><span class="p">:</span> <span class="n">f_friction</span><span class="p">,</span>
+    <span class="s1">&#39;Spring&#39;</span><span class="p">:</span> <span class="n">f_spring</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_peak_torque_pto</span><span class="p">},</span>
+    <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_flywheel_resid</span><span class="p">},</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="1.7-WEC-object">
+<h3>1.7 WEC object<a class="headerlink" href="#1.7-WEC-object" title="Link to this heading"></a></h3>
+<p>We now have all the information required to create our <code class="docutils literal notranslate"><span class="pre">WEC</span></code> object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
+                       <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">,</span>
+                       <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
+                       <span class="n">uniform_shift</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">dof_names</span><span class="o">=</span><span class="n">bem_data</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">,)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Pitch&#34; has negative or close to zero terms. Shifting up damping terms [  0 113 137 147] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:19:42] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Pitch"</span> has negative or close to zero terms. Shifting up damping terms <span style="font-weight: bold">[</span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">113</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">137</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">147</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="2.-Regular-wave-results">
+<h2>2. Regular wave results<a class="headerlink" href="#2.-Regular-wave-results" title="Link to this heading"></a></h2>
+<section id="2.1-Solve">
+<h3>2.1 Solve<a class="headerlink" href="#2.1-Solve" title="Link to this heading"></a></h3>
+<p>As in previous tutorials, we will optimize for electrical power absorption.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obj_fun</span> <span class="o">=</span> <span class="n">average_electrical_power</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves_regular</span><span class="p">,</span>
+    <span class="n">obj_fun</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="p">,</span>
+    <span class="n">scale_x_wec</span><span class="o">=</span><span class="mf">1e1</span><span class="p">,</span>
+    <span class="n">scale_x_opt</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
+    <span class="n">scale_obj</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average power: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fun</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.005084610242328
+            Iterations: 17
+            Function evaluations: 20
+            Gradient evaluations: 17
+Optimal average power: -100.51 W
+</pre></div></div>
+</div>
+</section>
+<section id="2.2-Post-process-and-plot">
+<h3>2.2 Post-process and plot<a class="headerlink" href="#2.2-Post-process-and-plot" title="Link to this heading"></a></h3>
+<p>Again, since we are not using the <code class="docutils literal notranslate"><span class="pre">PTO</span></code> module, post-processing using <code class="docutils literal notranslate"><span class="pre">wot.pto.PTO.post_process</span></code> is not an option here, so we have to manually post-process the outputs related to the PTO and flywheel. This is pretty intuitive using the functions we created earlier. The outputs related to the buoy can still be derived directly from <code class="docutils literal notranslate"><span class="pre">wot.wec.post_process</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves_regular</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+
+<span class="c1"># Manually post-process PTO and flywheel outputs</span>
+<span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">)</span>
+<span class="n">fw_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">),</span> <span class="n">x_opt</span><span class="p">[</span><span class="n">nstate_pto</span><span class="p">:])</span>
+<span class="n">pto_pos</span> <span class="o">=</span> <span class="n">rel_position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_vel</span> <span class="o">=</span> <span class="n">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_force</span> <span class="o">=</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">pto_force</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>
+<span class="n">pto_mech_power</span> <span class="o">=</span> <span class="n">mechanical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_elec_power</span> <span class="o">=</span> <span class="n">electrical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">avg_mech_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_mech_power</span><span class="p">)</span>
+<span class="n">avg_elec_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_elec_power</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<p>Some observations about the optimized Pioneer model:</p>
+<ul class="simple">
+<li><p>The flywheel and buoy match frequency, but are out of phase due to the forcing from the spring and motor applied to both bodies.</p></li>
+<li><p>The gearing in series with the torsional spring (which reduces the effective spring stiffness) significantly amplifies the rotation of the flywheel despite the buoy only pitching modestly. The gear ratio of 3 was selected by the Pioneer team to keep the system in resonance considering the spring stiffness, moment of inertia of the flywheel, and the resonance frequency of the buoy. Try increasing the gear ratio or flywheel moment of inertia—this will actually reduce the power generated since
+it will bring the effective stiffness of the flywheel out of resonance, causing less motion relative to the buoy.</p></li>
+<li><p>The mechanical and electrical power outputs are similar, since our impedance model has only a small amount of resistance and no inductance.</p></li>
+<li><p>The buoy’s pitch amplitude is larger than expected for this device and is likely due to underestimation of the radiation damping by the BEM.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Positions</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">fw_pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Flywheel&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PTO&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Pitch Displacements&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Position [deg]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">ax0</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hue</span><span class="o">=</span><span class="s1">&#39;influenced_dof&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Buoy&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Buoy pos. [deg]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Torques</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_force</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">torque_peak_max</span><span class="p">,</span> <span class="n">torque_peak_max</span><span class="p">],</span> <span class="s1">&#39;k--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">torque_peak_max</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">torque_peak_max</span><span class="p">],</span> <span class="s1">&#39;k--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PTO torque [N-m]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Torque&#39;</span><span class="p">)</span>
+
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov&#39;</span><span class="p">,</span> <span class="s1">&#39;diffraction&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Excitation torque [N-m]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Torque&#39;</span><span class="p">)</span>
+
+<span class="c1"># PTO Velocity</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_vel</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;PTO Velocity&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Velocity [deg/s]&#39;</span><span class="p">)</span>
+
+<span class="c1"># Power</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_mech_power</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mech. power ($</span><span class="se">\\</span><span class="s1">bar</span><span class="si">{P}</span><span class="s1">_</span><span class="si">{mech}</span><span class="s1">$: &#39;</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">avg_mech_power</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> W)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_elec_power</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Elec. power ($</span><span class="se">\\</span><span class="s1">bar</span><span class="si">{P}</span><span class="s1">_</span><span class="si">{elec}</span><span class="s1">$: &#39;</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">avg_elec_power</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> W)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Power Output&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [s]&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">axi</span> <span class="ow">in</span> <span class="n">ax</span><span class="p">:</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">label_outer</span><span class="p">()</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_45_0.png" src="../_images/_examples_tutorial_4_Pioneer_45_0.png" />
+</div>
+</div>
+</section>
+<section id="2.3-Sankey-Diagram">
+<h3>2.3 Sankey Diagram<a class="headerlink" href="#2.3-Sankey-Diagram" title="Link to this heading"></a></h3>
+<p>We use a Sankey diagram to visualize the average power flow from waves to electricity. The left end shows the theoretically possible optimal excitation. In order to reach this upper bound of excitation, the WEC pitch velocity would need to be in phase with the pitch excitation force (or, in this case, the radiated power is equal the amount of absorbed mechanical power). In practice, this will usually imply putting electrical power into the system (something we want to avoid!!!).</p>
+<p>With co-design, we are instead tapping the unused potential while limiting PTO losses and radiated power.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hydro_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">add_linear_friction</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span> <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">hydro_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">check_radiation_damping</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">,</span> <span class="n">uniform_shift</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">Zi</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">hydrodynamic_impedance</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">)</span>
+<span class="n">Rad_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zi</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+
+<span class="n">Fex</span> <span class="o">=</span> <span class="n">wec_fdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">force</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov&#39;</span><span class="p">,</span> <span class="s1">&#39;diffraction&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span>
+<span class="n">Vel</span> <span class="o">=</span> <span class="n">wec_fdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vel</span>
+
+<span class="n">P_max_absorbable</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Fex</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="mi">8</span><span class="o">*</span><span class="n">Rad_res</span><span class="p">)</span> <span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="c1"># after Falnes Eq. 6.10</span>
+<span class="n">P_opt_excitation</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">P_max_absorbable</span> <span class="c1"># after Falnes Eq. 6.10</span>
+<span class="n">P_radiated</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Rad_res</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Vel</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">())</span> <span class="c1"># after Falnes Eq. 6.4</span>
+<span class="n">P_excited</span><span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">4</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Fex</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">Vel</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">Fex</span><span class="p">)</span><span class="o">*</span><span class="n">Vel</span> <span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="c1"># after Falnes Eq. 6.3</span>
+
+<span class="n">power_flows</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Optimal Excitation&#39;</span> <span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">P_max_absorbable</span><span class="p">)),</span>
+            <span class="s1">&#39;Radiated&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">P_radiated</span><span class="p">)),</span>
+            <span class="s1">&#39;Actual Excitation&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">P_excited</span><span class="p">)),</span>
+<span class="p">}</span>
+<span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Unused Potential&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Optimal Excitation&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Actual Excitation&#39;</span><span class="p">]</span>
+<span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Absorbed&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Actual Excitation&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Radiated&#39;</span><span class="p">]</span>  <span class="c1"># after Falnes Eq. 6.2</span>
+<span class="c1">#absorbed by WEC-PTO (difference between actual excitation power and actual radiated power needs to be absorbed by PTO)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Linear damping for DOF &#34;Pitch&#34; has negative or close to zero terms. Shifting up damping terms [  0 113 137 147] to a minimum of 1e-06 N/(m/s)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:21:08] </span><span style="color: #800000; text-decoration-color: #800000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Pitch"</span> has negative or close to zero terms. Shifting up damping terms <span style="font-weight: bold">[</span>
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">0</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">113</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">137</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">147</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
+</pre></div>
+</div>
+<p>We also calculate the power dissipated due to flywheel friction and make sure that the absorbed power (calculated as the difference between excited and radiated power) matches the sum of mechanical power captured by the PTO and the power dissipated due to flywheel friction. We use a relative tolerance of 1%.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fw_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">pos_fw</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="n">nstate_pto</span><span class="p">:])</span>
+    <span class="n">vel_fw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">derivative_mat</span><span class="p">,</span> <span class="n">pos_fw</span><span class="p">)</span>
+    <span class="n">time_matrix</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">time_matrix</span><span class="p">,</span> <span class="n">vel_fw</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">fw_friction_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">force_td</span> <span class="o">=</span> <span class="n">f_friction</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="n">vel_td</span> <span class="o">=</span> <span class="n">fw_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">vel_td</span> <span class="o">*</span> <span class="n">force_td</span>
+
+<span class="n">fw_fric_power</span> <span class="o">=</span> <span class="n">fw_friction_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_regular</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">avg_fw_fric_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">fw_fric_power</span><span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Electrical (solver)&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">avg_elec_power</span>  <span class="c1">#solver determines sign</span>
+<span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Mechanical (solver)&#39;</span><span class="p">]</span><span class="o">=</span> <span class="n">avg_mech_power</span> <span class="o">-</span> <span class="n">avg_fw_fric_power</span> <span class="c1">#solver determines sign, friction is dissipated</span>
+<span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;PTO Loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Mechanical (solver)&#39;</span><span class="p">]</span> <span class="o">-</span>  <span class="n">power_flows</span><span class="p">[</span><span class="s1">&#39;Electrical (solver)&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">wot</span><span class="o">.</span><span class="n">utilities</span><span class="o">.</span><span class="n">plot_power_flow</span><span class="p">(</span><span class="n">power_flows</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(&lt;Figure size 800x400 with 1 Axes&gt;, &lt;Axes: &gt;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_51_1.png" src="../_images/_examples_tutorial_4_Pioneer_51_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="3.-Irregular-wave">
+<h2>3. Irregular wave<a class="headerlink" href="#3.-Irregular-wave" title="Link to this heading"></a></h2>
+<section id="3.1-Solve">
+<h3>3.1 Solve<a class="headerlink" href="#3.1-Solve" title="Link to this heading"></a></h3>
+<p>We will now run the same analysis for irregular waves.</p>
+<p>Interestingly, due to the narrow banded resonance of the flywheel, the controller attempts to make the excitation force monochromatic with the resonant frequency. To achieve this, it uses significant reactive power (power by the PTO into the system). This is still worth it though, resulting in a larger average electrical power output.</p>
+<p>As noted previously, the optimization problem is solved for each wave realization. The optimal average power shown is the total average across the different realizations.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">obj_fun</span> <span class="o">=</span> <span class="n">average_electrical_power</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves_irregular</span><span class="p">,</span>
+    <span class="n">obj_fun</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="p">,</span>
+    <span class="n">scale_x_wec</span><span class="o">=</span><span class="mf">1e1</span><span class="p">,</span>
+    <span class="n">scale_x_opt</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
+    <span class="n">scale_obj</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">power_results</span> <span class="o">=</span> <span class="p">[</span><span class="n">result</span><span class="o">.</span><span class="n">fun</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Optimal average power: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">power_results</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> W&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/wecopttool/core.py:756: UserWarning: The `squeeze` kwarg to GroupBy is being removed.Pass .groupby(..., squeeze=False) to disable squeezing, which is the new default, and to silence this warning.
+  for realization, wave in waves.groupby(&#39;realization&#39;):
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -2.9447440219230407
+            Iterations: 16
+            Function evaluations: 17
+            Gradient evaluations: 16
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/tracer.py:48: RuntimeWarning: overflow encountered in cosh
+  return f_raw(*args, **kwargs)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/tracer.py:48: RuntimeWarning: overflow encountered in cosh
+  return f_raw(*args, **kwargs)
+/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/autograd/numpy/numpy_vjps.py:90: RuntimeWarning: overflow encountered in square
+  defvjp(anp.tanh,   lambda ans, x : lambda g: g / anp.cosh(x) **2)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -2.979459848701188
+            Iterations: 14
+            Function evaluations: 16
+            Gradient evaluations: 14
+Optimal average power: -296.21 W
+</pre></div></div>
+</div>
+</section>
+<section id="3.2-Post-process-and-plot">
+<h3>3.2 Post-process and plot<a class="headerlink" href="#3.2-Post-process-and-plot" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span><span class="n">results</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+
+<span class="c1"># Manually post-process PTO and flywheel outputs</span>
+<span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">)</span>
+<span class="n">fw_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat_nsubsteps</span><span class="p">(</span><span class="n">nsubsteps</span><span class="p">),</span> <span class="n">x_opt</span><span class="p">[</span><span class="n">nstate_pto</span><span class="p">:])</span>
+<span class="n">pto_pos</span> <span class="o">=</span> <span class="n">rel_position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_vel</span> <span class="o">=</span> <span class="n">rel_velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_force</span> <span class="o">=</span> <span class="n">f_motor</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">pto_force</span><span class="p">[::</span><span class="n">nsubsteps</span><span class="p">])</span>
+<span class="n">pto_mech_power</span> <span class="o">=</span> <span class="n">mechanical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">pto_elec_power</span> <span class="o">=</span> <span class="n">electrical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves_irregular</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">avg_mech_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_mech_power</span><span class="p">)</span>
+<span class="n">avg_elec_power</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_elec_power</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Positions</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">fw_pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Flywheel&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PTO&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Pitch Displacements&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Position [deg]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">ax0</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="p">(</span><span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pos</span><span class="o">*</span><span class="mi">180</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">hue</span><span class="o">=</span><span class="s1">&#39;influenced_dof&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Buoy&#39;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Buoy pos. [deg]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax0</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c1"># Torques</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_force</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">torque_peak_max</span><span class="p">,</span> <span class="n">torque_peak_max</span><span class="p">],</span> <span class="s1">&#39;k--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">torque_peak_max</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">torque_peak_max</span><span class="p">],</span> <span class="s1">&#39;k--&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PTO torque [N-m]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Torque&#39;</span><span class="p">)</span>
+
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;force&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov&#39;</span><span class="p">,</span> <span class="s1">&#39;diffraction&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;type&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Excitation torque [N-m]&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;b&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Torque&#39;</span><span class="p">)</span>
+
+<span class="c1"># PTO Velocity</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_vel</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;PTO Velocity&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Velocity [deg/s]&#39;</span><span class="p">)</span>
+
+<span class="c1"># Power</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_mech_power</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mech. power ($</span><span class="se">\\</span><span class="s1">bar</span><span class="si">{P}</span><span class="s1">_</span><span class="si">{mech}</span><span class="s1">$: &#39;</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">avg_mech_power</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> W)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">pto_elec_power</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;dashdot&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Elec. power ($</span><span class="se">\\</span><span class="s1">bar</span><span class="si">{P}</span><span class="s1">_</span><span class="si">{elec}</span><span class="s1">$: &#39;</span> <span class="o">+</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">avg_elec_power</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> W)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Power Output&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Time [s]&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">axi</span> <span class="ow">in</span> <span class="n">ax</span><span class="p">:</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">label_outer</span><span class="p">()</span>
+    <span class="n">axi</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_56_0.png" src="../_images/_examples_tutorial_4_Pioneer_56_0.png" />
+</div>
+</div>
+</section>
+<section id="3.3-Notes-on-selection-of-frequency-array-and-realizations">
+<h3>3.3 Notes on selection of frequency array and realizations<a class="headerlink" href="#3.3-Notes-on-selection-of-frequency-array-and-realizations" title="Link to this heading"></a></h3>
+<p>In order to determine a suitable frequency range, it is best to complete an optimization with a large frequency range and examine the frequency domain results to see how large a range of frequencies is necessary to capture the relavent dynamics. Often, capturing nonlinear dynamics (such as due to constraints) requires a larger frequency range. In the case of the Pioneer WEC, it is clear that (likely due to the PTO torque constraint) the nonlinearities cause excitation at the odd harmonics of the
+excited frequency (which is slightly larger than the wave frequency itself for the Pioneer system). Specifically, the PTO force has significant peaks around the excited frequency and at the 3rd harmonic (with a small peak at the 5th harmonic as well) which leads to peaks in the frequency spectrum of electrical power at the 2nd, 4th, and 6th harmonics. The frequency values are normalized in the plots below to more clearly show the harmonics. In order to capture most of these nonlinearities, we
+chose a frequency range from 0 to 1.875 for this tutorial.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;data/tutorial_4_freq_range.nc&#39;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">read_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="n">excited_freq</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+<span class="n">normalized_freq</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">][</span><span class="n">excited_freq</span><span class="p">]</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">normalized_freq</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;exc_force&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Excitation Torque [N-m]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">normalized_freq</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;pos&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;WEC Position [rad]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">normalized_freq</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;vel&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;WEC Velocity [rad/s]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">normalized_freq</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;pto_force&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;PTO Torque [N-m]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">stem</span><span class="p">(</span><span class="n">normalized_freq</span><span class="p">,</span><span class="nb">abs</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">]))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Electrical Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Frequency (normalized according to excited frequency)&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Text(0.5, 0, &#39;Frequency (normalized according to excited frequency)&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_58_1.png" src="../_images/_examples_tutorial_4_Pioneer_58_1.png" />
+</div>
+</div>
+<p>After determining a frequency range of interest, it is important to make sure enough frequencies are included in the array to generate accurate results. The Pioneer WEC has a very narrow banded response, which means it requires a large number of frequencies to model the response accurately. For any WecOptTool analysis in irregular wave conditions, it is best to complete a convergence study on the number of frequencies in the wave conditions of interest. The convergence study shown below varies
+the number of frequencies and includes enough realizations of each array to reach a 20 minute total simulation time (discussed further below). As shown below, an array of 150 frequencies is sufficient to model the system to within about 2% of the actual resultant mean power. Because the computation time increases with increasing number of frequencies, it is desirable to select the number of frequencies to minimize the computation time while meeting the intended accuracy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;data/tutorial_4_nfreqs.nc&#39;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">read_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="n">power_percent_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">((</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="mi">100</span>
+<span class="n">time_per_realization</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;comp_time&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;nrealizations&#39;</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;nfreqs&#39;</span><span class="p">],</span><span class="n">power_percent_error</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Frequencies in Array&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Absolute Mean Power Error [%]&#39;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;nfreqs&#39;</span><span class="p">],</span><span class="n">time_per_realization</span><span class="o">/</span><span class="mi">60</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Frequencies in Array&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Computation time per realization [min]&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Text(0, 0.5, &#39;Computation time per realization [min]&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_60_1.png" src="../_images/_examples_tutorial_4_Pioneer_60_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_60_2.png" src="../_images/_examples_tutorial_4_Pioneer_60_2.png" />
+</div>
+</div>
+<p>Next, the number of phase realizations should be considered. Generally, it is recommended that enough realizations be used for the total simulation time to equal 20 minutes.</p>
+<div class="math notranslate nohighlight">
+\[t_{total} = \frac{n_{realizations}}{f1}\]</div>
+<p>Although it usually leads to consistent results, this recommendation is somewhat arbitrary. To better understand the effect of the number of realizations on the overall result, it can be useful to complete a convergence study. The actual number of realizations needed depends on the problem itself (dynamics, constraints, etc.) and the desired precision of the result. As shown below, in the case of the Pioneer WEC, after about 15 realizations (20 minutes total simulation time) the result is within
+about 0.5% of the converged result which is deemed sufficient for this study.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;data/tutorial_4_nrealizations.nc&#39;</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">read_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+<span class="n">rolling_mean</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">])):</span>
+    <span class="n">rolling_mean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;power&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="n">ind</span><span class="p">]))</span>
+
+<span class="n">error_bar</span> <span class="o">=</span> <span class="n">rolling_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="mf">.005</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax1</span><span class="o">.</span><span class="n">twiny</span><span class="p">()</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;realization&#39;</span><span class="p">],</span><span class="n">rolling_mean</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Rolling Mean&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Number of Realizations&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Average Power [W]&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">rolling_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">error_bar</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;0.5</span><span class="si">% e</span><span class="s1">rror&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="n">rolling_mean</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">error_bar</span><span class="p">,</span><span class="n">ls</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">tper_realization</span> <span class="o">=</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;nfreq&#39;</span><span class="p">]</span><span class="o">/</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;fend&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span> <span class="c1"># time per realization</span>
+
+<span class="k">def</span> <span class="nf">tick_function</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="n">V</span> <span class="o">=</span> <span class="n">tper_realization</span><span class="o">*</span><span class="n">X</span><span class="o">/</span><span class="mi">60</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%.1f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">z</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">V</span><span class="p">]</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">ax1</span><span class="o">.</span><span class="n">get_xticks</span><span class="p">())</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xbound</span><span class="p">(</span><span class="n">ax1</span><span class="o">.</span><span class="n">get_xbound</span><span class="p">())</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">tick_function</span><span class="p">(</span><span class="n">ax1</span><span class="o">.</span><span class="n">get_xticks</span><span class="p">()))</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Total simulation time [min]&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Text(0.5, 0, &#39;Total simulation time [min]&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/_examples_tutorial_4_Pioneer_62_1.png" src="../_images/_examples_tutorial_4_Pioneer_62_1.png" />
+</div>
+</div>
+<script type="application/vnd.jupyter.widget-state+json">
+{"state": {"cde2b56881e643b4a307f1617b7954ce": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "4be34be5a49e45b48c9bc0cee66317e2": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_cde2b56881e643b4a307f1617b7954ce", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:20\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:20</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+</script></section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial_3_LUPA.html" class="btn btn-neutral float-left" title="Tutorial 3 - LUPA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../references.html" class="btn btn-neutral float-right" title="References" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: dev
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href="../../_examples/tutorial_4_Pioneer.html">latest</a></dd><dd><a href="../../dev/_examples/tutorial_4_Pioneer.html">dev</a></dd></dl></div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

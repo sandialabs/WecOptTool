@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.WEC.frequency &mdash; WecOptTool 2.7.0 documentation</title>
+  <title>wecopttool.WEC.frequency &mdash; WecOptTool 3.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -16,8 +16,8 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=dfec817d"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -41,7 +41,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.7
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -61,6 +61,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.WEC.html#wecopttool.WEC"><code class="docutils literal notranslate"><span class="pre">WEC</span></code></a></li>
@@ -108,7 +109,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_radiation_damping.html">wecopttool.check_radiation_damping</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
@@ -174,7 +175,7 @@
 <h1>wecopttool.WEC.frequency<a class="headerlink" href="#wecopttool-wec-frequency" title="Link to this heading"></a></h1>
 <dl class="py property">
 <dt class="sig sig-object py" id="wecopttool.WEC.frequency">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">frequency</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#wecopttool.WEC.frequency" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">frequency</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><span class="pre">ndarray</span></a></em><a class="headerlink" href="#wecopttool.WEC.frequency" title="Link to this definition"></a></dt>
 <dd><p>Frequency vector [<span class="math notranslate nohighlight">\(Hz\)</span>].</p>
 </dd></dl>
 
@@ -204,7 +205,15 @@
       </div>
     </section>
   </div>
-  <script>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: latest
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href=".././api_docs/wecopttool.WEC.frequency.html">latest</a></dd><dd><a href=".././dev/api_docs/wecopttool.WEC.frequency.html">dev</a></dd></dl></div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });

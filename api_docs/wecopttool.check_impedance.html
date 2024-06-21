@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.check_impedance &mdash; WecOptTool 2.7.0 documentation</title>
+  <title>wecopttool.check_impedance &mdash; WecOptTool 3.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -16,8 +16,8 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=dfec817d"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -25,7 +25,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="wecopttool.check_linear_damping" href="wecopttool.check_linear_damping.html" />
+    <link rel="next" title="wecopttool.check_radiation_damping" href="wecopttool.check_radiation_damping.html" />
     <link rel="prev" title="wecopttool.change_bem_convention" href="wecopttool.change_bem_convention.html" /> 
 </head>
 
@@ -41,7 +41,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.7
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -61,6 +61,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.add_linear_friction.html">wecopttool.add_linear_friction</a></li>
@@ -70,7 +71,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#wecopttool.check_impedance"><code class="docutils literal notranslate"><span class="pre">check_impedance()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_radiation_damping.html">wecopttool.check_radiation_damping</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
@@ -135,7 +136,7 @@
 <h1>wecopttool.check_impedance<a class="headerlink" href="#wecopttool-check-impedance" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.check_impedance">
-<span class="sig-name descname"><span class="pre">check_impedance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Zi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#check_impedance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.check_impedance" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">check_impedance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Zi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_damping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uniform_shift</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#check_impedance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.check_impedance" title="Link to this definition"></a></dt>
 <dd><p>Ensure that the real part of the impedance (resistive) is positive.</p>
 <p>Adds to real part of the impedance.
 Returns the (possibly) updated impedance with
@@ -145,6 +146,7 @@ Returns the (possibly) updated impedance with
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>Zi</strong> (<em>DataArray</em>) – Linear hydrodynamic impedance.</p></li>
 <li><p><strong>min_damping</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em> | </em><em>None</em>) – Minimum threshold for damping. Default is 1e-6.</p></li>
+<li><p><strong>uniform_shift</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -160,7 +162,7 @@ Returns the (possibly) updated impedance with
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="wecopttool.change_bem_convention.html" class="btn btn-neutral float-left" title="wecopttool.change_bem_convention" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="wecopttool.check_linear_damping.html" class="btn btn-neutral float-right" title="wecopttool.check_linear_damping" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="wecopttool.check_radiation_damping.html" class="btn btn-neutral float-right" title="wecopttool.check_radiation_damping" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
@@ -179,7 +181,15 @@ Returns the (possibly) updated impedance with
       </div>
     </section>
   </div>
-  <script>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: latest
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href=".././api_docs/wecopttool.check_impedance.html">latest</a></dd><dd><a href=".././dev/api_docs/wecopttool.check_impedance.html">dev</a></dd></dl></div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });

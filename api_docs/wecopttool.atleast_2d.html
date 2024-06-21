@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.atleast_2d &mdash; WecOptTool 2.7.0 documentation</title>
+  <title>wecopttool.atleast_2d &mdash; WecOptTool 3.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -16,8 +16,8 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=dfec817d"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -39,7 +39,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.7
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -59,6 +59,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.add_linear_friction.html">wecopttool.add_linear_friction</a></li>
@@ -68,7 +69,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_radiation_damping.html">wecopttool.check_radiation_damping</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.decompose_state.html">wecopttool.decompose_state</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.degrees_to_radians.html">wecopttool.degrees_to_radians</a></li>
@@ -136,9 +137,9 @@
 <span class="sig-name descname"><span class="pre">atleast_2d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#atleast_2d"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.atleast_2d" title="Link to this definition"></a></dt>
 <dd><p>Ensure an array is at least 2D, otherwise add trailing dimensions
 to make it 2D.</p>
-<p>This differs from <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.atleast_2d.html#numpy.atleast_2d" title="(in NumPy v1.26)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.atleast_2d()</span></code></a> in that the additional
+<p>This differs from <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.atleast_2d.html#numpy.atleast_2d" title="(in NumPy v2.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.atleast_2d()</span></code></a> in that the additional
 dimensions are appended at the end rather than at the begining.
-This might be an option in <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.atleast_2d.html#numpy.atleast_2d" title="(in NumPy v1.26)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.atleast_2d()</span></code></a> in the
+This might be an option in <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.atleast_2d.html#numpy.atleast_2d" title="(in NumPy v2.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">numpy.atleast_2d()</span></code></a> in the
 future, see
 <a class="reference external" href="https://github.com/numpy/numpy/issues/12336">NumPy #12336</a>.</p>
 <dl class="field-list simple">
@@ -146,7 +147,7 @@ future, see
 <dd class="field-odd"><p><strong>array</strong> (<em>ArrayLike</em>) – Input array.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>ndarray</em></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><em>ndarray</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -177,7 +178,15 @@ future, see
       </div>
     </section>
   </div>
-  <script>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: latest
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href=".././api_docs/wecopttool.atleast_2d.html">latest</a></dd><dd><a href=".././dev/api_docs/wecopttool.atleast_2d.html">dev</a></dd></dl></div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });

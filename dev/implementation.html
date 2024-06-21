@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Implementation &mdash; WecOptTool 3.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=a0fb6060" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="prev" title="Theory &amp; Practice" href="theory.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            WecOptTool
+          </a>
+              <div class="version">
+                3.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="theory.html">Theory &amp; Practice</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Implementation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api_docs/wecopttool.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">WecOptTool</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Implementation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="implementation">
+<h1>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h1>
+<p>As described in the <a class="reference internal" href="theory.html"><span class="doc">Theory &amp; Practice</span></a> page, WecOptTool operates by solving a constrained optimization problem, in which an equality constraint (<span class="math notranslate nohighlight">\(r(x) = 0\)</span>) is used to enforce the dynamics of the system.</p>
+<div class="math notranslate nohighlight" id="equation-optim-prob-implementation">
+<span class="eqno">(1)<a class="headerlink" href="#equation-optim-prob-implementation" title="Link to this equation"></a></span>\[\begin{split}\min\limits_x J(x) \\
+\textrm{s.t.}&amp; \\
+r(x) &amp;= 0 \\
+c_{ineq}(x) &amp;\leq 0 \\
+c_{eq}(x) &amp;= 0\end{split}\]</div>
+<p>For the linear case, which is the default formulation in WecOptTool, the WEC dynamics can be expressed, in residual form, as</p>
+<div class="math notranslate nohighlight" id="equation-wec-dynamics">
+<span class="eqno">(2)<a class="headerlink" href="#equation-wec-dynamics" title="Link to this equation"></a></span>\[r = -(M + m_a) \ddot{x} - k x(t) - B \, \dot{x}(t) - C \int\limits_{-\infty}^t \dot{x}(t)  + f_{ext} + f_{exc} = 0.\]</div>
+<p>The decision variable, <span class="math notranslate nohighlight">\(x\)</span>, includes states of the body motion as well as other external states, e.g., related to controllers, PTO systems, mooring systems, etc.</p>
+<div class="math notranslate nohighlight" id="equation-decision-variable-top">
+<span class="eqno">(3)<a class="headerlink" href="#equation-decision-variable-top" title="Link to this equation"></a></span>\[x = [ x_{pos}, x_{ext} ]^T\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(x_{pos} \in \mathbb{R}^{m(2n + 1)}\)</span>, where <span class="math notranslate nohighlight">\(m\)</span> is the number of body modes of motion and <span class="math notranslate nohighlight">\(n\)</span> is the number of frequency components.
+Similarly, <span class="math notranslate nohighlight">\(x_{ext} \in \mathbb{R}^{p(2n+1)}\)</span>, where <span class="math notranslate nohighlight">\(p\)</span> is the number of external states.
+Body modes could include multiple degrees-of-freedom for a single body (e.g., heave, surge, and pitch) and/or degrees-of-freedom from multiple bodies (e.g., heave modes from each body in a large array of bodies).
+The frequency vector <span class="math notranslate nohighlight">\(\omega \in \mathbb{R}^n\)</span> should span the relevant frequencies of the device operation, and also super harmonics to capture nonlinearities.</p>
+<div class="math notranslate nohighlight" id="equation-decision-variable-position">
+<span class="eqno">(4)<a class="headerlink" href="#equation-decision-variable-position" title="Link to this equation"></a></span>\[x_{pos} = [ x_{pos,1}, x_{pos,2}, \dots, x_{pos,m} ]^T\]</div>
+<p>For each mode, <span class="math notranslate nohighlight">\(x_{pos}\)</span> has <span class="math notranslate nohighlight">\(2n + 1\)</span> elements (<span class="math notranslate nohighlight">\(x_{pos,k} \in \mathbb{R}^{2n + 1}\)</span>).
+There are <span class="math notranslate nohighlight">\(2n\)</span> elements because each frequency is described by two components: one each corresponding to the cosine and sine amplitudes.
+The additional element in the first position is used to capture a mean (“DC”) displacement.
+Thus, the portion of <span class="math notranslate nohighlight">\(x_{pos}\)</span> describing the <span class="math notranslate nohighlight">\(k\)</span>-th mode would be.</p>
+<div class="math notranslate nohighlight" id="equation-decision-variable-position-detail">
+<span class="eqno">(5)<a class="headerlink" href="#equation-decision-variable-position-detail" title="Link to this equation"></a></span>\[x_{pos,k} =
+[ \bar{x}_{pos,k}, a_{k,1}, b_{k,1}, \dots, a_{k,n}, b_{k,n} ]^T\]</div>
+<p>The external state vector (<span class="math notranslate nohighlight">\(x_{ext}\)</span>) can have an analogous composition.
+The mean components in <span class="math notranslate nohighlight">\(x_{ext}\)</span> can be used to capture, for example, pretension in a tether.</p>
+<p>The corresponding time vector for the chosen frequency array</p>
+<div class="math notranslate nohighlight">
+\[f = [ 0, f_1, 2 f_2, \dots, n f_1 ]^T\]</div>
+<p>is given by</p>
+<div class="math notranslate nohighlight">
+\[t = [ 0, \Delta t, 2 \Delta t, \dots, (2n-1) \Delta t ]^T,\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta t = t_f/(2n)\)</span> and the repeat period is <span class="math notranslate nohighlight">\(t_f=2n\Delta t\)</span>.
+Since the pseudo-spectral method results in continuous in time solutions, the resulting dynamic time-series can be evaluated with additional substeps in the time vector.</p>
+<p>The code deals with the same dynamic system in different representations and there is a need to convert between them.
+In general, a state <span class="math notranslate nohighlight">\(x\)</span> is represented as the mean (DC) component followed by the real and imaginary components of the Fourier coefficients as</p>
+<div class="math notranslate nohighlight">
+\[x=[ X_0, \Re(X1), \Im(X1), \dots, \Re(Xn), \Im(Xn) ]^T\]</div>
+<p>In the time-domain, <span class="math notranslate nohighlight">\(x(t)\)</span>, this is given as <span class="math notranslate nohighlight">\(Mx\)</span>, where <span class="math notranslate nohighlight">\(M\)</span> is the time matrix.
+Similarly, the state of its derivative is given as <span class="math notranslate nohighlight">\(Dx\)</span>, where <span class="math notranslate nohighlight">\(D\)</span> is the derivative matrix.
+Alternatively, we sometimes need to represent the state as a complex vector <span class="math notranslate nohighlight">\(x=[X_0, X_1, \dots, X_n]^T\)</span>.
+Finally, sometimes we need to relate the state <span class="math notranslate nohighlight">\(x\)</span> to another state <span class="math notranslate nohighlight">\(y\)</span> (e.g. a force component) via an impedance matrix <span class="math notranslate nohighlight">\(Z\)</span> as <span class="math notranslate nohighlight">\(y = Zx\)</span>.
+The matrices <span class="math notranslate nohighlight">\(M\)</span>, <span class="math notranslate nohighlight">\(D\)</span>, and different matrices <span class="math notranslate nohighlight">\(Z\)</span>, and relevant functions are constructed internally in <a class="reference internal" href="api_docs/wecopttool.html#module-wecopttool" title="wecopttool"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool</span></code></a>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="theory.html" class="btn btn-neutral float-left" title="Theory &amp; Practice" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020 National Technology &amp; Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: dev
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href="../implementation.html">latest</a></dd><dd><a href="../dev/implementation.html">dev</a></dd></dl></div>
+</div><script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

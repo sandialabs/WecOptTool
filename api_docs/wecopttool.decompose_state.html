@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.decompose_state &mdash; WecOptTool 2.7.0 documentation</title>
+  <title>wecopttool.decompose_state &mdash; WecOptTool 3.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -16,8 +16,8 @@
   
         <script src="../_static/jquery.js?v=5d32c60e"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=dfec817d"></script>
-        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/documentation_options.js?v=acc74ff5"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
         <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -39,7 +39,7 @@
             WecOptTool
           </a>
               <div class="version">
-                2.7
+                3.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -59,13 +59,14 @@
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.add_linear_friction.html">wecopttool.add_linear_friction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_linear_damping.html">wecopttool.check_linear_damping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.check_radiation_damping.html">wecopttool.check_radiation_damping</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.complex_to_real.html">wecopttool.complex_to_real</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">wecopttool.decompose_state</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#wecopttool.decompose_state"><code class="docutils literal notranslate"><span class="pre">decompose_state()</span></code></a></li>
@@ -143,7 +144,7 @@ the problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>state</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>ndarray</em></a>) – Combined WEC and optimization states.</p></li>
+<li><p><strong>state</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><em>ndarray</em></a>) – Combined WEC and optimization states.</p></li>
 <li><p><strong>ndof</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Number of degrees of freedom for the WEC dynamics.</p></li>
 <li><p><strong>nfreq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Number of frequencies.</p></li>
 </ul>
@@ -156,7 +157,7 @@ the problem.</p>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>tuple</em>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>ndarray</em></a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>ndarray</em></a>]</p>
+<dd class="field-odd"><p><em>tuple</em>[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><em>ndarray</em></a>, <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.0)"><em>ndarray</em></a>]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -187,7 +188,15 @@ the problem.</p>
       </div>
     </section>
   </div>
-  <script>
+  <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: latest
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions"><dl>
+      <dt>Branches</dt><dd><a href=".././api_docs/wecopttool.decompose_state.html">latest</a></dd><dd><a href=".././dev/api_docs/wecopttool.decompose_state.html">dev</a></dd></dl></div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
