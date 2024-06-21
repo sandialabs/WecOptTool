@@ -11,7 +11,7 @@ In the GitHub repository, click on *Releases*, click on *Draft new release*.
 
 * Title the release with the [version number](https://semver.org/) preceded by a `v`, e.g., `v1.0.0`. Nothing else should go in the title.
 * Tag the release using the same name as the *Title*.
-* Click on *Generate release notes*. This adds the PR messages and contributors. Ideally nothing more is needed, but might require minor editing/formatting.
+* <u>Temporarily</u> change the *Target* branch to `dev`, then click on *Generate release notes*. This adds the PR messages and contributors. Ideally nothing more is needed, but might require minor editing/formatting. <u>**Be sure to change the *Target* back to `main` after the release notes are generated!!!**</u>
 * Select the *Create a discussion* checkmark and mark as *Announcement*.
 
 This will trigger the PyPI, Conda, and GH-Pages build and deploy.
