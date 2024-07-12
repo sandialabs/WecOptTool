@@ -1,12 +1,12 @@
-name: Test and Deploy
+name: Build and Test
 # 1. Build and test WecOptTool
 #   - check that WecOptTool builds on a matrix of OS + Python versions
 #   - check that all tests pass on the same matrix
 #   - report the test code coverage
-# 2. Test and deploy the documentation website
+# 2. Check that the documentation builds correctly
 
 on:
-  push:
+  pull_request:
     branches: [ main, dev ]
 
 jobs:
@@ -100,6 +100,7 @@ jobs:
         COVERALLS_FLAG_NAME: ${{ matrix.os }}-${{ matrix.python-version }}
         COVERALLS_PARALLEL: true
 
+
   coveralls:
     name: Indicate completion to coveralls.io
     needs: wecopttool_test
@@ -113,20 +114,20 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-              
-  GitHub_Pages:
-    name: Build and deploy website
+
+  documentation_test:
+    name: Build documentation
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.11' # CHANGE: Python version
+        python-version: '3.11'  # CHANGE: Python version
 
     - name: Install dependencies
       run: sudo apt-get install libglu1 pandoc gifsicle
-
+      
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
       run: |
@@ -139,9 +140,3 @@ jobs:
       run: |
         git fetch --tags
         python3 docs/build_docs.py
-
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/pages

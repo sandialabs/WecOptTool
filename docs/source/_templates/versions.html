@@ -1,0 +1,21 @@
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    Version: {{ current_version }}
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    {%- if other_versions|length > 1 -%}
+    <dl>
+      <dt>Branches</dt>
+      {%- for name, url in other_versions -%}
+        {%- if "api_docs/" in pagename or "_examples/" in pagename -%}
+          <dd><a href="../{{url}}/{{pagename}}.html">{{ name }}</a></dd>
+        {%- else -%}
+          <dd><a href="{{url}}/{{pagename}}.html">{{ name }}</a></dd>
+        {%- endif -%}
+      {%- endfor -%}
+    </dl>
+    {%- endif -%}
+  </div>
+</div>
