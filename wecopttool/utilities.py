@@ -282,7 +282,9 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
+def plot_power_flow(power_flows: dict[str, float], 
+    tolerance: Optional[float] = None,
+)-> tuple(Figure, Axes):
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
@@ -293,9 +295,14 @@ def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
         Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation'
                         'Electrical (solver)', 'Mechanical (solver)',
                         'Absorbed', 'Unused Potential', 'PTO Loss'
+    tolerance: float
+        Tolerance value for sankey diagram.
 
 
     """
+    if tolerance is None:
+        tolerance = -1e-03*power_flows['Optimal Excitation']
+
     # fig = plt.figure(figsize = [8,4])
     # ax = fig.add_subplot(1, 1, 1,)
     fig, ax = plt.subplots(1, 1,
@@ -309,7 +316,7 @@ def plot_power_flow(power_flows: dict[str, float])-> tuple(Figure, Axes):
                     offset= 0,
                     format = '%.1f',
                     shoulder = 0.02,
-                    tolerance=-1e-03*power_flows['Optimal Excitation'],
+                    tolerance = tolerance,
                     unit = 'W'
     )
 
