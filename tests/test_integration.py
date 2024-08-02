@@ -363,7 +363,7 @@ class TestTheoreticalPowerLimits:
         Fex = res_fd[0].force.sel(
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
-                         ).squeeze().sum('omega').item()
+                            ).squeeze().sum('omega').item()
 
         assert power_sol == approx(power_optimal, rel=1e-2)
 
