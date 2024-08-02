@@ -762,7 +762,7 @@ class WEC:
                 wave = wave.squeeze(dim='realization')
             except KeyError:
                 pass
-
+                      
             # objective function
             sign = -1.0 if maximize else 1.0
 
@@ -851,7 +851,7 @@ class WEC:
         res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[Dataset, Dataset]:
+    ) -> tuple[list[Dataset], list[Dataset]]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
@@ -979,16 +979,12 @@ class WEC:
             results_td.attrs['time_created_utc'] = create_time
             return results_fd, results_td
 
-        results_fd_list = []
-        results_td_list = []
+        results_fd = []
+        results_td = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            ifd.expand_dims({'realization':[ires]})
-            itd.expand_dims({'realization':[ires]})
-            results_fd_list.append(ifd)
-            results_td_list.append(itd)
-        results_fd = xr.concat(results_fd_list, dim='realization')
-        results_td = xr.concat(results_td_list, dim='realization')
+            results_fd.append(ifd)
+            results_td.append(itd)
         return results_fd, results_td
 
     # properties
@@ -1278,7 +1274,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return fd_to_td(fd, self.f1, self.nfreq, 1, True)
+        return fd_to_td(fd, self.f1, self.nfreq, True)
 
     def td_to_fd(
         self,
@@ -1718,7 +1714,6 @@ def fd_to_td(
     fd: ArrayLike,
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
-    nsubsteps: int = 1,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
@@ -1754,9 +1749,6 @@ def fd_to_td(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step length.
     zero_freq
         Whether the mean (DC) component is included.
 
@@ -1777,7 +1769,7 @@ def fd_to_td(
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
-        tmat = time_mat(f1, nfreq, nsubsteps, zero_freq=zero_freq)
+        tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
@@ -1906,7 +1898,7 @@ def check_radiation_damping(
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
-            if dmin < 0.0 + min_damping:
+            if dmin <= 0.0 + min_damping:
                 dof = hydro_data_new.influenced_dof.values[idof]
                 delta = min_damping-dmin
                 _log.warning(
@@ -1915,15 +1907,15 @@ def check_radiation_damping(
                     f'{delta.values} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            if (iradiation<min_damping).any():
+            if (new_damping==min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
                     'zero terms. Shifting up damping terms ' +
-                    f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
+                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
@@ -1959,16 +1951,17 @@ def check_impedance(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up by {delta:.2f}')
         else:
+            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
             Zi_dof_real = Zi_diag[:,dof].real.copy()
             Zi_dof_imag = Zi_diag[:,dof].imag.copy()
-            if (Zi_dof_real<min_damping).any():
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
+            if (Zi_dof_real==min_damping).any():
                 _log.warning(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up elements '
-                    f'{np.where(Zi_dof_real<min_damping)[0]} to a minimum of ' +
+                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
                     f' {min_damping} N/(m/s)')
-            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
-            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
     return Zi_shifted
 
 
@@ -2131,7 +2124,7 @@ def run_bem(
     :py:func:`wecopttool.change_bem_convention`).
 
     It creates the *test matrix*, calls
-    :py:meth:`capytaine.bodies.bodies.FloatingBody.immersed_part`,
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.keep_immersed_part`,
     calls :py:meth:`capytaine.bem.solver.BEMSolver.fill_dataset`,
     and changes the sign convention using
     :py:func:`wecopttool.change_bem_convention`.
@@ -2184,23 +2177,15 @@ def run_bem(
                       'wavelength': False,
                       'wavenumber': False,
                      }
-    wec_im = fb.copy()
+    wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        if wec_im.mass is None:
-            wec_im.mass = rho*wec_im.immersed_part().volume
-            _log.warning('FloatingBody has no inertia_matrix or mass ' +
-                     'field. The mass will be calculated based on a ' +
-                     'neutral buoyancy assumption. The inertia matrix ' +
-                     'will be calculated assuming a solid and constant ' +
-                     'density body.')
-        else:
-            _log.warning('FloatingBody has no inertia_matrix field. ' + 
-                     'The FloatingBody mass is defined and will be ' +
-                     'used for calculating the inertia matrix.')
+        _log.warning('FloatingBody has no inertia_matrix field. ' + 
+                     'If the FloatingBody mass is defined, it will be ' + 
+                     'used for calculating the inertia matrix here. ' + 
+                     'Otherwise, the neutral buoyancy assumption will ' + 
+                     'be used to auto-populate.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
-    wec_im = wec_im.immersed_part()
-    wec_im.name = f"{wec_im.name}_immersed"
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
                      'Capytaine will auto-populate the hydrostatic ' +
@@ -2229,7 +2214,6 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
     bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
-    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2266,8 +2250,8 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            friction_data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, friction_data)
+            data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
@@ -2601,10 +2585,7 @@ def set_fb_centers(
                 def_val = fb.center_of_mass
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
-                    "for hydrostatics. Note that the hydrostatics do not use the " +
-                    "axes defined by the FloatingBody degrees of freedom, and the " + 
-                    "rotation center should be set manually when using Capytaine to " + 
-                    "calculate hydrostatics about an axis other than the COG.")
+                    "for hydrostatics.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
         elif getattr(fb, property) is not None:
