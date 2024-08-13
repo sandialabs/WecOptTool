@@ -285,13 +285,11 @@ def plot_power_flow(power_flows: dict[str, float],
     power_flows
         Power flow dictionary produced by for example by
         :py:func:`wecopttool.utilities.calculate_power_flows`.
-        Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation'
+        Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation',
                         'Electrical (solver)', 'Mechanical (solver)',
                         'Absorbed', 'Unused Potential', 'PTO Loss'
     tolerance
         Tolerance value for sankey diagram.
-
-
     """
     if tolerance is None:
         tolerance = -1e-03*power_flows['Optimal Excitation']
