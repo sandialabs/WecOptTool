@@ -758,6 +758,11 @@ class WEC:
             _log.info("Solving pseudo-spectral control problem "
                       + f"for realization number {realization}.")
 
+            try:
+                wave = wave.squeeze(dim='realization')
+            except KeyError:
+                pass
+                      
             # objective function
             sign = -1.0 if maximize else 1.0
 
