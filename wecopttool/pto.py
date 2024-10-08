@@ -745,7 +745,7 @@ class PTO:
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration',
                         'units': 'm/s^2 or rad/s^2'}
-            force_attr = {'long_name': 'Force or moment on WEC',
+            force_attr = {'long_name': 'PTO force or torque',
                         'units': 'N or Nm'}
             power_attr = {'long_name': 'Power', 'units': 'W'}
             mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
