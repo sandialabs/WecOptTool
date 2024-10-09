@@ -138,7 +138,7 @@ jobs:
       shell: bash -l {0}
       run: |
         git fetch --tags
-        python3 docs/build_docs.py
+        python3 docs/build_docs.py --build production
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
