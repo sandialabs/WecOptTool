@@ -19,7 +19,9 @@ html_dir = os.path.join(build_dir, 'html')
 doctree_dir = os.path.join(build_dir, 'doctrees')
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--build', '-b', nargs=1, type=str, default='debug')
+parser.add_argument('-b', '--build', nargs=1, type=str,
+                    choices=['debug', 'production'],
+                    default='debug')
 
 def linkcheck():
     app = Sphinx(source_dir,
