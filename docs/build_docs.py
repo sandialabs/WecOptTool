@@ -100,6 +100,6 @@ if __name__ == '__main__':
         move_pages()
         for name, tag in versions.items():
             if name != home_name:
-                build_doc(name, tag, home_branch)
+                build_doc(name, tag, home_branch, build)
                 move_pages()
     shutil.rmtree(html_dir)
