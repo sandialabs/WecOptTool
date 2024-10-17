@@ -1,27 +1,25 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Theory &amp; Practice &mdash; WecOptTool 3.0.1 documentation</title>
+  <title>Theory &amp; Practice &mdash; WecOptTool 3.0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=a0fb6060" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=08bfcbec"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3f474186"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -40,9 +38,6 @@
           <a href="index.html" class="icon icon-home">
             WecOptTool
           </a>
-              <div class="version">
-                3.0
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -153,10 +148,12 @@ Some examples of problems which can be addressed within this framework include:<
 <h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Link to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" />
+</a>
 <p>Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" /></a>
+<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" />
+</a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.</p>
@@ -207,7 +204,7 @@ In WecOptTool’s example PTO module, this is controlled by the <code class="cod
 <p>As WecOptTool is intended primarily to utilize linear potential flow hydrodynamics, a linear hydrostatic stiffness is used.
 The implicit assumption of this approach is that the body is neutrally buoyant (i.e., gravitational and buoyancy forces are in balance at the zero position).
 However, some WECs achieve equilibrium through a pretension applied via mooring and/or the PTO.
-In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="api_docs/wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
+In this case, the device can still be modeled with the linear hydrostatic stiffness, but if you wish to solve for the pretension force in your simulations, you may explicitly include the buoyancy, gravity, and pretension forces via the <code class="code docutils literal notranslate"><span class="pre">f_add</span></code> argument to <a class="reference internal" href="api_docs/wecopttool.core.WEC.html#wecopttool.core.WEC" title="wecopttool.core.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.core.WEC</span></code></a>.</p>
 </section>
 <section id="pto-kinematics">
 <h3>PTO Kinematics<a class="headerlink" href="#pto-kinematics" title="Link to this heading"></a></h3>

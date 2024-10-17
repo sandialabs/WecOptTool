@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.utilities.plot_power_flow &mdash; WecOptTool 3.0.1 documentation</title>
+  <title>wecopttool.utilities.plot_power_flow &mdash; WecOptTool 3.0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=08bfcbec"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3f474186"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -38,9 +36,6 @@
           <a href="../index.html" class="icon icon-home">
             WecOptTool
           </a>
-              <div class="version">
-                3.0
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,6 +52,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.core.html">wecopttool.core</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a><ul class="current">
@@ -141,18 +137,24 @@
 <h1>wecopttool.utilities.plot_power_flow<a class="headerlink" href="#wecopttool-utilities-plot-power-flow" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="wecopttool.utilities.plot_power_flow">
-<span class="sig-name descname"><span class="pre">plot_power_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power_flows</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/utilities.html#plot_power_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.utilities.plot_power_flow" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">plot_power_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power_flows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/utilities.html#plot_power_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.utilities.plot_power_flow" title="Link to this definition"></a></dt>
 <dd><p>Plot power flow through a WEC as Sankey diagram.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>power_flows</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>]</em>) – Power flow dictionary produced by for example by
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>power_flows</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – <p>Power flow dictionary produced by for example by
 <a class="reference internal" href="wecopttool.utilities.calculate_power_flows.html#wecopttool.utilities.calculate_power_flows" title="wecopttool.utilities.calculate_power_flows"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.utilities.calculate_power_flows()</span></code></a>.
-Required keys: ‘Optimal Excitation’, ‘Radiated’, ‘Actual Excitation’
-‘Electrical (solver)’, ‘Mechanical (solver)’,
+Required keys: ‘Optimal Excitation’, ‘Radiated’, ‘Actual Excitation’,</p>
+<blockquote>
+<div><p>’Electrical (solver)’, ‘Mechanical (solver)’,
 ‘Absorbed’, ‘Unused Potential’, ‘PTO Loss’</p>
+</div></blockquote>
+</p></li>
+<li><p><strong>tolerance</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – Tolerance value for sankey diagram.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)">tuple</a>(Figure, Axes)</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>(Figure, Axes)</p>
 </dd>
 </dl>
 </dd></dl>

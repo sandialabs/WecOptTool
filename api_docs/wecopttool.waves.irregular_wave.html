@@ -1,25 +1,23 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves.irregular_wave &mdash; WecOptTool 3.0.1 documentation</title>
+  <title>wecopttool.waves.irregular_wave &mdash; WecOptTool 3.0.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../_static/documentation_options.js?v=08bfcbec"></script>
-        <script src="../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=3f474186"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -38,9 +36,6 @@
           <a href="../index.html" class="icon icon-home">
             WecOptTool
           </a>
-              <div class="version">
-                3.0
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -57,6 +52,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.core.html">wecopttool.core</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.utilities.html">wecopttool.utilities</a></li>
@@ -151,8 +147,8 @@
 <dt class="sig sig-object py" id="wecopttool.waves.irregular_wave">
 <span class="sig-name descname"><span class="pre">irregular_wave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">efth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrealizations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/waves.html#irregular_wave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.waves.irregular_wave" title="Link to this definition"></a></dt>
 <dd><p>Create a complex frequency-domain wave elevation from a spectrum.</p>
-<p>The spectrum is a <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2024.6.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> in the format used
-by <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p>
+<p>The spectrum is a <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2024.9.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> in the format used
+by <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The frequencies must be evenly-spaced with spacing equal
@@ -168,10 +164,10 @@ e.g. reading from buoy data. Use interpolation as
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>efth</strong> (<em>DataArray</em>) – Wave spectrum in units of m^2/Hz/deg, in the format used by
-<a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.0.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p></li>
-<li><p><strong>nrealizations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a>) – Number of wave phase realizations to be created for the
+<a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.1.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a>.</p></li>
+<li><p><strong>nrealizations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – Number of wave phase realizations to be created for the
 irregular wave.</p></li>
-<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em> | </em><em>None</em>) – Seed for random number generator. Used for reproducibility.
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> | </em><em>None</em>) – Seed for random number generator. Used for reproducibility.
 Generally should not be used except for testing.</p></li>
 </ul>
 </dd>
