@@ -143,6 +143,7 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 
 <span class="kn">import</span> <span class="nn">gmsh</span><span class="o">,</span> <span class="nn">pygmsh</span>
 <span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
+<span class="kn">from</span> <span class="nn">capytaine.io.meshio</span> <span class="kn">import</span> <span class="n">load_from_meshio</span>
 <span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
@@ -195,7 +196,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <section id="Mesh-creation-of-the-float">
 <h4>Mesh creation of the float<a class="headerlink" href="#Mesh-creation-of-the-float" title="Link to this heading"></a></h4>
 <p>Here we create the mesh based on the dimensions provided by Oregon State University using <code class="docutils literal notranslate"><span class="pre">pygmsh</span></code>, available <a class="reference external" href="https://pypi.org/project/pygmsh/">here</a>. This is the same package used by <code class="docutils literal notranslate"><span class="pre">geom.py</span></code> (click <a class="reference external" href="https://sandialabs.github.io/WecOptTool/api_docs/wecopttool.geom.html">here</a> for API documentation) containing the predefined WaveBot and AquaHarmonics meshes used in the previous tutorials.</p>
-<p>The float has a hole where the spar passes through it, though OSU has found that this hole creates a large spike in the BEM results at about 4.5 rad/s. There is not much energy in the waves at this frequency in the wave spectrum we will be using, so this spike should not significantly affect our results. If you would like to remove this spike and create smoother BEM results, set <code class="docutils literal notranslate"><span class="pre">hole</span> <span class="pre">=</span> <span class="pre">False</span></code> in the cell below.</p>
+<p>The float has a hole where the spar passes through it. In previous versions of this tutorial, the hole was larger than the spar and led to a large spike in the BEM results. The spike has been resolved by making the hole smaller so that the float is flush with the spar. Like the other tutorials, a lid is added to remove any irregular frequency spikes.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
@@ -207,20 +208,16 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <span class="n">h1</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="n">h2</span> <span class="o">=</span> <span class="mf">0.21</span>
 <span class="n">freeboard</span> <span class="o">=</span> <span class="mf">0.3</span>
-<span class="n">r3</span> <span class="o">=</span> <span class="mf">0.10</span><span class="o">/</span><span class="mi">2</span> <span class="o">+</span> <span class="mf">0.05</span>  <span class="c1"># hole radius</span>
-<span class="n">hole</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># set to False to remove spike in BEM results</span>
+<span class="n">r3</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># hole radius</span>
 <span class="k">with</span> <span class="n">pygmsh</span><span class="o">.</span><span class="n">occ</span><span class="o">.</span><span class="n">Geometry</span><span class="p">()</span> <span class="k">as</span> <span class="n">geom</span><span class="p">:</span>
     <span class="n">gmsh</span><span class="o">.</span><span class="n">option</span><span class="o">.</span><span class="n">setNumber</span><span class="p">(</span><span class="s1">&#39;Mesh.MeshSizeFactor&#39;</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">)</span>
     <span class="n">cyl</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">h1</span><span class="p">],</span> <span class="n">r1</span><span class="p">)</span>
     <span class="n">cone</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cone</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">h1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">h2</span><span class="p">],</span> <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)</span>
     <span class="n">geom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">cyl</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">freeboard</span><span class="p">])</span>
     <span class="n">geom</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">cone</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">freeboard</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">hole</span><span class="p">:</span>
-        <span class="n">tmp</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">boolean_union</span><span class="p">([</span><span class="n">cyl</span><span class="p">,</span> <span class="n">cone</span><span class="p">])</span>
-        <span class="n">bar</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="n">r3</span><span class="p">)</span>
-        <span class="n">geom</span><span class="o">.</span><span class="n">boolean_difference</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">geom</span><span class="o">.</span><span class="n">boolean_union</span><span class="p">([</span><span class="n">cyl</span><span class="p">,</span> <span class="n">cone</span><span class="p">])</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">boolean_union</span><span class="p">([</span><span class="n">cyl</span><span class="p">,</span> <span class="n">cone</span><span class="p">])</span>
+    <span class="n">bar</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">add_cylinder</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">20</span><span class="p">],</span> <span class="n">r3</span><span class="p">)</span>
+    <span class="n">geom</span><span class="o">.</span><span class="n">boolean_difference</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">bar</span><span class="p">)</span>
     <span class="n">mesh_float</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">generate_mesh</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -238,8 +235,12 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
-<span class="n">float_fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh_float</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># lid</span>
+<span class="n">mesh_obj</span> <span class="o">=</span> <span class="n">load_from_meshio</span><span class="p">(</span><span class="n">mesh_float</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">)</span>
+<span class="n">lid_mesh</span> <span class="o">=</span> <span class="n">mesh_obj</span><span class="o">.</span><span class="n">generate_lid</span><span class="p">(</span><span class="n">z</span><span class="o">=-</span><span class="mf">1e-2</span><span class="p">)</span>
+
+<span class="c1"># floating body</span>
+<span class="n">float_fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh_obj</span><span class="p">,</span> <span class="n">lid_mesh</span><span class="o">=</span><span class="n">lid_mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">)</span>
 <span class="n">float_fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Heave&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -307,8 +308,12 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># floating body</span>
-<span class="n">spar_fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="o">.</span><span class="n">from_meshio</span><span class="p">(</span><span class="n">mesh_spar</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;spar&#39;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># lid</span>
+<span class="n">mesh_obj</span> <span class="o">=</span> <span class="n">load_from_meshio</span><span class="p">(</span><span class="n">mesh_spar</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">)</span>
+<span class="n">lid_mesh</span> <span class="o">=</span> <span class="n">mesh_obj</span><span class="o">.</span><span class="n">generate_lid</span><span class="p">(</span><span class="n">z</span><span class="o">=-</span><span class="mf">1e-2</span><span class="p">)</span>
+
+<span class="c1"># floating body</span>
+<span class="n">spar_fb</span> <span class="o">=</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">(</span><span class="n">mesh</span><span class="o">=</span><span class="n">mesh_obj</span><span class="p">,</span> <span class="n">lid_mesh</span><span class="o">=</span><span class="n">lid_mesh</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;spar&quot;</span><span class="p">)</span>
 <span class="n">spar_fb</span><span class="o">.</span><span class="n">add_translation_dof</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;Heave&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1090,16 +1095,16 @@ on the mooring/tether line, so we had to explicitly model the buoyancy, gravity,
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011329808695889619
-            Iterations: 55
-            Function evaluations: 56
-            Gradient evaluations: 55
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011329231080463775
-            Iterations: 55
+            Current function value: -0.010959984123707913
+            Iterations: 54
             Function evaluations: 55
-            Gradient evaluations: 55
-Optimal average electrical power: -1.1329519888176698 W
+            Gradient evaluations: 54
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.01096016409850273
+            Iterations: 54
+            Function evaluations: 55
+            Gradient evaluations: 54
+Optimal average electrical power: -1.096007411110532 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1229,7 +1234,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-32.73539804621443, 4.20831813674949)
+(-22.721199156994455, 2.1976640769959315)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

@@ -39,6 +39,7 @@
     "\n",
     "import gmsh, pygmsh\n",
     "import capytaine as cpy\n",
+    "from capytaine.io.meshio import load_from_meshio\n",
     "import autograd.numpy as np\n",
     "import matplotlib.pyplot as plt\n",
     "import xarray as xr\n",
@@ -103,9 +104,10 @@
     "Here we create the mesh based on the dimensions provided by Oregon State University using `pygmsh`, available [here](https://pypi.org/project/pygmsh/).\n",
     "This is the same package used by `geom.py` (click [here](https://sandialabs.github.io/WecOptTool/api_docs/wecopttool.geom.html) for API documentation) containing the predefined WaveBot and AquaHarmonics meshes used in the previous tutorials.\n",
     "\n",
-    "The float has a hole where the spar passes through it, though OSU has found that this hole creates a large spike in the BEM results at about 4.5 rad/s.\n",
-    "There is not much energy in the waves at this frequency in the wave spectrum we will be using, so this spike should not significantly affect our results.\n",
-    "If you would like to remove this spike and create smoother BEM results, set `hole = False` in the cell below."
+    "The float has a hole where the spar passes through it. \n",
+    "In previous versions of this tutorial, the hole was larger than the spar and led to a large spike in the BEM results. \n",
+    "The spike has been resolved by making the hole smaller so that the float is flush with the spar.\n",
+    "Like the other tutorials, a lid is added to remove any irregular frequency spikes. "
    ]
   },
   {
@@ -121,20 +123,16 @@
     "h1 = 0.5  \n",
     "h2 = 0.21\n",
     "freeboard = 0.3\n",
-    "r3 = 0.10/2 + 0.05  # hole radius\n",
-    "hole = True # set to False to remove spike in BEM results\n",
+    "r3 = 0.05  # hole radius\n",
     "with pygmsh.occ.Geometry() as geom:\n",
     "    gmsh.option.setNumber('Mesh.MeshSizeFactor', mesh_size_factor)\n",
     "    cyl = geom.add_cylinder([0, 0, 0], [0, 0, -h1], r1)\n",
     "    cone = geom.add_cone([0, 0, -h1], [0, 0, -h2], r1, r2)\n",
     "    geom.translate(cyl, [0, 0, freeboard])\n",
     "    geom.translate(cone, [0, 0, freeboard]) \n",
-    "    if hole:\n",
-    "        tmp = geom.boolean_union([cyl, cone])\n",
-    "        bar = geom.add_cylinder([0, 0, 10], [0,0,-20], r3)\n",
-    "        geom.boolean_difference(tmp, bar)\n",
-    "    else:\n",
-    "        geom.boolean_union([cyl, cone])\n",
+    "    tmp = geom.boolean_union([cyl, cone])\n",
+    "    bar = geom.add_cylinder([0, 0, 10], [0,0,-20], r3)\n",
+    "    geom.boolean_difference(tmp, bar)\n",
     "    mesh_float = geom.generate_mesh()"
    ]
   },
@@ -152,8 +150,12 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "# lid\n",
+    "mesh_obj = load_from_meshio(mesh_float, 'float')\n",
+    "lid_mesh = mesh_obj.generate_lid(z=-1e-2)\n",
+    "\n",
     "# floating body\n",
-    "float_fb = cpy.FloatingBody.from_meshio(mesh_float, name='float')\n",
+    "float_fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name=\"float\")\n",
     "float_fb.add_translation_dof(name='Heave')"
    ]
   },
@@ -221,8 +223,12 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "# lid\n",
+    "mesh_obj = load_from_meshio(mesh_spar, 'float')\n",
+    "lid_mesh = mesh_obj.generate_lid(z=-1e-2)\n",
+    "\n",
     "# floating body\n",
-    "spar_fb = cpy.FloatingBody.from_meshio(mesh_spar, name='spar')\n",
+    "spar_fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name=\"spar\")\n",
     "spar_fb.add_translation_dof(name='Heave')"
    ]
   },
