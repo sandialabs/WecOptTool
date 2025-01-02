@@ -2251,7 +2251,7 @@ def add_linear_friction(
                     'with same value.')
         else:
             data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, friction)
+            hydro_data['friction'] = (dims, data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
