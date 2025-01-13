@@ -87,6 +87,7 @@ def move_pages(dest_dir=None):
         print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages', dest_dir)}...")
         shutil.copytree(
             html_dir, os.path.join(docs_dir, 'pages', dest_dir))
+    shutil.rmtree(build_dir)
     print('Done.')
 
 
