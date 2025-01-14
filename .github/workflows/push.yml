@@ -33,7 +33,7 @@ jobs:
     - name: Setup Mambaforge
       uses: conda-incubator/setup-miniconda@v2
       with:
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge
           miniforge-version: latest
           activate-environment: test-env
           use-mamba: true
@@ -45,8 +45,6 @@ jobs:
       shell: bash
 
     # create a conda yaml file
-    # for some reason Windows installs capytaine 1.4 instead of latest.
-    # CHANGE: Capytaine version
     - name: Create environment.yml file
       run: |
         echo "name: test-env" >> environment.yml;
