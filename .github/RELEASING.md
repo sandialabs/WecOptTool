@@ -31,7 +31,7 @@ See the [GitHub release workflow](https://github.com/sandialabs/WecOptTool/blob/
 
 ## Conda package
 The Conda package for WecOptTool is housed in the [wecopttool-feedstock](https://github.com/conda-forge/wecopttool-feedstock) repository.
-When a new release is available on PyPI, Conda-forge has a [bot](https://github.com/regro/autotick-bot) that will automatically detect it, create a pull request in [wecopttool-feedstock], and merge it.
+When a new release is available on PyPI, Conda-forge has a [bot](https://github.com/regro/autotick-bot) that will automatically detect it, create a pull request in wecopttool-feedstock, and merge it.
 In other words, the WecOptTool Conda package will usually update automatically within a few hours of a new release being published.
 
 If any dependencies are added, removed, or changed in `pyproject.toml`[^1], the Conda recipe must be manually updated to reflect these changes.
