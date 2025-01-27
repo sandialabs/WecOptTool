@@ -30,10 +30,10 @@ jobs:
     #   - the content of pyproject.toml changes
     #   - you manually change the value of the CACHE_NUMBER below
     # Else the existing cache is used.
-    - name: Setup Mambaforge
+    - name: Setup Miniforge
       uses: conda-incubator/setup-miniconda@v2
       with:
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           miniforge-version: latest
           activate-environment: test-env
           use-mamba: true
@@ -45,8 +45,6 @@ jobs:
       shell: bash
 
     # create a conda yaml file
-    # for some reason Windows installs capytaine 1.4 instead of latest.
-    # CHANGE: Capytaine version
     - name: Create environment.yml file
       run: |
         echo "name: test-env" >> environment.yml;
