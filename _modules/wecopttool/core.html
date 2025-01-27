@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.core &mdash; WecOptTool 3.0.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
 
@@ -90,7 +90,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -133,22 +133,22 @@
 <span class="p">]</span>
 
 
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 
-<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
-<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">autograd.numpy</span> <span class="kn">import</span> <span class="n">ndarray</span>
-<span class="kn">from</span> <span class="nn">autograd.builtins</span> <span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
-<span class="kn">from</span> <span class="nn">autograd</span> <span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jacobian</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">Dataset</span>
-<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Bounds</span>
-<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">block_diag</span><span class="p">,</span> <span class="n">dft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autograd.builtins</span><span class="w"> </span><span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autograd</span><span class="w"> </span><span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jacobian</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">capytaine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Bounds</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">block_diag</span><span class="p">,</span> <span class="n">dft</span>
 
 
 <span class="c1"># logger</span>
@@ -173,7 +173,7 @@
 
 <div class="viewcode-block" id="WEC">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.html#wecopttool.WEC">[docs]</a>
-<span class="k">class</span> <span class="nc">WEC</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WEC</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wave energy converter (WEC) object for performing simulations</span>
 <span class="sd">    using the pseudo-spectral solution method.</span>
 
@@ -195,7 +195,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="WEC.__init__">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.html#wecopttool.WEC.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -301,12 +301,12 @@
         <span class="c1"># inertia options</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inertia_in_forces</span> <span class="o">=</span> <span class="n">inertia_in_forces</span>
 
-        <span class="k">def</span> <span class="nf">_missing</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_missing</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2">&#39; must be provided if &#39;inertia_in_forces&#39; is&quot;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">condition</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">msg</span>
 
-        <span class="k">def</span> <span class="nf">_ignored</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_ignored</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">condition</span><span class="p">):</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2">&#39; is not used when &#39;inertia_in_forces&#39; is &quot;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">condition</span><span class="si">}</span><span class="s2">&#39; and should not be provided&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">msg</span>
@@ -352,13 +352,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_dof_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dof_names</span><span class="p">)</span></div>
 
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: &#39;</span> <span class="o">+</span>
                <span class="sa">f</span><span class="s1">&#39;DOFs (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="si">}</span><span class="s1">)=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_names</span><span class="si">}</span><span class="s1">, &#39;</span> <span class="o">+</span>
                <span class="sa">f</span><span class="s1">&#39;f=[0, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="si">}</span><span class="s1">, ..., </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="si">}</span><span class="s1">(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="si">}</span><span class="s1">)] Hz.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="nb">str</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="vm">__module__</span>
         <span class="n">qualname</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="vm">__qualname__</span>
@@ -369,7 +369,7 @@
 <div class="viewcode-block" id="WEC.from_bem">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.from_bem.html#wecopttool.WEC.from_bem">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_bem</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_bem</span><span class="p">(</span>
         <span class="n">bem_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]],</span>
         <span class="n">friction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">f_add</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TIForceDict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -469,7 +469,7 @@
 <div class="viewcode-block" id="WEC.from_floating_body">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.from_floating_body.html#wecopttool.WEC.from_floating_body">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_floating_body</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_floating_body</span><span class="p">(</span>
         <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span>
         <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -567,7 +567,7 @@
 <div class="viewcode-block" id="WEC.from_impedance">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.from_impedance.html#wecopttool.WEC.from_impedance">[docs]</a>
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_impedance</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_impedance</span><span class="p">(</span>
         <span class="n">freqs</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
         <span class="n">impedance</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
         <span class="n">exc_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
@@ -669,7 +669,7 @@
 
 <div class="viewcode-block" id="WEC.residual">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.residual.html#wecopttool.WEC.residual">[docs]</a>
-    <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the residual of the dynamic equation (r = m⋅a-Σf).</span>
@@ -697,7 +697,7 @@
     <span class="c1"># solve</span>
 <div class="viewcode-block" id="WEC.solve">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.solve.html#wecopttool.WEC.solve">[docs]</a>
-    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
         <span class="n">obj_fun</span><span class="p">:</span> <span class="n">TStateFunction</span><span class="p">,</span>
         <span class="n">nstate_opt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -864,7 +864,7 @@
             <span class="c1"># objective function</span>
             <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
 
-            <span class="k">def</span> <span class="nf">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">obj_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span><span class="o">*</span><span class="n">scale_obj</span><span class="o">*</span><span class="n">sign</span>
 
@@ -874,8 +874,8 @@
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">icons</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">):</span>
                 <span class="n">icons_new</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">icons</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]}</span>
 
-                <span class="k">def</span> <span class="nf">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">):</span>
-                    <span class="k">def</span> <span class="nf">new_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">):</span>
+                    <span class="k">def</span><span class="w"> </span><span class="nf">new_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                         <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x</span><span class="o">/</span><span class="n">scale</span><span class="p">)</span>
                         <span class="k">return</span> <span class="n">icons</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">new_fun</span>
@@ -886,7 +886,7 @@
                 <span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">icons_new</span>
 
             <span class="c1"># system dynamics through equality constraint, ma - Σf = 0</span>
-            <span class="k">def</span> <span class="nf">scaled_resid_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">scaled_resid_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                 <span class="n">x_s</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">scale</span>
                 <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x_s</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
@@ -898,7 +898,7 @@
 
             <span class="c1"># callback</span>
             <span class="k">if</span> <span class="n">callback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">def</span> <span class="nf">callback_scipy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">callback_scipy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                     <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                     <span class="n">max_x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">x_opt</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x_opt</span><span class="p">))</span>
                     <span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scaled [max(x_wec), max(x_opt), obj_fun(x)]: &quot;</span>
@@ -906,7 +906,7 @@
                               <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">max_x_opt</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">, &quot;</span>
                               <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">obj_fun_scaled</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">def</span> <span class="nf">callback_scipy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                <span class="k">def</span><span class="w"> </span><span class="nf">callback_scipy</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
                     <span class="n">x_s</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">scale</span>
                     <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x_s</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
@@ -947,7 +947,7 @@
 
 <div class="viewcode-block" id="WEC.post_process">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.post_process.html#wecopttool.WEC.post_process">[docs]</a>
-    <span class="k">def</span> <span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
         <span class="n">res</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
@@ -995,7 +995,7 @@
         <span class="k">assert</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">wec</span> <span class="p">,</span> <span class="p">(</span><span class="s2">&quot;The same wec object should be used to call &quot;</span> <span class="o">+</span>
                                 <span class="s2">&quot;post-process and be passed as an input.&quot;</span><span class="p">)</span>
 
-        <span class="k">def</span> <span class="nf">_postproc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_postproc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">):</span>
             <span class="n">create_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
 
             <span class="n">omega_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
@@ -1091,92 +1091,92 @@
 
     <span class="c1"># properties</span>
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TForceDict</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TForceDict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Dictionary of forces.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forces</span>
 
     <span class="nd">@forces</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_forces</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;List of constraints.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span>
 
     <span class="nd">@constraints</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">inertia_in_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inertia_in_forces</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Whether inertial &quot;forces&quot; are included in the</span>
 <span class="sd">        :python:`forces` dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inertia_in_forces</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">inertia_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inertia_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Inertia (mass) matrix.</span>
 <span class="sd">        :python:`None` if  :python:`inertia_in_forces is True`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inertia_matrix</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">inertia</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inertia</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Function representing the inertial term :math:`ma` in the</span>
 <span class="sd">        WEC&#39;s dynamics equation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inertia</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dof_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dof_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Names of the different degrees of freedom.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dof_names</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ndof</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of degrees of freedom.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">frequency</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Frequency vector [:math:`Hz`].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">f1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">f1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fundamental frequency :python:`f1` [:math:`Hz`].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nfreq</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of frequencies, not including the zero-frequency.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">omega</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">omega</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Radial frequency vector [rad/s].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_freq</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Period vector [s].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">Infinity</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">w1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">w1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fundamental radial frequency [rad/s].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">omega</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Time vector [s], size &#39;(2*nfreq, ndof)&#39;, not containing the</span>
 <span class="sd">        end time &#39;tf&#39;.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">time_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Matrix to create time-series from Fourier coefficients.</span>
 
 <span class="sd">        For some array of Fourier coefficients :python:`x`</span>
@@ -1188,7 +1188,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time_mat</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">derivative_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">derivative_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Matrix to create Fourier coefficients of the derivative of</span>
 <span class="sd">        some quantity.</span>
 
@@ -1201,7 +1201,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derivative_mat</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">derivative2_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">derivative2_mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Matrix to create Fourier coefficients of the second derivative of</span>
 <span class="sd">        some quantity.</span>
 
@@ -1214,24 +1214,24 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derivative2_mat</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Time spacing [s].&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_time</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">tf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Final time (repeat period) [s]. Not included in</span>
 <span class="sd">        :python:`time` vector.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">f1</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of timesteps.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ncomponents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ncomponents</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of Fourier components (:python:`2*nfreq`) for each</span>
 <span class="sd">        degree of freedom. Note that the sine component of the highest</span>
 <span class="sd">        frequency (the 2-point wave) is excluded as this will always</span>
@@ -1240,7 +1240,7 @@
         <span class="k">return</span> <span class="n">ncomponents</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">nstate_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nstate_wec</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Length of the WEC dynamics state vector consisting of the</span>
 <span class="sd">        Fourier coefficient of the position of each degree of freedom.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1249,7 +1249,7 @@
     <span class="c1"># other methods</span>
 <div class="viewcode-block" id="WEC.decompose_state">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.decompose_state.html#wecopttool.WEC.decompose_state">[docs]</a>
-    <span class="k">def</span> <span class="nf">decompose_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">decompose_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">state</span><span class="p">:</span> <span class="n">ndarray</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Split the state vector into the WEC dynamics state and the</span>
@@ -1283,7 +1283,7 @@
 
 <div class="viewcode-block" id="WEC.time_nsubsteps">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.time_nsubsteps.html#wecopttool.WEC.time_nsubsteps">[docs]</a>
-    <span class="k">def</span> <span class="nf">time_nsubsteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_nsubsteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a time vector with finer discretization.</span>
 
 <span class="sd">        Calls :py:func:`wecopttool.time` with the appropriate</span>
@@ -1303,7 +1303,7 @@
 
 <div class="viewcode-block" id="WEC.time_mat_nsubsteps">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.time_mat_nsubsteps.html#wecopttool.WEC.time_mat_nsubsteps">[docs]</a>
-    <span class="k">def</span> <span class="nf">time_mat_nsubsteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">time_mat_nsubsteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a time matrix similar to</span>
 <span class="sd">        :py:meth:`wecopttool.WEC.time_mat` but with finer</span>
 <span class="sd">        time-domain discretization.</span>
@@ -1325,7 +1325,7 @@
 
 <div class="viewcode-block" id="WEC.vec_to_dofmat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.vec_to_dofmat.html#wecopttool.WEC.vec_to_dofmat">[docs]</a>
-    <span class="k">def</span> <span class="nf">vec_to_dofmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vec_to_dofmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a vector to a matrix with one column per degree of</span>
 <span class="sd">        freedom.</span>
 
@@ -1353,7 +1353,7 @@
 
 <div class="viewcode-block" id="WEC.dofmat_to_vec">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.dofmat_to_vec.html#wecopttool.WEC.dofmat_to_vec">[docs]</a>
-    <span class="k">def</span> <span class="nf">dofmat_to_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dofmat_to_vec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mat</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten a matrix to a vector.</span>
 
 <span class="sd">        Opposite of :py:meth:`wecopttool.WEC.vec_to_dofmat`.</span>
@@ -1375,7 +1375,7 @@
 
 <div class="viewcode-block" id="WEC.fd_to_td">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.fd_to_td.html#wecopttool.WEC.fd_to_td">[docs]</a>
-    <span class="k">def</span> <span class="nf">fd_to_td</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">fd_to_td</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a frequency-domain array to time-domain.</span>
 
 <span class="sd">        Opposite of :py:meth:`wecopttool.WEC.td_to_fd`.</span>
@@ -1398,7 +1398,7 @@
 
 <div class="viewcode-block" id="WEC.td_to_fd">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.td_to_fd.html#wecopttool.WEC.td_to_fd">[docs]</a>
-    <span class="k">def</span> <span class="nf">td_to_fd</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">td_to_fd</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">td</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
         <span class="n">fft</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1429,7 +1429,7 @@
 
 <div class="viewcode-block" id="ncomponents">
 <a class="viewcode-back" href="../../api_docs/wecopttool.ncomponents.html#wecopttool.ncomponents">[docs]</a>
-<span class="k">def</span> <span class="nf">ncomponents</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ncomponents</span><span class="p">(</span>
     <span class="n">nfreq</span> <span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -1456,7 +1456,7 @@
 
 <div class="viewcode-block" id="frequency">
 <a class="viewcode-back" href="../../api_docs/wecopttool.frequency.html#wecopttool.frequency">[docs]</a>
-<span class="k">def</span> <span class="nf">frequency</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">frequency</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1489,7 +1489,7 @@
 
 <div class="viewcode-block" id="time">
 <a class="viewcode-back" href="../../api_docs/wecopttool.time.html#wecopttool.time">[docs]</a>
-<span class="k">def</span> <span class="nf">time</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">time</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -1521,7 +1521,7 @@
 
 <div class="viewcode-block" id="time_mat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.time_mat.html#wecopttool.time_mat">[docs]</a>
-<span class="k">def</span> <span class="nf">time_mat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">time_mat</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -1570,7 +1570,7 @@
 
 <div class="viewcode-block" id="derivative_mat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.derivative_mat.html#wecopttool.derivative_mat">[docs]</a>
-<span class="k">def</span> <span class="nf">derivative_mat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">derivative_mat</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1599,7 +1599,7 @@
 <span class="sd">    zero_freq</span>
 <span class="sd">        Whether the first frequency should be zero.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">block</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="o">*</span> <span class="n">n</span><span class="o">*</span><span class="n">f1</span> <span class="o">*</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span> <span class="o">*</span> <span class="n">n</span><span class="o">*</span><span class="n">f1</span> <span class="o">*</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
         <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span>
@@ -1610,7 +1610,7 @@
 
 <div class="viewcode-block" id="derivative2_mat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.derivative2_mat.html#wecopttool.derivative2_mat">[docs]</a>
-<span class="k">def</span> <span class="nf">derivative2_mat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">derivative2_mat</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1649,7 +1649,7 @@
 
 <div class="viewcode-block" id="mimo_transfer_mat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.mimo_transfer_mat.html#wecopttool.mimo_transfer_mat">[docs]</a>
-<span class="k">def</span> <span class="nf">mimo_transfer_mat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mimo_transfer_mat</span><span class="p">(</span>
     <span class="n">transfer_mat</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
@@ -1684,7 +1684,7 @@
     <span class="n">ndof</span> <span class="o">=</span> <span class="n">transfer_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">assert</span> <span class="n">transfer_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">ndof</span>
     <span class="n">elem</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">ndof</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">)]</span>
-    <span class="k">def</span> <span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
     <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
@@ -1706,7 +1706,7 @@
 
 <div class="viewcode-block" id="vec_to_dofmat">
 <a class="viewcode-back" href="../../api_docs/wecopttool.vec_to_dofmat.html#wecopttool.vec_to_dofmat">[docs]</a>
-<span class="k">def</span> <span class="nf">vec_to_dofmat</span><span class="p">(</span><span class="n">vec</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vec_to_dofmat</span><span class="p">(</span><span class="n">vec</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a vector back to a matrix with one column per DOF.</span>
 
 <span class="sd">    Returns a matrix with :python:`ndof` columns.</span>
@@ -1732,7 +1732,7 @@
 
 <div class="viewcode-block" id="dofmat_to_vec">
 <a class="viewcode-back" href="../../api_docs/wecopttool.dofmat_to_vec.html#wecopttool.dofmat_to_vec">[docs]</a>
-<span class="k">def</span> <span class="nf">dofmat_to_vec</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dofmat_to_vec</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Flatten a matrix that has one column per DOF.</span>
 
 <span class="sd">    Returns a 1D vector.</span>
@@ -1754,7 +1754,7 @@
 
 <div class="viewcode-block" id="real_to_complex">
 <a class="viewcode-back" href="../../api_docs/wecopttool.real_to_complex.html#wecopttool.real_to_complex">[docs]</a>
-<span class="k">def</span> <span class="nf">real_to_complex</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">real_to_complex</span><span class="p">(</span>
     <span class="n">fd</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
@@ -1806,7 +1806,7 @@
 
 <div class="viewcode-block" id="complex_to_real">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.complex_to_real.html#wecopttool.complex_to_real">[docs]</a>
-<span class="k">def</span> <span class="nf">complex_to_real</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">complex_to_real</span><span class="p">(</span>
     <span class="n">fd</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
@@ -1869,7 +1869,7 @@
 
 <div class="viewcode-block" id="fd_to_td">
 <a class="viewcode-back" href="../../api_docs/wecopttool.fd_to_td.html#wecopttool.fd_to_td">[docs]</a>
-<span class="k">def</span> <span class="nf">fd_to_td</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fd_to_td</span><span class="p">(</span>
     <span class="n">fd</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">f1</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1943,7 +1943,7 @@
 
 <div class="viewcode-block" id="td_to_fd">
 <a class="viewcode-back" href="../../api_docs/wecopttool.td_to_fd.html#wecopttool.td_to_fd">[docs]</a>
-<span class="k">def</span> <span class="nf">td_to_fd</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">td_to_fd</span><span class="p">(</span>
     <span class="n">td</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">fft</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -1984,7 +1984,7 @@
 
 <div class="viewcode-block" id="read_netcdf">
 <a class="viewcode-back" href="../../api_docs/wecopttool.read_netcdf.html#wecopttool.read_netcdf">[docs]</a>
-<span class="k">def</span> <span class="nf">read_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a *NetCDF* file with possibly complex entries as a</span>
 <span class="sd">    :py:class:`xarray.Dataset`.</span>
 
@@ -2008,7 +2008,7 @@
 
 <div class="viewcode-block" id="write_netcdf">
 <a class="viewcode-back" href="../../api_docs/wecopttool.write_netcdf.html#wecopttool.write_netcdf">[docs]</a>
-<span class="k">def</span> <span class="nf">write_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_netcdf</span><span class="p">(</span><span class="n">fpath</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save an :py:class:`xarray.Dataset` with possibly complex entries as a</span>
 <span class="sd">    *NetCDF* file.</span>
 
@@ -2032,7 +2032,7 @@
 
 <div class="viewcode-block" id="check_radiation_damping">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.check_radiation_damping.html#wecopttool.check_radiation_damping">[docs]</a>
-<span class="k">def</span> <span class="nf">check_radiation_damping</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_radiation_damping</span><span class="p">(</span>
     <span class="n">hydro_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
     <span class="n">min_damping</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
     <span class="n">uniform_shift</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2094,7 +2094,7 @@
 
 <div class="viewcode-block" id="check_impedance">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.check_impedance.html#wecopttool.check_impedance">[docs]</a>
-<span class="k">def</span> <span class="nf">check_impedance</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_impedance</span><span class="p">(</span>
     <span class="n">Zi</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
     <span class="n">min_damping</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
     <span class="n">uniform_shift</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -2142,7 +2142,7 @@
 
 <div class="viewcode-block" id="force_from_rao_transfer_function">
 <a class="viewcode-back" href="../../api_docs/wecopttool.force_from_rao_transfer_function.html#wecopttool.force_from_rao_transfer_function">[docs]</a>
-<span class="k">def</span> <span class="nf">force_from_rao_transfer_function</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_from_rao_transfer_function</span><span class="p">(</span>
     <span class="n">rao_transfer_mat</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
@@ -2166,7 +2166,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    force_from_impedance,</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
         <span class="n">transfer_mat</span> <span class="o">=</span> <span class="n">mimo_transfer_mat</span><span class="p">(</span><span class="n">rao_transfer_mat</span><span class="p">,</span> <span class="n">zero_freq</span><span class="p">)</span>
         <span class="n">force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">force_fd</span><span class="p">)</span>
@@ -2176,7 +2176,7 @@
 
 <div class="viewcode-block" id="force_from_impedance">
 <a class="viewcode-back" href="../../api_docs/wecopttool.force_from_impedance.html#wecopttool.force_from_impedance">[docs]</a>
-<span class="k">def</span> <span class="nf">force_from_impedance</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_from_impedance</span><span class="p">(</span>
     <span class="n">omega</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">impedance</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
@@ -2199,7 +2199,7 @@
 
 <div class="viewcode-block" id="force_from_waves">
 <a class="viewcode-back" href="../../api_docs/wecopttool.force_from_waves.html#wecopttool.force_from_waves">[docs]</a>
-<span class="k">def</span> <span class="nf">force_from_waves</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_from_waves</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
                      <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a force function from waves excitation coefficients.</span>
 
@@ -2209,7 +2209,7 @@
 <span class="sd">        Complex excitation coefficients indexed by frequency and</span>
 <span class="sd">        direction angle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
         <span class="n">force_fd</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">wave_excitation</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">,</span> <span class="n">waves</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">force_fd</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">force</span></div>
@@ -2218,7 +2218,7 @@
 
 <div class="viewcode-block" id="inertia">
 <a class="viewcode-back" href="../../api_docs/wecopttool.inertia.html#wecopttool.inertia">[docs]</a>
-<span class="k">def</span> <span class="nf">inertia</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">inertia</span><span class="p">(</span>
     <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">inertia_matrix</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
@@ -2245,7 +2245,7 @@
 
 <div class="viewcode-block" id="standard_forces">
 <a class="viewcode-back" href="../../api_docs/wecopttool.standard_forces.html#wecopttool.standard_forces">[docs]</a>
-<span class="k">def</span> <span class="nf">standard_forces</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TForceDict</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">standard_forces</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TForceDict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create functions for linear hydrodynamic forces.</span>
 
 <span class="sd">    Returns a dictionary with the standard linear forces:</span>
@@ -2299,7 +2299,7 @@
 
 <div class="viewcode-block" id="run_bem">
 <a class="viewcode-back" href="../../api_docs/wecopttool.run_bem.html#wecopttool.run_bem">[docs]</a>
-<span class="k">def</span> <span class="nf">run_bem</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_bem</span><span class="p">(</span>
     <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span>
     <span class="n">freq</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">],</span>
     <span class="n">wave_dirs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
@@ -2391,7 +2391,7 @@
 
 <div class="viewcode-block" id="change_bem_convention">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.change_bem_convention.html#wecopttool.change_bem_convention">[docs]</a>
-<span class="k">def</span> <span class="nf">change_bem_convention</span><span class="p">(</span><span class="n">bem_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">change_bem_convention</span><span class="p">(</span><span class="n">bem_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Change the convention from :math:`-iωt` to :math:`+iωt`.</span>
 
 <span class="sd">    Change the linear hydrodynamic coefficients from the Capytaine</span>
@@ -2415,7 +2415,7 @@
 
 <div class="viewcode-block" id="add_linear_friction">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.add_linear_friction.html#wecopttool.add_linear_friction">[docs]</a>
-<span class="k">def</span> <span class="nf">add_linear_friction</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_linear_friction</span><span class="p">(</span>
     <span class="n">bem_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
     <span class="n">friction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
@@ -2460,7 +2460,7 @@
 
 <div class="viewcode-block" id="wave_excitation">
 <a class="viewcode-back" href="../../api_docs/wecopttool.wave_excitation.html#wecopttool.wave_excitation">[docs]</a>
-<span class="k">def</span> <span class="nf">wave_excitation</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wave_excitation</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the complex, frequency-domain, excitation force due to</span>
 <span class="sd">    waves.</span>
 
@@ -2511,7 +2511,7 @@
 
 <div class="viewcode-block" id="hydrodynamic_impedance">
 <a class="viewcode-back" href="../../api_docs/wecopttool.hydrodynamic_impedance.html#wecopttool.hydrodynamic_impedance">[docs]</a>
-<span class="k">def</span> <span class="nf">hydrodynamic_impedance</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hydrodynamic_impedance</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate hydrodynamic intrinsic impedance.</span>
 
 <span class="sd">    Parameters</span>
@@ -2531,7 +2531,7 @@
 
 <div class="viewcode-block" id="atleast_2d">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.atleast_2d.html#wecopttool.atleast_2d">[docs]</a>
-<span class="k">def</span> <span class="nf">atleast_2d</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">atleast_2d</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure an array is at least 2D, otherwise add trailing dimensions</span>
 <span class="sd">    to make it 2D.</span>
 
@@ -2553,7 +2553,7 @@
 
 <div class="viewcode-block" id="degrees_to_radians">
 <a class="viewcode-back" href="../../api_docs/wecopttool.degrees_to_radians.html#wecopttool.degrees_to_radians">[docs]</a>
-<span class="k">def</span> <span class="nf">degrees_to_radians</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">degrees_to_radians</span><span class="p">(</span>
     <span class="n">degrees</span><span class="p">:</span> <span class="n">FloatOrArray</span><span class="p">,</span>
     <span class="n">sort</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
@@ -2578,7 +2578,7 @@
 
 <div class="viewcode-block" id="subset_close">
 <a class="viewcode-back" href="../../api_docs/wecopttool.subset_close.html#wecopttool.subset_close">[docs]</a>
-<span class="k">def</span> <span class="nf">subset_close</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subset_close</span><span class="p">(</span>
     <span class="n">set_a</span><span class="p">:</span> <span class="n">FloatOrArray</span><span class="p">,</span>
     <span class="n">set_b</span><span class="p">:</span> <span class="n">FloatOrArray</span><span class="p">,</span>
     <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.e-5</span><span class="p">,</span>
@@ -2644,7 +2644,7 @@
 
 <div class="viewcode-block" id="scale_dofs">
 <a class="viewcode-back" href="../../api_docs/wecopttool.scale_dofs.html#wecopttool.scale_dofs">[docs]</a>
-<span class="k">def</span> <span class="nf">scale_dofs</span><span class="p">(</span><span class="n">scale_list</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ncomponents</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">scale_dofs</span><span class="p">(</span><span class="n">scale_list</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ncomponents</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a scaling vector based on a different scale for each DOF.</span>
 
 <span class="sd">    Returns a 1D array of length :python:`NDOF*ncomponents` where the</span>
@@ -2673,7 +2673,7 @@
 
 <div class="viewcode-block" id="decompose_state">
 <a class="viewcode-back" href="../../api_docs/wecopttool.decompose_state.html#wecopttool.decompose_state">[docs]</a>
-<span class="k">def</span> <span class="nf">decompose_state</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">decompose_state</span><span class="p">(</span>
     <span class="n">state</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
     <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -2709,7 +2709,7 @@
 
 <div class="viewcode-block" id="frequency_parameters">
 <a class="viewcode-back" href="../../api_docs/wecopttool.frequency_parameters.html#wecopttool.frequency_parameters">[docs]</a>
-<span class="k">def</span> <span class="nf">frequency_parameters</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">frequency_parameters</span><span class="p">(</span>
     <span class="n">freqs</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
@@ -2770,7 +2770,7 @@
 
 <div class="viewcode-block" id="time_results">
 <a class="viewcode-back" href="../../api_docs/wecopttool.time_results.html#wecopttool.time_results">[docs]</a>
-<span class="k">def</span> <span class="nf">time_results</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">time_results</span><span class="p">(</span><span class="n">fd</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a :py:class:`xarray.DataArray` of time-domain results from</span>
 <span class="sd">    :py:class:`xarray.DataArray` of frequency-domain results.</span>
 
@@ -2791,7 +2791,7 @@
 
 <div class="viewcode-block" id="set_fb_centers">
 <a class="viewcode-back" href="../../api_docs/wecopttool.set_fb_centers.html#wecopttool.set_fb_centers">[docs]</a>
-<span class="k">def</span> <span class="nf">set_fb_centers</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_fb_centers</span><span class="p">(</span>
     <span class="n">fb</span><span class="p">:</span> <span class="n">FloatingBody</span><span class="p">,</span>
     <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s2">&quot;rho&quot;</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FloatingBody</span><span class="p">:</span>

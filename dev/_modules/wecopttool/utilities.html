@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.utilities &mdash; WecOptTool 3.0.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
 
@@ -81,7 +81,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -92,22 +92,22 @@
 <span class="p">]</span>
 
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">autograd.numpy</span> <span class="kn">import</span> <span class="n">ndarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
 
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span>
-<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">ArrayLike</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
 <span class="c1"># from autograd.numpy import ndarray</span>
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">concat</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
-<span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">concat</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.figure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Figure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span>
 
-<span class="kn">from</span> <span class="nn">matplotlib.sankey</span> <span class="kn">import</span> <span class="n">Sankey</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.sankey</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sankey</span>
 
 
 
@@ -119,7 +119,7 @@
 
 <div class="viewcode-block" id="plot_hydrodynamic_coefficients">
 <a class="viewcode-back" href="../../api_docs/wecopttool.utilities.plot_hydrodynamic_coefficients.html#wecopttool.utilities.plot_hydrodynamic_coefficients">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_hydrodynamic_coefficients</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_hydrodynamic_coefficients</span><span class="p">(</span><span class="n">bem_data</span><span class="p">,</span>
                                    <span class="n">wave_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
                                    <span class="p">)</span><span class="o">-&gt;</span> <span class="nb">list</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">)):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plots hydrodynamic coefficients (added mass, radiation damping,</span>
@@ -216,7 +216,7 @@
 
 <div class="viewcode-block" id="plot_bode_impedance">
 <a class="viewcode-back" href="../../api_docs/wecopttool.utilities.plot_bode_impedance.html#wecopttool.utilities.plot_bode_impedance">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_bode_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> 
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_bode_impedance</span><span class="p">(</span><span class="n">impedance</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> 
                         <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
                         <span class="n">fig_axes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="c1">#plot_natural_freq: Optional[bool] = False,</span>
@@ -278,7 +278,7 @@
 
 <div class="viewcode-block" id="calculate_power_flows">
 <a class="viewcode-back" href="../../api_docs/wecopttool.utilities.calculate_power_flows.html#wecopttool.utilities.calculate_power_flows">[docs]</a>
-<span class="k">def</span> <span class="nf">calculate_power_flows</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> 
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_power_flows</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> 
                           <span class="n">pto</span><span class="p">,</span> 
                           <span class="n">results</span><span class="p">,</span> 
                           <span class="n">waves</span><span class="p">,</span> 
@@ -365,7 +365,7 @@
 
 <div class="viewcode-block" id="plot_power_flow">
 <a class="viewcode-back" href="../../api_docs/wecopttool.utilities.plot_power_flow.html#wecopttool.utilities.plot_power_flow">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_power_flow</span><span class="p">(</span><span class="n">power_flows</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> 
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_power_flow</span><span class="p">(</span><span class="n">power_flows</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> 
     <span class="n">tolerance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span><span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">Figure</span><span class="p">,</span> <span class="n">Axes</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot power flow through a WEC as Sankey diagram.</span>

@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 3 - LUPA &mdash; WecOptTool 3.0.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -139,17 +139,17 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">gmsh</span><span class="o">,</span> <span class="nn">pygmsh</span>
-<span class="kn">import</span> <span class="nn">capytaine</span> <span class="k">as</span> <span class="nn">cpy</span>
-<span class="kn">from</span> <span class="nn">capytaine.io.meshio</span> <span class="kn">import</span> <span class="n">load_from_meshio</span>
-<span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">brute</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gmsh</span><span class="o">,</span><span class="w"> </span><span class="nn">pygmsh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">capytaine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">capytaine.io.meshio</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_from_meshio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">brute</span>
 
-<span class="kn">import</span> <span class="nn">wecopttool</span> <span class="k">as</span> <span class="nn">wot</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">wecopttool</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">wot</span>
 
 <span class="c1">## set colorblind-friendly colormap for plots</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;tableau-colorblind10&#39;</span><span class="p">)</span>
@@ -505,7 +505,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
     <span class="s1">&#39;north_min_10&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Hs&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;Tp&#39;</span><span class="p">:</span> <span class="mf">1.68</span><span class="p">},</span>
 <span class="p">}</span>
 
-<span class="k">def</span> <span class="nf">irregular_wave</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">tp</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">irregular_wave</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">tp</span><span class="p">):</span>
     <span class="n">fp</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">tp</span>
     <span class="n">spectrum</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">pierson_moskowitz_spectrum</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="p">)</span>
     <span class="n">efth</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">omnidirectional_spectrum</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="s2">&quot;Pierson-Moskowitz&quot;</span><span class="p">)</span>
@@ -784,7 +784,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># drivetrain</span>
-<span class="k">def</span> <span class="nf">gear_ratio</span><span class="p">(</span><span class="n">pulley_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gear_ratio</span><span class="p">(</span><span class="n">pulley_radius</span><span class="p">):</span>
     <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="n">pulley_radius</span>  <span class="c1"># rad/m</span>
 
 <span class="n">drivetrain_friction</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># N*m*s/rad  # this will be estimated experimentally in the future</span>
@@ -793,7 +793,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <span class="n">idler_pulley</span><span class="p">[</span><span class="s1">&#39;MOI&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">idler_pulley</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">idler_pulley</span><span class="p">[</span><span class="s1">&#39;diameter&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>  <span class="c1"># kg*m^2</span>
 
 <span class="c1"># impedance model</span>
-<span class="k">def</span> <span class="nf">pto_impedance</span><span class="p">(</span><span class="n">sprocket_model</span><span class="p">,</span> <span class="n">omega</span><span class="o">=</span><span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pto_impedance</span><span class="p">(</span><span class="n">sprocket_model</span><span class="p">,</span> <span class="n">omega</span><span class="o">=</span><span class="n">bem_data</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
     <span class="n">pulley_ratio</span> <span class="o">=</span> <span class="n">sprockets</span><span class="p">[</span><span class="n">sprocket_model</span><span class="p">][</span><span class="s1">&#39;diameter&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">idler_pulley</span><span class="p">[</span><span class="s1">&#39;diameter&#39;</span><span class="p">]</span>
     <span class="n">drivetrain_inertia</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;MOI&#39;</span><span class="p">]</span> <span class="o">+</span>
@@ -852,21 +852,21 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1">## Displacements</span>
 <span class="c1"># maximum stroke</span>
 <span class="n">stroke_max</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># m</span>
-<span class="k">def</span> <span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
     <span class="n">pos</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="c1">## GENERATOR</span>
 <span class="c1"># peak torque</span>
 <span class="n">default_radius</span> <span class="o">=</span> <span class="n">sprockets</span><span class="p">[</span><span class="n">default_sprocket</span><span class="p">][</span><span class="s1">&#39;diameter&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-<span class="k">def</span> <span class="nf">const_peak_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">const_peak_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Instantaneous torque must not exceed max torque Tmax - |T| &gt;=0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="c1"># continuous torque</span>
-<span class="k">def</span> <span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RMS torque must not exceed max continous torque</span>
 <span class="sd">        Tmax_conti - Trms &gt;=0 &quot;&quot;&quot;</span>
     <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
@@ -874,7 +874,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
     <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;continuous_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">torque_rms</span>
 
 <span class="c1"># max speed</span>
-<span class="k">def</span> <span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
     <span class="n">rot_vel</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">*</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
@@ -935,7 +935,7 @@ approach is common here, the symmetry of the taut lines in this current system a
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># mooring matrix</span>
-<span class="k">def</span> <span class="nf">k_mooring</span><span class="p">(</span><span class="n">fair_coords</span><span class="p">,</span> <span class="n">anch_coords</span><span class="p">,</span> <span class="n">pretension</span><span class="p">,</span> <span class="n">k_ax</span><span class="p">,</span> <span class="n">nlines</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">k_mooring</span><span class="p">(</span><span class="n">fair_coords</span><span class="p">,</span> <span class="n">anch_coords</span><span class="p">,</span> <span class="n">pretension</span><span class="p">,</span> <span class="n">k_ax</span><span class="p">,</span> <span class="n">nlines</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates the 7DOF effective stiffness matrix of a symmetric taut</span>
 <span class="sd">    mooring system using an analytical solution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1095,16 +1095,16 @@ on the mooring/tether line, so we had to explicitly model the buoyancy, gravity,
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.010959984123707913
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
+            Current function value: -0.010958172801768787
+            Iterations: 51
+            Function evaluations: 52
+            Gradient evaluations: 51
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.01096016409850273
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
-Optimal average electrical power: -1.096007411110532 W
+            Current function value: -0.010958549246683777
+            Iterations: 51
+            Function evaluations: 52
+            Gradient evaluations: 51
+Optimal average electrical power: -1.0958361024226282 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1234,7 +1234,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-22.721199156994455, 2.1976640769959315)
+(-20.093040320165112, 3.099685728590415)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1304,7 +1304,7 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">design_obj_fun</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">n</span>
     <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
 
@@ -1322,21 +1322,21 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
     <span class="c1">## Constraints</span>
     <span class="c1"># Maximum stroke</span>
     <span class="n">stroke_max</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># m</span>
-    <span class="k">def</span> <span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="c1">## GENERATOR</span>
     <span class="c1"># peak torque</span>
     <span class="n">radius</span> <span class="o">=</span> <span class="n">sprockets</span><span class="p">[</span><span class="n">sprocket</span><span class="p">][</span><span class="s1">&#39;diameter&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span>
-    <span class="k">def</span> <span class="nf">const_peak_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">const_peak_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantaneous torque must not exceed max torque Tmax - |T| &gt;=0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="c1"># continuous torque</span>
-    <span class="k">def</span> <span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;RMS torque must not exceed max continous torque</span>
 <span class="sd">            Tmax_conti - Trms &gt;=0 &quot;&quot;&quot;</span>
         <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
@@ -1344,7 +1344,7 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
         <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;continuous_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">torque_rms</span>
 
     <span class="c1"># max speed</span>
-    <span class="k">def</span> <span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
         <span class="n">rot_vel</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">*</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 

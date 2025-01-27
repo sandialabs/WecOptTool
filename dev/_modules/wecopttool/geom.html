@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.geom &mdash; WecOptTool 3.0.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
 
@@ -81,25 +81,25 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;WaveBot&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">import</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">Figure</span>
-<span class="kn">from</span> <span class="nn">meshio._mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
-<span class="kn">import</span> <span class="nn">gmsh</span>
-<span class="kn">import</span> <span class="nn">pygmsh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">Axes</span><span class="p">,</span> <span class="n">Figure</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">meshio._mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gmsh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pygmsh</span>
 
 
 <div class="viewcode-block" id="WaveBot">
 <a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.html#wecopttool.geom.WaveBot">[docs]</a>
-<span class="k">class</span> <span class="nc">WaveBot</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaveBot</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing the Sandia WaveBot.</span>
 
 <span class="sd">    See, e.g.,</span>
@@ -111,7 +111,7 @@
 
 <div class="viewcode-block" id="WaveBot.__init__">
 <a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.html#wecopttool.geom.WaveBot.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">r1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.88</span><span class="p">,</span>
                  <span class="n">r2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span><span class="p">,</span>
                  <span class="n">h1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.17</span><span class="p">,</span>
@@ -149,7 +149,7 @@
 
 <div class="viewcode-block" id="WaveBot.mesh">
 <a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.mesh.html#wecopttool.geom.WaveBot.mesh">[docs]</a>
-    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate surface mesh of hull.</span>
 
 <span class="sd">        Parameters</span>
@@ -175,7 +175,7 @@
 
 <div class="viewcode-block" id="WaveBot.plot_cross_section">
 <a class="viewcode-back" href="../../api_docs/wecopttool.geom.WaveBot.plot_cross_section.html#wecopttool.geom.WaveBot.plot_cross_section">[docs]</a>
-    <span class="k">def</span> <span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                            <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                            <span class="n">ax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Axes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -228,13 +228,13 @@
 
 
 
-<span class="k">class</span> <span class="nc">AquaHarmonics</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AquaHarmonics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing the AquaHarmonics WEC.</span>
 
 <span class="sd">    See https://aquaharmonics.com/wec_vis/.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">T1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
                  <span class="n">T2</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.355</span><span class="p">,</span>
                  <span class="n">T3</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">7.25</span><span class="p">,</span>
@@ -275,7 +275,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ofst</span> <span class="o">=</span> <span class="n">ofst</span> <span class="o">*</span> <span class="n">scale_factor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scale_factor</span> <span class="o">=</span> <span class="n">scale_factor</span>
 
-    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mesh_size_factor</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Mesh of AquaHarmonics hull.</span>
 
@@ -309,7 +309,7 @@
 
         <span class="k">return</span> <span class="n">mesh</span>
 
-    <span class="k">def</span> <span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot_cross_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                            <span class="n">show</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                            <span class="n">ax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Axes</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
