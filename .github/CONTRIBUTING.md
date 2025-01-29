@@ -12,7 +12,7 @@ Using `conda` this looks like:
 ```bash
 conda create -n wecopttool
 conda activate wecopttool
-conda install -c conda-forge python=3.13 capytaine wavespectra
+conda install -c conda-forge python=3.12 capytaine wavespectra
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
 pip install -e .[dev]
@@ -22,7 +22,7 @@ And using `pip`:
 ```bash
 git clone git@github.com:<YOUR_USER_NAME>/WecOptTool.git
 cd WecOptTool
-python3.13 -m venv .venv
+python3.12 -m venv .venv
 . .venv/bin/activate
 pip install -e .[dev]
 ```
