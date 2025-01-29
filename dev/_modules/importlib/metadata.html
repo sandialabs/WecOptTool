@@ -76,16 +76,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for importlib.metadata</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">email</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">operator</span>
@@ -94,9 +90,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">posixpath</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_meta</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_adapters</span><span class="p">,</span> <span class="n">_meta</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreezableDefaultDict</span><span class="p">,</span> <span class="n">Pair</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">method_cache</span><span class="p">,</span> <span class="n">pass_none</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">always_iterable</span><span class="p">,</span> <span class="n">unique_everseen</span>
@@ -106,7 +104,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaPathFinder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">starmap</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Match</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;Distribution&#39;</span><span class="p">,</span>
@@ -127,11 +126,11 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">PackageNotFoundError</span><span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;The package was not found.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;No package metadata was found for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># type: ignore[override]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="p">(</span><span class="n">name</span><span class="p">,)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span>
         <span class="k">return</span> <span class="n">name</span>
 
@@ -197,11 +196,38 @@
             <span class="k">yield</span> <span class="n">Pair</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">valid</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">valid</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">line</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">EntryPoint</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeprecatedTuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Provide subscript item access for backward compatibility.</span>
+
+<span class="sd">    &gt;&gt;&gt; recwarn = getfixture(&#39;recwarn&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ep = EntryPoint(name=&#39;name&#39;, value=&#39;value&#39;, group=&#39;group&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ep[:]</span>
+<span class="sd">    (&#39;name&#39;, &#39;value&#39;, &#39;group&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ep[0]</span>
+<span class="sd">    &#39;name&#39;</span>
+<span class="sd">    &gt;&gt;&gt; len(recwarn)</span>
+<span class="sd">    1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Do not remove prior to 2023-05-01 or Python 3.13</span>
+    <span class="n">_warn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">,</span>
+        <span class="s2">&quot;EntryPoint tuple interface is deprecated. Access members by name.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">()[</span><span class="n">item</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EntryPoint</span><span class="p">(</span><span class="n">DeprecatedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;An entry point as defined by Python packaging conventions.</span>
 
 <span class="sd">    See `the packaging docs on entry points</span>
@@ -243,37 +269,34 @@
     <span class="n">value</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">group</span><span class="p">:</span> <span class="nb">str</span>
 
-    <span class="n">dist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Distribution</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">dist</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;Distribution&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">group</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
         <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">group</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the entry point from its definition. If only a module</span>
 <span class="sd">        is indicated by the value, return that module. Otherwise,</span>
 <span class="sd">        return the named object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">match</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">Match</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;module&#39;</span><span class="p">))</span>
         <span class="n">attrs</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="nb">getattr</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">module</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;module&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;attr&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">extras</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extras</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">match</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\w+&#39;</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;extras&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
@@ -321,7 +344,7 @@
             <span class="sa">f</span><span class="s1">&#39;group=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">group</span><span class="si">!r}</span><span class="s1">)&#39;</span>
         <span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">())</span>
 
 
@@ -332,7 +355,7 @@
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EntryPoint</span><span class="p">:</span>  <span class="c1"># type: ignore[override]</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>  <span class="c1"># -&gt; EntryPoint:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the EntryPoint in self matching name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -341,14 +364,7 @@
         <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Repr with classname and tuple constructor to</span>
-<span class="sd">        signal that we deviate from regular tuple behavior.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%r</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EntryPoints</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Select entry points from self that match the</span>
 <span class="sd">        given parameters (typically group and/or name).</span>
@@ -356,14 +372,14 @@
         <span class="k">return</span> <span class="n">EntryPoints</span><span class="p">(</span><span class="n">ep</span> <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">ep</span><span class="o">.</span><span class="n">matches</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the set of all names of all entry points.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">ep</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">groups</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the set of all groups of all entry points.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -384,31 +400,28 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">PackagePath</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">PurePosixPath</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A reference to a path in a package&quot;&quot;&quot;</span>
 
-    <span class="nb">hash</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FileHash</span><span class="p">]</span>
-    <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">dist</span><span class="p">:</span> <span class="n">Distribution</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">locate</span><span class="p">()</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoding</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># type: ignore[override]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">locate</span><span class="p">()</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="n">encoding</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">locate</span><span class="p">()</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">read_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">locate</span><span class="p">()</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SimplePath</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">locate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a path-like object for this path&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dist</span><span class="o">.</span><span class="n">locate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FileHash</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;FileHash mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s1"> value: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">DeprecatedNonAbstract</span><span class="p">:</span>
-    <span class="c1"># Required until Python 3.14</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">all_names</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">name</span> <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">subclass</span><span class="p">)</span>
@@ -428,48 +441,25 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Distribution</span><span class="p">(</span><span class="n">DeprecatedNonAbstract</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    An abstract Python distribution package.</span>
-
-<span class="sd">    Custom providers may derive from this class and define</span>
-<span class="sd">    the abstract methods to provide a concrete implementation</span>
-<span class="sd">    for their environment. Some providers may opt to override</span>
-<span class="sd">    the default implementation of some properties to bypass</span>
-<span class="sd">    the file-reading mechanism.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A Python distribution package.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempt to load metadata file given by the name.</span>
-
-<span class="sd">        Python distribution metadata is organized by blobs of text</span>
-<span class="sd">        typically represented as &quot;files&quot; in the metadata directory</span>
-<span class="sd">        (e.g. package-1.0.dist-info). These files include things</span>
-<span class="sd">        like:</span>
-
-<span class="sd">        - METADATA: The distribution metadata including fields</span>
-<span class="sd">          like Name and Version and Description.</span>
-<span class="sd">        - entry_points.txt: A series of entry points as defined in</span>
-<span class="sd">          `the entry points spec &lt;https://packaging.python.org/en/latest/specifications/entry-points/#file-format&gt;`_.</span>
-<span class="sd">        - RECORD: A record of files according to</span>
-<span class="sd">          `this recording spec &lt;https://packaging.python.org/en/latest/specifications/recording-installed-packages/#the-record-file&gt;`_.</span>
-
-<span class="sd">        A package may provide any set of files, including those</span>
-<span class="sd">        not listed here or none at all.</span>
 
 <span class="sd">        :param filename: The name of the file in the distribution info.</span>
 <span class="sd">        :return: The text if found, otherwise None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SimplePath</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Given a path to a file in this distribution, return a SimplePath</span>
+<span class="sd">        Given a path to a file in this distribution, return a path</span>
 <span class="sd">        to it.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Distribution</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_name</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the Distribution for the given package name.</span>
 
 <span class="sd">        :param name: The name of the distribution package to search for.</span>
@@ -482,23 +472,21 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;A distribution name is required.&quot;</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">discover</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">PackageNotFoundError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DistributionFinder</span><span class="o">.</span><span class="n">Context</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Distribution</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">discover</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an iterable of Distribution objects for all packages.</span>
 
 <span class="sd">        Pass a ``context`` or pass keyword arguments for constructing</span>
 <span class="sd">        a context.</span>
 
 <span class="sd">        :context: A ``DistributionFinder.Context`` object.</span>
-<span class="sd">        :return: Iterable of Distribution objects for packages matching</span>
-<span class="sd">          the context.</span>
+<span class="sd">        :return: Iterable of Distribution objects for all packages.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;context&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">context</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot accept context and kwargs&quot;</span><span class="p">)</span>
         <span class="n">context</span> <span class="o">=</span> <span class="n">context</span> <span class="ow">or</span> <span class="n">DistributionFinder</span><span class="o">.</span><span class="n">Context</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -507,8 +495,8 @@
         <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Distribution</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a Distribution for the indicated metadata path.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">at</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a Distribution for the indicated metadata path</span>
 
 <span class="sd">        :param path: a string or path-like object</span>
 <span class="sd">        :return: a concrete Distribution instance for the path</span>
@@ -517,7 +505,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_discover_resolvers</span><span class="p">():</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search the meta_path for resolvers (MetadataPathFinders).&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Search the meta_path for resolvers.&quot;&quot;&quot;</span>
         <span class="n">declared</span> <span class="o">=</span> <span class="p">(</span>
             <span class="nb">getattr</span><span class="p">(</span><span class="n">finder</span><span class="p">,</span> <span class="s1">&#39;find_distributions&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">finder</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">meta_path</span>
         <span class="p">)</span>
@@ -528,15 +516,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the parsed metadata for this Distribution.</span>
 
 <span class="sd">        The returned object will have keys that name the various bits of</span>
-<span class="sd">        metadata per the</span>
-<span class="sd">        `Core metadata specifications &lt;https://packaging.python.org/en/latest/specifications/core-metadata/#core-metadata&gt;`_.</span>
-
-<span class="sd">        Custom providers may provide the METADATA file or override this</span>
-<span class="sd">        property.</span>
+<span class="sd">        metadata.  See PEP 566 for details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># deferred for performance (python/cpython#109829)</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_adapters</span>
-
         <span class="n">opt_text</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;METADATA&#39;</span><span class="p">)</span>
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;PKG-INFO&#39;</span><span class="p">)</span>
@@ -549,7 +530,7 @@
         <span class="k">return</span> <span class="n">_adapters</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">message_from_string</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the &#39;Name&#39; metadata for the distribution package.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
 
@@ -559,22 +540,16 @@
         <span class="k">return</span> <span class="n">Prepared</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the &#39;Version&#39; metadata for the distribution package.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;Version&#39;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">entry_points</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EntryPoints</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return EntryPoints for this distribution.</span>
-
-<span class="sd">        Custom providers may provide the ``entry_points.txt`` file</span>
-<span class="sd">        or override this property.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">entry_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">EntryPoints</span><span class="o">.</span><span class="n">_from_text_for</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;entry_points.txt&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">PackagePath</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Files in this distribution.</span>
 
 <span class="sd">        :return: List of PackagePath for this distribution or None</span>
@@ -583,10 +558,6 @@
 <span class="sd">        (i.e. RECORD for dist-info, or installed-files.txt or</span>
 <span class="sd">        SOURCES.txt for egg-info) is missing.</span>
 <span class="sd">        Result may be empty if the metadata exists but is empty.</span>
-
-<span class="sd">        Custom providers are recommended to provide a &quot;RECORD&quot; file (in</span>
-<span class="sd">        ``read_text``) or override this property to allow for callers to be</span>
-<span class="sd">        able to resolve filenames provided by the package.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">make_file</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">size_str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -598,10 +569,6 @@
 
         <span class="nd">@pass_none</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">make_files</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
-            <span class="c1"># Delay csv import, since Distribution.files is not as widely used</span>
-            <span class="c1"># as other parts of importlib.metadata</span>
-            <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
-
             <span class="k">return</span> <span class="n">starmap</span><span class="p">(</span><span class="n">make_file</span><span class="p">,</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
 
         <span class="nd">@pass_none</span>
@@ -618,7 +585,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_read_files_distinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read the lines of RECORD.</span>
+<span class="sd">        Read the lines of RECORD</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;RECORD&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
@@ -667,7 +634,7 @@
         <span class="k">return</span> <span class="n">text</span> <span class="ow">and</span> <span class="nb">map</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">requires</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">requires</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generated requirements specified for this Distribution&quot;&quot;&quot;</span>
         <span class="n">reqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_dist_info_reqs</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_egg_info_reqs</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">reqs</span> <span class="ow">and</span> <span class="nb">list</span><span class="p">(</span><span class="n">reqs</span><span class="p">)</span>
@@ -718,23 +685,10 @@
             <span class="n">space</span> <span class="o">=</span> <span class="n">url_req_space</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">section</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">space</span> <span class="o">+</span> <span class="n">quoted_marker</span><span class="p">(</span><span class="n">section</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">origin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_json</span><span class="p">(</span><span class="s1">&#39;direct_url.json&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_load_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">pass_none</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">)(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">filename</span><span class="p">),</span>
-            <span class="n">object_hook</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">SimpleNamespace</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">),</span>
-        <span class="p">)</span>
-
 
 <span class="k">class</span><span class="w"> </span><span class="nc">DistributionFinder</span><span class="p">(</span><span class="n">MetaPathFinder</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A MetaPathFinder capable of discovering installed distributions.</span>
-
-<span class="sd">    Custom providers should implement this interface in order to</span>
-<span class="sd">    supply metadata.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">class</span><span class="w"> </span><span class="nc">Context</span><span class="p">:</span>
@@ -747,17 +701,6 @@
 <span class="sd">        Each DistributionFinder may expect any parameters</span>
 <span class="sd">        and should attempt to honor the canonical</span>
 <span class="sd">        parameters defined below when appropriate.</span>
-
-<span class="sd">        This mechanism gives a custom provider a means to</span>
-<span class="sd">        solicit additional details from the caller beyond</span>
-<span class="sd">        &quot;name&quot; and &quot;path&quot; when searching distributions.</span>
-<span class="sd">        For example, imagine a provider that exposes suites</span>
-<span class="sd">        of packages in either a &quot;public&quot; or &quot;private&quot; ``realm``.</span>
-<span class="sd">        A caller may wish to query only for distributions in</span>
-<span class="sd">        a particular realm and could call</span>
-<span class="sd">        ``distributions(realm=&quot;private&quot;)`` to signal to the</span>
-<span class="sd">        custom provider to only include distributions from that</span>
-<span class="sd">        realm.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
@@ -770,7 +713,7 @@
             <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="nd">@property</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            The sequence of directory path that a distribution finder</span>
 <span class="sd">            should search.</span>
@@ -781,7 +724,7 @@
             <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">find_distributions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">Context</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Distribution</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_distributions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">Context</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find distributions.</span>
 
@@ -793,18 +736,11 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FastPath</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Micro-optimized class for searching a root for children.</span>
-
-<span class="sd">    Root is a path on the file system that may contain metadata</span>
-<span class="sd">    directories either as natural directories or within a zip file.</span>
+<span class="sd">    Micro-optimized class for searching a path for</span>
+<span class="sd">    children.</span>
 
 <span class="sd">    &gt;&gt;&gt; FastPath(&#39;&#39;).children()</span>
 <span class="sd">    [&#39;...&#39;]</span>
-
-<span class="sd">    FastPath objects are cached and recycled for any given root.</span>
-
-<span class="sd">    &gt;&gt;&gt; FastPath(&#39;foobar&#39;) is FastPath(&#39;foobar&#39;)</span>
-<span class="sd">    True</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
@@ -846,19 +782,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Lookup</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A micro-optimized class for searching a (fast) path for metadata.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">FastPath</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Calculate all of the children representing metadata.</span>
-
-<span class="sd">        From the children in the path, calculate early all of the</span>
-<span class="sd">        children that appear to represent metadata (infos) or legacy</span>
-<span class="sd">        metadata (eggs).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">base_is_egg</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.egg&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">infos</span> <span class="o">=</span> <span class="n">FreezableDefaultDict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -879,10 +803,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">infos</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eggs</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prepared</span><span class="p">:</span> <span class="n">Prepared</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Yield all infos and eggs matching the Prepared query.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prepared</span><span class="p">):</span>
         <span class="n">infos</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">infos</span><span class="p">[</span><span class="n">prepared</span><span class="o">.</span><span class="n">normalized</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">prepared</span>
@@ -898,28 +819,13 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Prepared</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A prepared search query for metadata on a possibly-named package.</span>
-
-<span class="sd">    Pre-calculates the normalization to prevent repeated operations.</span>
-
-<span class="sd">    &gt;&gt;&gt; none = Prepared(None)</span>
-<span class="sd">    &gt;&gt;&gt; none.normalized</span>
-<span class="sd">    &gt;&gt;&gt; none.legacy_normalized</span>
-<span class="sd">    &gt;&gt;&gt; bool(none)</span>
-<span class="sd">    False</span>
-<span class="sd">    &gt;&gt;&gt; sample = Prepared(&#39;Sample__Pkg-name.foo&#39;)</span>
-<span class="sd">    &gt;&gt;&gt; sample.normalized</span>
-<span class="sd">    &#39;sample_pkg_name_foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; sample.legacy_normalized</span>
-<span class="sd">    &#39;sample__pkg_name.foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; bool(sample)</span>
-<span class="sd">    True</span>
+<span class="sd">    A prepared search for metadata on a possibly-named package.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">normalized</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">legacy_normalized</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span>
@@ -947,9 +853,7 @@
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MetadataPathFinder</span><span class="p">(</span><span class="n">DistributionFinder</span><span class="p">):</span>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">find_distributions</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">DistributionFinder</span><span class="o">.</span><span class="n">Context</span><span class="p">()</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">PathDistribution</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_distributions</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="n">DistributionFinder</span><span class="o">.</span><span class="n">Context</span><span class="p">()):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Find distributions.</span>
 
@@ -970,19 +874,19 @@
         <span class="p">)</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate_caches</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">invalidate_caches</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="n">FastPath</span><span class="o">.</span><span class="fm">__new__</span><span class="o">.</span><span class="n">cache_clear</span><span class="p">()</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PathDistribution</span><span class="p">(</span><span class="n">Distribution</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">SimplePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">SimplePath</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a distribution.</span>
 
 <span class="sd">        :param path: SimplePath indicating the metadata directory.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_path</span> <span class="o">=</span> <span class="n">path</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">suppress</span><span class="p">(</span>
             <span class="ne">FileNotFoundError</span><span class="p">,</span>
             <span class="ne">IsADirectoryError</span><span class="p">,</span>
@@ -992,11 +896,9 @@
         <span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="kc">None</span>
-
     <span class="n">read_text</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Distribution</span><span class="o">.</span><span class="n">read_text</span><span class="o">.</span><span class="vm">__doc__</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">SimplePath</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">locate_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="n">path</span>
 
     <span class="nd">@property</span>
@@ -1029,7 +931,7 @@
         <span class="k">return</span> <span class="n">name</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">distribution</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Distribution</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">distribution</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the ``Distribution`` instance for the named package.</span>
 
 <span class="sd">    :param distribution_name: The name of the distribution package as a string.</span>
@@ -1038,7 +940,7 @@
     <span class="k">return</span> <span class="n">Distribution</span><span class="o">.</span><span class="n">from_name</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">distributions</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Distribution</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">distributions</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all ``Distribution`` instances in the current environment.</span>
 
 <span class="sd">    :return: An iterable of ``Distribution`` instances.</span>
@@ -1048,7 +950,7 @@
 
 <div class="viewcode-block" id="metadata">
 <a class="viewcode-back" href="../../api_docs/wecopttool.metadata.html#wecopttool.metadata">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">metadata</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_meta</span><span class="o">.</span><span class="n">PackageMetadata</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">metadata</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_meta</span><span class="o">.</span><span class="n">PackageMetadata</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the metadata for the named package.</span>
 
 <span class="sd">    :param distribution_name: The name of the distribution package to query.</span>
@@ -1058,7 +960,7 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">version</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the version string for the named package.</span>
 
 <span class="sd">    :param distribution_name: The name of the distribution package to query.</span>
@@ -1092,7 +994,7 @@
     <span class="k">return</span> <span class="n">EntryPoints</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">PackagePath</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a list of files for the named package.</span>
 
 <span class="sd">    :param distribution_name: The name of the distribution package to query.</span>
@@ -1101,11 +1003,11 @@
     <span class="k">return</span> <span class="n">distribution</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">)</span><span class="o">.</span><span class="n">files</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">requires</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">requires</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a list of requirements for the named package.</span>
 
-<span class="sd">    :return: An iterable of requirements, suitable for</span>
+<span class="sd">    :return: An iterator of requirements, suitable for</span>
 <span class="sd">        packaging.requirement.Requirement.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">distribution</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">)</span><span class="o">.</span><span class="n">requires</span>
@@ -1132,42 +1034,13 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;top_level.txt&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_topmost</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">PackagePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the top-most parent as long as there is a parent.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">top</span><span class="p">,</span> <span class="o">*</span><span class="n">rest</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">parts</span>
-    <span class="k">return</span> <span class="n">top</span> <span class="k">if</span> <span class="n">rest</span> <span class="k">else</span> <span class="kc">None</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_toplevel_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">PackagePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Infer a possibly importable module name from a name presumed on</span>
-<span class="sd">    sys.path.</span>
-
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo.py&#39;))</span>
-<span class="sd">    &#39;foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo&#39;))</span>
-<span class="sd">    &#39;foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo.pyc&#39;))</span>
-<span class="sd">    &#39;foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo/__init__.py&#39;))</span>
-<span class="sd">    &#39;foo&#39;</span>
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo.pth&#39;))</span>
-<span class="sd">    &#39;foo.pth&#39;</span>
-<span class="sd">    &gt;&gt;&gt; _get_toplevel_name(PackagePath(&#39;foo.dist-info&#39;))</span>
-<span class="sd">    &#39;foo.dist-info&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_topmost</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-        <span class="c1"># python/typeshed#10328</span>
-        <span class="n">inspect</span><span class="o">.</span><span class="n">getmodulename</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
-        <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-    <span class="p">)</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_top_level_inferred</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
-    <span class="n">opt_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">_get_toplevel_name</span><span class="p">,</span> <span class="n">always_iterable</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">files</span><span class="p">)))</span>
+    <span class="n">opt_names</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodulename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">always_iterable</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+    <span class="p">}</span>
 
+    <span class="nd">@pass_none</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">importable_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span>
 
