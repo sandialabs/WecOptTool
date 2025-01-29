@@ -99,7 +99,7 @@ def long_crested_wave(f1, nfreq):
     freq = wot.frequency(f1, nfreq, False)
     fp = 0.3
     hs = 0.0625*1.9
-    efth = pierson_moskowitz(freq=f, hs=hs, fp=fp)
+    efth = pierson_moskowitz(freq=freq, hs=hs, fp=fp)
     waves = wot.waves.long_crested_wave(efth, nrealizations=2)
     return waves
 
