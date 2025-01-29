@@ -214,7 +214,7 @@ class TestLongCrestedWave:
         Tp = 1.2
         Hs = pm_hs
 
-        efth_xr = ws.construction.frequency.pierson_moskowitz(
+        efth_xr = ws.construct.frequency.pierson_moskowitz(
             freq=wot.frequency(pm_f1, pm_nfreq, False), hs=Hs, fp=1/Tp)
         return efth_xr
 

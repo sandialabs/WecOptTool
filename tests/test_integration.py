@@ -7,7 +7,7 @@ import capytaine as cpy
 import autograd.numpy as np
 from scipy.optimize import Bounds
 import xarray as xr
-
+from wavespectra.construct.frequency import pierson_moskowitz
 
 kplim = -1e1
 min_damping = 45
@@ -99,12 +99,7 @@ def long_crested_wave(f1, nfreq):
     freq = wot.frequency(f1, nfreq, False)
     fp = 0.3
     hs = 0.0625*1.9
-    spec_fun = lambda f: wot.waves.pierson_moskowitz_spectrum(freq=f, 
-                                                              fp=fp, 
-                                                              hs=hs)
-    efth = wot.waves.omnidirectional_spectrum(f1=f1, nfreq=nfreq, 
-                                              spectrum_func=spec_fun,
-                                              )
+    efth = pierson_moskowitz(freq=f, hs=hs, fp=fp)
     waves = wot.waves.long_crested_wave(efth, nrealizations=2)
     return waves
 
