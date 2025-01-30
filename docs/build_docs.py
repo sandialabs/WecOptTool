@@ -87,6 +87,7 @@ def move_pages(dest_dir=None):
         print(f"Moving HTML pages to {os.path.join(docs_dir, 'pages', dest_dir)}...")
         shutil.copytree(
             html_dir, os.path.join(docs_dir, 'pages', dest_dir))
+    shutil.rmtree(build_dir, ignore_errors=True)
     print('Done.')
 
 
@@ -108,4 +109,3 @@ if __name__ == '__main__':
             if name != home_name:
                 build_doc(name, tag, home_branch, build)
                 move_pages(dest_dir=name)
-    shutil.rmtree(html_dir)
