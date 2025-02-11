@@ -359,7 +359,7 @@ class WEC:
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
         # add friction
-        hydro_data = add_linear_friction(bem_data, friction)
+        hydro_ add_linear_friction(bem_data, friction)
         inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
@@ -2250,8 +2250,8 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, data)
+            friction_data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
