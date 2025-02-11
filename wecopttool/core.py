@@ -2250,8 +2250,8 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, friction)
+            friction_data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
