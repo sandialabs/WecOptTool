@@ -359,7 +359,7 @@ class WEC:
         if isinstance(bem_data, (str, Path)):
             bem_data = read_netcdf(bem_data)
         # add friction
-        hydro_ add_linear_friction(bem_data, friction)
+        hydro_data = add_linear_friction(bem_data, friction)
         inertia_matrix = hydro_data['inertia_matrix'].values
 
         # frequency array
