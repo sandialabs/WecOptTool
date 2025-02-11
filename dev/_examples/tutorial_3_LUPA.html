@@ -189,6 +189,8 @@ each body separately with a heave DOF, combine them into a single object afterwa
     <span class="s1">&#39;CG&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.3</span><span class="p">],</span>
     <span class="s1">&#39;MOI&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">253.6344</span><span class="p">,</span> <span class="mf">250.4558</span><span class="p">,</span> <span class="mf">12.746</span><span class="p">],</span>
 <span class="p">}</span>
+
+<span class="n">water_depth</span> <span class="o">=</span> <span class="mf">2.7</span> <span class="c1"># depth of wave flume</span>
 </pre></div>
 </div>
 </div>
@@ -529,7 +531,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <span class="k">try</span><span class="p">:</span>
     <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">read_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 <span class="k">except</span><span class="p">:</span>
-    <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">lupa_fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">bem_data</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">run_bem</span><span class="p">(</span><span class="n">lupa_fb</span><span class="p">,</span> <span class="n">freq</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">water_depth</span><span class="p">)</span>
     <span class="n">wot</span><span class="o">.</span><span class="n">write_netcdf</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bem_data</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1095,16 +1097,16 @@ on the mooring/tether line, so we had to explicitly model the buoyancy, gravity,
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.0109591277020642
-            Iterations: 53
-            Function evaluations: 54
-            Gradient evaluations: 53
+            Current function value: -0.011453873393403155
+            Iterations: 54
+            Function evaluations: 55
+            Gradient evaluations: 54
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.010959107385912787
-            Iterations: 53
-            Function evaluations: 54
-            Gradient evaluations: 53
-Optimal average electrical power: -1.0959117543988492 W
+            Current function value: -0.011451133720963782
+            Iterations: 51
+            Function evaluations: 52
+            Gradient evaluations: 51
+Optimal average electrical power: -1.1452503557183469 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1234,7 +1236,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-16.295210617590982, 2.5873066359403674)
+(-22.236864563341868, 2.2471827292742663)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
