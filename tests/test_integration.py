@@ -301,7 +301,7 @@ class TestTheoreticalPowerLimits:
                         scale_x_opt=1e-3,
                         scale_obj=1e-1,
                         optim_options={'ftol': 1e-10},
-                        bounds_opt=((-1*np.infty, 0),),
+                        bounds_opt=((-1*np.inf, 0),),
                         )
 
         power_sol = -1*res[0]['fun']
