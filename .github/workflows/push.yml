@@ -130,14 +130,17 @@ jobs:
       run: |
         python3 -m pip install --upgrade pip
         pip3 install wheel coveralls
-        pip3 install .[dev,geometry]
+        pip3 install -e .[dev,geometry]
+
+    - name: Check Sphinx version
+      run: |
+        python -m pip show sphinx
 
     - name: Build documentation
       shell: bash -l {0}
       run: |
         git fetch --tags
         python3 docs/build_docs.py
-
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
