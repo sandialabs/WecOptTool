@@ -55,7 +55,7 @@ class PTO:
     def __init__(self,
         ndof: int,
         kinematics: Union[TStateFunction, ndarray],
-        controller: Optional[TStateFunction] = None,
+        controller: Optional[TStateFunction] = None, #TODO update type
         impedance: Optional[ndarray] = None,
         loss: Optional[TLOSS] = None,
         names: Optional[list[str]] = None,
@@ -886,6 +886,126 @@ def _make_mimo_transfer_mat(
             mat = np.vstack([mat, row])
     return mat
 
+
+class feedback_controller:
+    def __init__(self,
+                 ndof_pto: int,
+                 proportional: Optional[bool] = True,
+                 integral: Optional[bool] = False,
+                 derivative: Optional[bool] = False,
+                 saturation: Optional[FloatOrArray] = None,
+                 ):
+
+        self._proportional = proportional
+        self._integral = integral
+        self._derivative = derivative
+        self._saturation = saturation
+
+        self._ndof = ndof_pto
+        
+    @property
+    def proportional(self) -> bool:
+        '''True if proportional control element used.'''
+        return self._proportional
+    
+    @property
+    def integral(self) -> bool:
+        '''True if integral control element used.'''
+        return self._integral
+    
+    @property
+    def derivative(self) -> bool:
+        '''True if derivative control element used.'''
+        return self._derivative
+    
+    @property
+    def saturation(self) -> bool:
+        '''True if saturation used.'''
+        return self._saturation
+    
+    @property
+    def ndof(self) -> int:
+        '''Number of degrees of freedom'''
+        return self._ndof
+    
+    @property
+    def ngains(self) -> int:
+        '''Number of controller gains per dof'''
+        return self.proportional + self.integral + self.derivative
+        
+    @property
+    def nstate(self) -> int:
+        '''Total number of controller gains across all DOFs'''
+        return self.ndof * self.ngains
+        
+    def _gains(self, x_opt):
+        idx = 0
+        ndof = self.ndof
+
+        if self.proportional:
+            gain_p = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+            idx = idx + 1
+        else:
+            gain_p = np.zeros([ndof, ndof])
+
+        if self.integral:
+            gain_i = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+            idx = idx + 1
+        else:
+            gain_i = np.zeros([ndof, ndof])
+
+        if self.derivative:
+            gain_d = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+        else:
+            gain_d = np.zeros([ndof, ndof])
+
+        return gain_p, gain_i, gain_d
+        
+    def force(self,
+              pto: TPTO,
+              wec: TWEC,
+              x_wec: ndarray,
+              x_opt: ndarray,
+              waves: Optional[Dataset] = None,
+              nsubsteps: Optional[int] = 1):
+        '''Time history of PTO force'''
+
+        gain_p, gain_i, gain_d = self._gains(x_opt)
+
+        vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
+        pos_td = pto.position(wec, x_wec, x_opt, waves, nsubsteps)
+        acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
+
+        force_td = (
+            np.dot(vel_td, gain_p.T) +
+            np.dot(pos_td, gain_i.T) +
+            np.dot(acc_td, gain_d.T)
+        )
+
+        if self.saturation:
+            force_td = self._saturation(force_td)
+
+        return force_td
+    
+    def _saturation(self, force_td):
+        if saturation is not None:
+            saturation = np.atleast_2d(np.squeeze(saturation))
+            assert len(saturation)==self.ndof
+        if len(saturation.shape) > 2:
+            raise ValueError("`saturation` must have <= 2 dimensions.")
+
+        if saturation.shape[1] == 1:
+            f_min, f_max = -1*saturation, saturation
+        elif saturation.shape[1] == 2:
+            f_min, f_max = saturation[:,0], saturation[:,1]
+        else:
+            raise ValueError("`saturation` must have 1 or 2 columns.")
+
+        force_td_list = []
+        for i in range(self.ndof):
+            tmp = np.clip(force_td[:,i], f_min[i], f_max[i])
+            force_td_list.append(tmp)
+        return np.array(force_td_list).T
 
 # controllers
 def controller_unstructured(
