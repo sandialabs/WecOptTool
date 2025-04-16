@@ -28,7 +28,10 @@ def pto():
     """Basic PTO: unstructured, 1 DOF, mechanical power."""
     ndof = 1
     kinematics = np.eye(ndof)
-    pto = wot.pto.PTO(ndof, kinematics)
+    controller = wot.controllers.unstructured_controller()
+    pto = wot.pto.PTO(ndof=ndof, 
+                      kinematics=kinematics, 
+                      controller=controller)
     return pto
 
 
@@ -37,7 +40,7 @@ def p_controller_pto():
     """Basic PTO: proportional (P) controller, 1 DOF, mechanical power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_p,
+                      controller=wot.controllers.pid_controller(1,True,False,False),
                       names=["P controller PTO"])
     return pto
 
@@ -48,7 +51,7 @@ def pi_controller_pto():
     power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_pi,
+                      controller=wot.controllers.pid_controller(1,True,True,False),
                       names=["PI controller PTO"])
     return pto
 
@@ -407,10 +410,12 @@ class TestTheoreticalPowerLimits:
         
         ndof = 1
         nstate_opt['pi'] = 2
-        def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
-            return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
-                                         nsubsteps, 
-                                         saturation=[-f_max, f_max])
+        # def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+        #     return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
+        #                                  nsubsteps, 
+        #                                  saturation=[-f_max, f_max])
+        saturated_pi = wot.controllers.pid_controller(1,True,True,False,
+                                                      saturation=[-f_max, f_max])
         pto['pi'] = wot.pto.PTO(ndof=ndof,
                                 kinematics=np.eye(ndof),
                                 controller=saturated_pi,)
