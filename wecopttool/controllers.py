@@ -145,22 +145,23 @@ class pid_controller:
     def _apply_saturation(self, force_td):
         if self.saturation is not None:
             saturation = np.atleast_2d(np.squeeze(self.saturation))
-            assert len(self.saturation)==self.ndof
-        if len(self.saturation.shape) > 2:
-            raise ValueError("`saturation` must have <= 2 dimensions.")
+            assert len(saturation)==self.ndof
+            if len(saturation.shape) > 2:
+                raise ValueError("`saturation` must have <= 2 dimensions.")
 
-        if self.saturation.shape[1] == 1:
-            f_min, f_max = -1*self.saturation, self.saturation
-        elif self.saturation.shape[1] == 2:
-            f_min, f_max = self.saturation[:,0], self.saturation[:,1]
-        else:
-            raise ValueError("`saturation` must have 1 or 2 columns.")
+            if saturation.shape[1] == 1:
+                f_min, f_max = -1*saturation, saturation
+            elif saturation.shape[1] == 2:
+                f_min, f_max = saturation[:,0], saturation[:,1]
+            else:
+                raise ValueError("`saturation` must have 1 or 2 columns.")
 
-        force_td_list = []
-        for i in range(self.ndof):
-            tmp = np.clip(force_td[:,i], f_min[i], f_max[i])
-            force_td_list.append(tmp)
-        return np.array(force_td_list).T
+            force_td_list = []
+            for i in range(self.ndof):
+                tmp = np.clip(force_td[:,i], f_min[i], f_max[i])
+                force_td_list.append(tmp)
+            force_td = np.array(force_td_list).T
+        return force_td
 
 
 class unstructured_controller:
