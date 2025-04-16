@@ -2177,16 +2177,17 @@ def run_bem(
                       'wavelength': False,
                       'wavenumber': False,
                      }
-    wec_im = fb.copy(name=fb.name)
+    wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
         _log.warning('FloatingBody has no inertia_matrix field. ' + 
                      'If the FloatingBody mass is defined, it will be ' + 
                      'used for calculating the inertia matrix here. ' + 
                      'Otherwise, the neutral buoyancy assumption will ' + 
-                     'be used to auto-populate.')
+                     'be used to auto-populate (inertial properties ' +
+                     'based only on the immersed part). We recommend ' +
+                     'inputting the correct inertial properties.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
-    wec_im = wec_im.copy(name=f"{wec_im.name}_immersed").keep_immersed_part()
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
                      'Capytaine will auto-populate the hydrostatic ' +
