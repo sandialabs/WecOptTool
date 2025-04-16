@@ -25,16 +25,17 @@ Simulating WEC Dynamics without optimization
 
 There may be situations where it is useful to see the dynamics of the WEC subject to certain constraints without performing optimization on the device.
 This can be done by setting ``nstate_opt=0`` and using an objective function that does not depend on ``x_wec``.
+
 The easiest way to do this is to set an objective function that always equals zero. 
 Constraints and additional forces can also be added, but they must be independent of ``x_opt`` since there are no constrol states.
-The additional forces should also be defined at all nonzero states (i.e. have length ``nfreq * 2``).
+The additional forces should also be defined at all nonzero states (i.e. returns length ``nfreq * 2``).
 
 Example:
 
 .. code-block:: python
 
-   waves = ... # unchanged from normal
-   bem_data = ... # unchanged from normal
+   waves = ... # define as you normally would
+   bem_data = ... # define as you normally would
 
    # define additional force
    # (must be independent of x_opt and of length nfreq * 2)
