@@ -5,6 +5,7 @@ import yaml
 
 from wecopttool import __version__, __version_info__
 
+
 # -- Path setup --------------------------------------------------------------
 project_root = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../.."))
@@ -44,8 +45,6 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
 ]
-
-nbsphinx_execute = 'never'
 
 templates_path = ['_templates']
 
