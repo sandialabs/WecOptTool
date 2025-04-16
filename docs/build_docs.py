@@ -93,7 +93,7 @@ def move_pages(dest_dir=None):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    build = args.build
+    build = args.build[0]
     if build == 'debug':
         print(f'Building docs in current branch...')
         build_doc('latest', '', '', build)
