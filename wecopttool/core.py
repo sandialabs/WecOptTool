@@ -2186,7 +2186,7 @@ def run_bem(
                      'Otherwise, the neutral buoyancy assumption will ' + 
                      'be used to auto-populate.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
-    wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    wec_im = wec_im.copy(name=f"{wec_im.name}_immersed").keep_immersed_part()
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
                      'Capytaine will auto-populate the hydrostatic ' +
