@@ -202,9 +202,11 @@ class TestControllers:
         """PID controller derivative gains."""
         return 2.1
 
-    def test_controller_unstructured(self, wec, ndof, kinematics, omega):
+    @pytest.mark.parametrize('controller',
+                             [None,wot.controllers.unstructured_controller()])
+    def test_controller_unstructured(self, controller, wec, ndof, kinematics, omega):
         """Test the pseudo-spectral controller."""
-        controller = wot.controllers.unstructured_controller()
+        # controller = wot.controllers.unstructured_controller()
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 1.2
         w = omega[-2]
