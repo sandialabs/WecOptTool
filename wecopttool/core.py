@@ -1951,17 +1951,16 @@ def check_impedance(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up by {delta:.2f}')
         else:
-            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
             Zi_dof_real = Zi_diag[:,dof].real.copy()
             Zi_dof_imag = Zi_diag[:,dof].imag.copy()
-            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
-            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
-            if (Zi_dof_real==min_damping).any():
+            if (Zi_dof_real<min_damping).any():
                 _log.warning(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up elements '
-                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(Zi_dof_real<min_damping)[0]} to a minimum of ' +
                     f' {min_damping} N/(m/s)')
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
     return Zi_shifted
 
 
