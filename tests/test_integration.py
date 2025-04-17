@@ -4,6 +4,7 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
+from capytaine.io.meshio import load_from_meshio
 import autograd.numpy as np
 from scipy.optimize import Bounds
 import xarray as xr
@@ -67,8 +68,9 @@ def fb():
     mesh_size_factor = 0.2
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-    lid_mesh = mesh.generate_lid(-2e-2)
-    fb = cpy.FloatingBody(mesh, lid_mesh=lid_mesh, name="WaveBot")
+    mesh_obj = load_from_meshio(mesh, 'WaveBot')
+    lid_mesh = mesh_obj.generate_lid(-2e-2)
+    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb
 
