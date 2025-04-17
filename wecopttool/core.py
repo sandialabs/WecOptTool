@@ -2184,7 +2184,9 @@ def run_bem(
                      'If the FloatingBody mass is defined, it will be ' + 
                      'used for calculating the inertia matrix here. ' + 
                      'Otherwise, the neutral buoyancy assumption will ' + 
-                     'be used to auto-populate.')
+                     'be used to auto-populate (inertial properties ' +
+                     'based only on the immersed part). We recommend ' +
+                     'inputting the correct inertial properties.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
@@ -2585,7 +2587,10 @@ def set_fb_centers(
                 def_val = fb.center_of_mass
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
-                    "for hydrostatics.")
+                    "for hydrostatics. Note that the hydrostatics do not use the " +
+                    "axes defined by the Floating Body degrees of freedom, and the " + 
+                    "rotation center should be set manually when using Capytaine to " + 
+                    "calculate hydrostatics about an axis other than the COG.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
         elif getattr(fb, property) is not None:
