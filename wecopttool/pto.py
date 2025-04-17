@@ -33,7 +33,7 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
-from xarray import DataArray, Dataset
+from xarray import DataArray, Dataset, concat
 from datetime import datetime
 from scipy.optimize import OptimizeResult
 
@@ -659,7 +659,7 @@ class PTO:
         res: Union[OptimizeResult, list],
         waves: Optional[DataArray] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[list[Dataset], list[Dataset]]:
+    ) -> tuple[Dataset, Dataset]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
 
@@ -814,12 +814,16 @@ class PTO:
 
             return results_fd, results_td
 
-        results_fd = []
-        results_td = []
+        results_fd_list = []
+        results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(wec, ires, waves.sel(realization=idx), nsubsteps)
-            results_fd.append(ifd)
-            results_td.append(itd)
+            ifd.expand_dims({'realization':[ires]})
+            itd.expand_dims({'realization':[ires]})
+            results_fd_list.append(ifd)
+            results_td_list.append(itd)
+        results_fd = concat(results_fd_list, dim='realization')
+        results_td = concat(results_td_list, dim='realization')
         return results_fd, results_td
 
 

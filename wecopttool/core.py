@@ -851,7 +851,7 @@ class WEC:
         res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[list[Dataset], list[Dataset]]:
+    ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
@@ -979,12 +979,16 @@ class WEC:
             results_td.attrs['time_created_utc'] = create_time
             return results_fd, results_td
 
-        results_fd = []
-        results_td = []
+        results_fd_list = []
+        results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            results_fd.append(ifd)
-            results_td.append(itd)
+            ifd.expand_dims({'realization':[ires]})
+            itd.expand_dims({'realization':[ires]})
+            results_fd_list.append(ifd)
+            results_td_list.append(itd)
+        results_fd = xr.concat(results_fd_list, dim='realization')
+        results_td = xr.concat(results_td_list, dim='realization')
         return results_fd, results_td
 
     # properties

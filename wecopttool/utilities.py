@@ -225,9 +225,9 @@ def calculate_power_flows(wec,
     P_elec = pto.average_power(wec, x_wec, x_opt, waves)
 
     #compute analytical power flows
-    Fex_FD = wec_fdom[0].force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')
+    Fex_FD = wec_fdom.force.sel(realization=0, type=['Froude_Krylov', 'diffraction']).sum('type')
     Rad_res = np.real(intrinsic_impedance.squeeze())
-    Vel_FD = wec_fdom[0].vel
+    Vel_FD = wec_fdom.sel(realization=0).vel
 
     P_max, P_e, P_r = [], [], []
 
