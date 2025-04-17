@@ -10,6 +10,7 @@ __all__ = [
     "plot_bode_impedance",
     "calculate_power_flows",
     "plot_power_flow",
+    "create_dataarray",
 ]
 
 
@@ -176,12 +177,12 @@ def plot_bode_impedance(impedance: DataArray,
             axes[2*i, j].grid(True, which = 'both')
             axes[2*i+1, j].grid(True, which = 'both')
             if i == len(radiating_dofs)-1:
-                axes[2*i+1, j].set_xlabel(f'Frequency (Hz)', fontsize=10)
+                axes[2*i+1, j].set_xlabel(f'Frequency [Hz]', fontsize=10)
             else:
                 axes[i, j].set_xlabel('')
             if j == 0:
-                axes[2*i, j].set_ylabel(f'{rdof} \n Mag. (dB)', fontsize=10)
-                axes[2*i+1, j].set_ylabel(f'Phase. (deg)', fontsize=10)
+                axes[2*i, j].set_ylabel(f'{rdof} \n Mag. [dB]', fontsize=10)
+                axes[2*i+1, j].set_ylabel(f'Phase. [deg]', fontsize=10)
             else:
                 axes[i, j].set_ylabel('')
             if i == 0:
@@ -370,3 +371,56 @@ def plot_power_flow(power_flows: dict[str, float],
     # plt.show()
 
     return fig, ax
+
+
+def create_dataarray(
+    impedance: ArrayLike, 
+    exc_coeff: ArrayLike, 
+    omega: ArrayLike,
+    directions: ArrayLike,
+    dof_names: ArrayLike,
+) -> DataArray:
+    """Create a DataArray from excitation and impedance data.
+
+    Parameters
+    ----------
+    impedance
+        Complex impedance matrix in array form.
+    exc_coeff
+        Complex excitation coefficients in array form.
+    omega
+        Radial frequency vector.
+    directions
+        Directions included in the impedance and excitation coefficients.
+    dof_names
+        Names of degrees of freedom represented in the impedance and 
+        excitation coefficients.
+    """
+    # convert to xarray
+    freq_attr = {'long_name': 'Wave frequency', 'units': 'rad/s'}
+    dir_attr = {'long_name': 'Wave direction', 'units': 'rad'}
+    dof_attr = {'long_name': 'Degree of freedom'}
+
+    dims_exc = ('omega', 'wave_direction', 'influenced_dof')
+    coords_exc = [
+        (dims_exc[0], np.squeeze(omega), freq_attr),
+        (dims_exc[1], directions, dir_attr),
+        (dims_exc[2], dof_names, dof_attr),
+    ]
+    attrs_exc = {'units': 'N/m', 'long_name': 'Excitation Coefficient'}
+    exc_coeff = np.expand_dims(np.squeeze(exc_coeff), axis = [1,2])
+    exc_coeff = DataArray(exc_coeff, dims=dims_exc, coords=coords_exc,
+                          attrs=attrs_exc, name='excitation coefficient')
+
+    dims_imp = ('omega', 'radiating_dof', 'influenced_dof')
+    coords_imp = [
+        (dims_imp[0], np.squeeze(omega), freq_attr),
+        (dims_imp[1], dof_names, dof_attr),
+        (dims_imp[2], dof_names, dof_attr),
+    ]
+    attrs_imp = {'units': 'Ns/m', 'long_name': 'Intrinsic Impedance'}
+
+    Zi = np.expand_dims(np.squeeze(impedance), axis=[1,2])
+    Zi = DataArray(Zi, dims=dims_imp, coords=coords_imp, attrs=attrs_imp, name='Intrinsic impedance')
+    
+    return exc_coeff, Zi
