@@ -20,6 +20,16 @@ The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch 
 
     - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
 
+.. toctree::
+    :maxdepth: 3
+    :hidden:
+
+    _examples/tutorial_1_WaveBot
+    _examples/tutorial_2_AquaHarmonics
+    _examples/tutorial_3_LUPA
+    _examples/tutorial_4_Pioneer
+
+
 Simulating WEC Dynamics without optimization
 --------------------------------------------
 
@@ -33,10 +43,7 @@ The additional forces should also be defined at all nonzero states (i.e. returns
 Example:
 
 .. code-block:: python
-
-   waves = ... # define as you normally would
-   bem_data = ... # define as you normally would
-
+    
    # define additional force
    # (must be independent of x_opt and of length nfreq * 2)
    def forcing_func(wec, x_wec, x_opt, waves):
@@ -56,7 +63,7 @@ Example:
 
    # define WEC object
    wec = wot.WEC.from_bem(
-        bem_data,
+        bem_data, # define beforehand as you normally would
         constraints=constraints,
         friction=None,
         f_add=f_add)
@@ -67,7 +74,7 @@ Example:
 
    # solve problem (should solve on first iteration)
    results = wec.solve(
-       waves=waves,
+       waves=waves, # define beforehand as you normally would
        obj_fun=obj_fun, 
        nstate_opt=nstate_opt
        )
@@ -77,17 +84,7 @@ Example:
    wec_fdom, wec_tdom = wec.post_process(wec, results, waves, nsubsteps=nsubsteps)
    wec_tdom[0]['pos'].plot()
 
-
 .. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
 .. _WaveBot: https://doi.org/10.3390/en10040472
 .. _AquaHarmonics: https://aquaharmonics.com/technology/
 .. _LUPA: https://pmec-osu.github.io/LUPA/
-
-.. toctree::
-    :maxdepth: 3
-    :hidden:
-
-    _examples/tutorial_1_WaveBot
-    _examples/tutorial_2_AquaHarmonics
-    _examples/tutorial_3_LUPA
-    _examples/tutorial_4_Pioneer
