@@ -54,6 +54,7 @@
 <li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_2_AquaHarmonics.html">Tutorial 2 - AquaHarmonics</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_3_LUPA.html">Tutorial 3 - LUPA</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_examples/tutorial_4_Pioneer.html">Tutorial 4 - Pioneer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulating-wec-dynamics-without-optimization">Simulating WEC Dynamics without optimization</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
@@ -114,6 +115,56 @@ These tutorials each have two parts, which are similar in structure to the secon
 </div></blockquote>
 <div class="toctree-wrapper compound">
 </div>
+<section id="simulating-wec-dynamics-without-optimization">
+<h2>Simulating WEC Dynamics without optimization<a class="headerlink" href="#simulating-wec-dynamics-without-optimization" title="Link to this heading"></a></h2>
+<p>There may be situations where it is useful to see the dynamics of the WEC subject to certain constraints without performing optimization on the device.
+This can be done by setting <code class="docutils literal notranslate"><span class="pre">nstate_opt=0</span></code> and using an objective function that does not depend on <code class="docutils literal notranslate"><span class="pre">x_wec</span></code>.</p>
+<p>The easiest way to do this is to set an objective function that always equals zero.
+Constraints and additional forces can also be added, but they must be independent of <code class="docutils literal notranslate"><span class="pre">x_opt</span></code> since there are no constrol states.
+The additional forces should also be defined at all nonzero states (i.e. returns length <code class="docutils literal notranslate"><span class="pre">nfreq</span> <span class="pre">*</span> <span class="pre">2</span></code>).</p>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define additional force</span>
+<span class="c1"># (must be independent of x_opt and of length nfreq * 2)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">forcing_func</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="n">frc</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nfreq</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">frc</span>
+ <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Additional force&#39;</span><span class="p">:</span> <span class="n">forcing_func</span><span class="p">}</span>
+
+<span class="c1"># define constraint</span>
+<span class="c1"># (must be independent of x_opt)</span>
+<span class="n">f_max</span> <span class="o">=</span> <span class="mf">750.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_constraint</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">f_max</span>
+<span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">force_constraint</span><span class="p">,</span>
+             <span class="p">}</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
+
+<span class="c1"># define WEC object</span>
+<span class="n">wec</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">WEC</span><span class="o">.</span><span class="n">from_bem</span><span class="p">(</span>
+     <span class="n">bem_data</span><span class="p">,</span> <span class="c1"># define beforehand as you normally would</span>
+     <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span>
+     <span class="n">friction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+     <span class="n">f_add</span><span class="o">=</span><span class="n">f_add</span><span class="p">)</span>
+
+<span class="c1"># create dummy objective function</span>
+<span class="n">obj_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span> <span class="p">:</span> <span class="mi">0</span>
+<span class="n">nstate_opt</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1"># solve problem (should solve on first iteration)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="n">waves</span><span class="o">=</span><span class="n">waves</span><span class="p">,</span> <span class="c1"># define beforehand as you normally would</span>
+    <span class="n">obj_fun</span><span class="o">=</span><span class="n">obj_fun</span><span class="p">,</span>
+    <span class="n">nstate_opt</span><span class="o">=</span><span class="n">nstate_opt</span>
+    <span class="p">)</span>
+
+<span class="c1"># post process</span>
+<span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
