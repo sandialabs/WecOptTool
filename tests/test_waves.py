@@ -260,7 +260,7 @@ class TestLongCrestedWave:
         direction = 0.0
         nrealizations = 1
         wave = wot.waves.long_crested_wave(pm_spectrum, nrealizations, direction)
-        wave_ts = wot.fd_to_td(wave.sel(realization=0).values, pm_f1, pm_nfreq, False)
+        wave_ts = wot.fd_to_td(wave.sel(realization=0).values, pm_f1, pm_nfreq, 1, False)
         # calculate the spectrum from the time-series
         t = wot.time(pm_f1, pm_nfreq)
         fs = 1/t[1]
@@ -289,7 +289,7 @@ class TestIrregularWave:
         files = [f'41013{i}2020.txt' for i in markers]
         spec = ws.read_ndbc_ascii([os.path.join(dir, file) for file in files])
         return spec.sel(time=time).interp(freq=freq)
-    
+
     @pytest.fixture(scope="class")
     def nrealizations(self):
         """Number of wave realizations."""
@@ -318,7 +318,7 @@ class TestIrregularWave:
     def test_type(self, elevation):
         """Test that the elevation dataArray has the correct type."""
         assert np.iscomplexobj(elevation)
-    
+
     def test_realizations(self, elevation):
         """Test that the number of realizations is correct."""
         realization_out = elevation.realization.values
@@ -376,10 +376,10 @@ class TestWaveSpectra:
         directions = np.linspace(0, 360, ndir, endpoint=False)
         dm = directions[np.random.randint(0, ndir)]
 
-        def spectrum_func(f): 
+        def spectrum_func(f):
             return wot.waves.pierson_moskowitz_spectrum(f, fp, hs)
 
-        def spread_func(f, d): 
+        def spread_func(f, d):
             return wot.waves.spread_cos2s(f, d, dm, fp, s_max)
         spectrum_name, spread_name = "Pierson-Moskowitz", "Cos2s"
         wave_spec = wot.waves.spectrum(

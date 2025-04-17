@@ -762,7 +762,7 @@ class WEC:
                 wave = wave.squeeze(dim='realization')
             except KeyError:
                 pass
-                      
+
             # objective function
             sign = -1.0 if maximize else 1.0
 
@@ -1274,7 +1274,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return fd_to_td(fd, self.f1, self.nfreq, True)
+        return fd_to_td(fd, self.f1, self.nfreq, 1, True)
 
     def td_to_fd(
         self,
@@ -1714,6 +1714,7 @@ def fd_to_td(
     fd: ArrayLike,
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
+    nsubsteps: int = 1,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
@@ -1749,6 +1750,9 @@ def fd_to_td(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
+    nsubsteps
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step length.
     zero_freq
         Whether the mean (DC) component is included.
 
@@ -1769,7 +1773,7 @@ def fd_to_td(
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
-        tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
+        tmat = time_mat(f1, nfreq, nsubsteps, zero_freq=zero_freq)
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
@@ -2180,10 +2184,10 @@ def run_bem(
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        _log.warning('FloatingBody has no inertia_matrix field. ' + 
-                     'If the FloatingBody mass is defined, it will be ' + 
-                     'used for calculating the inertia matrix here. ' + 
-                     'Otherwise, the neutral buoyancy assumption will ' + 
+        _log.warning('FloatingBody has no inertia_matrix field. ' +
+                     'If the FloatingBody mass is defined, it will be ' +
+                     'used for calculating the inertia matrix here. ' +
+                     'Otherwise, the neutral buoyancy assumption will ' +
                      'be used to auto-populate.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
