@@ -1898,7 +1898,7 @@ def check_radiation_damping(
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
-            if dmin <= 0.0 + min_damping:
+            if dmin < 0.0 + min_damping:
                 dof = hydro_data_new.influenced_dof.values[idof]
                 delta = min_damping-dmin
                 _log.warning(
@@ -1907,15 +1907,15 @@ def check_radiation_damping(
                     f'{delta.values} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            if (new_damping==min_damping).any():
+            if (iradiation<min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
                     'zero terms. Shifting up damping terms ' +
-                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
