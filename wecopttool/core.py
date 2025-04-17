@@ -2182,17 +2182,15 @@ def run_bem(
     if not hasattr(wec_im, 'inertia_matrix'):
         if wec_im.mass is None:
             wec_im.mass = rho*wec_im.copy().keep_immersed_part().volume
+            _log.warning('FloatingBody has no inertia_matrix or mass ' +
+                     'field. The mass will be calculated based on a ' +
+                     'neutral buoyancy assumption. The inertia matrix ' +
+                     'will be calculated assuming a solid and constant ' +
+                     'density body.')
+        else:
             _log.warning('FloatingBody has no inertia_matrix field. ' + 
                      'The FloatingBody mass is defined and will be ' +
-                     'used to determine material density and for ' +
-                     'calculating the inertia matrix.)')
-        else:
-            _log.warning('FloatingBody has no inertia_matrix or mass ' +
-                     'field. The neutral buoyancy assumption will be ' +
-                     'used to auto-populate. The mass will be based on ' +
-                     'the immersed part and the rotation inertia ' +
-                     'calculation uses the full mesh and assumes a ' +
-                     'constant density (mass/full_volume)')
+                     'used for calculating the inertia matrix.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
     wec_im = wec_im.keep_immersed_part()
     wec_im.name = f"{wec_im.name}_immersed"
