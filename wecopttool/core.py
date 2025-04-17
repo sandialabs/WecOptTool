@@ -2177,15 +2177,23 @@ def run_bem(
                       'wavelength': False,
                       'wavenumber': False,
                      }
-    wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    wec_im = fb.copy()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        _log.warning('FloatingBody has no inertia_matrix field. ' + 
-                     'If the FloatingBody mass is defined, it will be ' + 
-                     'used for calculating the inertia matrix here. ' + 
-                     'Otherwise, the neutral buoyancy assumption will ' + 
-                     'be used to auto-populate.')
+        if wec_im.mass is None:
+            wec_im.mass = rho*wec_im.copy().keep_immersed_part().volume
+            _log.warning('FloatingBody has no inertia_matrix or mass ' +
+                     'field. The mass will be calculated based on a ' +
+                     'neutral buoyancy assumption. The inertia matrix ' +
+                     'will be calculated assuming a solid and constant ' +
+                     'density body.')
+        else:
+            _log.warning('FloatingBody has no inertia_matrix field. ' + 
+                     'The FloatingBody mass is defined and will be ' +
+                     'used for calculating the inertia matrix.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
+    wec_im = wec_im.keep_immersed_part()
+    wec_im.name = f"{wec_im.name}_immersed"
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
                      'Capytaine will auto-populate the hydrostatic ' +
@@ -2250,8 +2258,8 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, friction)
+            friction_data = atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
@@ -2585,7 +2593,10 @@ def set_fb_centers(
                 def_val = fb.center_of_mass
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
-                    "for hydrostatics.")
+                    "for hydrostatics. Note that the hydrostatics do not use the " +
+                    "axes defined by the FloatingBody degrees of freedom, and the " + 
+                    "rotation center should be set manually when using Capytaine to " + 
+                    "calculate hydrostatics about an axis other than the COG.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
         elif getattr(fb, property) is not None:
