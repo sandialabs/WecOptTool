@@ -10,7 +10,6 @@ __all__ = [
     "plot_bode_impedance",
     "calculate_power_flows",
     "plot_power_flow",
-    "linear_solve",
     "create_dataarray",
 ]
 
@@ -21,21 +20,23 @@ from pathlib import Path
 
 import autograd.numpy as np
 from autograd.numpy import ndarray
-from autograd.numpy.linalg import inv
+
 from xarray import DataArray
 from numpy.typing import ArrayLike
+# from autograd.numpy import ndarray
 from xarray import DataArray, concat
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+
 from matplotlib.sankey import Sankey
 
-from wecopttool.core import add_linear_friction, check_radiation_damping
-from wecopttool.core import hydrodynamic_impedance, frequency_parameters
-from wecopttool.core import fd_to_td, time
+
 
 # logger
 _log = logging.getLogger(__name__)
+
+
 
 
 def plot_hydrodynamic_coefficients(bem_data,
@@ -60,10 +61,10 @@ def plot_hydrodynamic_coefficients(bem_data,
 
     # plots
     fig_am, ax_am = plt.subplots(
-        len(radiating_dofs),
+        len(radiating_dofs), 
         len(influenced_dofs),
-        tight_layout=True,
-        sharex=True,
+        tight_layout=True, 
+        sharex=True, 
         figsize=(3*len(radiating_dofs),3*len(influenced_dofs)),
         squeeze=False
         )
@@ -71,16 +72,16 @@ def plot_hydrodynamic_coefficients(bem_data,
         len(radiating_dofs),
         len(influenced_dofs),
         tight_layout=True,
-        sharex=True,
+        sharex=True, 
         figsize=(3*len(radiating_dofs), 3*len(influenced_dofs)),
         squeeze=False
         )
     fig_ex, ax_ex = plt.subplots(
         len(influenced_dofs),
         1,
-        tight_layout=True,
-        sharex=True,
-        figsize=(3, 3*len(radiating_dofs)),
+        tight_layout=True, 
+        sharex=True, 
+        figsize=(3, 3*len(radiating_dofs)), 
         squeeze=False
         )
     [ax.grid(True) for axs in (ax_am, ax_rd, ax_ex) for ax in axs.flatten()]
@@ -132,8 +133,7 @@ def plot_hydrodynamic_coefficients(bem_data,
     fig_ex.legend(ex_handles, ex_labels, loc=(0.08, 0), ncol=2, frameon=False)
     return [(fig_am,ax_am), (fig_rd,ax_rd), (fig_ex,ax_ex)]
 
-
-def plot_bode_impedance(impedance: DataArray,
+def plot_bode_impedance(impedance: DataArray, 
                         title: Optional[str]= '',
                         fig_axes: Optional[list(Figure, Axes)] = None,
                         #plot_natural_freq: Optional[bool] = False,
@@ -153,14 +153,14 @@ def plot_bode_impedance(impedance: DataArray,
     influenced_dofs = impedance.influenced_dof.values
     mag = 20.0 * np.log10(np.abs(impedance))
     phase = np.rad2deg(np.unwrap(np.angle(impedance)))
-    freq = impedance.omega.values/2/np.pi
+    freq = impedance.omega.values/2/np.pi   
     if fig_axes is None:
         fig, axes = plt.subplots(
-            2*len(radiating_dofs),
+            2*len(radiating_dofs), 
             len(influenced_dofs),
-            tight_layout=True,
-            sharex=True,
-            figsize=(3*len(radiating_dofs), 3*len(influenced_dofs)),
+            tight_layout=True, 
+            sharex=True, 
+            figsize=(3*len(radiating_dofs), 3*len(influenced_dofs)), 
             squeeze=False
             )
     else:
@@ -192,10 +192,10 @@ def plot_bode_impedance(impedance: DataArray,
     return fig, axes
 
 
-def calculate_power_flows(wec,
-                          pto,
-                          results,
-                          waves,
+def calculate_power_flows(wec, 
+                          pto, 
+                          results, 
+                          waves, 
                           intrinsic_impedance)-> dict[str, float]:
     """Calculate power flows into a :py:class:`wecopttool.WEC`
         and through a :py:class:`wecopttool.pto.PTO` based on the results
@@ -204,17 +204,17 @@ def calculate_power_flows(wec,
     Parameters
     ----------
     wec
-        WEC object of :py:class:`wecopttool.WEC`
+        WEC object of :py:class:`wecopttool.WEC` 
     pto
         PTO object of :py:class:`wecopttool.pto.PTO`
     results
         Results produced by :py:func:`scipy.optimize.minimize` for a single wave
         realization.
     waves
-        :py:class:`xarray.DataArray` with the structure and elements
+        :py:class:`xarray.Dataset` with the structure and elements
         shown by :py:mod:`wecopttool.waves`.
     intrinsic_impedance: DataArray
-        Complex intrinsic impedance matrix produced by
+        Complex intrinsic impedance matrix produced by 
         :py:func:`wecopttool.hydrodynamic_impedance`.
         Dimensions: omega, radiating_dofs, influenced_dofs
     """
@@ -222,8 +222,8 @@ def calculate_power_flows(wec,
     x_wec, x_opt = wec.decompose_state(results[0].x)
 
     #power quntities from solver
-    P_mech = pto.mechanical_average_power(wec, x_wec, x_opt, waves.sel(realization=0))
-    P_elec = pto.average_power(wec, x_wec, x_opt, waves.sel(realization=0))
+    P_mech = pto.mechanical_average_power(wec, x_wec, x_opt, waves)
+    P_elec = pto.average_power(wec, x_wec, x_opt, waves)
 
     #compute analytical power flows
     Fex_FD = wec_fdom.force.sel(realization=0, type=['Froude_Krylov', 'diffraction']).sum('type')
@@ -233,50 +233,50 @@ def calculate_power_flows(wec,
     P_max, P_e, P_r = [], [], []
 
     #This solution requires radiation resistance matrix Rad_res to be invertible
-    # TODO In the future we might want to add an entirely unconstrained solve
+    # TODO In the future we might want to add an entirely unconstrained solve 
     # for optimized mechanical power
 
-    for om in Rad_res.omega.values:
+    for om in Rad_res.omega.values:   
         #use frequency vector from intrinsic impedance (no zero freq)
         #Eq. 6.69
         #Dofs are row vector, which is transposed in standard convention
-        Fe_FD_t = np.atleast_2d(Fex_FD.sel(omega = om))
+        Fe_FD_t = np.atleast_2d(Fex_FD.sel(omega = om))    
         Fe_FD = np.transpose(Fe_FD_t)
         R_inv = np.linalg.inv(np.atleast_2d(Rad_res.sel(omega= om)))
-        P_max.append((1/8)*(Fe_FD_t@R_inv)@np.conj(Fe_FD))
+        P_max.append((1/8)*(Fe_FD_t@R_inv)@np.conj(Fe_FD)) 
         #Eq.6.57
         U_FD_t = np.atleast_2d(Vel_FD.sel(omega = om))
         U_FD = np.transpose(U_FD_t)
         R = np.atleast_2d(Rad_res.sel(omega= om))
         P_r.append((1/2)*(U_FD_t@R)@np.conj(U_FD))
-        #Eq. 6.56 (replaced pinv(Fe)*U with U'*conj(Fe)
+        #Eq. 6.56 (replaced pinv(Fe)*U with U'*conj(Fe) 
         # as suggested in subsequent paragraph)
         P_e.append((1/4)*(Fe_FD_t@np.conj(U_FD) + U_FD_t@np.conj(Fe_FD)))
 
     power_flows = {
-        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68
-        'Radiated': -1*np.sum(np.real(P_r)),
-        'Actual Excitation': -1*np.sum(np.real(P_e)),
-        'Electrical (solver)': P_elec,
-        'Mechanical (solver)': P_mech,
+        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68 
+        'Radiated': -1*np.sum(np.real(P_r)), 
+        'Actual Excitation': -1*np.sum(np.real(P_e)), 
+        'Electrical (solver)': P_elec, 
+        'Mechanical (solver)': P_mech, 
                   }
 
     power_flows['Absorbed'] =  (
-        power_flows['Actual Excitation']
+        power_flows['Actual Excitation'] 
         - power_flows['Radiated']
             )
     power_flows['Unused Potential'] =  (
-        power_flows['Optimal Excitation']
+        power_flows['Optimal Excitation'] 
         - power_flows['Actual Excitation']
             )
     power_flows['PTO Loss'] = (
-        power_flows['Mechanical (solver)']
+        power_flows['Mechanical (solver)'] 
         -  power_flows['Electrical (solver)']
             )
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float],
+def plot_power_flow(power_flows: dict[str, float], 
     tolerance: Optional[float] = None,
 )-> tuple(Figure, Axes):
     """Plot power flow through a WEC as Sankey diagram.
@@ -298,12 +298,12 @@ def plot_power_flow(power_flows: dict[str, float],
     # fig = plt.figure(figsize = [8,4])
     # ax = fig.add_subplot(1, 1, 1,)
     fig, ax = plt.subplots(1, 1,
-        tight_layout=True,
-        figsize=(8, 4),
+        tight_layout=True, 
+        figsize=(8, 4), 
         )
 
     # plt.viridis()
-    sankey = Sankey(ax=ax,
+    sankey = Sankey(ax=ax, 
                     scale= -1/power_flows['Optimal Excitation'],
                     offset= 0,
                     format = '%.1f',
@@ -314,10 +314,10 @@ def plot_power_flow(power_flows: dict[str, float],
 
     sankey.add(flows=[-1*power_flows['Optimal Excitation'],
                     power_flows['Unused Potential'],
-                    power_flows['Actual Excitation']],
-            labels = ['Optimal Excitation',
-                    'Unused Potential ',
-                    'Excited'],
+                    power_flows['Actual Excitation']], 
+            labels = ['Optimal Excitation', 
+                    'Unused Potential ', 
+                    'Excited'], 
             orientations=[0, -1,  -0],#arrow directions,
             pathlengths = [0.2,0.3,0.2],
             trunklength = 1.0,
@@ -329,26 +329,26 @@ def plot_power_flow(power_flows: dict[str, float],
             -1*(power_flows['Absorbed'] + power_flows['Radiated']),
             power_flows['Radiated'],
             power_flows['Absorbed'],
-            ],
-            labels = ['Excited',
-                    'Radiated',
-                    ''],
+            ], 
+            labels = ['Excited', 
+                    'Radiated', 
+                    ''], 
             prior= (0),
             connect=(2,0),
             orientations=[0, -1,  -0],#arrow directions,
             pathlengths = [0.2,0.3,0.2],
             trunklength = 1.0,
-            edgecolor = 'None',
+            edgecolor = 'None', 
             facecolor = (0.127568, 0.566949, 0.550556, 1.0) #viridis(0.5)
     )
 
     sankey.add(flows=[-1*(power_flows['Mechanical (solver)']),
                     power_flows['PTO Loss'],
                     power_flows['Electrical (solver)'],
-                    ],
-            labels = ['Mechanical',
-                    'PTO-Loss' ,
-                    'Electrical'],
+                    ], 
+            labels = ['Mechanical', 
+                    'PTO-Loss' , 
+                    'Electrical'], 
             prior= (1),
             connect=(2,0),
             orientations=[0, -1,  -0],#arrow directions,
@@ -367,99 +367,12 @@ def plot_power_flow(power_flows: dict[str, float],
     for diagram in diagrams[0:2]:
             diagram.texts[2].set_text('')
 
-    plt.axis("off")
+    plt.axis("off") 
     # plt.show()
 
     return fig, ax
 
 
-def linear_solve(bem_data, pto_impedance, wave, kinematics, nsubsteps=1):
-    """Solve a linear problem in the frequency domain with optimal
-    controller.
-
-    Parameters
-    ----------
-    bem_data
-        Linear hydrodynamic coefficients obtained using the boundary
-        element method (BEM) code Capytaine, with sign convention
-        corrected.
-    pto_impedance
-        Matrix representing the PTO impedance.
-        Size 2*n_dof.
-    wave
-        2D :py:class:`xarray.DataArray` containing the wave's complex 
-        amplitude for a single realization as a function of wave 
-        angular frequency :python:`omega` (rad/s) and direction 
-        :python:`wave_direction` (rad).
-    kinematics
-        Matrix that transforms state from WEC to PTO frame.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step
-        length.
-
-    Returns
-    -------
-    p_opt_average
-        Average power using optimal controller.
-    tdom
-        Time domain results.
-    fdom
-        Frequency domain results.
-    thevenin
-        Thevenin equivalent system.
-    """
-    # BEM: intrinsic impedance and excitation force
-    bem_data = add_linear_friction(bem_data, friction = None)
-    bem_data = check_radiation_damping(bem_data)
-    intrinsic_impedance = hydrodynamic_impedance(bem_data)
-    Zi = intrinsic_impedance.data
-    wave_amp = np.expand_dims(wave, axis=-1)
-    Fe = np.expand_dims((np.conjugate(bem_data.excitation_force) * wave_amp).sum(dim="wave_direction").data, -1)
-
-    # PTO: Impedance and kinematics
-    Zp = pto_impedance.transpose(2,0,1)
-    pto_ndof = int(Zp.shape[1]/2)
-    if pto_ndof > 1:
-        raise NotImplementedError("Currently `linear_solve` only supports 1-DOF PTOs.")
-    Zp_fu = Zp[:, :pto_ndof, :pto_ndof]
-    Zp_vu = Zp[:, pto_ndof:, :pto_ndof]
-    Zp_fi = Zp[:, :pto_ndof, pto_ndof:]
-    Zp_vi = Zp[:, pto_ndof:, pto_ndof:]
-    K = kinematics
-
-    # Intrinsic impedance and excitation force in PTO space
-    Zi_p = inv(K @ inv(Zi) @ K.T)
-    Fe_p = Zi_p @ K @ inv(Zi) @ Fe
-
-    # Thévenin equivalent circuit
-    D = inv(Zi_p-Zp_fu)
-    Vth = D @ Zp_vu @ Fe_p
-    Zth = Zp_vi + D @ Zp_fi @ Zp_vu
-    Ith = inv(np.real(Zth)) @ Vth / 2 # should be positive
-
-    # Frequency Domain: optimal current and voltage
-    I_opt = -Ith
-    V_opt = np.conjugate(Zth) @ Ith
-
-    # Time Domain: optimal current and voltage
-    freq = bem_data.omega/(2*np.pi)
-    f1, nfreq = frequency_parameters(freq, False)
-    i_opt = fd_to_td(np.squeeze(I_opt), f1, nfreq, nsubsteps, False)
-    v_opt = fd_to_td(np.squeeze(V_opt), f1, nfreq, nsubsteps, False)
-
-    # Time Domain: optimal power
-    p_opt = i_opt * v_opt
-    p_opt_average = np.mean(p_opt)
-
-    # return
-    tdom = {"time": time(f1, nfreq, nsubsteps), "trans_flo": i_opt, "trans_eff": v_opt, "power": p_opt}
-    fdom = {"frequency": freq, "trans_flo": I_opt, "trans_eff": V_opt}
-    thevenin = {"frequency": freq, "impedance": Zth, "trans_flo": Ith, "trans_eff": Vth}
-
-    return p_opt_average, tdom, fdom, thevenin
-
-  
 def create_dataarray(
     impedance: ArrayLike, 
     exc_coeff: ArrayLike, 
