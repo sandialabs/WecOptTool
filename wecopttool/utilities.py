@@ -383,8 +383,8 @@ def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubstep
     # PTO: Impedance and kinematics
     Zp = pto_impedance.transpose(2,0,1)
     pto_ndof = int(Zp.shape[1]/2)
-    # if pto_ndof > 1:
-    #     raise NotImplementedError("Currently `linear_solve` only supports 1-DOF PTOs.")
+    if pto_ndof > 1:
+        raise NotImplementedError("Currently `linear_solve` only supports 1-DOF PTOs.")
     Zp_fu = Zp[:, :pto_ndof, :pto_ndof]
     Zp_vu = Zp[:, pto_ndof:, :pto_ndof]
     Zp_fi = Zp[:, :pto_ndof, pto_ndof:]
