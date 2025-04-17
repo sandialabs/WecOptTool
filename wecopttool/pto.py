@@ -44,6 +44,7 @@ _log = logging.getLogger(__name__)
 
 # type aliases
 TPTO = TypeVar("TPTO", bound="PTO")
+Tcontroller = TypeVar("Tcontroller", bound='_controller_')
 TLOSS = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 
@@ -55,7 +56,7 @@ class PTO:
     def __init__(self,
         ndof: int,
         kinematics: Union[TStateFunction, ndarray],
-        controller: Optional[TStateFunction] = None, #TODO update type
+        controller: Optional[Tcontroller] = None,
         impedance: Optional[ndarray] = None,
         loss: Optional[TLOSS] = None,
         names: Optional[list[str]] = None,

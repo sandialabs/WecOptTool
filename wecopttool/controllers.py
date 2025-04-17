@@ -34,6 +34,9 @@ from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 # logger
 _log = logging.getLogger(__name__)
 
+TPTO = TypeVar("TPTO", bound="PTO")
+Tcontroller = TypeVar("Tcontroller", bound='_controller_')
+
 class _controller_:
     pass
 
