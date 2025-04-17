@@ -61,14 +61,16 @@ def bem_data(f1, nfreq):
     radiation_damping = np.ones([nfreq, ndof, ndof])
     diffraction_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
     Froude_Krylov_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
+    excitation_force = diffraction_force + Froude_Krylov_force
     inertia_matrix = np.ones([ndof, ndof])
     hydrostatic_stiffness = np.ones([ndof, ndof])
-    
+
     data_vars = {
         'added_mass': (radiation_dims, added_mass),
         'radiation_damping': (radiation_dims, radiation_damping),
         'diffraction_force': (excitation_dims, diffraction_force),
         'Froude_Krylov_force': (excitation_dims, Froude_Krylov_force),
+        'excitation_force': (excitation_dims, excitation_force),
         'inertia_matrix': (hydrostatics_dims, inertia_matrix),
         'hydrostatic_stiffness': (hydrostatics_dims, hydrostatic_stiffness)
     }
@@ -172,7 +174,7 @@ def waves_multi(f1, nfreq):
 
     waves = wot.waves.elevation_fd(f1, nfreq, directions, nrealizations, amplitudes, phases)
 
-    params = {'n': n, 'directions': directions, 'nrealizations': nrealizations, 'amp0': amp0, 
+    params = {'n': n, 'directions': directions, 'nrealizations': nrealizations, 'amp0': amp0,
               'amp1': amp1, 'phase0': phase0, 'phase1': phase1}
 
     return waves.sel(realization=0), params
@@ -468,7 +470,7 @@ class TestDerivativeMats:
             [0,  0,   0,    0],
         ])
         return mat
-    
+
     @pytest.fixture(scope="class")
     def derivative2_mat(self, f1_dm):
         """Correct/expected second derivative matrix."""
@@ -573,7 +575,7 @@ class TestMIMOTransferMat:
         F = np.concatenate([
             [0.],
             np.reshape(
-                [[np.real(z[i]*x[i]), np.imag(z[i]*x[i])] for 
+                [[np.real(z[i]*x[i]), np.imag(z[i]*x[i])] for
                 i in range(np.size(x)-1)], -1),
             [np.real(z[-1]) * np.real(x[-1])],
         ])
@@ -728,7 +730,7 @@ class TestFDToTDToFD:
     @pytest.fixture(scope="class")
     def idx(self, nfreq):
         return np.random.randint(1, nfreq-1)
-    
+
     @pytest.fixture(scope="class")
     def dc(self):
         return np.random.randint(1, 5)
@@ -788,7 +790,7 @@ class TestFDToTDToFD:
         fd[-1, 0] = a0r + 0j
         fd[-1, 1] = a1r + 0j
         return fd
-    
+
     @pytest.fixture(scope="class")
     def td_topfreq(self, nfreq, f1, components):
         """Corresponding sample time domain response for the frequency
@@ -801,7 +803,7 @@ class TestFDToTDToFD:
         td[:, 0] = a0r*np.cos(wt) - a0i*np.sin(wt)
         td[:, 1] = a1r*np.cos(wt) - a1i*np.sin(wt)
         return td
-    
+
     @pytest.fixture(scope="class")
     def fd_nzmean(self, nfreq, components, idx, dc):
         """Sample frequency domain response with a nonzero mean."""
@@ -868,7 +870,7 @@ class TestFDToTDToFD:
         assert calculated.shape==shape and np.allclose(calc_flat, td_1dof)
 
     def test_fd_to_td_nzmean(self, fd_nzmean, td_nzmean, f1, nfreq):
-        """Test the :python: `td_to_fd` function outputs with a 
+        """Test the :python: `td_to_fd` function outputs with a
         nonzero mean value.
         """
         calculated = wot.fd_to_td(fd_nzmean, f1, nfreq)
@@ -982,7 +984,7 @@ class TestCheckRadiationDamping:
         """
         assert (
             np.prod(
-            np.shape(data_new_nonuniform.radiation_damping.values)[:-1]) == 
+            np.shape(data_new_nonuniform.radiation_damping.values)[:-1]) ==
             np.count_nonzero(data_new_nonuniform.radiation_damping.values)
         )
 
@@ -994,10 +996,10 @@ class TestCheckRadiationDamping:
             deep=True).drop_vars('radiation_damping')
         data_org_nord = data.copy(deep=True).drop_vars('radiation_damping')
         assert data_new_nord.equals(data_org_nord)
-        
+
 
 class TestCheckImpedance:
-    """Test functions :python:`hydrodynamic_impedance` and 
+    """Test functions :python:`hydrodynamic_impedance` and
     :python:`check_impedance`."""
 
     @pytest.fixture(scope="class")
@@ -1009,7 +1011,7 @@ class TestCheckImpedance:
         data['friction'] += -0.1
         Zi = wot.hydrodynamic_impedance(data)
         return Zi
-    
+
     def test_hydrodynamic_impedance(self, data, hydro_data):
         """"Check that shape of impedance is as expected"""
         assert data.shape == hydro_data.added_mass.shape
@@ -1258,7 +1260,7 @@ class TestRunBEM:
         data type.
         """
         rect_mesh = cpy.mesh_parallelepiped(
-            size=(5.0, 5.0, 2.0), resolution=(10, 10, 10), 
+            size=(5.0, 5.0, 2.0), resolution=(10, 10, 10),
             center=(0.0, 0.0, 0.0)
         )
         rect = cpy.FloatingBody(rect_mesh, name="rect")
