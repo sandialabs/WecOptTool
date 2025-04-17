@@ -2180,7 +2180,7 @@ def run_bem(
     wec_im = fb.copy()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        if not hasattr(wec_im, 'mass'):
+        if wec_im.mass is None:
             wec_im.mass = rho*wec_im.copy().keep_immersed_part().volume
             _log.warning('FloatingBody has no inertia_matrix field. ' + 
                      'The FloatingBody mass is defined and will be ' +
