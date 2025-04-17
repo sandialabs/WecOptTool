@@ -34,12 +34,11 @@ from wecopttool.core import TWEC, TStateFunction, FloatOrArray
 # logger
 _log = logging.getLogger(__name__)
 
-# type aliases
-TPTO = TypeVar("TPTO", bound="PTO")
-TLOSS = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
+class _controller_:
+    pass
 
 
-class pid_controller:
+class pid_controller(_controller_):
     """PID controller object to be used in conjunction with a
     :py:class:`wecopttool.pto` object.
     """
@@ -164,7 +163,7 @@ class pid_controller:
         return force_td
 
 
-class unstructured_controller:
+class unstructured_controller(_controller_):
     def __init__(self):
         pass
 
