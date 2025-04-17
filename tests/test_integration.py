@@ -68,7 +68,7 @@ def fb():
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
     lid_mesh = mesh.generate_lid(-2e-2)
-    fb = cpy.FloatingBody.from_meshio(mesh, lid_mesh=lid_mesh, name="WaveBot")
+    fb = cpy.FloatingBody(mesh, lid_mesh=lid_mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb
 
