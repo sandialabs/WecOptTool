@@ -64,10 +64,11 @@ def fb():
             'dependencies. Run `pip install wecopttool[geometry]` to run ' +
             'these tests.'
             )
-    mesh_size_factor = 0.5
+    mesh_size_factor = 0.2
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-    fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
+    lid_mesh = mesh.generate_lid(-2e-2)
+    fb = cpy.FloatingBody.from_meshio(mesh, lid_mesh=lid_mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb
 
