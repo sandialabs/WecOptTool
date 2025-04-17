@@ -75,7 +75,7 @@ class pid_controller:
     
     @property
     def saturation(self) -> FloatOrArray:
-        '''Not `None` if saturation used.'''
+        '''Saturation values for control force. `None` if no saturation.'''
         return self._saturation
     
     @property
