@@ -762,7 +762,7 @@ class WEC:
                 wave = wave.squeeze(dim='realization')
             except KeyError:
                 pass
-                      
+
             # objective function
             sign = -1.0 if maximize else 1.0
 
@@ -2180,10 +2180,10 @@ def run_bem(
     wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        _log.warning('FloatingBody has no inertia_matrix field. ' + 
-                     'If the FloatingBody mass is defined, it will be ' + 
-                     'used for calculating the inertia matrix here. ' + 
-                     'Otherwise, the neutral buoyancy assumption will ' + 
+        _log.warning('FloatingBody has no inertia_matrix field. ' +
+                     'If the FloatingBody mass is defined, it will be ' +
+                     'used for calculating the inertia matrix here. ' +
+                     'Otherwise, the neutral buoyancy assumption will ' +
                      'be used to auto-populate (inertial properties ' +
                      'based only on the immersed part). We recommend ' +
                      'inputting the correct inertial properties.')
@@ -2216,6 +2216,7 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
     bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2588,8 +2589,8 @@ def set_fb_centers(
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
                     "for hydrostatics. Note that the hydrostatics do not use the " +
-                    "axes defined by the Floating Body degrees of freedom, and the " + 
-                    "rotation center should be set manually when using Capytaine to " + 
+                    "axes defined by the Floating Body degrees of freedom, and the " +
+                    "rotation center should be set manually when using Capytaine to " +
                     "calculate hydrostatics about an axis other than the COG.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
