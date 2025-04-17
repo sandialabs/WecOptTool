@@ -58,7 +58,7 @@ import logging
 from typing import Iterable, Callable, Any, Optional, Mapping, TypeVar, Union
 from pathlib import Path
 import warnings
-from datetime import datetime
+import datetime
 
 from numpy.typing import ArrayLike
 import autograd.numpy as np
@@ -80,7 +80,7 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
 _default_min_damping = 1e-6
 
 # type aliases
@@ -895,7 +895,7 @@ class WEC:
                                 "post-process and be passed as an input.")
 
         def _postproc(res, waves, nsubsteps):
-            create_time = f"{datetime.utcnow()}"
+            create_time = f"{datetime.datetime.now(datetime.UTC)}"
 
             omega_vals = np.concatenate([[0], waves.omega.values])
             freq_vals = np.concatenate([[0], waves.freq.values])
@@ -1060,7 +1060,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate([[np.inf], 1/self._freq[1:]])
 
     @property
     def w1(self) -> float:
@@ -2109,7 +2109,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],

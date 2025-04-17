@@ -34,7 +34,7 @@ from autograd.numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset
-from datetime import datetime
+import datetime
 from scipy.optimize import OptimizeResult
 
 from wecopttool.core import complex_to_real, td_to_fd
@@ -707,7 +707,7 @@ class PTO:
         """
         def _postproc(wec, res, waves, nsubsteps):
 
-            create_time = f"{datetime.utcnow()}"
+            create_time = f"{datetime.datetime.now(datetime.UTC)}"
 
             x_wec, x_opt = wec.decompose_state(res.x)
 
