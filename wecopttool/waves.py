@@ -204,7 +204,7 @@ def long_crested_wave(
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
 
-    The spectrum is a :py:class:`xarray.DataArray` in the format used 
+    The spectrum is a :py:class:`xarray.DataArray` in the format used
     by :py:class:`wavespectra.SpecArray`.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
@@ -218,7 +218,7 @@ def long_crested_wave(
         Omnidirection wave spectrum in units of m^2/Hz, in the format
         used by :py:class:`wavespectra.SpecArray`.
     nrealizations
-        Number of wave phase realizations to be created for the 
+        Number of wave phase realizations to be created for the
         long-crested wave.
     direction
         Direction (in degrees) of the long-crested wave.
@@ -246,7 +246,7 @@ def irregular_wave(efth: DataArray,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum.
 
-    The spectrum is a :py:class:`xarray.DataArray` in the format used 
+    The spectrum is a :py:class:`xarray.DataArray` in the format used
     by :py:class:`wavespectra.SpecArray`.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
@@ -262,7 +262,7 @@ def irregular_wave(efth: DataArray,
         Wave spectrum in units of m^2/Hz/deg, in the format used by
         :py:class:`wavespectra.SpecArray`.
     nrealizations
-        Number of wave phase realizations to be created for the 
+        Number of wave phase realizations to be created for the
         irregular wave.
     seed
         Seed for random number generator. Used for reproducibility.
@@ -309,7 +309,7 @@ def omnidirectional_spectrum(
     spectrum_func: Callable,
     spectrum_name: str = '',
 ) -> DataArray:
-    """Create the :py:class:`xarray.DataArray` for an omnidirectional 
+    """Create the :py:class:`xarray.DataArray` for an omnidirectional
     wave spectrum in the :py:class:`wavespectra.SpecArray` format.
 
     Examples
@@ -379,7 +379,7 @@ def spectrum(
     spectrum_name: str = '',
     spread_name: str = '',
 ) -> DataArray:
-    """Create the :py:class:`xarray.DataArray` for an irregular wave 
+    """Create the :py:class:`xarray.DataArray` for an irregular wave
     in the :py:class:`wavespectra.SpecArray` format.
 
     Examples
