@@ -139,6 +139,7 @@ class WaveBot:
 
 class AquaHarmonics:
     """Class representing the AquaHarmonics WEC.
+    
     See https://aquaharmonics.com/wec_vis/.
     """
 
