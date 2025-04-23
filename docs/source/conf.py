@@ -93,7 +93,7 @@ def all_but_ipynb(dir, contents):
 def all_but_nc(dir, contents):
     result = []
     for c in contents:
-        if not c.endswith(".nc"):
+        if not c.endswith(".nc") or not c.endswith(".npz"):
             result += [c]
     return result
 
