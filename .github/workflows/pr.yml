@@ -7,7 +7,7 @@ name: Build and Test
 
 on:
   pull_request:
-    branches: [ main, dev ]
+    branches: [dev ]
 
 jobs:
   wecopttool_test:
@@ -125,6 +125,12 @@ jobs:
 
     - name: Install dependencies
       run: sudo apt-get install libglu1 pandoc gifsicle
+
+    - name: Display path
+      run: pwd
+
+    - name: List files in data directory
+      run: ls -la data/
       
     - name: Install WecOptTool for documentation
       shell: bash -l {0}
