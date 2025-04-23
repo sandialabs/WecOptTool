@@ -136,7 +136,7 @@ def wec_from_impedance(hydro_data, pto, fb):
     B = bemc['radiation_damping'].values
     fb.center_of_mass = [0, 0, 0]
     fb.rotation_center = fb.center_of_mass
-    fb = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    fb = fb.immersed_part()
     mass = bemc['inertia_matrix'].values
     hstiff = bemc['hydrostatic_stiffness'].values
     K = np.expand_dims(hstiff, 2)
