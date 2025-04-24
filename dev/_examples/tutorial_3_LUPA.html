@@ -826,7 +826,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PTO_Heave&quot;</span><span class="p">,]</span>
 <span class="n">kinematics</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],])</span>
 <span class="n">pto_ndof</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">controller</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="n">controller</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">controllers</span><span class="o">.</span><span class="n">unstructured_controller</span><span class="p">()</span>
 <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">default_sprocket</span> <span class="o">=</span> <span class="s1">&#39;8MX-50S-36&#39;</span>
 <span class="n">pto</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">pto</span><span class="o">.</span><span class="n">PTO</span><span class="p">(</span><span class="n">pto_ndof</span><span class="p">,</span>
@@ -1073,7 +1073,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[21:43:18] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[22:05:46] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         terms <span style="font-weight: bold">[</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1114,16 +1114,16 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.01145233337393296
-            Iterations: 53
-            Function evaluations: 54
-            Gradient evaluations: 53
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011452303486911187
+            Current function value: -0.011452546014115663
             Iterations: 54
-            Function evaluations: 54
+            Function evaluations: 55
             Gradient evaluations: 54
-Optimal average electrical power: -1.1452318430422073 W
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.01145310199936425
+            Iterations: 55
+            Function evaluations: 56
+            Gradient evaluations: 55
+Optimal average electrical power: -1.1452824006739957 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1260,7 +1260,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-24.724162708686148, 4.0910703796512795)
+(-28.0005370811636, 3.7524751236780074)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

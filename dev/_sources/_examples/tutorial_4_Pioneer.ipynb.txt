@@ -503,7 +503,12 @@
     "pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],\n",
     "                        [pto_impedance_21, pto_impedance_22]])\n",
     "\n",
-    "pto = wot.pto.PTO(ndof, kinematics=[1], controller=None, impedance=pto_impedance, loss=None, names=None)\n"
+    "pto = wot.pto.PTO(ndof, \n",
+    "                  kinematics=[1], \n",
+    "                  controller=wot.controllers.unstructured_controller(), \n",
+    "                  impedance=pto_impedance, \n",
+    "                  loss=None, \n",
+    "                  names=None)\n"
    ]
   },
   {
@@ -1038,7 +1043,12 @@
     "pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],\n",
     "                        [pto_impedance_21, pto_impedance_22]])\n",
     "\n",
-    "pto = wot.pto.PTO(ndof, kinematics=[1], controller=None, impedance=pto_impedance, loss=None, names=None)\n",
+    "pto = wot.pto.PTO(ndof, \n",
+    "                  kinematics=[1], \n",
+    "                  controller=wot.controllers.unstructured_controller(), \n",
+    "                  impedance=pto_impedance, \n",
+    "                  loss=None, \n",
+    "                  names=None)\n",
     "\n",
     "wec_lin = wot.WEC.from_impedance(freq_irreg, \n",
     "                            Zi_intrp_irreg,\n",
