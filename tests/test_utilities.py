@@ -93,7 +93,7 @@ def pi_controller_pto():
     power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_pi,
+                      controller=wot.controllers.pid_controller(1,True,True,False),
                       names=["PI controller PTO"])
     return pto
 

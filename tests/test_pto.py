@@ -202,9 +202,11 @@ class TestControllers:
         """PID controller derivative gains."""
         return 2.1
 
-    def test_controller_unstructured(self, wec, ndof, kinematics, omega):
+    @pytest.mark.parametrize('controller',
+                             [None,wot.controllers.unstructured_controller()])
+    def test_controller_unstructured(self, controller, wec, ndof, kinematics, omega):
         """Test the pseudo-spectral controller."""
-        controller = wot.pto.controller_unstructured
+        # controller = wot.controllers.unstructured_controller()
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 1.2
         w = omega[-2]
@@ -216,7 +218,7 @@ class TestControllers:
 
     def test_controller_p(self, wec, ndof, kinematics, omega, pid_p):
         """Test the proportional (P) controller."""
-        controller = wot.pto.controller_p
+        controller = wot.controllers.pid_controller(1,True,False,False)
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
         w = omega[-2]
@@ -231,7 +233,7 @@ class TestControllers:
 
     def test_controller_pi(self, wec, ndof, kinematics, omega, pid_p, pid_i):
         """Test the PI controller."""
-        controller = wot.pto.controller_pi
+        controller = wot.controllers.pid_controller(1,True,True,False)
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
         w = omega[-2]
@@ -248,7 +250,7 @@ class TestControllers:
             self, wec, ndof, kinematics, omega, pid_p, pid_i, pid_d,
         ):
         """Test the PID controller."""
-        controller = wot.pto.controller_pid
+        controller = wot.controllers.pid_controller(1,True,True,True)
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
         w = omega[-2]
@@ -267,8 +269,9 @@ class TestControllers:
         ):
         """Test the PID controller."""
         saturation = np.array([[-4,5]])
-        def controller(p,w,xw,xo,wa,ns):
-            return wot.pto.controller_pid(p,w,xw,xo,wa,ns,saturation=saturation)
+        # def controller(p,w,xw,xo,wa,ns):
+        #     return wot.pto.controller_pid(p,w,xw,xo,wa,ns,saturation=saturation)
+        controller = wot.controllers.pid_controller(1,True,True,True,saturation=saturation)
         pto = wot.pto.PTO(ndof, kinematics, controller)
         amp = 2.3
         w = omega[-2]
