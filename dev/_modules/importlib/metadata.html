@@ -90,9 +90,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">posixpath</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">_adapters</span><span class="p">,</span> <span class="n">_meta</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">._collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">FreezableDefaultDict</span><span class="p">,</span> <span class="n">Pair</span>
@@ -104,7 +102,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_module</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetaPathFinder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">starmap</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -214,7 +212,6 @@
 <span class="sd">    1</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># Do not remove prior to 2023-05-01 or Python 3.13</span>
     <span class="n">_warn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">,</span>
         <span class="s2">&quot;EntryPoint tuple interface is deprecated. Access members by name.&quot;</span><span class="p">,</span>
@@ -303,6 +300,17 @@
         <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dist</span><span class="o">=</span><span class="n">dist</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Supply iter so one may construct dicts of EntryPoints by name.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;Construction of dict of EntryPoints is deprecated in &quot;</span>
+            <span class="s2">&quot;favor of EntryPoints.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">matches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        EntryPoint matches the given parameters.</span>
@@ -348,7 +356,77 @@
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_key</span><span class="p">())</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">EntryPoints</span><span class="p">(</span><span class="nb">tuple</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">DeprecatedList</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allow an otherwise immutable object to implement mutability</span>
+<span class="sd">    for compatibility.</span>
+
+<span class="sd">    &gt;&gt;&gt; recwarn = getfixture(&#39;recwarn&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; dl = DeprecatedList(range(3))</span>
+<span class="sd">    &gt;&gt;&gt; dl[0] = 1</span>
+<span class="sd">    &gt;&gt;&gt; dl.append(3)</span>
+<span class="sd">    &gt;&gt;&gt; del dl[3]</span>
+<span class="sd">    &gt;&gt;&gt; dl.reverse()</span>
+<span class="sd">    &gt;&gt;&gt; dl.sort()</span>
+<span class="sd">    &gt;&gt;&gt; dl.extend([4])</span>
+<span class="sd">    &gt;&gt;&gt; dl.pop(-1)</span>
+<span class="sd">    4</span>
+<span class="sd">    &gt;&gt;&gt; dl.remove(1)</span>
+<span class="sd">    &gt;&gt;&gt; dl += [5]</span>
+<span class="sd">    &gt;&gt;&gt; dl + [6]</span>
+<span class="sd">    [1, 2, 5, 6]</span>
+<span class="sd">    &gt;&gt;&gt; dl + (6,)</span>
+<span class="sd">    [1, 2, 5, 6]</span>
+<span class="sd">    &gt;&gt;&gt; dl.insert(0, 0)</span>
+<span class="sd">    &gt;&gt;&gt; dl</span>
+<span class="sd">    [0, 1, 2, 5]</span>
+<span class="sd">    &gt;&gt;&gt; dl == [0, 1, 2, 5]</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; dl == (0, 1, 2, 5)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; len(recwarn)</span>
+<span class="sd">    1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">_warn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">,</span>
+        <span class="s2">&quot;EntryPoints list interface is deprecated. Cast to list if needed.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_wrap_deprecated_method</span><span class="p">(</span><span class="n">method_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">wrapped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">(),</span> <span class="n">method_name</span><span class="p">)(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">method_name</span><span class="p">,</span> <span class="n">wrapped</span>
+
+    <span class="nb">locals</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="nb">map</span><span class="p">(</span>
+            <span class="n">_wrap_deprecated_method</span><span class="p">,</span>
+            <span class="s1">&#39;__setitem__ __delitem__ append reverse extend pop remove &#39;</span>
+            <span class="s1">&#39;__iadd__ insert sort&#39;</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">EntryPoints</span><span class="p">(</span><span class="n">DeprecatedList</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An immutable collection of selectable EntryPoint objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -359,6 +437,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the EntryPoint in self matching name.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Accessing entry points by index is deprecated. &quot;</span>
+                <span class="s2">&quot;Cast to tuple if needed.&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)))</span>
         <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
@@ -382,6 +468,10 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the set of all groups of all entry points.</span>
+
+<span class="sd">        For coverage while SelectableGroups is present.</span>
+<span class="sd">        &gt;&gt;&gt; EntryPoints().groups</span>
+<span class="sd">        set()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">ep</span><span class="o">.</span><span class="n">group</span> <span class="k">for</span> <span class="n">ep</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">}</span>
 
@@ -395,6 +485,101 @@
             <span class="n">EntryPoint</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">item</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">Sectioned</span><span class="o">.</span><span class="n">section_pairs</span><span class="p">(</span><span class="n">text</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Deprecated</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compatibility add-in for mapping to indicate that</span>
+<span class="sd">    mapping behavior is deprecated.</span>
+
+<span class="sd">    &gt;&gt;&gt; recwarn = getfixture(&#39;recwarn&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; class DeprecatedDict(Deprecated, dict): pass</span>
+<span class="sd">    &gt;&gt;&gt; dd = DeprecatedDict(foo=&#39;bar&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; dd.get(&#39;baz&#39;, None)</span>
+<span class="sd">    &gt;&gt;&gt; dd[&#39;foo&#39;]</span>
+<span class="sd">    &#39;bar&#39;</span>
+<span class="sd">    &gt;&gt;&gt; list(dd)</span>
+<span class="sd">    [&#39;foo&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; list(dd.keys())</span>
+<span class="sd">    [&#39;foo&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; &#39;foo&#39; in dd</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; list(dd.values())</span>
+<span class="sd">    [&#39;bar&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; len(recwarn)</span>
+<span class="sd">    1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_warn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">,</span>
+        <span class="s2">&quot;SelectableGroups dict interface is deprecated. Use select.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__contains__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_warn</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SelectableGroups</span><span class="p">(</span><span class="n">Deprecated</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A backward- and forward-compatible result from</span>
+<span class="sd">    entry_points that fully implements the dict interface.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">eps</span><span class="p">):</span>
+        <span class="n">by_group</span> <span class="o">=</span> <span class="n">operator</span><span class="o">.</span><span class="n">attrgetter</span><span class="p">(</span><span class="s1">&#39;group&#39;</span><span class="p">)</span>
+        <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">eps</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">by_group</span><span class="p">)</span>
+        <span class="n">grouped</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">ordered</span><span class="p">,</span> <span class="n">by_group</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">((</span><span class="n">group</span><span class="p">,</span> <span class="n">EntryPoints</span><span class="p">(</span><span class="n">eps</span><span class="p">))</span> <span class="k">for</span> <span class="n">group</span><span class="p">,</span> <span class="n">eps</span> <span class="ow">in</span> <span class="n">grouped</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reconstruct a list of all entrypoints from the groups.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Deprecated</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">EntryPoints</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">groups</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">groups</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all</span><span class="o">.</span><span class="n">groups</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        for coverage:</span>
+<span class="sd">        &gt;&gt;&gt; SelectableGroups().names</span>
+<span class="sd">        set()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all</span><span class="o">.</span><span class="n">names</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">PackagePath</span><span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">PurePosixPath</span><span class="p">):</span>
@@ -421,30 +606,11 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;FileHash mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="si">}</span><span class="s1"> value: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s1">&gt;&#39;</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">DeprecatedNonAbstract</span><span class="p">:</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">all_names</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">name</span> <span class="k">for</span> <span class="n">subclass</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmro</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">subclass</span><span class="p">)</span>
-        <span class="p">}</span>
-        <span class="n">abstract</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">name</span>
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">all_names</span>
-            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">),</span> <span class="s1">&#39;__isabstractmethod__&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="p">}</span>
-        <span class="k">if</span> <span class="n">abstract</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Unimplemented abstract methods </span><span class="si">{</span><span class="n">abstract</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-                <span class="ne">DeprecationWarning</span><span class="p">,</span>
-                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-
-
-<span class="k">class</span><span class="w"> </span><span class="nc">Distribution</span><span class="p">(</span><span class="n">DeprecatedNonAbstract</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Distribution</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A Python distribution package.&quot;&quot;&quot;</span>
 
     <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Attempt to load metadata file given by the name.</span>
 
 <span class="sd">        :param filename: The name of the file in the distribution info.</span>
@@ -518,7 +684,7 @@
 <span class="sd">        The returned object will have keys that name the various bits of</span>
 <span class="sd">        metadata.  See PEP 566 for details.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">opt_text</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;METADATA&#39;</span><span class="p">)</span>
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;PKG-INFO&#39;</span><span class="p">)</span>
             <span class="c1"># This last clause is here to support old egg-info files.  Its</span>
@@ -526,7 +692,6 @@
             <span class="c1"># (which points to the egg-info file) attribute unchanged.</span>
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">opt_text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_adapters</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span><span class="n">email</span><span class="o">.</span><span class="n">message_from_string</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
 
     <span class="nd">@property</span>
@@ -555,8 +720,8 @@
 <span class="sd">        :return: List of PackagePath for this distribution or None</span>
 
 <span class="sd">        Result is `None` if the metadata file that enumerates files</span>
-<span class="sd">        (i.e. RECORD for dist-info, or installed-files.txt or</span>
-<span class="sd">        SOURCES.txt for egg-info) is missing.</span>
+<span class="sd">        (i.e. RECORD for dist-info or SOURCES.txt for egg-info) is</span>
+<span class="sd">        missing.</span>
 <span class="sd">        Result may be empty if the metadata exists but is empty.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -569,19 +734,9 @@
 
         <span class="nd">@pass_none</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">make_files</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">starmap</span><span class="p">(</span><span class="n">make_file</span><span class="p">,</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">starmap</span><span class="p">(</span><span class="n">make_file</span><span class="p">,</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">lines</span><span class="p">)))</span>
 
-        <span class="nd">@pass_none</span>
-        <span class="k">def</span><span class="w"> </span><span class="nf">skip_missing_files</span><span class="p">(</span><span class="n">package_paths</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">path</span><span class="o">.</span><span class="n">locate</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">(),</span> <span class="n">package_paths</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">skip_missing_files</span><span class="p">(</span>
-            <span class="n">make_files</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_read_files_distinfo</span><span class="p">()</span>
-                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_files_egginfo_installed</span><span class="p">()</span>
-                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_files_egginfo_sources</span><span class="p">()</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">make_files</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_read_files_distinfo</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_files_egginfo</span><span class="p">())</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_read_files_distinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -590,45 +745,10 @@
         <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;RECORD&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_files_egginfo_installed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_files_egginfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read installed-files.txt and return lines in a similar</span>
-<span class="sd">        CSV-parsable format as RECORD: each file must be placed</span>
-<span class="sd">        relative to the site-packages directory and must also be</span>
-<span class="sd">        quoted (since file names can contain literal commas).</span>
-
-<span class="sd">        This file is written when the package is installed by pip,</span>
-<span class="sd">        but it might not be written for other installation methods.</span>
-<span class="sd">        Assume the file is accurate if it exists.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;installed-files.txt&#39;</span><span class="p">)</span>
-        <span class="c1"># Prepend the .egg-info/ subdir to the lines in this file.</span>
-        <span class="c1"># But this subdir is only available from PathDistribution&#39;s</span>
-        <span class="c1"># self._path.</span>
-        <span class="n">subdir</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_path&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">subdir</span><span class="p">:</span>
-            <span class="k">return</span>
-
-        <span class="n">paths</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">subdir</span> <span class="o">/</span> <span class="n">name</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-            <span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">locate_file</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">(),</span> <span class="n">walk_up</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_read_files_egginfo_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Read SOURCES.txt and return lines in a similar CSV-parsable</span>
-<span class="sd">        format as RECORD: each file name must be quoted (since it</span>
-<span class="sd">        might contain literal commas).</span>
-
-<span class="sd">        Note that SOURCES.txt is not a reliable source for what</span>
-<span class="sd">        files are installed by a package. This file is generated</span>
-<span class="sd">        for a source archive, and the files that are present</span>
-<span class="sd">        there (e.g. setup.py) may not correctly reflect the files</span>
-<span class="sd">        that are present after the package has been installed.</span>
+<span class="sd">        SOURCES.txt might contain literal commas, so wrap each line</span>
+<span class="sd">        in quotes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="s1">&#39;SOURCES.txt&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">text</span> <span class="ow">and</span> <span class="nb">map</span><span class="p">(</span><span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">())</span>
@@ -979,19 +1099,27 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">entry_points</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EntryPoints</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_points</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">EntryPoints</span><span class="p">,</span> <span class="n">SelectableGroups</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return EntryPoint objects for all installed packages.</span>
 
 <span class="sd">    Pass selection parameters (group or name) to filter the</span>
 <span class="sd">    result to entry points matching those properties (see</span>
 <span class="sd">    EntryPoints.select()).</span>
 
-<span class="sd">    :return: EntryPoints for all installed packages.</span>
+<span class="sd">    For compatibility, returns ``SelectableGroups`` object unless</span>
+<span class="sd">    selection parameters are supplied. In the future, this function</span>
+<span class="sd">    will return ``EntryPoints`` instead of ``SelectableGroups``</span>
+<span class="sd">    even when no selection parameters are supplied.</span>
+
+<span class="sd">    For maximum future compatibility, pass selection parameters</span>
+<span class="sd">    or invoke ``.select`` with parameters on the result.</span>
+
+<span class="sd">    :return: EntryPoints or SelectableGroups for all installed packages.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">eps</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span>
         <span class="n">dist</span><span class="o">.</span><span class="n">entry_points</span> <span class="k">for</span> <span class="n">dist</span> <span class="ow">in</span> <span class="n">_unique</span><span class="p">(</span><span class="n">distributions</span><span class="p">())</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">EntryPoints</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">SelectableGroups</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">eps</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">files</span><span class="p">(</span><span class="n">distribution_name</span><span class="p">):</span>
@@ -1035,16 +1163,11 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_top_level_inferred</span><span class="p">(</span><span class="n">dist</span><span class="p">):</span>
-    <span class="n">opt_names</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodulename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">f</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">name</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">always_iterable</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">files</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.py&quot;</span>
     <span class="p">}</span>
-
-    <span class="nd">@pass_none</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">importable_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span>
-
-    <span class="k">return</span> <span class="nb">filter</span><span class="p">(</span><span class="n">importable_name</span><span class="p">,</span> <span class="n">opt_names</span><span class="p">)</span>
 </pre></div>
 
            </div>
@@ -1070,11 +1193,11 @@
   <div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
   <span class="rst-current-version" data-toggle="rst-current-version">
     <span class="fa fa-book"> Other Versions</span>
-    Version: dev
+    Version: latest
     <span class="fa fa-caret-down"></span>
   </span>
   <div class="rst-other-versions"><dl>
-      <dt>Branches</dt><dd><a href="../_modules/importlib/metadata.html">latest</a></dd><dd><a href="../dev/_modules/importlib/metadata.html">dev</a></dd></dl></div>
+      <dt>Branches</dt><dd><a href="./_modules/importlib/metadata.html">latest</a></dd><dd><a href="./dev/_modules/importlib/metadata.html">dev</a></dd></dl></div>
 </div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
