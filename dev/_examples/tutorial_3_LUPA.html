@@ -149,6 +149,7 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">brute</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wavespectra.construct.frequency</span><span class="w"> </span><span class="kn">import</span> <span class="n">pierson_moskowitz</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">wecopttool</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">wot</span>
 
@@ -510,9 +511,8 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 
 <span class="k">def</span><span class="w"> </span><span class="nf">irregular_wave</span><span class="p">(</span><span class="n">hs</span><span class="p">,</span> <span class="n">tp</span><span class="p">):</span>
     <span class="n">fp</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">tp</span>
-    <span class="n">spectrum</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">pierson_moskowitz_spectrum</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="p">)</span>
-    <span class="n">efth</span> <span class="o">=</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">omnidirectional_spectrum</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">spectrum</span><span class="p">,</span> <span class="s2">&quot;Pierson-Moskowitz&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">long_crested_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span><span class="n">nrealizations</span><span class="o">=</span><span class="n">nrealizations</span><span class="p">)</span>
+    <span class="n">efth</span> <span class="o">=</span> <span class="n">pierson_moskowitz</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">freq</span><span class="p">,</span> <span class="n">hs</span><span class="o">=</span><span class="n">hs</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wot</span><span class="o">.</span><span class="n">waves</span><span class="o">.</span><span class="n">long_crested_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span><span class="n">nrealizations</span><span class="o">=</span><span class="n">nrealizations</span><span class="p">,</span><span class="n">direction</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">case</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">wave_cases</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">waves</span><span class="p">[</span><span class="n">case</span><span class="p">]</span> <span class="o">=</span> <span class="n">irregular_wave</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;Hs&#39;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Tp&#39;</span><span class="p">])</span>
@@ -1073,7 +1073,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[22:05:46] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[22:34:12] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         terms <span style="font-weight: bold">[</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1114,16 +1114,16 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011452546014115663
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
+            Current function value: -0.011460602499717672
+            Iterations: 52
+            Function evaluations: 53
+            Gradient evaluations: 52
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.01145310199936425
-            Iterations: 55
-            Function evaluations: 56
-            Gradient evaluations: 55
-Optimal average electrical power: -1.1452824006739957 W
+            Current function value: -0.011460198135994004
+            Iterations: 52
+            Function evaluations: 53
+            Gradient evaluations: 52
+Optimal average electrical power: -1.1460400317855837 W
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -1260,7 +1260,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-28.0005370811636, 3.7524751236780074)
+(-22.773867243748864, 3.3459870238452276)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

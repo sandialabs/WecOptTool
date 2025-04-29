@@ -41,6 +41,7 @@
     "from scipy.linalg import block_diag\n",
     "import xarray as xr\n",
     "from math import comb\n",
+    "from wavespectra.construct.frequency import pierson_moskowitz\n",
     "\n",
     "import wecopttool as wot\n",
     "\n",
@@ -75,9 +76,11 @@
     "fend = 1.875\n",
     "nfreq_irreg = 150\n",
     "f1_irreg = fend / nfreq_irreg\n",
+    "freq_irreg = wot.frequency(f1_irreg, nfreq_irreg, False) # False -> no zero frequency\n",
     "\n",
     "f1_reg = .325/2\n",
-    "nfreq_reg = 12"
+    "nfreq_reg = 12\n",
+    "freq_reg = wot.frequency(f1_reg, nfreq_reg, False) # False -> no zero frequency"
    ]
   },
   {
@@ -97,8 +100,7 @@
     "nrealizations = 2\n",
     "\n",
     "fp = 1/Tp\n",
-    "spectrum = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, Hs)\n",
-    "efth = wot.waves.omnidirectional_spectrum(f1_irreg, nfreq_irreg, spectrum, \"Pierson-Moskowitz\")\n",
+    "efth = pierson_moskowitz(freq=freq_irreg, hs=Hs, fp=fp)\n",
     "waves_irregular = wot.waves.long_crested_wave(efth, nrealizations=nrealizations)"
    ]
   },
@@ -278,11 +280,9 @@
    "outputs": [],
    "source": [
     "rho = 1025. # kg/m^3\n",
-    "freq_reg = wot.frequency(f1_reg, nfreq_reg, False) # False -> no zero frequency\n",
     "bem_data_reg = wot.run_bem(pnr_fb, freq_reg)\n",
     "omega_reg = bem_data_reg.omega.values\n",
     "\n",
-    "freq_irreg = wot.frequency(f1_irreg, nfreq_irreg, False) # False -> no zero frequency\n",
     "bem_data_irreg = wot.run_bem(pnr_fb, freq_irreg)\n",
     "omega_irreg = bem_data_irreg.omega.values\n",
     "\n",
