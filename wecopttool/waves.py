@@ -197,7 +197,7 @@ def long_crested_wave(
     """Create a complex frequency-domain wave elevation from an
     omnidirectional spectrum.
 
-    The spectrum is a :py:class:`xarray.DataArray` in the format used 
+    The spectrum is a :py:class:`xarray.DataArray` in the format used
     by :py:class:`wavespectra.SpecArray`.
 
     .. note:: The frequencies must be evenly-spaced with spacing equal
@@ -211,7 +211,7 @@ def long_crested_wave(
         Omnidirection wave spectrum in units of m^2/Hz, in the format
         used by :py:class:`wavespectra.SpecArray`.
     nrealizations
-        Number of wave phase realizations to be created for the 
+        Number of wave phase realizations to be created for the
         long-crested wave.
     direction
         Direction (in degrees) of the long-crested wave.
@@ -247,11 +247,13 @@ def irregular_wave(efth: DataArray,
                    seed: Optional[float] = None,) -> DataArray:
     """Create a complex frequency-domain wave elevation from a spectrum. 
 
+    The spectrum is a :py:class:`xarray.DataArray` in the format used
+    by :py:class:`wavespectra.SpecArray`.
     The spectrum is a :py:class:`xarray.DataArray` in the format used 
     by :py:class:`wavespectra.SpecArray`. For generating wave spectra 
     with directional spreading, see 
     :py:class:`wavespectra.construction.direction`.
-
+    
     .. note:: The frequencies must be evenly-spaced with spacing equal
               to the first frequency. This is not always the case when
               e.g. reading from buoy data. Use interpolation as
@@ -265,7 +267,7 @@ def irregular_wave(efth: DataArray,
         Wave spectrum in units of m^2/Hz/deg, in the format used by
         :py:class:`wavespectra.SpecArray`.
     nrealizations
-        Number of wave phase realizations to be created for the 
+        Number of wave phase realizations to be created for the
         irregular wave.
     seed
         Seed for random number generator. Used for reproducibility.
