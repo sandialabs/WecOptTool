@@ -33,6 +33,7 @@ from wecopttool.core import *
 from wecopttool import waves
 from wecopttool import pto
 from wecopttool import utilities
+from wecopttool import controllers
 
 try:
   from wecopttool import geom

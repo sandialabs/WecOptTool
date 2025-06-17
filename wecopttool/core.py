@@ -851,7 +851,7 @@ class WEC:
         res: Union[OptimizeResult, Iterable],
         waves: Dataset,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[list[Dataset], list[Dataset]]:
+    ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
@@ -979,12 +979,16 @@ class WEC:
             results_td.attrs['time_created_utc'] = create_time
             return results_fd, results_td
 
-        results_fd = []
-        results_td = []
+        results_fd_list = []
+        results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            results_fd.append(ifd)
-            results_td.append(itd)
+            ifd.expand_dims({'realization':[ires]})
+            itd.expand_dims({'realization':[ires]})
+            results_fd_list.append(ifd)
+            results_td_list.append(itd)
+        results_fd = xr.concat(results_fd_list, dim='realization')
+        results_td = xr.concat(results_td_list, dim='realization')
         return results_fd, results_td
 
     # properties
@@ -1902,7 +1906,7 @@ def check_radiation_damping(
         ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
-            if dmin <= 0.0 + min_damping:
+            if dmin < 0.0 + min_damping:
                 dof = hydro_data_new.influenced_dof.values[idof]
                 delta = min_damping-dmin
                 _log.warning(
@@ -1911,15 +1915,15 @@ def check_radiation_damping(
                     f'{delta.values} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            if (new_damping==min_damping).any():
+            if (iradiation<min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
                     'zero terms. Shifting up damping terms ' +
-                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
+            new_damping = iradiation.where(
+                iradiation+ifriction>min_damping, other=min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
@@ -1955,17 +1959,16 @@ def check_impedance(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up by {delta:.2f}')
         else:
-            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
             Zi_dof_real = Zi_diag[:,dof].real.copy()
             Zi_dof_imag = Zi_diag[:,dof].imag.copy()
-            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
-            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
-            if (Zi_dof_real==min_damping).any():
+            if (Zi_dof_real<min_damping).any():
                 _log.warning(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up elements '
-                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(Zi_dof_real<min_damping)[0]} to a minimum of ' +
                     f' {min_damping} N/(m/s)')
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
     return Zi_shifted
 
 
@@ -2128,7 +2131,7 @@ def run_bem(
     :py:func:`wecopttool.change_bem_convention`).
 
     It creates the *test matrix*, calls
-    :py:meth:`capytaine.bodies.bodies.FloatingBody.keep_immersed_part`,
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.immersed_part`,
     calls :py:meth:`capytaine.bem.solver.BEMSolver.fill_dataset`,
     and changes the sign convention using
     :py:func:`wecopttool.change_bem_convention`.
@@ -2185,7 +2188,7 @@ def run_bem(
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
         if wec_im.mass is None:
-            wec_im.mass = rho*wec_im.copy().keep_immersed_part().volume
+            wec_im.mass = rho*wec_im.immersed_part().volume
             _log.warning('FloatingBody has no inertia_matrix or mass ' +
                      'field. The mass will be calculated based on a ' +
                      'neutral buoyancy assumption. The inertia matrix ' +
@@ -2196,7 +2199,7 @@ def run_bem(
                      'The FloatingBody mass is defined and will be ' +
                      'used for calculating the inertia matrix.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
-    wec_im = wec_im.keep_immersed_part()
+    wec_im = wec_im.immersed_part()
     wec_im.name = f"{wec_im.name}_immersed"
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
@@ -2226,6 +2229,7 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
     bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
