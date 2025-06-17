@@ -10,6 +10,7 @@ __all__ = [
     "plot_bode_impedance",
     "calculate_power_flows",
     "plot_power_flow",
+    "linear_solve",
 ]
 
 
@@ -372,6 +373,39 @@ def plot_power_flow(power_flows: dict[str, float],
 
 
 def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubsteps=1):
+    """Solve a linear problem in the frequency domain with optimal
+    controller.
+
+    Parameters
+    ----------
+    bem_data
+        Linear hydrodynamic coefficients obtained using the boundary
+        element method (BEM) code Capytaine, with sign convention
+        corrected.
+    pto_impedance
+        Matrix representing the PTO impedance.
+        Size 2*n_dof.
+    wave_realization
+        :py:class:`xarray.Dataset` with the structure and elements
+        shown by :py:mod:`wecopttool.waves`.
+    kinematics
+        Matrix that transforms state from WEC to PTO frame.
+    nsubsteps
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step
+        length.
+
+    Returns
+    -------
+    p_opt_average
+        Average power using optimal controller.
+    tdom
+        Time domain results.
+    fdom
+        Frequency domain results.
+    thevenin
+        Thevenin equivalent system.
+    """
     # BEM: intrinsic impedance and excitation force
     bem_data = add_linear_friction(bem_data, friction = None)
     bem_data = check_radiation_damping(bem_data)
@@ -418,6 +452,6 @@ def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubstep
     # return
     tdom = {"time": time(f1, nfreq, nsubsteps), "trans_flo": i_opt, "trans_eff": v_opt, "power": p_opt}
     fdom = {"frequency": freq, "trans_flo": I_opt, "trans_eff": V_opt}
-    thevenin = {"impedance": Zth, "trans_flo": Ith, "trans_eff": Vth}
+    thevenin = {"frequency": freq, "impedance": Zth, "trans_flo": Ith, "trans_eff": Vth}
 
     return p_opt_average, tdom, fdom, thevenin
