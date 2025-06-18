@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves &mdash; WecOptTool 3.0.3 documentation</title>
+  <title>wecopttool.waves &mdash; WecOptTool 3.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=9b3fc59f"></script>
+      <script src="../../_static/documentation_options.js?v=dd1205ac"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -104,13 +104,6 @@
     <span class="s2">&quot;long_crested_wave&quot;</span><span class="p">,</span>
     <span class="s2">&quot;irregular_wave&quot;</span><span class="p">,</span>
     <span class="s2">&quot;random_phase&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;omnidirectional_spectrum&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;spectrum&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;pierson_moskowitz_spectrum&quot;</span><span class="p">,</span>  <span class="c1"># TODO: Remove all below after wavespectra</span>
-    <span class="s2">&quot;jonswap_spectrum&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;spread_cos2s&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;general_spectrum&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;pierson_moskowitz_params&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -291,7 +284,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from an</span>
 <span class="sd">    omnidirectional spectrum.</span>
 
-<span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used </span>
+<span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used</span>
 <span class="sd">    by :py:class:`wavespectra.SpecArray`.</span>
 
 <span class="sd">    .. note:: The frequencies must be evenly-spaced with spacing equal</span>
@@ -305,7 +298,7 @@
 <span class="sd">        Omnidirection wave spectrum in units of m^2/Hz, in the format</span>
 <span class="sd">        used by :py:class:`wavespectra.SpecArray`.</span>
 <span class="sd">    nrealizations</span>
-<span class="sd">        Number of wave phase realizations to be created for the </span>
+<span class="sd">        Number of wave phase realizations to be created for the</span>
 <span class="sd">        long-crested wave.</span>
 <span class="sd">    direction</span>
 <span class="sd">        Direction (in degrees) of the long-crested wave.</span>
@@ -315,6 +308,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span> <span class="o">=</span> <span class="n">frequency_parameters</span><span class="p">(</span><span class="n">efth</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">f1</span>
+
+    <span class="k">if</span> <span class="s1">&#39;dir&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">efth</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">efth</span> <span class="o">=</span> <span class="n">DataArray</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">],</span>
+            <span class="n">coords</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">efth</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">],</span> <span class="nb">dir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">direction</span><span class="p">])),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;efth&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="n">values</span> <span class="o">=</span> <span class="n">efth</span><span class="o">.</span><span class="n">values</span>
     <span class="n">values</span><span class="p">[</span><span class="n">values</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
@@ -334,17 +335,21 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">irregular_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
                    <span class="n">nrealizations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from a spectrum.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from a spectrum. </span>
 
-<span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used </span>
+<span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used</span>
 <span class="sd">    by :py:class:`wavespectra.SpecArray`.</span>
-
+<span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used </span>
+<span class="sd">    by :py:class:`wavespectra.SpecArray`. For generating wave spectra </span>
+<span class="sd">    with directional spreading, see </span>
+<span class="sd">    :py:class:`wavespectra.construction.direction`.</span>
+<span class="sd">    </span>
 <span class="sd">    .. note:: The frequencies must be evenly-spaced with spacing equal</span>
 <span class="sd">              to the first frequency. This is not always the case when</span>
 <span class="sd">              e.g. reading from buoy data. Use interpolation as</span>
 <span class="sd">              :python:`da.interp(freq=[...])`.</span>
 
-<span class="sd">    .. note:: The wave directions must also be evenly spaced.</span>
+<span class="sd">    .. note:: The wave directions must also be evenly spaced. </span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -352,7 +357,7 @@
 <span class="sd">        Wave spectrum in units of m^2/Hz/deg, in the format used by</span>
 <span class="sd">        :py:class:`wavespectra.SpecArray`.</span>
 <span class="sd">    nrealizations</span>
-<span class="sd">        Number of wave phase realizations to be created for the </span>
+<span class="sd">        Number of wave phase realizations to be created for the</span>
 <span class="sd">        irregular wave.</span>
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
@@ -391,354 +396,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
-
-
-
-<span class="c1"># TODO: Move everything below to wavespectra.construct</span>
-<span class="c1">#       wavespectra is good at reading from simulations or measurements</span>
-<span class="c1">#       but not good yet at constructing from parametric models.</span>
-<div class="viewcode-block" id="omnidirectional_spectrum">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.omnidirectional_spectrum.html#wecopttool.waves.omnidirectional_spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">omnidirectional_spectrum</span><span class="p">(</span>
-    <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">spectrum_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">spectrum_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the :py:class:`xarray.DataArray` for an omnidirectional </span>
-<span class="sd">    wave spectrum in the :py:class:`wavespectra.SpecArray` format.</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    Define wave parameters.</span>
-
-<span class="sd">    &gt;&gt;&gt; from wecopttool.waves import omnidirectional_spectrum as omnispec</span>
-<span class="sd">    &gt;&gt;&gt; from wecopttool.waves import pierson_moskowitz_spectrum as pm</span>
-<span class="sd">    &gt;&gt;&gt; Hs = 5</span>
-<span class="sd">    &gt;&gt;&gt; Tp = 6</span>
-<span class="sd">    &gt;&gt;&gt; fp = 1/Tp</span>
-
-<span class="sd">    Generate the wave using a Pierson-Moskowitz idealized spectrum.</span>
-
-<span class="sd">    &gt;&gt;&gt; omnidirectional_spectrum = omnispec(</span>
-<span class="sd">    ...     f1=fp/10,</span>
-<span class="sd">    ...     nfreq=30,</span>
-<span class="sd">    ...     spectrum_func=lambda f: pm(freq=f, fp=fp, hs=Hs),</span>
-<span class="sd">    ...     spectrum_name=&quot;Pierson-Moskowitz&quot;,</span>
-<span class="sd">    ...     )</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    f1</span>
-<span class="sd">        Fundamental frequency :python:`f1` [Hz].</span>
-<span class="sd">    nfreq</span>
-<span class="sd">        Number of frequencies (not including zero frequency),</span>
-<span class="sd">        i.e., :python:`freq = [0, f1, 2*f1, ..., nfreq*f1]`.</span>
-<span class="sd">    spectrum_func</span>
-<span class="sd">        Wave spectrum function. Maps frequencies to amplitude spectrum.</span>
-<span class="sd">        :python:`Union[float, ArrayLike] -&gt; Union[float, ndarray]`.</span>
-<span class="sd">        Units: :math:`m^2/Hz`.</span>
-<span class="sd">    spectrum_name</span>
-<span class="sd">        Name of the spectrum function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># dimensions &amp; coordinates</span>
-    <span class="n">freq</span> <span class="o">=</span> <span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">)</span>
-    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave frequency&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span>
-    <span class="p">}</span>
-    <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave direction&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;deg&#39;</span>
-    <span class="p">}</span>
-    <span class="nb">dir</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,]</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">dir</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">)]</span>
-
-    <span class="c1"># spectrum</span>
-    <span class="n">efth</span> <span class="o">=</span> <span class="n">spectrum_func</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">efth_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;omnidirectional spectrum&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2/Hz&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;Omnidirectional Spectrum&#39;</span><span class="p">:</span> <span class="n">spectrum_name</span><span class="p">,</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">efth_attr</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="spectrum">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.spectrum.html#wecopttool.waves.spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">spectrum</span><span class="p">(</span>
-    <span class="n">f1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">directions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">spectrum_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">spread_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
-    <span class="n">spectrum_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-    <span class="n">spread_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the :py:class:`xarray.DataArray` for an irregular wave </span>
-<span class="sd">    in the :py:class:`wavespectra.SpecArray` format.</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    Define the desired spectrum parameters.</span>
-
-<span class="sd">    &gt;&gt;&gt; import wecopttool as wot</span>
-<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; Hs = 5</span>
-<span class="sd">    &gt;&gt;&gt; Tp = 6</span>
-<span class="sd">    &gt;&gt;&gt; fp = 1/Tp</span>
-<span class="sd">    &gt;&gt;&gt; directions = np.linspace(0, 360, 36, endpoint=False)</span>
-
-<span class="sd">    Create a function handle to define the spectral density,</span>
-
-<span class="sd">    &gt;&gt;&gt; def spectrum_func(f):</span>
-<span class="sd">    ...    return wot.waves.pierson_moskowitz_spectrum(freq=f,</span>
-<span class="sd">    ...                                                fp=fp,</span>
-<span class="sd">    ...                                                hs=Hs)</span>
-
-<span class="sd">    and a spreading function handle for spreading.</span>
-
-<span class="sd">    &gt;&gt;&gt; def spread_func(f, d):</span>
-<span class="sd">    ...     return wot.waves.spread_cos2s(freq=f,</span>
-<span class="sd">    ...                                   directions=d,</span>
-<span class="sd">    ...                                   dm=10,</span>
-<span class="sd">    ...                                   fp=fp,</span>
-<span class="sd">    ...                                   s_max=10)</span>
-
-<span class="sd">    Generate the spectrum.</span>
-
-<span class="sd">    &gt;&gt;&gt; wave = wot.waves.spectrum(f1=fp/10,</span>
-<span class="sd">    ...                           nfreq=20,</span>
-<span class="sd">    ...                           directions=directions,</span>
-<span class="sd">    ...                           spectrum_func=spectrum_func,</span>
-<span class="sd">    ...                           spread_func=spread_func,</span>
-<span class="sd">    ...                           spectrum_name=&quot;Pierson-Moskowitz&quot;,</span>
-<span class="sd">    ...                           spread_name=&quot;cosine-2s&quot;,)</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    f1</span>
-<span class="sd">        Fundamental frequency :python:`f1` [Hz].</span>
-<span class="sd">    nfreq</span>
-<span class="sd">        Number of frequencies (not including zero frequency),</span>
-<span class="sd">        i.e., :python:`freq = [0, f1, 2*f1, ..., nfreq*f1]`.</span>
-<span class="sd">    directions</span>
-<span class="sd">        Wave directions in degrees. 1D array, evenly spaced.</span>
-<span class="sd">    spectrum_func</span>
-<span class="sd">        Wave spectrum function. Maps frequencies to amplitude spectrum.</span>
-<span class="sd">        :python:`Union[float, ArrayLike] -&gt; Union[float, np.ndarray]`.</span>
-<span class="sd">        Units: :math:`m^2/Hz`.</span>
-<span class="sd">    spread_func</span>
-<span class="sd">        Wave spreading function.</span>
-<span class="sd">        Maps wave frequencies and directions to spread value.</span>
-<span class="sd">        :python:`tuple[ Union[float, ArrayLike], Union[float, ArrayLike]] -&gt; ndarray`.</span>
-<span class="sd">        Units: :math:`1/degree`.</span>
-<span class="sd">    spectrum_name</span>
-<span class="sd">        Name of the spectrum function.</span>
-<span class="sd">    spread_name</span>
-<span class="sd">        Name of the spread function.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># dimensions &amp; coordinates</span>
-    <span class="n">freq</span> <span class="o">=</span> <span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;freq&#39;</span><span class="p">,</span> <span class="s1">&#39;dir&#39;</span><span class="p">)</span>
-    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave frequency&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span>
-    <span class="p">}</span>
-    <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;wave direction&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;deg&#39;</span>
-    <span class="p">}</span>
-    <span class="nb">dir</span> <span class="o">=</span> <span class="n">directions</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">dir</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">)]</span>
-
-    <span class="c1"># spectrum</span>
-    <span class="n">efth</span> <span class="o">=</span> <span class="n">spectrum_func</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">spread_func</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span> <span class="nb">dir</span><span class="p">)</span>
-    <span class="n">efth_attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;spectrum&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2/Hz/deg&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;Omnidirectional Spectrum&#39;</span><span class="p">:</span> <span class="n">spectrum_name</span><span class="p">,</span>
-        <span class="s1">&#39;Spreading function&#39;</span><span class="p">:</span> <span class="n">spread_name</span><span class="p">,</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">efth_attr</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="pierson_moskowitz_spectrum">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_spectrum.html#wecopttool.waves.pierson_moskowitz_spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">pierson_moskowitz_spectrum</span><span class="p">(</span>
-    <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the Pierson-Moskowitz omni-directional wave spectrum</span>
-<span class="sd">    for the specified frequencies  and parameters.</span>
-
-<span class="sd">    This is included as one example of a spectrum function.</span>
-
-<span class="sd">    Return is in units of :math:`m^2/Hz`.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    freq</span>
-<span class="sd">        Wave frequencies.</span>
-<span class="sd">    fp</span>
-<span class="sd">        Peak frequency of the sea-state in :math:`Hz`.</span>
-<span class="sd">    hs</span>
-<span class="sd">        Significant wave height of the sea-state in :math:`m`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span> <span class="o">=</span> <span class="n">pierson_moskowitz_params</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">general_spectrum</span><span class="p">(</span><span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="jonswap_spectrum">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.jonswap_spectrum.html#wecopttool.waves.jonswap_spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">jonswap_spectrum</span><span class="p">(</span>
-    <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.3</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the Joint North Sea Wave Project (JONSWAP)</span>
-<span class="sd">    omni-directional wave spectrum for the specified frequencies and</span>
-<span class="sd">    parameters.</span>
-
-<span class="sd">    See, e.g., :title:`DNV-RP-C205`</span>
-
-<span class="sd">    For :python:`gamma = 1`, the JONSWAP spectrum reduces to a</span>
-<span class="sd">    Pierson-Moskowitz spectrum.</span>
-
-<span class="sd">    Return is in units of :math:`m^2/Hz`.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    freq</span>
-<span class="sd">        Wave frequencies in :math:`Hz`.</span>
-<span class="sd">    fp</span>
-<span class="sd">        Peak frequency in :math:`Hz`.</span>
-<span class="sd">    hs</span>
-<span class="sd">        Significant wave height in :math:`m`.</span>
-<span class="sd">    gamma</span>
-<span class="sd">        Peakedness factor.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Pierson-Moskowitz parameters</span>
-    <span class="n">a_param_pm</span><span class="p">,</span> <span class="n">b_param</span> <span class="o">=</span> <span class="n">pierson_moskowitz_params</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">hs</span><span class="p">)</span>
-
-    <span class="c1"># JONSWAP parameters</span>
-    <span class="n">sigma_a</span> <span class="o">=</span> <span class="mf">0.07</span>
-    <span class="n">sigma_b</span> <span class="o">=</span> <span class="mf">0.09</span>
-    <span class="n">sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">piecewise</span><span class="p">(</span><span class="n">freq</span><span class="p">,</span>
-                         <span class="n">condlist</span><span class="o">=</span><span class="p">[</span><span class="n">freq</span> <span class="o">&lt;=</span> <span class="n">fp</span><span class="p">,</span> <span class="n">freq</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="p">],</span>
-                         <span class="n">funclist</span><span class="o">=</span><span class="p">[</span><span class="n">sigma_a</span><span class="p">,</span> <span class="n">sigma_b</span><span class="p">])</span>
-    <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="p">((</span><span class="n">freq</span><span class="o">/</span><span class="n">fp</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">sigma</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-    <span class="n">c_param</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="mf">0.287</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
-    <span class="n">a_param</span> <span class="o">=</span> <span class="n">a_param_pm</span> <span class="o">*</span> <span class="n">c_param</span> <span class="o">*</span> <span class="n">gamma</span><span class="o">**</span><span class="n">alpha</span>
-
-    <span class="k">return</span> <span class="n">general_spectrum</span><span class="p">(</span><span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span><span class="p">,</span> <span class="n">freq</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="spread_cos2s">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.spread_cos2s.html#wecopttool.waves.spread_cos2s">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">spread_cos2s</span><span class="p">(</span>
-    <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">directions</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">dm</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">s_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the Cosine-2s spreading function for the specified</span>
-<span class="sd">    frequencies and wave directions.</span>
-
-<span class="sd">    This is included as one example of a spreading function.</span>
-
-<span class="sd">    Return is in units of :math:`1/degrees`.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    freq</span>
-<span class="sd">        Wave frequencies in Hz.</span>
-<span class="sd">    directions</span>
-<span class="sd">        Wave directions relative to mean/wind direction in degrees.</span>
-<span class="sd">    dm: float</span>
-<span class="sd">        Mean wave direction in degrees.</span>
-<span class="sd">    fp</span>
-<span class="sd">        Peak frequency of the sea-state in :math:`Hz`.</span>
-<span class="sd">    s_max</span>
-<span class="sd">        The spreading parameter. Larger values corresponds to less</span>
-<span class="sd">        spread. For fully developed seas a value of 10 is a good choice.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">freq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">freq</span><span class="p">)</span>
-    <span class="n">rdir</span> <span class="o">=</span> <span class="n">degrees_to_radians</span><span class="p">(</span><span class="n">directions</span><span class="o">-</span><span class="n">dm</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="nb">pow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">))</span> <span class="o">*</span> <span class="mf">5.0</span>
-    <span class="nb">pow</span><span class="p">[</span><span class="n">freq</span> <span class="o">&gt;</span> <span class="n">fp</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.5</span>
-    <span class="n">s_param</span> <span class="o">=</span> <span class="n">s_max</span> <span class="o">*</span> <span class="p">(</span><span class="n">freq</span><span class="o">/</span><span class="n">fp</span><span class="p">)</span><span class="o">**</span><span class="nb">pow</span>
-    <span class="n">cs</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">s_param</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma</span><span class="p">(</span><span class="n">s_param</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">gamma</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">s_param</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">180</span> <span class="o">*</span> <span class="p">(</span><span class="n">cs</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">rdir</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">s_param</span><span class="p">))</span><span class="o">.</span><span class="n">T</span></div>
-
-
-
-<div class="viewcode-block" id="general_spectrum">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.general_spectrum.html#wecopttool.waves.general_spectrum">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">general_spectrum</span><span class="p">(</span>
-    <span class="n">a_param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">b_param</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-    <span class="n">freq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ArrayLike</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a spectrum function.</span>
-
-<span class="sd">    The general omni-directional spectrum formulation is</span>
-<span class="sd">    :math:`S(f) = A f^(-5) e^(-B f^(-4))`.</span>
-
-<span class="sd">    Return is in units of :math:`m^2/Hz`.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a_param</span>
-<span class="sd">        Parameter :math:`A` in the general spectrum equation.</span>
-<span class="sd">    b_param</span>
-<span class="sd">        Parameter :math:`B` in the general spectrum equation.</span>
-<span class="sd">    freq</span>
-<span class="sd">        Wave frequencies in Hz.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">a_param</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">b_param</span> <span class="o">*</span> <span class="n">freq</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">))</span>
-    <span class="c1"># if scalar, return scalar</span>
-    <span class="n">spectrum</span> <span class="o">=</span> <span class="n">spectrum</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="n">spectrum</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="n">spectrum</span>
-    <span class="k">return</span> <span class="n">spectrum</span></div>
-
-
-
-<div class="viewcode-block" id="pierson_moskowitz_params">
-<a class="viewcode-back" href="../../api_docs/wecopttool.waves.pierson_moskowitz_params.html#wecopttool.waves.pierson_moskowitz_params">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">pierson_moskowitz_params</span><span class="p">(</span><span class="n">fp</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">hs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the two PM parameters for the general spectrum formulation.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    fp</span>
-<span class="sd">        Peak frequency in :math:`Hz`.</span>
-<span class="sd">    hs</span>
-<span class="sd">        Significant wave height in :math:`m`.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    a_param</span>
-<span class="sd">        Parameter :math:`A` in the general spectrum equation.</span>
-<span class="sd">    b_param</span>
-<span class="sd">        Parameter :math:`B` in the general spectrum equation.</span>
-
-<span class="sd">    See Also</span>
-<span class="sd">    --------</span>
-<span class="sd">    general_spectrum,</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">b_param</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.057</span><span class="o">*</span><span class="n">fp</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
-    <span class="n">a_param</span> <span class="o">=</span> <span class="n">hs</span><span class="o">**</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">b_param</span>
-    <span class="k">return</span> <span class="n">a_param</span><span class="p">,</span> <span class="n">b_param</span></div>
 
 </pre></div>
 

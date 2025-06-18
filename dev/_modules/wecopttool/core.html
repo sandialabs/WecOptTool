@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.core &mdash; WecOptTool 3.0.3 documentation</title>
+  <title>wecopttool.core &mdash; WecOptTool 3.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=9b3fc59f"></script>
+      <script src="../../_static/documentation_options.js?v=dd1205ac"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -860,7 +860,7 @@
                 <span class="n">wave</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;realization&#39;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                 <span class="k">pass</span>
-                      
+
             <span class="c1"># objective function</span>
             <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">maximize</span> <span class="k">else</span> <span class="mf">1.0</span>
 
@@ -952,7 +952,7 @@
         <span class="n">res</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Dataset</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-process the results from :py:meth:`wecopttool.WEC.solve`.</span>
 
 <span class="sd">        Parameters</span>
@@ -1080,12 +1080,16 @@
             <span class="n">results_td</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;time_created_utc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">create_time</span>
             <span class="k">return</span> <span class="n">results_fd</span><span class="p">,</span> <span class="n">results_td</span>
 
-        <span class="n">results_fd</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">results_td</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results_fd_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results_td_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">ires</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
             <span class="n">ifd</span><span class="p">,</span> <span class="n">itd</span> <span class="o">=</span> <span class="n">_postproc</span><span class="p">(</span><span class="n">ires</span><span class="p">,</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="n">idx</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
-            <span class="n">results_fd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ifd</span><span class="p">)</span>
-            <span class="n">results_td</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itd</span><span class="p">)</span>
+            <span class="n">ifd</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">({</span><span class="s1">&#39;realization&#39;</span><span class="p">:[</span><span class="n">ires</span><span class="p">]})</span>
+            <span class="n">itd</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">({</span><span class="s1">&#39;realization&#39;</span><span class="p">:[</span><span class="n">ires</span><span class="p">]})</span>
+            <span class="n">results_fd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ifd</span><span class="p">)</span>
+            <span class="n">results_td_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itd</span><span class="p">)</span>
+        <span class="n">results_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">results_fd_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;realization&#39;</span><span class="p">)</span>
+        <span class="n">results_td</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">results_td_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;realization&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">results_fd</span><span class="p">,</span> <span class="n">results_td</span></div>
 
 
@@ -1393,7 +1397,7 @@
 <span class="sd">        --------</span>
 <span class="sd">        fd_to_td, WEC.td_to_fd</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fd_to_td</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">fd_to_td</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">f1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="WEC.td_to_fd">
@@ -1873,6 +1877,7 @@
     <span class="n">fd</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
     <span class="n">f1</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">nfreq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">nsubsteps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">zero_freq</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a complex array of Fourier coefficients to a real array</span>
@@ -1908,6 +1913,9 @@
 <span class="sd">        Fundamental frequency :python:`f1` [:math:`Hz`].</span>
 <span class="sd">    nfreq</span>
 <span class="sd">        Number of frequencies.</span>
+<span class="sd">    nsubsteps</span>
+<span class="sd">        Number of steps between the default (implied) time steps.</span>
+<span class="sd">        A value of :python:`1` corresponds to the default step length.</span>
 <span class="sd">    zero_freq</span>
 <span class="sd">        Whether the mean (DC) component is included.</span>
 
@@ -1928,7 +1936,7 @@
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]),</span> <span class="mi">0</span><span class="p">),</span> <span class="n">msg</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">f1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nfreq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">tmat</span> <span class="o">=</span> <span class="n">time_mat</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">zero_freq</span><span class="o">=</span><span class="n">zero_freq</span><span class="p">)</span>
+        <span class="n">tmat</span> <span class="o">=</span> <span class="n">time_mat</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">,</span> <span class="n">zero_freq</span><span class="o">=</span><span class="n">zero_freq</span><span class="p">)</span>
         <span class="n">td</span> <span class="o">=</span> <span class="n">tmat</span> <span class="o">@</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">zero_freq</span><span class="p">)</span>
     <span class="k">elif</span> <span class="p">(</span><span class="n">f1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nfreq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
         <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -2069,7 +2077,7 @@
         <span class="n">ifriction</span> <span class="o">=</span> <span class="n">friction</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">uniform_shift</span><span class="p">:</span>
             <span class="n">dmin</span> <span class="o">=</span> <span class="p">(</span><span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">dmin</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="n">min_damping</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dmin</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="n">min_damping</span><span class="p">:</span>
                 <span class="n">dof</span> <span class="o">=</span> <span class="n">hydro_data_new</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idof</span><span class="p">]</span>
                 <span class="n">delta</span> <span class="o">=</span> <span class="n">min_damping</span><span class="o">-</span><span class="n">dmin</span>
                 <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
@@ -2078,15 +2086,15 @@
                     <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">delta</span><span class="o">.</span><span class="n">values</span><span class="si">}</span><span class="s1"> N/(m/s).&#39;</span><span class="p">)</span>
                 <span class="n">hydro_data_new</span><span class="p">[</span><span class="s1">&#39;radiation_damping&#39;</span><span class="p">][:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">idof</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">iradiation</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_damping</span> <span class="o">=</span> <span class="n">iradiation</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-                <span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="o">&gt;</span><span class="n">min_damping</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="n">min_damping</span><span class="p">)</span>
             <span class="n">dof</span> <span class="o">=</span> <span class="n">hydro_data_new</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idof</span><span class="p">]</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">new_damping</span><span class="o">==</span><span class="n">min_damping</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">iradiation</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
                 <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s1">&#39;Linear damping for DOF &quot;</span><span class="si">{</span><span class="n">dof</span><span class="si">}</span><span class="s1">&quot; has negative or close to &#39;</span> <span class="o">+</span>
                     <span class="s1">&#39;zero terms. Shifting up damping terms &#39;</span> <span class="o">+</span>
-                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">new_damping</span><span class="o">==</span><span class="n">min_damping</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> to a minimum of &#39;</span> <span class="o">+</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">iradiation</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> to a minimum of &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">min_damping</span><span class="si">}</span><span class="s1"> N/(m/s)&#39;</span><span class="p">)</span>
+            <span class="n">new_damping</span> <span class="o">=</span> <span class="n">iradiation</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+                <span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="o">&gt;</span><span class="n">min_damping</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="n">min_damping</span><span class="p">)</span>
             <span class="n">hydro_data_new</span><span class="p">[</span><span class="s1">&#39;radiation_damping&#39;</span><span class="p">][:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">idof</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_damping</span>
     <span class="k">return</span> <span class="n">hydro_data_new</span></div>
 
@@ -2125,17 +2133,16 @@
                     <span class="sa">f</span><span class="s1">&#39;Real part of impedance for </span><span class="si">{</span><span class="n">dof</span><span class="si">}</span><span class="s1"> has negative or close to &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39;zero terms. Shifting up by </span><span class="si">{</span><span class="n">delta</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zi_diag</span><span class="p">[:,</span> <span class="n">dof</span><span class="p">])</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)</span>
             <span class="n">Zi_dof_real</span> <span class="o">=</span> <span class="n">Zi_diag</span><span class="p">[:,</span><span class="n">dof</span><span class="p">]</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">Zi_dof_imag</span> <span class="o">=</span> <span class="n">Zi_diag</span><span class="p">[:,</span><span class="n">dof</span><span class="p">]</span><span class="o">.</span><span class="n">imag</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">Zi_dof_real</span><span class="p">[</span><span class="n">Zi_dof_real</span> <span class="o">&lt;</span> <span class="n">min_damping</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_damping</span>
-            <span class="n">Zi_shifted</span><span class="p">[:,</span> <span class="n">dof</span><span class="p">,</span> <span class="n">dof</span><span class="p">]</span> <span class="o">=</span> <span class="n">Zi_dof_real</span> <span class="o">+</span> <span class="n">Zi_dof_imag</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">Zi_dof_real</span><span class="o">==</span><span class="n">min_damping</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">Zi_dof_real</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
                 <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s1">&#39;Real part of impedance for </span><span class="si">{</span><span class="n">dof</span><span class="si">}</span><span class="s1"> has negative or close to &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39;zero terms. Shifting up elements &#39;</span>
-                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Zi_dof_real</span><span class="o">==</span><span class="n">min_damping</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> to a minimum of &#39;</span> <span class="o">+</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Zi_dof_real</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> to a minimum of &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39; </span><span class="si">{</span><span class="n">min_damping</span><span class="si">}</span><span class="s1"> N/(m/s)&#39;</span><span class="p">)</span>
+            <span class="n">Zi_dof_real</span><span class="p">[</span><span class="n">Zi_dof_real</span> <span class="o">&lt;</span> <span class="n">min_damping</span><span class="p">]</span> <span class="o">=</span> <span class="n">min_damping</span>
+            <span class="n">Zi_shifted</span><span class="p">[:,</span> <span class="n">dof</span><span class="p">,</span> <span class="n">dof</span><span class="p">]</span> <span class="o">=</span> <span class="n">Zi_dof_real</span> <span class="o">+</span> <span class="n">Zi_dof_imag</span><span class="o">*</span><span class="mi">1</span><span class="n">j</span>
     <span class="k">return</span> <span class="n">Zi_shifted</span></div>
 
 
@@ -2316,7 +2323,7 @@
 <span class="sd">    :py:func:`wecopttool.change_bem_convention`).</span>
 
 <span class="sd">    It creates the *test matrix*, calls</span>
-<span class="sd">    :py:meth:`capytaine.bodies.bodies.FloatingBody.keep_immersed_part`,</span>
+<span class="sd">    :py:meth:`capytaine.bodies.bodies.FloatingBody.immersed_part`,</span>
 <span class="sd">    calls :py:meth:`capytaine.bem.solver.BEMSolver.fill_dataset`,</span>
 <span class="sd">    and changes the sign convention using</span>
 <span class="sd">    :py:func:`wecopttool.change_bem_convention`.</span>
@@ -2369,15 +2376,23 @@
                       <span class="s1">&#39;wavelength&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                       <span class="s1">&#39;wavenumber&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
                      <span class="p">}</span>
-    <span class="n">wec_im</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fb</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_immersed&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">keep_immersed_part</span><span class="p">()</span>
+    <span class="n">wec_im</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">wec_im</span> <span class="o">=</span> <span class="n">set_fb_centers</span><span class="p">(</span><span class="n">wec_im</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">wec_im</span><span class="p">,</span> <span class="s1">&#39;inertia_matrix&#39;</span><span class="p">):</span>
-        <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no inertia_matrix field. &#39;</span> <span class="o">+</span> 
-                     <span class="s1">&#39;If the FloatingBody mass is defined, it will be &#39;</span> <span class="o">+</span> 
-                     <span class="s1">&#39;used for calculating the inertia matrix here. &#39;</span> <span class="o">+</span> 
-                     <span class="s1">&#39;Otherwise, the neutral buoyancy assumption will &#39;</span> <span class="o">+</span> 
-                     <span class="s1">&#39;be used to auto-populate.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">wec_im</span><span class="o">.</span><span class="n">mass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">wec_im</span><span class="o">.</span><span class="n">mass</span> <span class="o">=</span> <span class="n">rho</span><span class="o">*</span><span class="n">wec_im</span><span class="o">.</span><span class="n">immersed_part</span><span class="p">()</span><span class="o">.</span><span class="n">volume</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no inertia_matrix or mass &#39;</span> <span class="o">+</span>
+                     <span class="s1">&#39;field. The mass will be calculated based on a &#39;</span> <span class="o">+</span>
+                     <span class="s1">&#39;neutral buoyancy assumption. The inertia matrix &#39;</span> <span class="o">+</span>
+                     <span class="s1">&#39;will be calculated assuming a solid and constant &#39;</span> <span class="o">+</span>
+                     <span class="s1">&#39;density body.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no inertia_matrix field. &#39;</span> <span class="o">+</span> 
+                     <span class="s1">&#39;The FloatingBody mass is defined and will be &#39;</span> <span class="o">+</span>
+                     <span class="s1">&#39;used for calculating the inertia matrix.&#39;</span><span class="p">)</span>
         <span class="n">wec_im</span><span class="o">.</span><span class="n">inertia_matrix</span> <span class="o">=</span> <span class="n">wec_im</span><span class="o">.</span><span class="n">compute_rigid_body_inertia</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
+    <span class="n">wec_im</span> <span class="o">=</span> <span class="n">wec_im</span><span class="o">.</span><span class="n">immersed_part</span><span class="p">()</span>
+    <span class="n">wec_im</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">wec_im</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_immersed&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">wec_im</span><span class="p">,</span> <span class="s1">&#39;hydrostatic_stiffness&#39;</span><span class="p">):</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no hydrostatic_stiffness field. &#39;</span> <span class="o">+</span>
                      <span class="s1">&#39;Capytaine will auto-populate the hydrostatic &#39;</span> <span class="o">+</span>
@@ -2409,6 +2424,7 @@
     <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov_force&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span>
         <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;Froude_Krylov_force&#39;</span><span class="p">])</span>
     <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;diffraction_force&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;diffraction_force&#39;</span><span class="p">])</span>
+    <span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conjugate</span><span class="p">(</span><span class="n">bem_data</span><span class="p">[</span><span class="s1">&#39;excitation_force&#39;</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">bem_data</span></div>
 
 
@@ -2448,8 +2464,8 @@
                     <span class="sa">f</span><span class="s1">&#39;Variable &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; is already in BEM data &#39;</span> <span class="o">+</span>
                     <span class="s1">&#39;with same value.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">atleast_2d</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
-            <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;friction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">friction</span><span class="p">)</span>
+            <span class="n">friction_data</span> <span class="o">=</span> <span class="n">atleast_2d</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
+            <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;friction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">friction_data</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">friction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">[</span><span class="s2">&quot;influenced_dof&quot;</span><span class="p">])</span>
         <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;friction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">]))</span>
@@ -2813,7 +2829,10 @@
                 <span class="n">def_val</span> <span class="o">=</span> <span class="n">fb</span><span class="o">.</span><span class="n">center_of_mass</span>
                 <span class="n">log_str</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="s2">&quot;Using the center of gravity (COG) as the rotation center &quot;</span> <span class="o">+</span>
-                    <span class="s2">&quot;for hydrostatics.&quot;</span><span class="p">)</span>
+                    <span class="s2">&quot;for hydrostatics. Note that the hydrostatics do not use the &quot;</span> <span class="o">+</span>
+                    <span class="s2">&quot;axes defined by the FloatingBody degrees of freedom, and the &quot;</span> <span class="o">+</span> 
+                    <span class="s2">&quot;rotation center should be set manually when using Capytaine to &quot;</span> <span class="o">+</span> 
+                    <span class="s2">&quot;calculate hydrostatics about an axis other than the COG.&quot;</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="nb">property</span><span class="p">,</span> <span class="n">def_val</span><span class="p">)</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">log_str</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="nb">property</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

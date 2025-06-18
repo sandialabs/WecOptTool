@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.utilities &mdash; WecOptTool 3.0.3 documentation</title>
+  <title>wecopttool.utilities &mdash; WecOptTool 3.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -14,7 +14,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9b3fc59f"></script>
+      <script src="../_static/documentation_options.js?v=dd1205ac"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="wecopttool.utilities.plot_hydrodynamic_coefficients" href="wecopttool.utilities.plot_hydrodynamic_coefficients.html" />
-    <link rel="prev" title="wecopttool.pto.controller_p" href="wecopttool.pto.controller_p.html" /> 
+    <link rel="prev" title="wecopttool.pto.PTO.velocity" href="wecopttool.pto.PTO.velocity.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,6 +52,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="wecopttool.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.controllers.html">wecopttool.controllers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.core.html">wecopttool.core</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.pto.html">wecopttool.pto</a></li>
@@ -60,6 +61,8 @@
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.utilities.plot_bode_impedance.html">wecopttool.utilities.plot_bode_impedance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.utilities.calculate_power_flows.html">wecopttool.utilities.calculate_power_flows</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.utilities.plot_power_flow.html">wecopttool.utilities.plot_power_flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.utilities.linear_solve.html">wecopttool.utilities.linear_solve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.utilities.create_dataarray.html">wecopttool.utilities.create_dataarray</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.waves.html">wecopttool.waves</a></li>
@@ -147,6 +150,12 @@
 <tr class="row-even"><td><p><a class="reference internal" href="wecopttool.utilities.plot_power_flow.html#wecopttool.utilities.plot_power_flow" title="wecopttool.utilities.plot_power_flow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_power_flow</span></code></a></p></td>
 <td><p>Plot power flow through a WEC as Sankey diagram.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.utilities.linear_solve.html#wecopttool.utilities.linear_solve" title="wecopttool.utilities.linear_solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linear_solve</span></code></a></p></td>
+<td><p>Solve a linear problem in the frequency domain with optimal controller.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.utilities.create_dataarray.html#wecopttool.utilities.create_dataarray" title="wecopttool.utilities.create_dataarray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_dataarray</span></code></a></p></td>
+<td><p>Create a DataArray from excitation and impedance data.</p></td>
+</tr>
 </tbody>
 </table>
 </section>
@@ -155,7 +164,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="wecopttool.pto.controller_p.html" class="btn btn-neutral float-left" title="wecopttool.pto.controller_p" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.pto.PTO.velocity.html" class="btn btn-neutral float-left" title="wecopttool.pto.PTO.velocity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="wecopttool.utilities.plot_hydrodynamic_coefficients.html" class="btn btn-neutral float-right" title="wecopttool.utilities.plot_hydrodynamic_coefficients" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

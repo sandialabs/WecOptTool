@@ -32,6 +32,7 @@
    "source": [
     "import autograd.numpy as np\n",
     "import capytaine as cpy\n",
+    "from capytaine.io.meshio import load_from_meshio\n",
     "import matplotlib.pyplot as plt\n",
     "from scipy.optimize import brute\n",
     "\n",
@@ -135,7 +136,11 @@
     "#### WEC geometry mesh\n",
     "Now we will create a surface mesh for the WEC hull and store it using the `FloatingBody` object from Capytaine.\n",
     "The WaveBot mesh is pre-defined in the `wecopttool.geom` module, so we will call it directly from there.\n",
-    "Note that the Capytaine `from_meshio` method can also import from other file types (STL, VTK, MSH, etc.), click [here](https://pypi.org/project/meshio/) for the full list of compatible mesh file types."
+    "Note that the Capytaine `from_meshio` method can also import from other file types (STL, VTK, MSH, etc.), click [here](https://pypi.org/project/meshio/) for the full list of compatible mesh file types.\n",
+    "\n",
+    "We also apply an internal lid which helps eliminate irregular frequency spikes. \n",
+    "The lid position was chosen by iterating through a series of mesh size factors and lid positions to move the frequency spikes above the range of interest. \n",
+    "See the `capytaine` documentation [here](https://capytaine.github.io/stable/index.html#) for more details. "
    ]
   },
   {
@@ -145,9 +150,14 @@
    "outputs": [],
    "source": [
     "wb = wot.geom.WaveBot()  # use standard dimensions\n",
-    "mesh_size_factor = 0.5 # 1.0 for default, smaller to refine mesh\n",
+    "mesh_size_factor = 0.2 # 1.0 for default, smaller to refine mesh\n",
     "mesh = wb.mesh(mesh_size_factor)\n",
-    "fb = cpy.FloatingBody.from_meshio(mesh, name=\"WaveBot\")"
+    "\n",
+    "# create mesh object for WaveBot and add internal lid\n",
+    "mesh_obj = load_from_meshio(mesh, 'WaveBot')\n",
+    "lid_mesh = mesh_obj.generate_lid(-2e-2)\n",
+    "\n",
+    "fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name=\"WaveBot\")"
    ]
   },
   {
@@ -205,7 +215,7 @@
     "### WEC object\n",
     "The `WEC` object in WecOptTool contains all the information about the WEC and its properties and dynamics.\n",
     "This constitutes the vast majority of the setup required to run a WecOptTool optimization.\n",
-    "The WEC object handles three categoreis of data that are passed on to the optimizer:\n",
+    "The WEC object handles three categories of data that are passed on to the optimizer:\n",
     "\n",
     "1. The intrinsic impedance of the WEC\n",
     "2. The WEC and PTO kinematic\n",
@@ -274,11 +284,13 @@
    "metadata": {},
    "source": [
     "Next, we use the utilities class `wecopttool.utilities`, which has functions that help you analyze and design WECs, but are not needed for the core function of WecOptTool.\n",
-    "For example, we calculate the WEC's intrinsic impedance with its hydrodynamic coefficients and inherent inertial properties. We make use of `wecopttool.add_linear_friction()` to convert the `bem_data` into a dataset which contains all zero friction data, because `wecopttool.check_radiation_damping()` and `wecopttool.hydrodynamic_impedance()` excpect a data variable called 'friction'.\n",
+    "For example, we calculate the WEC's intrinsic impedance with its hydrodynamic coefficients and inherent inertial properties. We make use of `wecopttool.add_linear_friction()` to convert the `bem_data` into a dataset which contains all zero friction data, because `wecopttool.check_radiation_damping()` and `wecopttool.hydrodynamic_impedance()` expect a data variable called 'friction'.\n",
     "\n",
-    "The intrinsic impedance tells us how a hydrodynamic body responds to different excitation frequencies. For oscillating systems we are intersted in both, the amplitude of the resulting velocity as well as the phase between velocity and excitation force. Bode plots are useful tool to visualize the frequency response function.\n",
+    "The intrinsic impedance tells us how a hydrodynamic body responds to different excitation frequencies. For oscillating systems we are interested in both, the amplitude of the resulting velocity as well as the phase between velocity and excitation force. Bode plots are useful tool to visualize the frequency response function.\n",
     "\n",
-    "The natural frequency reveals itself as a trough in the intrinsic impedance for restoring degrees of freedom (heave, roll, pitch)."
+    "The natural frequency reveals itself as a trough in the intrinsic impedance for restoring degrees of freedom (heave, roll, pitch).\n",
+    "\n",
+    "**NOTE:** we create a dedicated object for this plotting and do not reuse it beyond this purpose, as the `add_linear_friction()` and `check_radiation_damping()` methods will be automatically executed later on when we create our WEC object."
    ]
   },
   {
@@ -287,11 +299,11 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "hd = wot.add_linear_friction(bem_data, friction = None) \n",
-    "#we're not actually adding friction, but need the datavariables in hd \n",
-    "hd = wot.check_radiation_damping(hd)\n",
+    "bem_data_for_plotting = wot.add_linear_friction(bem_data, friction = None) \n",
+    "#we're not actually adding friction, but need the datavariables in bem_data_for_plotting \n",
+    "bem_data_for_plotting = wot.check_radiation_damping(bem_data_for_plotting)\n",
     "\n",
-    "intrinsic_impedance = wot.hydrodynamic_impedance(hd)\n",
+    "intrinsic_impedance = wot.hydrodynamic_impedance(bem_data_for_plotting)\n",
     "fig, axes = wot.utilities.plot_bode_impedance(intrinsic_impedance,\n",
     "                                              'WaveBot Intrinsic Impedance')"
    ]
@@ -325,7 +337,7 @@
    "source": [
     "name = [\"PTO_Heave\",]\n",
     "kinematics = np.eye(ndof)\n",
-    "controller = None\n",
+    "controller = wot.controllers.unstructured_controller()\n",
     "loss = None\n",
     "pto_impedance = None\n",
     "pto = wot.pto.PTO(ndof, kinematics, controller, pto_impedance, loss, name)"
@@ -359,7 +371,7 @@
     "nsubsteps = 4\n",
     "\n",
     "def const_f_pto(wec, x_wec, x_opt, waves): # Format for scipy.optimize.minimize\n",
-    "    f = pto.force_on_wec(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    f = pto.force(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "    return f_max - np.abs(f.flatten())\n",
     "\n",
     "ineq_cons = {'type': 'ineq',\n",
@@ -536,7 +548,7 @@
    "outputs": [],
    "source": [
     "plt.figure()\n",
-    "pto_tdom[0]['power'].loc['mech',:,:].plot()"
+    "pto_tdom['power'].sel(realization=0, type='mech').squeeze().plot()"
    ]
   },
   {
@@ -554,10 +566,10 @@
    "outputs": [],
    "source": [
     "plt.figure()\n",
-    "wec_tdom[0]['pos'].plot()\n",
+    "wec_tdom.sel(realization=0)['pos'].plot()\n",
     "\n",
     "plt.figure()\n",
-    "pto_tdom[0]['force'].plot()"
+    "pto_tdom.sel(realization=0)['force'].plot()"
    ]
   },
   {
@@ -796,21 +808,21 @@
    "outputs": [],
    "source": [
     "plt.figure()\n",
-    "wec_tdom[0]['pos'].plot(label='optimal mechanical')\n",
-    "wec_tdom_2[0]['pos'].plot(label='optimal electrical, constrained')\n",
-    "wec_tdom_2_nocon[0]['pos'].plot(label='optimal electrical, unconstrained')\n",
+    "wec_tdom.sel(realization=0)['pos'].plot(label='optimal mechanical')\n",
+    "wec_tdom_2.sel(realization=0)['pos'].plot(label='optimal electrical, constrained')\n",
+    "wec_tdom_2_nocon.sel(realization=0)['pos'].plot(label='optimal electrical, unconstrained')\n",
     "plt.legend(loc='lower right')\n",
     "\n",
     "plt.figure()\n",
-    "pto_tdom[0]['force'].plot(label='optimal mechanical')\n",
-    "pto_tdom_2[0]['force'].plot(label='optimal electrical, constrained')\n",
-    "pto_tdom_2_nocon[0]['force'].plot(label='optimal electrical, unconstrained')\n",
+    "pto_tdom.sel(realization=0)['force'].plot(label='optimal mechanical')\n",
+    "pto_tdom_2.sel(realization=0)['force'].plot(label='optimal electrical, constrained')\n",
+    "pto_tdom_2_nocon.sel(realization=0)['force'].plot(label='optimal electrical, unconstrained')\n",
     "plt.legend(loc='lower right')\n",
     "\n",
     "plt.figure()\n",
-    "pto_tdom[0]['power'].sel(type='mech').plot(label='optimal mechanical')\n",
-    "pto_tdom_2[0]['power'].sel(type='elec').plot(label='optimal electrical, constrained')\n",
-    "pto_tdom_2_nocon[0]['power'].sel(type='elec').plot(label='optimal electrical, unconstrained')\n",
+    "pto_tdom.sel(realization=0)['power'].sel(type='mech').plot(label='optimal mechanical')\n",
+    "pto_tdom_2.sel(realization=0)['power'].sel(type='elec').plot(label='optimal electrical, constrained')\n",
+    "pto_tdom_2_nocon.sel(realization=0)['power'].sel(type='elec').plot(label='optimal electrical, unconstrained')\n",
     "plt.legend(loc='lower right')\n"
    ]
   },
@@ -935,6 +947,8 @@
     "    f1 = 0.05\n",
     "    nfreq = 50\n",
     "    bem_data = wot.run_bem(fb, freq)\n",
+    "    bem_data = wot.add_linear_friction(bem_data, friction = None) \n",
+    "    bem_data = wot.check_radiation_damping(bem_data)\n",
     "\n",
     "    # Impedance definition\n",
     "    omega = bem_data.omega.values\n",
@@ -974,7 +988,7 @@
     "    f_max = 750.0\n",
     "\n",
     "    def const_f_pto(wec, x_wec, x_opt, waves):\n",
-    "        f = pto.force_on_wec(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "        f = pto.force(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "        return f_max - np.abs(f.flatten())\n",
     "\n",
     "    ineq_cons = {'type': 'ineq', 'fun': const_f_pto}\n",
@@ -1065,7 +1079,7 @@
    "metadata": {},
    "source": [
     "Note that in this case the difference in average power between the different keel radii is rather small.\n",
-    "This is because the PTO force constraint is active most of the time, therefore all considered geometries perform similarily.\n",
+    "This is because the PTO force constraint is active most of the time, therefore all considered geometries perform similarly.\n",
     "If you remove the PTO constraint and re-run the co-optimization study, you will see that the impact of radius on average electrical power is significantly higher."
    ]
   }
@@ -1086,7 +1100,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.11.4"
+   "version": "3.11.8"
   },
   "vscode": {
    "interpreter": {

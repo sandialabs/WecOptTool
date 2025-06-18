@@ -35,9 +35,13 @@
    "outputs": [],
    "source": [
     "import capytaine as cpy\n",
+    "from capytaine.io.meshio import load_from_meshio\n",
     "import autograd.numpy as np\n",
     "import matplotlib.pyplot as plt\n",
     "from scipy.linalg import block_diag\n",
+    "import xarray as xr\n",
+    "from math import comb\n",
+    "from wavespectra.construct.frequency import pierson_moskowitz\n",
     "\n",
     "import wecopttool as wot\n",
     "\n",
@@ -70,8 +74,13 @@
    "outputs": [],
    "source": [
     "fend = 1.875\n",
-    "nfreq = 150\n",
-    "f1 = fend / nfreq"
+    "nfreq_irreg = 150\n",
+    "f1_irreg = fend / nfreq_irreg\n",
+    "freq_irreg = wot.frequency(f1_irreg, nfreq_irreg, False) # False -> no zero frequency\n",
+    "\n",
+    "f1_reg = .325/2\n",
+    "nfreq_reg = 12\n",
+    "freq_reg = wot.frequency(f1_reg, nfreq_reg, False) # False -> no zero frequency"
    ]
   },
   {
@@ -82,18 +91,16 @@
    "source": [
     "# regular\n",
     "amplitude = 0.15\n",
-    "wavefreq = 0.35\n",
-    "waves_regular = wot.waves.regular_wave(f1, nfreq, wavefreq, amplitude)\n",
+    "wavefreq = 0.325\n",
+    "waves_regular = wot.waves.regular_wave(f1_reg, nfreq_reg, wavefreq, amplitude)\n",
     "\n",
     "# irregular\n",
     "Hs = 1.5\n",
     "Tp = 5 \n",
-    "\n",
     "nrealizations = 2\n",
     "\n",
     "fp = 1/Tp\n",
-    "spectrum = lambda f: wot.waves.pierson_moskowitz_spectrum(f, fp, Hs)\n",
-    "efth = wot.waves.omnidirectional_spectrum(f1, nfreq, spectrum, \"Pierson-Moskowitz\")\n",
+    "efth = pierson_moskowitz(freq=freq_irreg, hs=Hs, fp=fp)\n",
     "waves_irregular = wot.waves.long_crested_wave(efth, nrealizations=nrealizations)"
    ]
   },
@@ -144,7 +151,7 @@
     "                             h2=17.321 * in2m,\n",
     "                             scale_factor=1,\n",
     "                             freeboard=freeboard)\n",
-    "mesh = hull_geom.mesh(mesh_size_factor=0.5)\n",
+    "mesh = hull_geom.mesh(mesh_size_factor=0.3)\n",
     "_ = hull_geom.plot_cross_section()"
    ]
   },
@@ -177,21 +184,35 @@
    "outputs": [],
    "source": [
     "buoy_props = {\n",
-    "    'CG': 0.242, # m\n",
+    "    'CG': 0.298, # m\n",
     "    'MOI': 7484., # kg-m^2\n",
     "    'Resonance frequency': 0.35, # Hz\n",
     "}\n",
     "\n",
-    "flywheel_props = {\n",
-    "    'MOI': 25,  # kg-m^2\n",
-    "    'Coulomb friction': 2.0,  # N-m\n",
-    "    'Viscous friction': 0.02,  # N-m/rad\n",
-    "    'Gear ratio': 3, # -\n",
+    "# flywheel properties at example resonance\n",
+    "flywheel_properties = {\n",
+    "    'coulomb_friction': 4.5, # N*m\n",
+    "    'viscous_friction': 0.02, # N*ms/rad\n",
+    "    'motor_gear_ratio': 0.118,\n",
+    "    'MOI': 22.32, # kg*m^2\n",
     "}\n",
     "\n",
-    "spring_props = {\n",
+    "spring_properties = {\n",
+    "    'stiffness': 835.36, # N*m/rad\n",
+    "    'gear_ratio': 0.334,\n",
     "    'Max torque': 750, # N-m\n",
     "    'Max displacement': np.deg2rad(45.0), # rad\n",
+    "}\n",
+    "\n",
+    "# PTO properties\n",
+    "pto_properties = {\n",
+    "    'gear_ratio': 1.0,\n",
+    "    'torque_constant': 0.164,\n",
+    "    'winding_resistance': 0.0718,\n",
+    "    'winding_inductance': 0.0,\n",
+    "    'drivetrain_inertia': 0.0,\n",
+    "    'drivetrain_friction': 0.0,\n",
+    "    'drivetrain_stiffness': 0.0,\n",
     "}"
    ]
   },
@@ -225,7 +246,8 @@
    "metadata": {},
    "source": [
     "#### Hydrodynamics and hydrostatics\n",
-    "As mentioned above, the `FloatingBody` object in Capytaine only needs to model the buoy, since no other components are being excited by the waves."
+    "As mentioned above, the `FloatingBody` object in Capytaine only needs to model the buoy, since no other components are being excited by the waves. \n",
+    "We will not use the BEM results since we are using an empirical impedance model, but the BEM problem is still solved here for comparison purposes."
    ]
   },
   {
@@ -234,12 +256,21 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "pnr_fb = cpy.FloatingBody.from_meshio(mesh, name=\"Pioneer\")\n",
+    "mesh_obj = load_from_meshio(mesh, 'Pioneer')\n",
+    "lid_mesh = mesh_obj.generate_lid(-4e-2)\n",
+    "\n",
+    "pnr_fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name=\"WaveBot\")\n",
     "pnr_fb.add_rotation_dof(name='Pitch')\n",
     "pnr_fb.center_of_mass = np.array([0., 0., buoy_props['CG']])\n",
     "pnr_fb.rotation_center = pnr_fb.center_of_mass\n",
     "ndof = pnr_fb.nb_dofs\n",
-    "pnr_fb.show_matplotlib()"
+    "pnr_fb.show_matplotlib()\n",
+    "\n",
+    "pnr_fb.inertia_matrix = xr.DataArray(data=np.asarray(([[buoy_props['MOI']]])),\n",
+    "                            dims=['influenced_dof', 'radiating_dof'],\n",
+    "                            coords={'influenced_dof': list(pnr_fb.dofs),\n",
+    "                                    'radiating_dof': list(pnr_fb.dofs)},\n",
+    "                            name=\"inertia_matrix\")"
    ]
   },
   {
@@ -249,13 +280,15 @@
    "outputs": [],
    "source": [
     "rho = 1025. # kg/m^3\n",
-    "freq = wot.frequency(f1, nfreq, False) # False -> no zero frequency\n",
-    "bem_data = wot.run_bem(pnr_fb, freq)\n",
-    "omega = bem_data.omega.values\n",
+    "bem_data_reg = wot.run_bem(pnr_fb, freq_reg)\n",
+    "omega_reg = bem_data_reg.omega.values\n",
     "\n",
-    "pnr_fb.keep_immersed_part()\n",
+    "bem_data_irreg = wot.run_bem(pnr_fb, freq_irreg)\n",
+    "omega_irreg = bem_data_irreg.omega.values\n",
+    "\n",
+    "pnr_fb.immersed_part()\n",
     "k_buoy = pnr_fb.compute_hydrostatic_stiffness(rho=rho).values.squeeze()\n",
-    "k_spring = spring_props['Max torque'] / spring_props['Max displacement']\n",
+    "k_spring = spring_properties['Max torque'] / spring_properties['Max displacement']\n",
     "print(f'Hydrostatic stiffness from Capytaine: {k_buoy} N-m/rad')\n",
     "print('Hydrostatic stiffness from experiment: 37204 N-m/rad')"
    ]
@@ -264,7 +297,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "As with previous tutorials, we will plot the hydrodynamic coefficients to confirm that we are properly capturing the full excitation range of the buoy."
+    "Although the system has yet to be deployed as a WEC, the Coastal Pioneer Array itself has been collecting data from multiple locations. From the collected data, an empirical impedance model and excitation force spectrum has been developed. This empirical dataset can replace the BEM dataset in order to model the WEC dynamics. Here, we load in the data and convert it into two DataArrays for the intrinsic impedance and the excitation coefficients, respectively. We then interpolate from the empirical data to match the intended frequency array."
    ]
   },
   {
@@ -273,35 +306,75 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Plots\n",
-    "fig_am, ax_am = plt.subplots(tight_layout=True, sharex=True)\n",
-    "fig_rd, ax_rd = plt.subplots(tight_layout=True, sharex=True)\n",
-    "fig_ex, ax_ex = plt.subplots(tight_layout=True, sharex=True)\n",
+    "# load in the empirical data\n",
+    "datafile = 'data/pioneer_empirical_data.npz'\n",
     "\n",
-    "# Excitation\n",
-    "np.abs(bem_data.diffraction_force.sel(influenced_dof='Pitch')).plot(\n",
-    "    ax=ax_ex, linestyle='dashed', label='Diffraction force')\n",
-    "np.abs(bem_data.Froude_Krylov_force.sel(influenced_dof='Pitch')).plot(\n",
-    "    ax=ax_ex, linestyle='dashdot', label='Froude-Krylov force')\n",
-    "ex_handles, ex_labels = ax_ex.get_legend_handles_labels()\n",
-    "ax_ex.set_xlabel(f'$\\omega$', fontsize=10)\n",
-    "ax_ex.set_title('Wave Excitation Coefficients', fontweight='bold')\n",
-    "ax_ex.grid(True)\n",
-    "fig_ex.legend(ex_handles, ex_labels, loc='center right', frameon=False)\n",
+    "with np.load(datafile) as empirical_data:\n",
+    "    # Access the data within the 'with' block\n",
+    "    omega_data = empirical_data['omega_data']\n",
+    "    exc_coeff_data = empirical_data['exc_coeff_data']\n",
+    "    Zi_data = empirical_data['Zi_data']\n",
+    "    Zi_stiffness = empirical_data['Zi_stiffness']\n",
     "\n",
-    "# Added mass\n",
-    "bem_data.added_mass.sel(\n",
-    "    radiating_dof='Pitch', influenced_dof='Pitch').plot(ax=ax_am)\n",
-    "ax_am.set_xlabel(f'$\\omega$', fontsize=10)\n",
-    "ax_am.set_title('Added Mass Coefficients', fontweight='bold')\n",
-    "ax_am.grid(True)\n",
+    "dof_names = [\"Pitch\"]\n",
+    "directions = [0]\n",
     "\n",
-    "# Radiation damping\n",
-    "bem_data.radiation_damping.sel(\n",
-    "    radiating_dof='Pitch', influenced_dof='Pitch').plot(ax=ax_rd)\n",
-    "ax_rd.set_xlabel(f'$\\omega$', fontsize=10)\n",
-    "ax_rd.set_title('Radiation Damping Coefficients', fontweight='bold')\n",
-    "ax_rd.grid(True)"
+    "exc_coeff_data, Zi_data = wot.utilities.create_dataarray(Zi_data, exc_coeff_data, omega_data, directions, dof_names)\n",
+    "\n",
+    "# here extrapolation for impedance and padding with zeros for the excitation\n",
+    "exc_coeff_intrp_reg = exc_coeff_data.interp(omega = omega_reg, method='linear', kwargs={\"fill_value\": 0})\n",
+    "Zi_intrp_reg = Zi_data.interp(omega = omega_reg, kwargs={\"fill_value\": \"extrapolate\"})\n",
+    "\n",
+    "exc_coeff_intrp_irreg = exc_coeff_data.interp(omega = omega_irreg, method='linear', kwargs={\"fill_value\": 0})\n",
+    "Zi_intrp_irreg = Zi_data.interp(omega = omega_irreg, kwargs={\"fill_value\": \"extrapolate\"})"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "For validation purposes, we compare the empirical impedance and excitation to the results from BEM."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "hd = wot.add_linear_friction(bem_data_irreg, friction = None) \n",
+    "# we're not actually adding friction, but need the datavariables in hd \n",
+    "hd = wot.check_radiation_damping(hd)\n",
+    "\n",
+    "Zi_bem = wot.hydrodynamic_impedance(hd)\n",
+    "fig, axes = wot.utilities.plot_bode_impedance(Zi_bem,'WaveBot Intrinsic Impedance')\n",
+    "fig, axes = wot.utilities.plot_bode_impedance(Zi_data,'WaveBot Intrinsic Impedance',fig_axes=[fig, axes])\n",
+    "fig, axes = wot.utilities.plot_bode_impedance(Zi_intrp_irreg,'WaveBot Intrinsic Impedance',fig_axes=[fig, axes])\n",
+    "fig.set_size_inches(6, 4)\n",
+    "fig.legend(('BEM Data','Empirical Data','Interpolated Empirical Data'), bbox_to_anchor=(.58, .46))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig, ax = plt.subplots(2, 1,tight_layout=True, sharex=True, figsize=(6, 4))\n",
+    "\n",
+    "ax[0].semilogx(freq_irreg, np.real(bem_data_irreg['diffraction_force'][:,0,0]+bem_data_irreg['Froude_Krylov_force'][:,0,0]), label='BEM Data')\n",
+    "ax[0].semilogx(omega_data/(2*np.pi), np.real(exc_coeff_data[:,0,0]), label='Empirical Data')\n",
+    "ax[0].semilogx(omega_irreg/(2*np.pi), np.real(exc_coeff_intrp_irreg[:,0,0]), label='Interpolated Empirical Data')\n",
+    "ax[0].grid(True, which = 'both')\n",
+    "ax[1].semilogx(freq_irreg, np.imag(bem_data_irreg['diffraction_force'][:,0,0]+bem_data_irreg['Froude_Krylov_force'][:,0,0]), label='BEM Data')\n",
+    "ax[1].semilogx(omega_data/(2*np.pi), np.imag(exc_coeff_data[:,0,0]), label='Empirical Data')\n",
+    "ax[1].semilogx(omega_irreg/(2*np.pi), np.imag(exc_coeff_intrp_irreg[:,0,0]), label='Interpolated Empirical Data')\n",
+    "ax[1].grid(True, which = 'both')\n",
+    "\n",
+    "ax[0].set_ylabel('Re[Excitation]')\n",
+    "ax[1].set_ylabel('Im[Excitation]')\n",
+    "ax[1].set_xlabel('Frequency (Hz)')\n",
+    "ax[0].legend()"
    ]
   },
   {
@@ -341,8 +414,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "nstate_pto = 2 * nfreq # PTO forces\n",
-    "nstate_fw = 2 * nfreq  # Flywheel positions\n",
+    "nstate_pto = 2 * nfreq_reg # PTO forces\n",
+    "nstate_fw = 2 * nfreq_reg  # Flywheel positions\n",
     "nstate_opt = nstate_pto + nstate_fw"
    ]
   },
@@ -395,10 +468,11 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "def f_motor(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
-    "    motor = np.reshape(x_opt[:nstate_pto], (-1, ndof), order='F')\n",
+    "def force_from_generator(wec, x_wec, x_opt, waves=None, nsubsteps=1):\n",
+    "    f_fd = np.reshape(x_opt[:nstate_pto], (-1, ndof), order='F')\n",
     "    time_matrix = wec.time_mat_nsubsteps(nsubsteps)\n",
-    "    return np.dot(time_matrix, motor)"
+    "    torque = np.dot(time_matrix, f_fd) * flywheel_properties['motor_gear_ratio']\n",
+    "    return torque"
    ]
   },
   {
@@ -406,8 +480,7 @@
    "metadata": {},
    "source": [
     "##### PTO Impedance\n",
-    "The PTO impedance is defined using the same 2-port impedance model as in previous tutorials.\n",
-    "The drivetrain inertia, friction, and stiffness are not included here since they are accounted for in the modeling of the additional non-hydrodynamic degree of freedom via additional forces and constraints below."
+    "The PTO impedance is defined using the same 2-port impedance model as in previous tutorials. This pto model does not account for the relative velocity, generator force, etc. so it will not be used to define the PTO in the final system. Instead, it is used to create the PTO transfer matrix which is used in the calculation of electrical power."
    ]
   },
   {
@@ -416,57 +489,26 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "torque_constant = 3.512\n",
-    "winding_resistance = 0.304\n",
+    "drivetrain_impedance = (1j*omega_reg*pto_properties['drivetrain_inertia'] +\n",
+    "                    pto_properties['drivetrain_friction'] +\n",
+    "                    1/(1j*omega_reg)*pto_properties['drivetrain_stiffness'])\n",
     "\n",
-    "z_11 = np.array([[np.zeros(omega.shape)]])\n",
-    "off_diag = np.sqrt(3.0/2.0) * torque_constant\n",
-    "z_12 = np.array([[-1*(off_diag+0j) * np.ones(omega.shape)]])\n",
-    "z_21 = np.array([[-1*(off_diag+0j) * np.ones(omega.shape)]])\n",
-    "z_22 = np.array([[winding_resistance * np.ones(omega.shape)]])"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
-    "When using the `PTO` module, the 2x2 impedance matrix is passed to the `wot.pto.PTO` object and converted into a transfer matrix to calculate the power at each frequency.\n",
-    "While we are not using the `PTO` module, we will repeat this process almost verbatim here.\n",
-    "See the `_make_abcd` and `_make_mimo_transfer_mat` functions in the `PTO` module if you are interested in more technical details."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "z_12_inv = np.linalg.inv(z_12.T).T\n",
-    "mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)\n",
-    "abcd_11 = -1 * mmult(z_12_inv, z_11)\n",
-    "abcd_12 = z_12_inv\n",
-    "abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))\n",
-    "abcd_22 = mmult(z_22, z_12_inv)\n",
-    "row_1 = np.hstack([abcd_11, abcd_12])\n",
-    "row_2 = np.hstack([abcd_21, abcd_22])\n",
-    "abcd = np.vstack([row_1, row_2])\n",
+    "winding_impedance = pto_properties['winding_resistance'] + 1j*omega_reg*pto_properties['winding_inductance']\n",
     "\n",
-    "for idof in range(2):\n",
-    "    for jdof in range(2):\n",
-    "        Zp = abcd[idof, jdof, :]\n",
-    "        re = np.real(Zp)\n",
-    "        im = np.imag(Zp)\n",
-    "        blocks = [np.array([[ire, iim], [iim, ire]])\n",
-    "                           for (ire, iim) in zip(re[:-1], im[:-1])]\n",
-    "        blocks = [re[0]] + blocks + [re[-1]]\n",
-    "        if jdof==0:\n",
-    "            row = block_diag(*blocks)\n",
-    "        else:\n",
-    "            row = np.hstack([row, block_diag(*blocks)])\n",
-    "    if idof==0:\n",
-    "        transfer_mat = row\n",
-    "    else:\n",
-    "        transfer_mat = np.vstack([transfer_mat, row])"
+    "pto_impedance_11 = -1* pto_properties['gear_ratio']**2 * drivetrain_impedance\n",
+    "off_diag = np.sqrt(3.0/2.0) * pto_properties['torque_constant'] * pto_properties['gear_ratio']\n",
+    "pto_impedance_12 = -1*(off_diag+0j) * np.ones(omega_reg.shape)\n",
+    "pto_impedance_21 = -1*(off_diag+0j) * np.ones(omega_reg.shape)\n",
+    "pto_impedance_22 = winding_impedance\n",
+    "pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],\n",
+    "                        [pto_impedance_21, pto_impedance_22]])\n",
+    "\n",
+    "pto = wot.pto.PTO(ndof, \n",
+    "                  kinematics=[1], \n",
+    "                  controller=wot.controllers.unstructured_controller(), \n",
+    "                  impedance=pto_impedance, \n",
+    "                  loss=None, \n",
+    "                  names=None)\n"
    ]
   },
   {
@@ -474,8 +516,7 @@
    "metadata": {},
    "source": [
     "##### Power and Energy\n",
-    "Finally, we will wrap the relative motions, force, and impedance functions together to calculate average electrical power.\n",
-    "This is again very close to what is found in the `PTO` module, except `rel_velocity` replaces `wot.pto.PTO.velocity` and `f_motor` replaces `wot.pto.PTO.force`."
+    "Finally, we will wrap the relative motions, force, and impedance functions together to calculate average electrical power. This is again very close to what is found in the PTO module, except `rel_velocity` replaces `wot.pto.PTO.velocity` and `force_from_generator` replaces `wot.pto.PTO.force`."
    ]
   },
   {
@@ -485,18 +526,18 @@
    "outputs": [],
    "source": [
     "def mechanical_power(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
-    "    force_td = f_motor(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    force_td = force_from_generator(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "    vel_td = rel_velocity(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "    return vel_td * force_td\n",
     "\n",
     "def electrical_power(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
     "    q1_td = rel_velocity(wec, x_wec, x_opt, waves)\n",
-    "    e1_td = f_motor(wec, x_wec, x_opt, waves)\n",
+    "    e1_td = force_from_generator(wec, x_wec, x_opt, waves)\n",
     "    q1 = wot.complex_to_real(wec.td_to_fd(q1_td, False))\n",
     "    e1 = wot.complex_to_real(wec.td_to_fd(e1_td, False))\n",
     "    vars_1 = np.hstack([q1, e1])\n",
     "    vars_1_flat = wec.dofmat_to_vec(vars_1)\n",
-    "    vars_2_flat = np.dot(transfer_mat, vars_1_flat)\n",
+    "    vars_2_flat = np.dot(pto._transfer_mat, vars_1_flat)\n",
     "    vars_2 = wot.vec_to_dofmat(vars_2_flat, 2)\n",
     "    q2 = vars_2[:, 0]\n",
     "    e2 = vars_2[:, 1]\n",
@@ -519,10 +560,10 @@
    "metadata": {},
    "source": [
     "### 1.4 Constraints\n",
-    "The Pioneer model only contains one constraint based on the motor being used:\n",
+    "The Pioneer model only contains one constraint based on the generator being used:\n",
     "\n",
-    " * **Peak torque** - The motor should avoid torques greater than 120 N-m.\n",
-    " This is the same basic constraint as `const_f_pto` from Tutorial 1, except we use our `f_motor` definition instead of `wot.pto.PTO.force_on_wec`."
+    "* **Peak torque** - The motor should avoid torques greater than 120 N-m. \n",
+    "This is the same basic constraint as `const_f_pto` from Tutorial 1, except we use our `force_from_generator` definition instead of `wot.pto.PTO.force_on_wec`."
    ]
   },
   {
@@ -531,10 +572,12 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "torque_peak_max = 120.\n",
-    "def const_peak_torque_pto(wec, x_wec, x_opt, waves, nsubsteps=5):\n",
-    "    torque = f_motor(wec, x_wec, x_opt, waves, nsubsteps)\n",
-    "    return torque_peak_max - np.abs(torque.flatten())"
+    "max_generator_torque = 25.8 # N*m\n",
+    "nsubsteps_constraints = 5\n",
+    "\n",
+    "def constraint_max_generator_torque(wec, x_wec, x_opt, waves, nsubsteps=nsubsteps_constraints):\n",
+    "    torque = force_from_generator(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    return max_generator_torque - np.abs(torque.flatten())"
    ]
   },
   {
@@ -544,14 +587,18 @@
     "### 1.5 Additional forces\n",
     "Here we add in the forces acting on the bodies other than those generated from wave loading.\n",
     "\n",
-    " * **Motor damping** - The resisting torque resulting from the damping on the PTO.\n",
-    " This is very similar to the `wot.pto.PTO.force_on_wec` additional force given in previous tutorials. \n",
-    " This is already being accounted for by the `f_motor` function above.\n",
-    " * **Flywheel friction** - The dissipative torque from the generator and components.\n",
-    " This is defined as a nonlinear force using both Coulomb friction (dependent on the PTO direction) and the viscous friction (dependent on the PTO speed).\n",
-    " * **Magnetic spring** - The restoring torque caused by the torsional spring between the buoy and flywheel.\n",
-    " Note the gear ratio is included in this equation, as the gearbox is connected in series with the spring.\n",
-    " The position of the spring is the relative position of the flywheel and buoy scaled by the reciprocal of gear ratio squared. "
+    "* **Flywheel friction** - The dissipative torque from the generator and components. This is defined as a nonlinear force using both Coulomb friction (dependent on the PTO direction) and the viscous friction (dependent on the PTO speed).\n",
+    "\n",
+    "* **Magnetic spring** - The restoring torque caused by the torsional spring between the buoy and flywheel. Note a spring gear ratio is included in this equation, as a gearbox is connected in series with the spring. The position of the spring is the relative position of the flywheel and buoy scaled by the reciprocal of gear ratio squared. There are 2 options here: \n",
+    "\n",
+    "   * Linear spring:  \n",
+    "        * Used for simplified modeling purposes \n",
+    "        * The WecOptTool optimization problem is first solved with the linear spring, the results from which are used as initialization for the nonlinear spring case\n",
+    "\n",
+    "   * Nonlinear spring: \n",
+    "        * Represents the real spring design developed for this application \n",
+    "        * The resultant torque has a periodic \"tilted sine\" profile with respect to the spring angle. This design emulates a linear spring until about 135 degrees in either direction before repreating the torque profile.\n",
+    "        * Final result uses the nonlinear spring"
    ]
   },
   {
@@ -560,17 +607,46 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "def f_friction(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
-    "    rel_vel = rel_velocity(wec, x_wec, x_opt, waves, nsubsteps)\n",
-    "    return -1 * (\n",
-    "        np.tanh(rel_vel) * flywheel_props['Coulomb friction']\n",
-    "      + rel_vel * flywheel_props['Viscous friction']\n",
-    "    )\n",
+    "def force_from_friction(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
+    "    rel_vel = rel_velocity(wec, x_wec, x_opt, waves, nsubsteps) * flywheel_properties['motor_gear_ratio']\n",
+    "    fric =  -1*(\n",
+    "        np.tanh(rel_vel)*flywheel_properties['coulomb_friction'] +\n",
+    "        rel_vel*flywheel_properties['viscous_friction']\n",
+    "    ) * flywheel_properties['motor_gear_ratio']\n",
+    "    return fric\n",
     "\n",
-    "def f_spring(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
-    "    pos = rel_position(wec, x_wec, x_opt, waves, nsubsteps) / (flywheel_props['Gear ratio']**2)\n",
-    "    spring_force = -k_spring  * pos\n",
-    "    return spring_force"
+    "def linear_spring(pos):\n",
+    "    return spring_properties['gear_ratio'] * -spring_properties['stiffness'] * pos\n",
+    "\n",
+    "def force_from_lin_spring(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
+    "        pos = rel_position(wec, x_wec, x_opt, waves, nsubsteps) * spring_properties['gear_ratio']\n",
+    "        return linear_spring(pos)\n",
+    "\n",
+    "def nonlinear_spring(pos):\n",
+    "    # 135 deg nonlinear spring\n",
+    "    spring_eq_pos_td = pos - np.pi\n",
+    "    n = 12\n",
+    "    slope = 1/(2**(2*n))*comb(2*n,n)\n",
+    "    scale = 1/slope\n",
+    "    new_pos = 0\n",
+    "    for ind in range(n):\n",
+    "        k = ind+1\n",
+    "        coeffs = comb(2*n, n-k)/(k*(2**(2*n-1)))\n",
+    "        new_pos = new_pos - coeffs*np.sin(k*spring_eq_pos_td)\n",
+    "    return spring_properties['gear_ratio'] * -spring_properties['stiffness'] * scale * new_pos\n",
+    "\n",
+    "def force_from_nl_spring(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
+    "    pos = rel_position(wec, x_wec, x_opt, waves, nsubsteps) * spring_properties['gear_ratio']\n",
+    "    return nonlinear_spring(pos)\n",
+    "\n",
+    "spring_angle_rad = np.arange(-2*np.pi, 2*np.pi, np.pi/200)\n",
+    "\n",
+    "plt.figure()\n",
+    "plt.plot(spring_angle_rad,linear_spring(spring_angle_rad), label = 'Linear spring')\n",
+    "plt.plot(spring_angle_rad,nonlinear_spring(spring_angle_rad), label = 'Nonlinear spring',ls='--')\n",
+    "plt.xlabel('Spring displacement (rad)')\n",
+    "plt.ylabel('Spring torque [N-m]')\n",
+    "plt.legend()"
    ]
   },
   {
@@ -582,6 +658,9 @@
     "\n",
     "$$ r(x) = I \\alpha - \\tau = 0 $$\n",
     "\n",
+    "Note that there are 2 residual equations below, one using the linear spring and another using the nonlinear spring. \n",
+    "Both are included because we solve the problem using the linear spring to given initial conditions for the nonlinear spring solve. \n",
+    "More information is included in Section 2.1.\n",
     "This is the same structure as the residual for the WEC dynamics described in the [WecOptTool theory documentation](https://sandialabs.github.io/WecOptTool/theory.html).\n",
     "Also compare this equation to the 2nd dynamics equation listed [above](#pitch-resonator).\n",
     "\n",
@@ -595,27 +674,37 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "def fw_inertia(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
+    "def flywheel_inertia(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
     "    pos_fw = wec.vec_to_dofmat(x_opt[nstate_pto:])\n",
     "    acc_fw = np.dot(wec.derivative2_mat, pos_fw)\n",
     "    time_matrix = wec.time_mat_nsubsteps(nsubsteps)\n",
     "    acc_fw = np.dot(time_matrix, acc_fw)\n",
-    "    return flywheel_props['MOI'] * acc_fw\n",
+    "    return flywheel_properties['MOI'] * acc_fw\n",
     "\n",
-    "def const_flywheel_resid(wec, x_wec, x_opt, waves):\n",
-    "    return (fw_inertia(wec, x_wec, x_opt, waves)\n",
-    "          + f_spring(wec, x_wec, x_opt, waves)\n",
-    "          + f_friction(wec, x_wec, x_opt, waves)\n",
-    "          + f_motor(wec, x_wec, x_opt, waves)\n",
-    "          ).flatten()"
+    "def flywheel_residual_lin_spring(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
+    "    resid = (\n",
+    "    flywheel_inertia(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_lin_spring(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_friction(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_generator(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    )\n",
+    "    return resid.flatten()\n",
+    "\n",
+    "def flywheel_residual_nl_spring(wec, x_wec, x_opt, waves = None, nsubsteps = 1):\n",
+    "    resid = (\n",
+    "    flywheel_inertia(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_nl_spring(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_friction(wec, x_wec, x_opt, waves, nsubsteps) +\n",
+    "    force_from_generator(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    )\n",
+    "    return resid.flatten()"
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "We now create the additional forces and constaints that will be passed to the `WEC` object.\n",
-    "Note that `f_add` only pertains to the buoy since that is the only degree of freedom included in the BEM data; our flywheel residual equation handles these forces for the flywheel in the opposite direction."
+    "We now create the additional forces and constaints that will be passed to the `WEC` object. Note that `f_add` only pertains to the buoy since that is the only degree of freedom included in the BEM data; our flywheel residual equation handles these forces for the flywheel in the opposite direction. Just like for the flywheel residual equations, there are 2 different sets of added forces and constraints, one including the linear spring and another including the nonlinear spring."
    ]
   },
   {
@@ -624,15 +713,26 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "f_add = {\n",
-    "    'Motor': f_motor,\n",
-    "    'Friction': f_friction,\n",
-    "    'Spring': f_spring,   \n",
+    "f_add_lin_spring = {\n",
+    "    'Generator': force_from_generator,\n",
+    "    'Friction': force_from_friction,\n",
+    "    'Spring': force_from_lin_spring,\n",
     "}\n",
     "\n",
-    "constraints = [\n",
-    "    {'type': 'ineq', 'fun': const_peak_torque_pto},\n",
-    "    {'type': 'eq', 'fun': const_flywheel_resid},\n",
+    "f_add_nl_spring = {\n",
+    "    'Generator': force_from_generator,\n",
+    "    'Friction': force_from_friction,\n",
+    "    'Spring': force_from_nl_spring,\n",
+    "}\n",
+    "\n",
+    "constraints_lin_spring = [\n",
+    "    {'type': 'eq', 'fun': flywheel_residual_lin_spring}, # flywheel EoM\n",
+    "    {'type': 'ineq', 'fun': constraint_max_generator_torque},\n",
+    "]\n",
+    "\n",
+    "constraints_nl_spring = [\n",
+    "    {'type': 'eq', 'fun': flywheel_residual_nl_spring}, # flywheel EoM\n",
+    "    {'type': 'ineq', 'fun': constraint_max_generator_torque},\n",
     "]"
    ]
   },
@@ -641,7 +741,7 @@
    "metadata": {},
    "source": [
     "### 1.7 WEC object\n",
-    "We now have all the information required to create our `WEC` object."
+    "We now have all the information required to create our `WEC` object. The `from_impedance` method is used, because we are using our empirical impedance data. We create one `WEC` object for each of the linear and nonlinear springs."
    ]
   },
   {
@@ -650,11 +750,15 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "wec = wot.WEC.from_bem(bem_data,\n",
-    "                       f_add=f_add,\n",
-    "                       constraints=constraints,\n",
-    "                       uniform_shift=False,\n",
-    "                       dof_names=bem_data.influenced_dof.values,)"
+    "wec_lin = wot.WEC.from_impedance(freq_reg, Zi_intrp_reg,exc_coeff_intrp_reg,\n",
+    "                            Zi_stiffness,\n",
+    "                            f_add_lin_spring,\n",
+    "                            constraints_lin_spring)\n",
+    "\n",
+    "wec_nl = wot.WEC.from_impedance(freq_reg, Zi_intrp_reg,exc_coeff_intrp_reg,\n",
+    "                            Zi_stiffness,\n",
+    "                            f_add_nl_spring,\n",
+    "                            constraints_nl_spring)"
    ]
   },
   {
@@ -664,7 +768,7 @@
     "## 2. Regular wave results\n",
     "\n",
     "### 2.1 Solve\n",
-    "As in previous tutorials, we will optimize for electrical power absorption."
+    "As in previous tutorials, we will optimize for electrical power absorption. First, we solve the optimization problem using the linear spring case, then we use those results to initialize the nonlinear spring case. This process helps the optimizer (which can have difficulty with highly nonlinear force profiles) converge quicker and more consistently."
    ]
   },
   {
@@ -674,12 +778,24 @@
    "outputs": [],
    "source": [
     "obj_fun = average_electrical_power\n",
-    "results = wec.solve(\n",
+    "results = wec_lin.solve(\n",
     "    waves_regular,\n",
     "    obj_fun,\n",
     "    nstate_opt,\n",
-    "    scale_x_wec=1e1,\n",
-    "    scale_x_opt=1e-2,\n",
+    "    scale_x_wec=1e0,\n",
+    "    scale_x_opt=np.concatenate((np.array([1e-1])*np.ones(nstate_pto), 1 * np.ones(nstate_fw))),\n",
+    "    scale_obj=1e-2,\n",
+    ")\n",
+    "x_wec_0, x_opt_0 = wec_lin.decompose_state(results[0].x)\n",
+    "\n",
+    "results = wec_nl.solve(\n",
+    "    waves_regular,\n",
+    "    obj_fun,\n",
+    "    nstate_opt,\n",
+    "    x_wec_0=x_wec_0, # initialize with result from linear spring case\n",
+    "    x_opt_0=x_opt_0, # initialize with result from linear spring case\n",
+    "    scale_x_wec=1e0,\n",
+    "    scale_x_opt=np.concatenate((np.array([1e-1])*np.ones(nstate_pto), 1 * np.ones(nstate_fw))),\n",
     "    scale_obj=1e-2,\n",
     ")\n",
     "print(f'Optimal average power: {results[0].fun:.2f} W')"
@@ -690,7 +806,7 @@
    "metadata": {},
    "source": [
     "### 2.2 Post-process and plot\n",
-    "Again, since we are not using the `PTO` module, post-processing using `wot.pto.PTO.post_process` is not an option here, so we have to manually post-process the outputs related to the PTO and flywheel.\n",
+    "Again, since we are not actually using the `PTO` module in the optimization problem, post-processing using `wot.pto.PTO.post_process` is not an option here, so we have to manually post-process the outputs related to the PTO and flywheel.\n",
     "This is pretty intuitive using the functions we created earlier.\n",
     "The outputs related to the buoy can still be derived directly from `wot.wec.post_process`."
    ]
@@ -702,19 +818,20 @@
    "outputs": [],
    "source": [
     "nsubsteps = 5\n",
-    "wec_fdom, wec_tdom = wec.post_process(wec, results, waves_regular, nsubsteps=nsubsteps)\n",
+    "wec_fdom, wec_tdom = wec_nl.post_process(wec_nl, results, waves_regular, nsubsteps=nsubsteps)\n",
     "\n",
     "# Manually post-process PTO and flywheel outputs\n",
-    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq)\n",
-    "fw_pos = np.dot(wec.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
-    "pto_pos = rel_position(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
-    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
-    "pto_force = f_motor(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
-    "pto_force_fd = wec.td_to_fd(pto_force[::nsubsteps])\n",
-    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
-    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq_reg)\n",
+    "fw_pos = np.dot(wec_nl.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
+    "pto_pos = rel_position(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_vel = rel_velocity(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_force = force_from_generator(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_force_fd = wec_nl.td_to_fd(pto_force[::nsubsteps])\n",
+    "spring_force = force_from_nl_spring(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_mech_power = mechanical_power(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_elec_power = electrical_power(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
     "avg_mech_power = np.mean(pto_mech_power)\n",
-    "avg_elec_power = np.mean(pto_elec_power)\n"
+    "avg_elec_power = np.mean(pto_elec_power)"
    ]
   },
   {
@@ -727,6 +844,7 @@
     " * The gearing in series with the torsional spring (which reduces the effective spring stiffness) significantly amplifies the rotation of the flywheel despite the buoy only pitching modestly.\n",
     " The gear ratio of 3 was selected by the Pioneer team to keep the system in resonance considering the spring stiffness, moment of inertia of the flywheel, and the resonance frequency of the buoy.\n",
     " Try increasing the gear ratio or flywheel moment of inertia—this will actually reduce the power generated since it will bring the effective stiffness of the flywheel out of resonance, causing less motion relative to the buoy.\n",
+    " * The nonlinear spring torque is sinusoidal because it stays within the linear region of operation.\n",
     " * The mechanical and electrical power outputs are similar, since our impedance model has only a small amount of resistance and no inductance.\n",
     " * The buoy's pitch amplitude is larger than expected for this device and is likely due to underestimation of the radiation damping by the BEM. "
    ]
@@ -737,8 +855,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(12, 12))\n",
-    "t = wec_tdom[0].time.values\n",
+    "fig, ax = plt.subplots(nrows=5, sharex=True, figsize=(12, 12))\n",
+    "t = wec_tdom.sel(realization=0).time.values\n",
     "\n",
     "# Positions\n",
     "ax[0].plot(t, fw_pos*180/np.pi, label='Flywheel', c='k')\n",
@@ -749,20 +867,21 @@
     "\n",
     "ax0 = ax[0].twinx()\n",
     "ax0.tick_params(axis='y', labelcolor='b')\n",
-    "(wec_tdom[0].pos*180/np.pi).plot(hue='influenced_dof', label='Buoy', ax=ax0, c='b')\n",
+    "(wec_tdom.sel(realization=0).pos*180/np.pi).plot(hue='influenced_dof', label='Buoy', ax=ax0, c='b')\n",
     "ax0.set_ylabel('Buoy pos. [deg]', color='b')\n",
     "ax0.set_title('')\n",
     "\n",
     "# Torques\n",
     "ax[1].plot(t, pto_force, c='k')\n",
-    "ax[1].plot([t[0], t[-1]], [torque_peak_max, torque_peak_max], 'k--')\n",
-    "ax[1].plot([t[0], t[-1]], [-1*torque_peak_max, -1*torque_peak_max], 'k--')\n",
+    "ax[1].plot([t[0], t[-1]], [max_generator_torque, max_generator_torque], 'k--')\n",
+    "ax[1].plot([t[0], t[-1]], [-1*max_generator_torque, -1*max_generator_torque], 'k--')\n",
     "ax[1].set_ylabel('PTO torque [N-m]')\n",
     "ax[1].set_title('Torque')\n",
     "\n",
     "ax1 = ax[1].twinx()\n",
     "ax1.tick_params(axis='y', labelcolor='b')\n",
-    "wec_tdom[0]['force'].sel(type=['Froude_Krylov', 'diffraction']).sum('type').plot(ax=ax1, c='b')\n",
+    "# when using an impedance model, the excitation force cannot be split up into Froude-Krylov and diffraction\n",
+    "wec_tdom.sel(realization=0)['force'].sel(type='excitation').plot(ax=ax1, c='b') \n",
     "ax1.set_ylabel('Excitation torque [N-m]', color='b')\n",
     "ax1.set_title('Torque')\n",
     "\n",
@@ -771,13 +890,24 @@
     "ax[2].set_title('PTO Velocity')\n",
     "ax[2].set_ylabel('Velocity [deg/s]')\n",
     "\n",
+    "# Spring\n",
+    "ax[3].plot(t, spring_force, c='k')\n",
+    "ax[3].set_title('Nonlinear Spring Torque')\n",
+    "ax[3].set_ylabel('Torque [N-m]')\n",
+    "\n",
+    "ax3 = ax[3].twinx()\n",
+    "ax3.tick_params(axis='y', labelcolor='b')\n",
+    "ax3.plot(t, pto_pos, c='b')\n",
+    "ax3.set_ylabel('PTO pos. [deg]', color='b')\n",
+    "ax3.set_title('')\n",
+    "\n",
     "# Power\n",
-    "ax[3].plot(t, pto_mech_power, label='Mech. power ($\\\\bar{P}_{mech}$: ' + f'{avg_mech_power:.1f} W)')\n",
-    "ax[3].plot(t, pto_elec_power, linestyle='dashdot', label='Elec. power ($\\\\bar{P}_{elec}$: ' + f'{avg_elec_power:.1f} W)')\n",
-    "ax[3].set_title('Power Output')\n",
-    "ax[3].set_ylabel('Power [W]')\n",
-    "ax[3].legend()\n",
-    "ax[3].set_xlabel('Time [s]')\n",
+    "ax[4].plot(t, pto_mech_power, label='Mech. power ($\\\\bar{P}_{mech}$: ' + f'{avg_mech_power:.1f} W)')\n",
+    "ax[4].plot(t, pto_elec_power, linestyle='dashdot', label='Elec. power ($\\\\bar{P}_{elec}$: ' + f'{avg_elec_power:.1f} W)')\n",
+    "ax[4].set_title('Power Output')\n",
+    "ax[4].set_ylabel('Power [W]')\n",
+    "ax[4].legend()\n",
+    "ax[4].set_xlabel('Time [s]')\n",
     "\n",
     "for axi in ax:\n",
     "    axi.grid()\n",
@@ -804,14 +934,11 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "hydro_data = wot.add_linear_friction(bem_data, friction=None)    \n",
-    "hydro_data = wot.check_radiation_damping(hydro_data, uniform_shift=False)    \n",
-    "\n",
-    "Zi = wot.hydrodynamic_impedance(hydro_data)\n",
+    "Zi = Zi_intrp_reg\n",
     "Rad_res = np.real(Zi.squeeze())\n",
     "\n",
-    "Fex = wec_fdom[0].force.sel(type=['Froude_Krylov', 'diffraction']).sum('type')\n",
-    "Vel = wec_fdom[0].vel\n",
+    "Fex = wec_fdom.sel(realization=0).force.sel(type=['excitation'])\n",
+    "Vel = wec_fdom.sel(realization=0).vel\n",
     "\n",
     "P_max_absorbable = (np.abs(Fex)**2/(8*Rad_res) ).squeeze().sum('omega').item() # after Falnes Eq. 6.10\n",
     "P_opt_excitation = 2*P_max_absorbable # after Falnes Eq. 6.10\n",
@@ -823,16 +950,14 @@
     "            'Actual Excitation': -1*(np.real(P_excited)), \n",
     "}\n",
     "power_flows['Unused Potential'] =  power_flows['Optimal Excitation'] - power_flows['Actual Excitation']\n",
-    "power_flows['Absorbed'] =  power_flows['Actual Excitation'] - power_flows['Radiated']  # after Falnes Eq. 6.2 \n",
-    "#absorbed by WEC-PTO (difference between actual excitation power and actual radiated power needs to be absorbed by PTO)"
+    "power_flows['Absorbed'] =  power_flows['Actual Excitation'] - power_flows['Radiated']  # after Falnes Eq. 6.2 "
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "We also calculate the power dissipated due to flywheel friction and make sure that the absorbed power (calculated as the difference between excited and radiated power) matches the sum of mechanical power captured by the PTO and the power dissipated due to flywheel friction.\n",
-    "We use a relative tolerance of 1%."
+    "We also calculate the power dissipated due to flywheel friction and make sure that the absorbed power (calculated as the difference between excited and radiated power) matches the sum of mechanical power captured by the PTO and the power dissipated due to flywheel friction. We use a relative tolerance of 1%."
    ]
   },
   {
@@ -841,6 +966,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "\n",
     "def fw_velocity(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
     "    pos_fw = wec.vec_to_dofmat(x_opt[nstate_pto:])\n",
     "    vel_fw = np.dot(wec.derivative_mat, pos_fw)\n",
@@ -848,12 +974,12 @@
     "    return np.dot(time_matrix, vel_fw)\n",
     "\n",
     "def fw_friction_power(wec, x_wec, x_opt, waves, nsubsteps=1):\n",
-    "    force_td = f_friction(wec, x_wec, x_opt, waves, nsubsteps)\n",
+    "    force_td = force_from_friction(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "    vel_td = fw_velocity(wec, x_wec, x_opt, waves, nsubsteps)\n",
     "    return vel_td * force_td\n",
     "\n",
-    "fw_fric_power = fw_friction_power(wec, x_wec, x_opt, waves_regular, nsubsteps)\n",
-    "avg_fw_fric_power = np.mean(fw_fric_power)\n"
+    "fw_fric_power = fw_friction_power(wec_nl, x_wec, x_opt, waves_regular, nsubsteps)\n",
+    "avg_fw_fric_power = np.mean(fw_fric_power)"
    ]
   },
   {
@@ -862,8 +988,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "power_flows['Electrical (solver)']= avg_elec_power  #solver determines sign\n",
-    "power_flows['Mechanical (solver)']= avg_mech_power - avg_fw_fric_power #solver determines sign, friction is dissipated\n",
+    "power_flows['Electrical (solver)'] = avg_elec_power  #solver determines sign\n",
+    "power_flows['Mechanical (solver)'] = avg_mech_power - avg_fw_fric_power #solver determines sign, friction is dissipated\n",
     "power_flows['PTO Loss'] = power_flows['Mechanical (solver)'] -  power_flows['Electrical (solver)'] "
    ]
   },
@@ -873,7 +999,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "wot.utilities.plot_power_flow(power_flows)"
+    "wot.utilities.plot_power_flow(power_flows,tolerance=-1e-2*power_flows['Optimal Excitation']) "
    ]
   },
   {
@@ -883,7 +1009,7 @@
     "## 3. Irregular wave\n",
     "\n",
     "### 3.1 Solve\n",
-    "We will now run the same analysis for irregular waves. \n",
+    "We will now run the same analysis for irregular waves. First, we need to recreate the PTO and WEC with the irregular frequency spectrum.\n",
     "\n",
     "Interestingly, due to the narrow banded resonance of the flywheel, the controller attempts to make the excitation force monochromatic with the resonant frequency.\n",
     "To achieve this, it uses significant reactive power (power by the PTO into the system).\n",
@@ -899,17 +1025,77 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "nstate_pto = 2 * nfreq_irreg # PTO forces\n",
+    "nstate_fw = 2 * nfreq_irreg  # Flywheel positions\n",
+    "nstate_opt = nstate_pto + nstate_fw\n",
+    "\n",
+    "drivetrain_impedance = (1j*omega_irreg*pto_properties['drivetrain_inertia'] +\n",
+    "                    pto_properties['drivetrain_friction'] +\n",
+    "                    1/(1j*omega_irreg)*pto_properties['drivetrain_stiffness'])\n",
+    "\n",
+    "winding_impedance = pto_properties['winding_resistance'] + 1j*omega_irreg*pto_properties['winding_inductance']\n",
+    "\n",
+    "pto_impedance_11 = -1* pto_properties['gear_ratio']**2 * drivetrain_impedance\n",
+    "off_diag = np.sqrt(3.0/2.0) * pto_properties['torque_constant'] * pto_properties['gear_ratio']\n",
+    "pto_impedance_12 = -1*(off_diag+0j) * np.ones(omega_irreg.shape)\n",
+    "pto_impedance_21 = -1*(off_diag+0j) * np.ones(omega_irreg.shape)\n",
+    "pto_impedance_22 = winding_impedance\n",
+    "pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],\n",
+    "                        [pto_impedance_21, pto_impedance_22]])\n",
+    "\n",
+    "pto = wot.pto.PTO(ndof, \n",
+    "                  kinematics=[1], \n",
+    "                  controller=wot.controllers.unstructured_controller(), \n",
+    "                  impedance=pto_impedance, \n",
+    "                  loss=None, \n",
+    "                  names=None)\n",
+    "\n",
+    "wec_lin = wot.WEC.from_impedance(freq_irreg, \n",
+    "                            Zi_intrp_irreg,\n",
+    "                            exc_coeff_intrp_irreg,\n",
+    "                            Zi_stiffness,\n",
+    "                            f_add_lin_spring,\n",
+    "                            constraints_lin_spring)\n",
+    "\n",
+    "wec_nl = wot.WEC.from_impedance(freq_irreg, \n",
+    "                            Zi_intrp_irreg,\n",
+    "                            exc_coeff_intrp_irreg,\n",
+    "                            Zi_stiffness,\n",
+    "                            f_add_nl_spring,\n",
+    "                            constraints_nl_spring)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import logging \n",
+    "logging.getLogger().setLevel(logging.DEBUG)\n",
+    "\n",
     "obj_fun = average_electrical_power\n",
-    "results = wec.solve(\n",
+    "results = wec_lin.solve(\n",
     "    waves_irregular,\n",
     "    obj_fun,\n",
     "    nstate_opt,\n",
-    "    scale_x_wec=1e1,\n",
-    "    scale_x_opt=1e-2,\n",
+    "    scale_x_wec=1e0,\n",
+    "    scale_x_opt=np.concatenate((np.array([1e-1])*np.ones(nstate_pto), 1 * np.ones(nstate_fw))),\n",
     "    scale_obj=1e-2,\n",
     ")\n",
-    "power_results = [result.fun for result in results]\n",
-    "print(f'Optimal average power: {np.mean(power_results):.2f} W')"
+    "x_wec_0, x_opt_0 = wec_lin.decompose_state(results[0].x)\n",
+    "\n",
+    "results = wec_nl.solve(\n",
+    "    waves_irregular,\n",
+    "    obj_fun,\n",
+    "    nstate_opt,\n",
+    "    x_wec_0=x_wec_0, # initialize with result from linear spring case\n",
+    "    x_opt_0=x_opt_0, # initialize with result from linear spring case\n",
+    "    scale_x_wec=1e0,\n",
+    "    scale_x_opt=np.concatenate((np.array([1e-1])*np.ones(nstate_pto), 1 * np.ones(nstate_fw))),\n",
+    "    scale_obj=1e-2,\n",
+    ")\n",
+    "print(f'Optimal average power: {results[0].fun:.2f} W')"
    ]
   },
   {
@@ -926,17 +1112,18 @@
    "outputs": [],
    "source": [
     "nsubsteps = 5\n",
-    "wec_fdom, wec_tdom = wec.post_process(wec,results, waves_irregular, nsubsteps=nsubsteps)\n",
+    "wec_fdom, wec_tdom = wec_nl.post_process(wec_nl,results, waves_irregular, nsubsteps=nsubsteps)\n",
     "\n",
     "# Manually post-process PTO and flywheel outputs\n",
-    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq)\n",
-    "fw_pos = np.dot(wec.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
-    "pto_pos = rel_position(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
-    "pto_vel = rel_velocity(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
-    "pto_force = f_motor(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
-    "pto_force_fd = wec.td_to_fd(pto_force[::nsubsteps])\n",
-    "pto_mech_power = mechanical_power(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
-    "pto_elec_power = electrical_power(wec, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "x_wec, x_opt = wot.decompose_state(results[0].x, 1, nfreq_irreg)\n",
+    "fw_pos = np.dot(wec_nl.time_mat_nsubsteps(nsubsteps), x_opt[nstate_pto:])\n",
+    "pto_pos = rel_position(wec_nl, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_vel = rel_velocity(wec_nl, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_force = force_from_generator(wec_nl, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_force_fd = wec_nl.td_to_fd(pto_force[::nsubsteps])\n",
+    "spring_force = force_from_nl_spring(wec_nl, x_wec, x_opt, waves_regular.sel(realization=0), nsubsteps)\n",
+    "pto_mech_power = mechanical_power(wec_nl, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
+    "pto_elec_power = electrical_power(wec_nl, x_wec, x_opt, waves_irregular.sel(realization=0), nsubsteps)\n",
     "avg_mech_power = np.mean(pto_mech_power)\n",
     "avg_elec_power = np.mean(pto_elec_power)"
    ]
@@ -947,8 +1134,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(12, 12))\n",
-    "t = wec_tdom[0].time.values\n",
+    "fig, ax = plt.subplots(nrows=5, sharex=True, figsize=(12, 12))\n",
+    "t = wec_tdom.sel(realization=0).time.values\n",
     "\n",
     "# Positions\n",
     "ax[0].plot(t, fw_pos*180/np.pi, label='Flywheel', c='k')\n",
@@ -959,20 +1146,20 @@
     "\n",
     "ax0 = ax[0].twinx()\n",
     "ax0.tick_params(axis='y', labelcolor='b')\n",
-    "(wec_tdom[0].pos*180/np.pi).plot(hue='influenced_dof', label='Buoy', ax=ax0, c='b')\n",
+    "(wec_tdom.sel(realization=0).pos*180/np.pi).plot(hue='influenced_dof', label='Buoy', ax=ax0, c='b')\n",
     "ax0.set_ylabel('Buoy pos. [deg]', color='b')\n",
     "ax0.set_title('')\n",
     "\n",
     "# Torques\n",
     "ax[1].plot(t, pto_force, c='k')\n",
-    "ax[1].plot([t[0], t[-1]], [torque_peak_max, torque_peak_max], 'k--')\n",
-    "ax[1].plot([t[0], t[-1]], [-1*torque_peak_max, -1*torque_peak_max], 'k--')\n",
+    "ax[1].plot([t[0], t[-1]], [max_generator_torque, max_generator_torque], 'k--')\n",
+    "ax[1].plot([t[0], t[-1]], [-1*max_generator_torque, -1*max_generator_torque], 'k--')\n",
     "ax[1].set_ylabel('PTO torque [N-m]')\n",
     "ax[1].set_title('Torque')\n",
     "\n",
     "ax1 = ax[1].twinx()\n",
     "ax1.tick_params(axis='y', labelcolor='b')\n",
-    "wec_tdom[0]['force'].sel(type=['Froude_Krylov', 'diffraction']).sum('type').plot(ax=ax1, c='b')\n",
+    "wec_tdom.sel(realization=0)['force'].sel(type=['excitation']).plot(ax=ax1, c='b')\n",
     "ax1.set_ylabel('Excitation torque [N-m]', color='b')\n",
     "ax1.set_title('Torque')\n",
     "\n",
@@ -981,13 +1168,24 @@
     "ax[2].set_title('PTO Velocity')\n",
     "ax[2].set_ylabel('Velocity [deg/s]')\n",
     "\n",
+    "# Spring\n",
+    "ax[3].plot(t, spring_force, c='k')\n",
+    "ax[3].set_title('Nonlinear Spring Torque')\n",
+    "ax[3].set_ylabel('Torque [N-m]')\n",
+    "\n",
+    "ax3 = ax[3].twinx()\n",
+    "ax3.tick_params(axis='y', labelcolor='b')\n",
+    "ax3.plot(t, pto_pos, c='b')\n",
+    "ax3.set_ylabel('PTO pos. [deg]', color='b')\n",
+    "ax3.set_title('')\n",
+    "\n",
     "# Power\n",
-    "ax[3].plot(t, pto_mech_power, label='Mech. power ($\\\\bar{P}_{mech}$: ' + f'{avg_mech_power:.1f} W)')\n",
-    "ax[3].plot(t, pto_elec_power, linestyle='dashdot', label='Elec. power ($\\\\bar{P}_{elec}$: ' + f'{avg_elec_power:.1f} W)')\n",
-    "ax[3].set_title('Power Output')\n",
-    "ax[3].set_ylabel('Power [W]')\n",
-    "ax[3].legend()\n",
-    "ax[3].set_xlabel('Time [s]')\n",
+    "ax[4].plot(t, pto_mech_power, label='Mech. power ($\\\\bar{P}_{mech}$: ' + f'{avg_mech_power:.1f} W)')\n",
+    "ax[4].plot(t, pto_elec_power, linestyle='dashdot', label='Elec. power ($\\\\bar{P}_{elec}$: ' + f'{avg_elec_power:.1f} W)')\n",
+    "ax[4].set_title('Power Output')\n",
+    "ax[4].set_ylabel('Power [W]')\n",
+    "ax[4].legend()\n",
+    "ax[4].set_xlabel('Time [s]')\n",
     "\n",
     "for axi in ax:\n",
     "    axi.grid()\n",
@@ -1138,7 +1336,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.11.4"
+   "version": "3.11.8"
   }
  },
  "nbformat": 4,

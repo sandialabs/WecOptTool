@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.pto &mdash; WecOptTool 3.0.3 documentation</title>
+  <title>wecopttool.pto &mdash; WecOptTool 3.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=9b3fc59f"></script>
+      <script src="../../_static/documentation_options.js?v=dd1205ac"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -98,13 +98,10 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;PTO&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;controller_unstructured&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;controller_pid&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;controller_pi&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;controller_p&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -112,17 +109,21 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">block_diag</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizeResult</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">concat</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizeResult</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">wecopttool.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">complex_to_real</span><span class="p">,</span> <span class="n">td_to_fd</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wecopttool.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">dofmat_to_vec</span><span class="p">,</span> <span class="n">vec_to_dofmat</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">wecopttool.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">TWEC</span><span class="p">,</span> <span class="n">TStateFunction</span><span class="p">,</span> <span class="n">FloatOrArray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">wecopttool.controllers</span><span class="w"> </span><span class="kn">import</span> <span class="n">unstructured_controller</span>
 
+<span class="c1"># logger</span>
+<span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># type aliases</span>
 <span class="n">TPTO</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TPTO&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;PTO&quot;</span><span class="p">)</span>
+<span class="n">Tcontroller</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Tcontroller&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s1">&#39;_controller_&#39;</span><span class="p">)</span>
 <span class="n">TLOSS</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">FloatOrArray</span><span class="p">,</span> <span class="n">FloatOrArray</span><span class="p">],</span> <span class="n">FloatOrArray</span><span class="p">]</span>
 
 
@@ -138,7 +139,7 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kinematics</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">TStateFunction</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">],</span>
-        <span class="n">controller</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TStateFunction</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">controller</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tcontroller</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">impedance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">loss</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TLOSS</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">names</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -181,12 +182,14 @@
 <span class="sd">            PTO names.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ndof</span> <span class="o">=</span> <span class="n">ndof</span>
+        
         <span class="c1"># names</span>
         <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;PTO_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">)]</span>
         <span class="k">elif</span> <span class="n">ndof</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">names</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="n">names</span>
+        
         <span class="c1"># kinematics</span>
         <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">kinematics</span><span class="p">):</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">kinematics_fun</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -199,12 +202,17 @@
                 <span class="n">n</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span>
                 <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">kinematics</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kinematics</span> <span class="o">=</span> <span class="n">kinematics_fun</span>
+        
         <span class="c1"># controller</span>
         <span class="k">if</span> <span class="n">controller</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">controller</span> <span class="o">=</span> <span class="n">controller_unstructured</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">controller</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;`controller` specified as `None`, using &#39;</span> <span class="o">+</span>
+                         <span class="s1">&#39;unstructured controller.&#39;</span><span class="p">)</span>
+            <span class="n">controller</span> <span class="o">=</span> <span class="n">unstructured_controller</span><span class="p">()</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">controller</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">controller</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_force</span> <span class="o">=</span> <span class="n">force</span>
 
@@ -784,7 +792,7 @@
         <span class="n">res</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OptimizeResult</span><span class="p">,</span> <span class="nb">list</span><span class="p">],</span>
         <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DataArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Dataset</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the results from optimization solution to a form</span>
 <span class="sd">        that the user can work with directly.</span>
 
@@ -870,7 +878,7 @@
             <span class="n">vel_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s or rad/s&#39;</span><span class="p">}</span>
             <span class="n">acc_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Acceleration&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or rad/s^2&#39;</span><span class="p">}</span>
-            <span class="n">force_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Force or moment on WEC&#39;</span><span class="p">,</span>
+            <span class="n">force_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;PTO force or torque&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;N or Nm&#39;</span><span class="p">}</span>
             <span class="n">power_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">}</span>
             <span class="n">mech_power_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Mechanical power&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;W&#39;</span><span class="p">}</span>
@@ -939,12 +947,16 @@
 
             <span class="k">return</span> <span class="n">results_fd</span><span class="p">,</span> <span class="n">results_td</span>
 
-        <span class="n">results_fd</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">results_td</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results_fd_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">results_td_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">ires</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res</span><span class="p">):</span>
             <span class="n">ifd</span><span class="p">,</span> <span class="n">itd</span> <span class="o">=</span> <span class="n">_postproc</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">ires</span><span class="p">,</span> <span class="n">waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="n">idx</span><span class="p">),</span> <span class="n">nsubsteps</span><span class="p">)</span>
-            <span class="n">results_fd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ifd</span><span class="p">)</span>
-            <span class="n">results_td</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itd</span><span class="p">)</span>
+            <span class="n">ifd</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">({</span><span class="s1">&#39;realization&#39;</span><span class="p">:[</span><span class="n">ires</span><span class="p">]})</span>
+            <span class="n">itd</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">({</span><span class="s1">&#39;realization&#39;</span><span class="p">:[</span><span class="n">ires</span><span class="p">]})</span>
+            <span class="n">results_fd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ifd</span><span class="p">)</span>
+            <span class="n">results_td_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itd</span><span class="p">)</span>
+        <span class="n">results_fd</span> <span class="o">=</span> <span class="n">concat</span><span class="p">(</span><span class="n">results_fd_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;realization&#39;</span><span class="p">)</span>
+        <span class="n">results_td</span> <span class="o">=</span> <span class="n">concat</span><span class="p">(</span><span class="n">results_td_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;realization&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">results_fd</span><span class="p">,</span> <span class="n">results_td</span></div>
 </div>
 
@@ -1013,250 +1025,6 @@
             <span class="n">mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">mat</span><span class="p">,</span> <span class="n">row</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">mat</span>
 
-
-<span class="c1"># controllers</span>
-<div class="viewcode-block" id="controller_unstructured">
-<a class="viewcode-back" href="../../api_docs/wecopttool.pto.controller_unstructured.html#wecopttool.pto.controller_unstructured">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">controller_unstructured</span><span class="p">(</span>
-    <span class="n">pto</span><span class="p">:</span> <span class="n">TPTO</span><span class="p">,</span>
-    <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
-    <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unstructured numerical optimal controller that returns a time</span>
-<span class="sd">    history of PTO forces.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    pto</span>
-<span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
-<span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
-<span class="sd">    x_wec</span>
-<span class="sd">        WEC dynamic state.</span>
-<span class="sd">    x_opt</span>
-<span class="sd">        Optimization (control) state.</span>
-<span class="sd">    waves</span>
-<span class="sd">        :py:class:`xarray.Dataset` with the structure and elements</span>
-<span class="sd">        shown by :py:mod:`wecopttool.waves`.</span>
-<span class="sd">    nsubsteps</span>
-<span class="sd">        Number of steps between the default (implied) time steps.</span>
-<span class="sd">        A value of :python:`1` corresponds to the default step</span>
-<span class="sd">        length.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">tmat</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">_tmat</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-    <span class="n">x_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">tmat</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="n">pto</span><span class="o">.</span><span class="n">ndof</span><span class="p">],</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pto</span><span class="o">.</span><span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tmat</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="controller_pid">
-<a class="viewcode-back" href="../../api_docs/wecopttool.pto.controller_pid.html#wecopttool.pto.controller_pid">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">controller_pid</span><span class="p">(</span>
-    <span class="n">pto</span><span class="p">:</span> <span class="n">TPTO</span><span class="p">,</span>
-    <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
-    <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">proportional</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">integral</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">derivative</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">saturation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatOrArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional-integral-derivative (PID) controller that returns</span>
-<span class="sd">    a time history of PTO forces.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    pto</span>
-<span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
-<span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
-<span class="sd">    x_wec</span>
-<span class="sd">        WEC dynamic state.</span>
-<span class="sd">    x_opt</span>
-<span class="sd">        Optimization (control) state.</span>
-<span class="sd">    waves</span>
-<span class="sd">        :py:class:`xarray.Dataset` with the structure and elements shown</span>
-<span class="sd">        by :py:mod:`wecopttool.waves`.</span>
-<span class="sd">    nsubsteps</span>
-<span class="sd">        Number of steps between the default (implied) time steps.</span>
-<span class="sd">        A value of :python:`1` corresponds to the default step length.</span>
-<span class="sd">    proportional</span>
-<span class="sd">        True to include proportional gain</span>
-<span class="sd">    integral</span>
-<span class="sd">        True to include integral gain</span>
-<span class="sd">    derivative</span>
-<span class="sd">        True to include derivative gain</span>
-<span class="sd">    saturation</span>
-<span class="sd">        Maximum and minimum control value.</span>
-<span class="sd">        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ndof</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">ndof</span>
-    <span class="n">force_td_tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
-
-    <span class="c1"># PID force</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">update_force_td</span><span class="p">(</span><span class="n">response</span><span class="p">):</span>
-        <span class="k">nonlocal</span> <span class="n">idx</span><span class="p">,</span> <span class="n">force_td_tmp</span>
-        <span class="n">gain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">x_opt</span><span class="p">[</span><span class="n">idx</span><span class="o">*</span><span class="n">ndof</span><span class="p">:(</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">ndof</span><span class="p">])</span>
-        <span class="n">force_td_tmp</span> <span class="o">=</span> <span class="n">force_td_tmp</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">gain</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
-        <span class="k">return</span>
-
-    <span class="k">if</span> <span class="n">proportional</span><span class="p">:</span>
-        <span class="n">vel_td</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="n">update_force_td</span><span class="p">(</span><span class="n">vel_td</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">integral</span><span class="p">:</span>
-        <span class="n">pos_td</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="n">update_force_td</span><span class="p">(</span><span class="n">pos_td</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">derivative</span><span class="p">:</span>
-        <span class="n">acc_td</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">acceleration</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="n">update_force_td</span><span class="p">(</span><span class="n">acc_td</span><span class="p">)</span>
-
-    <span class="c1"># Saturation</span>
-    <span class="k">if</span> <span class="n">saturation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">saturation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">saturation</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">saturation</span><span class="p">)</span><span class="o">==</span><span class="n">ndof</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`saturation` must have &lt;= 2 dimensions.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">saturation</span><span class="p">,</span> <span class="n">saturation</span>
-        <span class="k">elif</span> <span class="n">saturation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="n">f_min</span><span class="p">,</span> <span class="n">f_max</span> <span class="o">=</span> <span class="n">saturation</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span> <span class="n">saturation</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;`saturation` must have 1 or 2 columns.&quot;</span><span class="p">)</span>
-
-        <span class="n">force_td_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
-            <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">force_td_tmp</span><span class="p">[:,</span><span class="n">i</span><span class="p">],</span> <span class="n">f_min</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f_max</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="n">force_td_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
-        <span class="n">force_td</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">force_td_list</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">force_td</span> <span class="o">=</span> <span class="n">force_td_tmp</span>
-
-    <span class="k">return</span> <span class="n">force_td</span></div>
-
-
-
-<div class="viewcode-block" id="controller_pi">
-<a class="viewcode-back" href="../../api_docs/wecopttool.pto.controller_pi.html#wecopttool.pto.controller_pi">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">controller_pi</span><span class="p">(</span>
-    <span class="n">pto</span><span class="p">:</span> <span class="n">TPTO</span><span class="p">,</span>
-    <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
-    <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">saturation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatOrArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional-integral (PI) controller that returns a time</span>
-<span class="sd">    history of PTO forces.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    pto</span>
-<span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
-<span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
-<span class="sd">    x_wec</span>
-<span class="sd">        WEC dynamic state.</span>
-<span class="sd">    x_opt</span>
-<span class="sd">        Optimization (control) state.</span>
-<span class="sd">    waves</span>
-<span class="sd">        :py:class:`xarray.Dataset` with the structure and elements shown</span>
-<span class="sd">        by :py:mod:`wecopttool.waves`.</span>
-<span class="sd">    nsubsteps</span>
-<span class="sd">        Number of steps between the default (implied) time steps.</span>
-<span class="sd">        A value of :python:`1` corresponds to the default step length.</span>
-<span class="sd">    saturation</span>
-<span class="sd">        Maximum and minimum control value.</span>
-<span class="sd">        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">force_td</span> <span class="o">=</span> <span class="n">controller_pid</span><span class="p">(</span>
-        <span class="n">pto</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">,</span>
-        <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">force_td</span></div>
-
-
-
-<div class="viewcode-block" id="controller_p">
-<a class="viewcode-back" href="../../api_docs/wecopttool.pto.controller_p.html#wecopttool.pto.controller_p">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">controller_p</span><span class="p">(</span>
-    <span class="n">pto</span><span class="p">:</span> <span class="n">TPTO</span><span class="p">,</span>
-    <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
-    <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">waves</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">saturation</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">FloatOrArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Proportional (P) controller that returns a time history of</span>
-<span class="sd">    PTO forces.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    pto</span>
-<span class="sd">        :py:class:`wecopttool.pto.PTO` object.</span>
-<span class="sd">    wec</span>
-<span class="sd">        :py:class:`wecopttool.WEC` object.</span>
-<span class="sd">    x_wec</span>
-<span class="sd">        WEC dynamic state.</span>
-<span class="sd">    x_opt</span>
-<span class="sd">        Optimization (control) state.</span>
-<span class="sd">    waves</span>
-<span class="sd">        :py:class:`xarray.Dataset` with the structure and elements shown</span>
-<span class="sd">        by :py:mod:`wecopttool.waves`.</span>
-<span class="sd">    nsubsteps</span>
-<span class="sd">        Number of steps between the default (implied) time steps.</span>
-<span class="sd">        A value of :python:`1` corresponds to the default step length.</span>
-<span class="sd">    saturation</span>
-<span class="sd">        Maximum and minimum control value. Can be symmetric ([ndof]) or</span>
-<span class="sd">        asymmetric ([ndof, 2]).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">force_td</span> <span class="o">=</span> <span class="n">controller_pid</span><span class="p">(</span>
-        <span class="n">pto</span><span class="p">,</span> <span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">,</span>
-        <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">saturation</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">force_td</span></div>
-
-
-
-<span class="c1"># utilities</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">nstate_unstructured</span><span class="p">(</span><span class="n">nfreq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Number of states needed to represent an unstructured controller.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    nfreq</span>
-<span class="sd">        Number of frequencies.</span>
-<span class="sd">    ndof</span>
-<span class="sd">        Number of degrees of freedom.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="o">*</span><span class="n">ndof</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">nstate_pid</span><span class="p">(</span>
-        <span class="n">nterm</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">ndof</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Number of states needed to represent an unstructured controller.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    nterm</span>
-<span class="sd">        Number of terms (e.g. 1 for P, 2 for PI, 3 for PID).</span>
-<span class="sd">    ndof</span>
-<span class="sd">        Number of degrees of freedom.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">nterm</span><span class="o">*</span><span class="n">ndof</span><span class="p">)</span>
 </pre></div>
 
            </div>

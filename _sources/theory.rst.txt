@@ -54,7 +54,7 @@ How's this different from what I'm used to?
 Most users will be more familiar with a time-stepping approach for differential equations--this is the method applied in Simulink and therefore `WEC-Sim`_.
 Starting from an initial time (e.g., :math:`t=0`), the solution is solved by iteratively stepping forward in time.
 
-.. image:: ../_build/html/_static/theory_animation_td.gif
+.. image:: ../pages/_static/theory_animation_td.gif
     :width: 600
     :alt: Time-domain solution animation
     :align: center
@@ -62,7 +62,7 @@ Starting from an initial time (e.g., :math:`t=0`), the solution is solved by ite
 Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.
 
-.. image:: ../_build/html/_static/theory_animation_ps.gif
+.. image:: ../pages/_static/theory_animation_ps.gif
     :width: 600
     :alt: Pseudo-spectral solution animation
     :align: center

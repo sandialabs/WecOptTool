@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.waves &mdash; WecOptTool 3.0.3 documentation</title>
+  <title>wecopttool.waves &mdash; WecOptTool 3.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -14,17 +14,15 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=9b3fc59f"></script>
+      <script src="../_static/documentation_options.js?v=dd1205ac"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="wecopttool.waves.elevation_fd" href="wecopttool.waves.elevation_fd.html" />
-    <link rel="prev" title="wecopttool.utilities.plot_power_flow" href="wecopttool.utilities.plot_power_flow.html" /> 
+    <link rel="prev" title="wecopttool.utilities.create_dataarray" href="wecopttool.utilities.create_dataarray.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -65,13 +63,6 @@
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.long_crested_wave.html">wecopttool.waves.long_crested_wave</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.irregular_wave.html">wecopttool.waves.irregular_wave</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.random_phase.html">wecopttool.waves.random_phase</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.omnidirectional_spectrum.html">wecopttool.waves.omnidirectional_spectrum</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.spectrum.html">wecopttool.waves.spectrum</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.pierson_moskowitz_spectrum.html">wecopttool.waves.pierson_moskowitz_spectrum</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.jonswap_spectrum.html">wecopttool.waves.jonswap_spectrum</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.spread_cos2s.html">wecopttool.waves.spread_cos2s</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.general_spectrum.html">wecopttool.waves.general_spectrum</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.waves.pierson_moskowitz_params.html">wecopttool.waves.pierson_moskowitz_params</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
@@ -173,27 +164,6 @@ use <a class="reference external" href="https://wavespectra.readthedocs.io/en/la
 <tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.waves.random_phase.html#wecopttool.waves.random_phase" title="wecopttool.waves.random_phase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">random_phase</span></code></a></p></td>
 <td><p>Generate random phases in range [-π, π) radians.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.waves.omnidirectional_spectrum.html#wecopttool.waves.omnidirectional_spectrum" title="wecopttool.waves.omnidirectional_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">omnidirectional_spectrum</span></code></a></p></td>
-<td><p>Create the <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.6.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> for an omnidirectional wave spectrum in the <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a> format.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.waves.spectrum.html#wecopttool.waves.spectrum" title="wecopttool.waves.spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spectrum</span></code></a></p></td>
-<td><p>Create the <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.6.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> for an irregular wave in the <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a> format.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.waves.pierson_moskowitz_spectrum.html#wecopttool.waves.pierson_moskowitz_spectrum" title="wecopttool.waves.pierson_moskowitz_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pierson_moskowitz_spectrum</span></code></a></p></td>
-<td><p>Calculate the Pierson-Moskowitz omni-directional wave spectrum for the specified frequencies  and parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.waves.jonswap_spectrum.html#wecopttool.waves.jonswap_spectrum" title="wecopttool.waves.jonswap_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">jonswap_spectrum</span></code></a></p></td>
-<td><p>Calculate the Joint North Sea Wave Project (JONSWAP) omni-directional wave spectrum for the specified frequencies and parameters.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.waves.spread_cos2s.html#wecopttool.waves.spread_cos2s" title="wecopttool.waves.spread_cos2s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spread_cos2s</span></code></a></p></td>
-<td><p>Calculate the Cosine-2s spreading function for the specified frequencies and wave directions.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.waves.general_spectrum.html#wecopttool.waves.general_spectrum" title="wecopttool.waves.general_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">general_spectrum</span></code></a></p></td>
-<td><p>Create a spectrum function.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="wecopttool.waves.pierson_moskowitz_params.html#wecopttool.waves.pierson_moskowitz_params" title="wecopttool.waves.pierson_moskowitz_params"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pierson_moskowitz_params</span></code></a></p></td>
-<td><p>Return the two PM parameters for the general spectrum formulation.</p></td>
-</tr>
 </tbody>
 </table>
 </section>
@@ -202,7 +172,7 @@ use <a class="reference external" href="https://wavespectra.readthedocs.io/en/la
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="wecopttool.utilities.plot_power_flow.html" class="btn btn-neutral float-left" title="wecopttool.utilities.plot_power_flow" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="wecopttool.utilities.create_dataarray.html" class="btn btn-neutral float-left" title="wecopttool.utilities.create_dataarray" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="wecopttool.waves.elevation_fd.html" class="btn btn-neutral float-right" title="wecopttool.waves.elevation_fd" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
