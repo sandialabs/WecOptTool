@@ -70,7 +70,7 @@ def bem_data(f1, nfreq, ndof, ndir):
     Froude_Krylov_force = np.ones([nfreq, ndof, ndir], dtype=complex) + 1j
     inertia_matrix = np.ones([ndof, ndof])
     hydrostatic_stiffness = np.ones([ndof, ndof])
-    
+
     data_vars = {
         'added_mass': (radiation_dims, added_mass),
         'radiation_damping': (radiation_dims, radiation_damping),
@@ -93,7 +93,7 @@ def pi_controller_pto():
     power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_pi,
+                      controller=wot.controllers.pid_controller(1,True,True,False),
                       names=["PI controller PTO"])
     return pto
 
@@ -160,24 +160,24 @@ def test_plot_hydrodynamic_coefficients(bem_data,ndof):
     assert isinstance(fig_ex,Figure)
 
 def test_plot_bode_impedance(intrinsic_impedance, ndof):
-    fig_Zi, axes_Zi = wot.utilities.plot_bode_impedance(intrinsic_impedance)    
-  
+    fig_Zi, axes_Zi = wot.utilities.plot_bode_impedance(intrinsic_impedance)
+
     assert 2*ndof*ndof == len(fig_Zi.axes)
     assert isinstance(fig_Zi,Figure)
     assert all([isinstance(ax, Axes) for ax in np.reshape(axes_Zi,-1)])
 
 
 def test_plot_power_flow(power_flows):
-    fig_sankey, ax_sankey = wot.utilities.plot_power_flow(power_flows)    
-  
+    fig_sankey, ax_sankey = wot.utilities.plot_power_flow(power_flows)
+
     assert isinstance(fig_sankey, Figure)
-    assert isinstance(ax_sankey, Axes) 
+    assert isinstance(ax_sankey, Axes)
 
 def test_calculate_power_flow(wb_bem,
                               regular_wave,
                               pi_controller_pto,
                               wb_hydro_impedance):
-    """PI controller matches optimal for any regular wave, 
+    """PI controller matches optimal for any regular wave,
         thus we check if the radiated power is equal the absorber power
         and if the Optimal excitation is equal the actual excitation"""
 
@@ -196,14 +196,39 @@ def test_calculate_power_flow(wb_bem,
                     bounds_opt=((-1e4, 0), (0, 2e4),)
                     )
 
-    pflows = wot.utilities.calculate_power_flows(wec, 
-                          pi_controller_pto, 
-                          res, 
-                          regular_wave, 
+    pflows = wot.utilities.calculate_power_flows(wec,
+                          pi_controller_pto,
+                          res,
+                          regular_wave,
                           wb_hydro_impedance)
 
     assert pflows['Absorbed'] == approx(pflows['Radiated'], rel=1e-4)
     assert pflows['Optimal Excitation'] == approx(pflows['Actual Excitation'], rel=1e-4)
 
+def test_linear_solve(wb_bem, regular_wave):
+    omega = wb_bem.omega.values
+    gear_ratio = 12.0
+    torque_constant = 6.7
+    winding_resistance = 0.5
+    winding_inductance = 0.0
+    drivetrain_inertia = 2.0
+    drivetrain_friction = 1.0
+    drivetrain_stiffness = 0.0
+
+    drivetrain_impedance = (1j*omega*drivetrain_inertia +
+                            drivetrain_friction +
+                            1/(1j*omega)*drivetrain_stiffness)
+
+    winding_impedance = winding_resistance + 1j*omega*winding_inductance
 
 
+    pto_impedance_11 = -1* gear_ratio**2 * drivetrain_impedance
+    off_diag = np.sqrt(3.0/2.0) * torque_constant * gear_ratio
+    pto_impedance_12 = -1*(off_diag+0j) * np.ones(omega.shape)
+    pto_impedance_21 = -1*(off_diag+0j) * np.ones(omega.shape)
+    pto_impedance_22 = winding_impedance
+    pto_impedance = np.array([[pto_impedance_11, pto_impedance_12],
+                                [pto_impedance_21, pto_impedance_22]])
+
+    power, _, _, _ = wot.utilities.linear_solve(wb_bem, pto_impedance, regular_wave.isel(realization=0), np.eye(1))
+    assert power == approx(-29.2, abs=0.05)

@@ -57,6 +57,7 @@ html_context = {
   'current_version' : current_branch,
   'other_versions' : [],
 }
+
 with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
     versions = yaml.safe_load(v_file)
 for name in versions.keys():

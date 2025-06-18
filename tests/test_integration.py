@@ -4,10 +4,11 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
+from capytaine.io.meshio import load_from_meshio
 import autograd.numpy as np
 from scipy.optimize import Bounds
 import xarray as xr
-
+from wavespectra.construct.frequency import pierson_moskowitz
 
 kplim = -1e1
 min_damping = 45
@@ -28,7 +29,10 @@ def pto():
     """Basic PTO: unstructured, 1 DOF, mechanical power."""
     ndof = 1
     kinematics = np.eye(ndof)
-    pto = wot.pto.PTO(ndof, kinematics)
+    controller = wot.controllers.unstructured_controller()
+    pto = wot.pto.PTO(ndof=ndof, 
+                      kinematics=kinematics, 
+                      controller=controller)
     return pto
 
 
@@ -37,7 +41,7 @@ def p_controller_pto():
     """Basic PTO: proportional (P) controller, 1 DOF, mechanical power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_p,
+                      controller=wot.controllers.pid_controller(1,True,False,False),
                       names=["P controller PTO"])
     return pto
 
@@ -48,7 +52,7 @@ def pi_controller_pto():
     power."""
     ndof = 1
     pto = wot.pto.PTO(ndof=ndof, kinematics=np.eye(ndof),
-                      controller=wot.pto.controller_pi,
+                      controller=wot.controllers.pid_controller(1,True,True,False),
                       names=["PI controller PTO"])
     return pto
 
@@ -64,10 +68,12 @@ def fb():
             'dependencies. Run `pip install wecopttool[geometry]` to run ' +
             'these tests.'
             )
-    mesh_size_factor = 0.5
+    mesh_size_factor = 0.2
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-    fb = cpy.FloatingBody.from_meshio(mesh, name="WaveBot")
+    mesh_obj = load_from_meshio(mesh, 'WaveBot')
+    lid_mesh = mesh_obj.generate_lid(-2e-2)
+    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name="WaveBot")
     fb.add_translation_dof(name="Heave")
     return fb
 
@@ -99,12 +105,7 @@ def long_crested_wave(f1, nfreq):
     freq = wot.frequency(f1, nfreq, False)
     fp = 0.3
     hs = 0.0625*1.9
-    spec_fun = lambda f: wot.waves.pierson_moskowitz_spectrum(freq=f, 
-                                                              fp=fp, 
-                                                              hs=hs)
-    efth = wot.waves.omnidirectional_spectrum(f1=f1, nfreq=nfreq, 
-                                              spectrum_func=spec_fun,
-                                              )
+    efth = pierson_moskowitz(freq=freq, hs=hs, fp=fp)
     waves = wot.waves.long_crested_wave(efth, nrealizations=2)
     return waves
 
@@ -136,7 +137,7 @@ def wec_from_impedance(hydro_data, pto, fb):
     B = bemc['radiation_damping'].values
     fb.center_of_mass = [0, 0, 0]
     fb.rotation_center = fb.center_of_mass
-    fb = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    fb = fb.immersed_part()
     mass = bemc['inertia_matrix'].values
     hstiff = bemc['hydrostatic_stiffness'].values
     K = np.expand_dims(hstiff, 2)
@@ -307,7 +308,7 @@ class TestTheoreticalPowerLimits:
         power_sol = -1*res[0]['fun']
 
         res_fd, _ = wec.post_process(wec, res, resonant_wave, nsubsteps=1)
-        Fex = res_fd[0].force.sel(
+        Fex = res_fd.force.sel(realization=0,
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -339,7 +340,7 @@ class TestTheoreticalPowerLimits:
         power_sol = -1*res[0]['fun']
 
         res_fd, _ = wec.post_process(wec, res, regular_wave, nsubsteps=1)
-        Fex = res_fd[0].force.sel(
+        Fex = res_fd.force.sel(realization=0,
             type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                          ).squeeze().sum('omega').item()
@@ -360,8 +361,8 @@ class TestTheoreticalPowerLimits:
         res_fd, _ = unstruct_wec.post_process(unstruct_wec, long_crested_wave_unstruct_res, 
                                         long_crested_wave, 
                                         nsubsteps=1)
-        Fex = res_fd[0].force.sel(
-            type=['Froude_Krylov', 'diffraction']).sum('type')
+        Fex = res_fd.force.sel(realization=0,
+                               type=['Froude_Krylov', 'diffraction']).sum('type')
         power_optimal = (np.abs(Fex)**2/8 / np.real(hydro_impedance.squeeze())
                             ).squeeze().sum('omega').item()
 
@@ -407,10 +408,12 @@ class TestTheoreticalPowerLimits:
         
         ndof = 1
         nstate_opt['pi'] = 2
-        def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
-            return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
-                                         nsubsteps, 
-                                         saturation=[-f_max, f_max])
+        # def saturated_pi(pto, wec, x_wec, x_opt, waves=None, nsubsteps=1):
+        #     return wot.pto.controller_pi(pto, wec, x_wec, x_opt, waves, 
+        #                                  nsubsteps, 
+        #                                  saturation=[-f_max, f_max])
+        saturated_pi = wot.controllers.pid_controller(1,True,True,False,
+                                                      saturation=[-f_max, f_max])
         pto['pi'] = wot.pto.PTO(ndof=ndof,
                                 kinematics=np.eye(ndof),
                                 controller=saturated_pi,)
@@ -451,9 +454,10 @@ class TestTheoreticalPowerLimits:
                                                                  regular_wave, 
                                                                  nsubstep_postprocess)
         
-        xr.testing.assert_allclose(pto_tdom['pi'][0].power.squeeze().mean('time'), 
-                                   pto_tdom['us'][0].power.squeeze().mean('time'),
-                                   rtol=1e-1)
-        
-        xr.testing.assert_allclose(pto_tdom['us'][0].force.max(),
-                                   pto_tdom['pi'][0].force.max())
+        xr.testing.assert_allclose(
+            pto_tdom['pi'].sel(realization=0).power.squeeze().mean('time'),
+            pto_tdom['us'].sel(realization=0).power.squeeze().mean('time'),
+            rtol=1e-1)
+
+        xr.testing.assert_allclose(pto_tdom['us'].sel(realization=0).force.max(),
+                                   pto_tdom['pi'].sel(realization=0).force.max())

@@ -19,13 +19,10 @@ from __future__ import annotations
 
 __all__ = [
     "PTO",
-    "controller_unstructured",
-    "controller_pid",
-    "controller_pi",
-    "controller_p",
 ]
 
 
+import logging
 from typing import Optional, TypeVar, Callable, Union
 
 import autograd.numpy as np
@@ -33,17 +30,21 @@ from autograd.builtins import isinstance, tuple, list, dict
 from autograd.numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
-from xarray import DataArray, Dataset
+from xarray import DataArray, Dataset, concat
 from datetime import datetime
 from scipy.optimize import OptimizeResult
 
 from wecopttool.core import complex_to_real, td_to_fd
 from wecopttool.core import dofmat_to_vec, vec_to_dofmat
 from wecopttool.core import TWEC, TStateFunction, FloatOrArray
+from wecopttool.controllers import unstructured_controller
 
+# logger
+_log = logging.getLogger(__name__)
 
 # type aliases
 TPTO = TypeVar("TPTO", bound="PTO")
+Tcontroller = TypeVar("Tcontroller", bound='_controller_')
 TLOSS = Callable[[FloatOrArray, FloatOrArray], FloatOrArray]
 
 
@@ -55,7 +56,7 @@ class PTO:
     def __init__(self,
         ndof: int,
         kinematics: Union[TStateFunction, ndarray],
-        controller: Optional[TStateFunction] = None,
+        controller: Optional[Tcontroller] = None,
         impedance: Optional[ndarray] = None,
         loss: Optional[TLOSS] = None,
         names: Optional[list[str]] = None,
@@ -98,12 +99,14 @@ class PTO:
             PTO names.
         """
         self._ndof = ndof
+        
         # names
         if names is None:
             names = [f'PTO_{i}' for i in range(ndof)]
         elif ndof == 1 and isinstance(names, str):
             names = [names]
         self._names = names
+        
         # kinematics
         if callable(kinematics):
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
@@ -116,12 +119,17 @@ class PTO:
                 n = wec.nt*nsubsteps
                 return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
         self._kinematics = kinematics_fun
+        
         # controller
         if controller is None:
-            controller = controller_unstructured
-
-        def force(wec, x_wec, x_opt, waves, nsubsteps=1):
-            return controller(self, wec, x_wec, x_opt, waves, nsubsteps)
+            _log.warning('`controller` specified as `None`, using ' +
+                         'unstructured controller.')
+            controller = unstructured_controller()
+            def force(wec, x_wec, x_opt, waves, nsubsteps=1):
+                return controller.force(self, wec, x_wec, x_opt, waves, nsubsteps)
+        else:
+            def force(wec, x_wec, x_opt, waves, nsubsteps=1):
+                return controller.force(self, wec, x_wec, x_opt, waves, nsubsteps)
 
         self._force = force
 
@@ -659,7 +667,7 @@ class PTO:
         res: Union[OptimizeResult, list],
         waves: Optional[DataArray] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[list[Dataset], list[Dataset]]:
+    ) -> tuple[Dataset, Dataset]:
         """Transform the results from optimization solution to a form
         that the user can work with directly.
 
@@ -745,7 +753,7 @@ class PTO:
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration',
                         'units': 'm/s^2 or rad/s^2'}
-            force_attr = {'long_name': 'Force or moment on WEC',
+            force_attr = {'long_name': 'PTO force or torque',
                         'units': 'N or Nm'}
             power_attr = {'long_name': 'Power', 'units': 'W'}
             mech_power_attr = {'long_name': 'Mechanical power', 'units': 'W'}
@@ -814,12 +822,16 @@ class PTO:
 
             return results_fd, results_td
 
-        results_fd = []
-        results_td = []
+        results_fd_list = []
+        results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(wec, ires, waves.sel(realization=idx), nsubsteps)
-            results_fd.append(ifd)
-            results_td.append(itd)
+            ifd.expand_dims({'realization':[ires]})
+            itd.expand_dims({'realization':[ires]})
+            results_fd_list.append(ifd)
+            results_td_list.append(itd)
+        results_fd = concat(results_fd_list, dim='realization')
+        results_td = concat(results_td_list, dim='realization')
         return results_fd, results_td
 
 
@@ -886,235 +898,3 @@ def _make_mimo_transfer_mat(
             mat = np.vstack([mat, row])
     return mat
 
-
-# controllers
-def controller_unstructured(
-    pto: TPTO,
-    wec: TWEC,
-    x_wec: ndarray,
-    x_opt: ndarray,
-    waves: Optional[Dataset] = None,
-    nsubsteps: Optional[int] = 1,
-) -> ndarray:
-    """Unstructured numerical optimal controller that returns a time
-    history of PTO forces.
-
-    Parameters
-    ----------
-    pto
-        :py:class:`wecopttool.pto.PTO` object.
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements
-        shown by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step
-        length.
-    """
-    tmat = pto._tmat(wec, nsubsteps)
-    x_opt = np.reshape(x_opt[:len(tmat[0])*pto.ndof], (-1, pto.ndof), order='F')
-    return np.dot(tmat, x_opt)
-
-
-def controller_pid(
-    pto: TPTO,
-    wec: TWEC,
-    x_wec: ndarray,
-    x_opt: ndarray,
-    waves: Optional[Dataset] = None,
-    nsubsteps: Optional[int] = 1,
-    proportional: Optional[bool] = True,
-    integral: Optional[bool] = True,
-    derivative: Optional[bool] = True,
-    saturation: Optional[FloatOrArray] = None,
-) -> ndarray:
-    """Proportional-integral-derivative (PID) controller that returns
-    a time history of PTO forces.
-
-    Parameters
-    ----------
-    pto
-        :py:class:`wecopttool.pto.PTO` object.
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements shown
-        by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step length.
-    proportional
-        True to include proportional gain
-    integral
-        True to include integral gain
-    derivative
-        True to include derivative gain
-    saturation
-        Maximum and minimum control value.
-        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
-    """
-    ndof = pto.ndof
-    force_td_tmp = np.zeros([wec.nt*nsubsteps, ndof])
-
-    # PID force
-    idx = 0
-
-    def update_force_td(response):
-        nonlocal idx, force_td_tmp
-        gain = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
-        force_td_tmp = force_td_tmp + np.dot(response, gain.T)
-        idx = idx + 1
-        return
-
-    if proportional:
-        vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-        update_force_td(vel_td)
-    if integral:
-        pos_td = pto.position(wec, x_wec, x_opt, waves, nsubsteps)
-        update_force_td(pos_td)
-    if derivative:
-        acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
-        update_force_td(acc_td)
-
-    # Saturation
-    if saturation is not None:
-        saturation = np.atleast_2d(np.squeeze(saturation))
-        assert len(saturation)==ndof
-        if len(saturation.shape) > 2:
-            raise ValueError("`saturation` must have <= 2 dimensions.")
-        if saturation.shape[1] == 1:
-            f_min, f_max = -1*saturation, saturation
-        elif saturation.shape[1] == 2:
-            f_min, f_max = saturation[:,0], saturation[:,1]
-        else:
-            raise ValueError("`saturation` must have 1 or 2 columns.")
-
-        force_td_list = []
-        for i in range(ndof):
-            tmp = np.clip(force_td_tmp[:,i], f_min[i], f_max[i])
-            force_td_list.append(tmp)
-        force_td = np.array(force_td_list).T
-    else:
-        force_td = force_td_tmp
-
-    return force_td
-
-
-def controller_pi(
-    pto: TPTO,
-    wec: TWEC,
-    x_wec: ndarray,
-    x_opt: ndarray,
-    waves: Optional[Dataset] = None,
-    nsubsteps: Optional[int] = 1,
-    saturation: Optional[FloatOrArray] = None,
-) -> ndarray:
-    """Proportional-integral (PI) controller that returns a time
-    history of PTO forces.
-
-    Parameters
-    ----------
-    pto
-        :py:class:`wecopttool.pto.PTO` object.
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements shown
-        by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step length.
-    saturation
-        Maximum and minimum control value.
-        Can be symmetric ([ndof]) or asymmetric ([ndof, 2]).
-    """
-    force_td = controller_pid(
-        pto, wec, x_wec, x_opt, waves, nsubsteps,
-        True, True, False, saturation,
-    )
-    return force_td
-
-
-def controller_p(
-    pto: TPTO,
-    wec: TWEC,
-    x_wec: ndarray,
-    x_opt: ndarray,
-    waves: Optional[Dataset] = None,
-    nsubsteps: Optional[int] = 1,
-    saturation: Optional[FloatOrArray] = None,
-) -> ndarray:
-    """Proportional (P) controller that returns a time history of
-    PTO forces.
-
-    Parameters
-    ----------
-    pto
-        :py:class:`wecopttool.pto.PTO` object.
-    wec
-        :py:class:`wecopttool.WEC` object.
-    x_wec
-        WEC dynamic state.
-    x_opt
-        Optimization (control) state.
-    waves
-        :py:class:`xarray.Dataset` with the structure and elements shown
-        by :py:mod:`wecopttool.waves`.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step length.
-    saturation
-        Maximum and minimum control value. Can be symmetric ([ndof]) or
-        asymmetric ([ndof, 2]).
-    """
-    force_td = controller_pid(
-        pto, wec, x_wec, x_opt, waves, nsubsteps,
-        True, False, False, saturation,
-    )
-    return force_td
-
-
-# utilities
-def nstate_unstructured(nfreq: int, ndof: int) -> int:
-    """
-    Number of states needed to represent an unstructured controller.
-
-    Parameters
-    ----------
-    nfreq
-        Number of frequencies.
-    ndof
-        Number of degrees of freedom.
-    """
-    return 2*nfreq*ndof
-
-
-def nstate_pid(
-        nterm: int,
-        ndof: int,
-) -> int:
-    """
-    Number of states needed to represent an unstructured controller.
-
-    Parameters
-    ----------
-    nterm
-        Number of terms (e.g. 1 for P, 2 for PI, 3 for PID).
-    ndof
-        Number of degrees of freedom.
-    """
-    return int(nterm*ndof)
