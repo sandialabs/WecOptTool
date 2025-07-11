@@ -5,10 +5,11 @@ This module provides the (empty) data structure for waves in
 :python:`wecopttool`.
 It also provides functions for creating common types of waves such as
 regular waves and irregular waves.
-The data structure is a 2D complex :py:class:`xarray.DataArray`
+The data structure is a 3D complex :py:class:`xarray.DataArray`
 containing the complex amplitude.
-The 2D coordinates are: wave angular frequency :python:`omega` (rad/s)
-and direction :python:`wave_direction` (rad).
+The 3D coordinates are: wave angular frequency :python:`omega` (rad/s),
+direction :python:`wave_direction` (rad), and realization 
+:python:`realization` ().
 
 This module uses wave spectrum data in the
 :py:class:`wavespectra.SpecArray` format, but does not require that you
