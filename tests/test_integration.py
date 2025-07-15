@@ -198,7 +198,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
                              obj_fun=p_controller_pto.average_power,
                              nstate_opt=1,
                              x_opt_0=[kplim*0.1],
-                             optim_options={'maxiter': 2e1,
+                             optim_options={'maxiter': 200,
                                             'ftol': 1e-8},
                              bounds_opt=bounds_opt,
                              )
