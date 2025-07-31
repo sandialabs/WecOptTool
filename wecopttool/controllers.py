@@ -18,9 +18,8 @@ __all__ = [
 import logging
 from typing import Optional, TypeVar, Callable, Union
 
-import autograd.numpy as np
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd.numpy import ndarray
+import jax.numpy as np
+from jax.numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset

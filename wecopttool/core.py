@@ -61,10 +61,10 @@ import warnings
 from datetime import datetime
 
 from numpy.typing import ArrayLike
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd import grad, jacobian
+from numpy import conjugate
+import jax.numpy as np
+from jax.numpy import ndarray
+from jax import grad, jacobian, random
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
@@ -80,7 +80,7 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
 _default_min_damping = 1e-6
 
 # type aliases
@@ -724,10 +724,11 @@ class WEC:
         scale = np.concatenate([scale_x_wec, scale_x_opt])
 
         # decision variable initial guess
+        key = random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = np.random.randn(self.nstate_wec)
+            x_wec_0 = random.normal(key, self.nstate_wec)
         if x_opt_0 is None:
-            x_opt_0 = np.random.randn(nstate_opt)
+            x_opt_0 = random.normal(key, nstate_opt)
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # bounds
@@ -1428,9 +1429,9 @@ def time_mat(
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
-    time_mat[:, 0] = 1.0
-    time_mat[:, 1::2] = np.cos(wt)
-    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
+    time_mat = time_mat.at[:, 0].set(1.0)
+    time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
+    time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
@@ -1503,9 +1504,9 @@ def derivative2_mat(
         Whether the first frequency should be zero.
     """
     vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    diagonal = np.repeat(-np.ones(nfreq) * np.array(vals), 2)[:-1] # remove 2pt wave sine
     if zero_freq:
-        diagonal = np.concatenate(([0.0], diagonal))
+        diagonal = np.concatenate((np.array([0.0]), diagonal))
     return np.diag(diagonal)
 
 
@@ -1541,6 +1542,8 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
+    if not isinstance(transfer_mat, np.ndarray):
+        transfer_mat = transfer_mat.values
     ndof = transfer_mat.shape[1]
     assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
@@ -1902,8 +1905,8 @@ def check_radiation_damping(
     ndof = len(hydro_data_new.influenced_dof)
     assert ndof == len(hydro_data.radiating_dof)
     for idof in range(ndof):
-        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
-        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
+        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof).values
+        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof).values
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
             if dmin < 0.0 + min_damping:
@@ -1922,8 +1925,7 @@ def check_radiation_damping(
                     'zero terms. Shifting up damping terms ' +
                     f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
+            new_damping = np.where(iradiation+ifriction>min_damping, iradiation, min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
@@ -2116,7 +2118,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
@@ -2226,10 +2228,10 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data
         Linear hydrodynamic coefficients for the WEC.
     """
-    bem_data['Froude_Krylov_force'] = np.conjugate(
+    bem_data['Froude_Krylov_force'] = conjugate(
         bem_data['Froude_Krylov_force'])
-    bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
-    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
+    bem_data['diffraction_force'] = conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2374,8 +2376,9 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
+    degrees = np.asarray(degrees)
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians[radians > np.pi] -= 2*np.pi
+    radians = radians.at[radians > np.pi].set(radians[radians > np.pi] - 2*np.pi)
     if radians.size > 1 and sort:
         radians = np.sort(radians)
     return radians
@@ -2539,6 +2542,7 @@ def frequency_parameters(
         If the zero-frequency was expected but not included or not
         expected but included.
     """
+    freqs = np.asarray(freqs)
     if np.isclose(freqs[0], 0.0):
         if zero_freq:
             freqs0 = freqs[:]
@@ -2549,7 +2553,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([[0.0,], freqs])
+            freqs0 = np.concatenate([np.array([0.0]), freqs])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
