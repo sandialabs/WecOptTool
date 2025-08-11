@@ -2589,8 +2589,9 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         print(np.real(np.array(mag)))
         print(np.array(w)*np.array(time))
         print(np.shape(np.real(np.array(mag))*np.cos(np.array(w)*time)))
-        out = out + \
-            np.real(np.array(mag))*np.cos(np.array(w)*np.array(time)) - np.imag(np.array(mag))*np.sin(np.array(w)*np.array(time))
+        out += np.real(mag)[:,:,np.newaxis]*np.cos(w*time)[np.newaxis,np.newaxis,:] - np.imag(mag)[:,:,np.newaxis]*np.sin(w*time)[np.newaxis,np.newaxis,:]
+        #out = out + \
+        #    np.real(np.array(mag))*np.cos(np.array(w)*np.array(time)) - np.imag(np.array(mag))*np.sin(np.array(w)*np.array(time))
     return out
 
 
