@@ -70,7 +70,8 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import block_diag, dft
-
+import jax
+jax.config.update("jax_enable_x64", True)
 
 # logger
 _log = logging.getLogger(__name__)
@@ -726,9 +727,9 @@ class WEC:
         # decision variable initial guess
         key = random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = random.normal(key, self.nstate_wec)
+            x_wec_0 = random.normal(key, self.nstate_wec, dtype=np.float64)
         if x_opt_0 is None:
-            x_opt_0 = random.normal(key, nstate_opt)
+            x_opt_0 = random.normal(key, nstate_opt, dtype=np.float64)
         x0 = np.concatenate([x_wec_0, x_opt_0])*scale
 
         # bounds
@@ -827,6 +828,11 @@ class WEC:
             if use_grad:
                 problem['jac'] = grad(obj_fun_scaled)
 
+            print(type(problem['fun']))
+            print(type(problem['x0']))
+            print(type(problem['constraints']))
+            print(type(problem['bounds']))
+
             # minimize
             optim_res = minimize(**problem)
 
@@ -898,9 +904,9 @@ class WEC:
         def _postproc(res, waves, nsubsteps):
             create_time = f"{datetime.utcnow()}"
 
-            omega_vals = np.concatenate([[0], waves.omega.values])
-            freq_vals = np.concatenate([[0], waves.freq.values])
-            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+            omega_vals = np.concatenate([np.array([0]), waves.omega.values])
+            freq_vals = np.concatenate([np.array([0]), waves.freq.values])
+            period_vals = np.concatenate([np.array([np.inf]), 1/waves.freq.values])
             pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -1065,7 +1071,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate((np.array([np.inf]), np.array(1/self._freq[1:])))
 
     @property
     def w1(self) -> float:
@@ -1650,8 +1656,8 @@ def real_to_complex(
         assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    [fd[-1, :]], axis=0)
+    fdc = np.append(np.array(fd[0:-1:2, :] + 1j*fd[1::2, :]),
+                    np.array([fd[-1, :]]), axis=0)
     if zero_freq:
         fdc = np.concatenate((mean, fdc), axis=0)
     return fdc
@@ -2576,10 +2582,15 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     time
         Time array.
     """
+    print(fd)
     out = np.zeros((*fd.isel(omega=0).shape, len(time)))
     for w, mag in zip(fd.omega, fd):
+        print(mag)
+        print(np.real(np.array(mag)))
+        print(np.array(w)*np.array(time))
+        print(np.shape(np.real(np.array(mag))*np.cos(np.array(w)*time)))
         out = out + \
-            np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
+            np.real(np.array(mag))*np.cos(np.array(w)*np.array(time)) - np.imag(np.array(mag))*np.sin(np.array(w)*np.array(time))
     return out
 
 
