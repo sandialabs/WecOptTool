@@ -61,7 +61,7 @@ import warnings
 from datetime import datetime
 
 from numpy.typing import ArrayLike
-from numpy import conjugate
+import numpy as np_orig
 import jax.numpy as np
 from jax.numpy import ndarray
 from jax import grad, jacobian, random
@@ -827,11 +827,6 @@ class WEC:
                         }
             if use_grad:
                 problem['jac'] = grad(obj_fun_scaled)
-
-            print(type(problem['fun']))
-            print(type(problem['x0']))
-            print(type(problem['constraints']))
-            print(type(problem['bounds']))
 
             # minimize
             optim_res = minimize(**problem)
@@ -2234,10 +2229,10 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data
         Linear hydrodynamic coefficients for the WEC.
     """
-    bem_data['Froude_Krylov_force'] = conjugate(
+    bem_data['Froude_Krylov_force'] = np_orig.conjugate(
         bem_data['Froude_Krylov_force'])
-    bem_data['diffraction_force'] = conjugate(bem_data['diffraction_force'])
-    bem_data['excitation_force'] = conjugate(bem_data['excitation_force'])
+    bem_data['diffraction_force'] = np_orig.conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = np_orig.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2582,16 +2577,10 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     time
         Time array.
     """
-    print(fd)
-    out = np.zeros((*fd.isel(omega=0).shape, len(time)))
+    out = np_orig.zeros((*fd.isel(omega=0).shape, len(time)))
     for w, mag in zip(fd.omega, fd):
-        print(mag)
-        print(np.real(np.array(mag)))
-        print(np.array(w)*np.array(time))
-        print(np.shape(np.real(np.array(mag))*np.cos(np.array(w)*time)))
-        out += np.real(mag)[:,:,np.newaxis]*np.cos(w*time)[np.newaxis,np.newaxis,:] - np.imag(mag)[:,:,np.newaxis]*np.sin(w*time)[np.newaxis,np.newaxis,:]
-        #out = out + \
-        #    np.real(np.array(mag))*np.cos(np.array(w)*np.array(time)) - np.imag(np.array(mag))*np.sin(np.array(w)*np.array(time))
+        out = out + \
+            np_orig.real(mag)*np_orig.cos(w*time) - np_orig.imag(mag)*np_orig.sin(w*time)
     return out
 
 

@@ -19,10 +19,8 @@ from typing import Optional, Union
 import logging
 from pathlib import Path
 
-import jax.numpy as np
-from jax.numpy import ndarray
-from jax.numpy.linalg import inv
-from xarray import DataArray
+import numpy as np
+from numpy.linalg import inv
 from numpy.typing import ArrayLike
 from xarray import DataArray, concat
 import matplotlib.pyplot as plt
@@ -227,7 +225,7 @@ def calculate_power_flows(wec,
 
     #compute analytical power flows
     Fex_FD = wec_fdom.force.sel(realization=0, type=['Froude_Krylov', 'diffraction']).sum('type')
-    Rad_res = np.real(intrinsic_impedance.values.squeeze())
+    Rad_res = np.real(intrinsic_impedance.squeeze())
     Vel_FD = wec_fdom.sel(realization=0).vel
 
     P_max, P_e, P_r = [], [], []
