@@ -5,7 +5,8 @@ from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
 from capytaine.io.meshio import load_from_meshio
-import autograd.numpy as np
+import numpy as np
+import jax.numpy as jnp
 from scipy.optimize import Bounds
 import xarray as xr
 from wavespectra.construct.frequency import pierson_moskowitz
@@ -302,7 +303,7 @@ class TestTheoreticalPowerLimits:
                         scale_x_opt=1e-3,
                         scale_obj=1e-1,
                         optim_options={'ftol': 1e-10},
-                        bounds_opt=((-1*np.infty, 0),),
+                        bounds_opt=((-1*np.inf, 0),),
                         )
 
         power_sol = -1*res[0]['fun']
@@ -399,7 +400,7 @@ class TestTheoreticalPowerLimits:
         def const_f_pto(wec, x_wec, x_opt, waves):
             f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
                                        nsubsteps=4)
-            return f_max - np.abs(f.flatten())
+            return f_max - jnp.abs(f.flatten())
         wec['us'] = wot.WEC.from_bem(hydro_data,
                                      f_add={"PTO": pto['us'].force_on_wec},
                                      constraints=[{'type': 'ineq',

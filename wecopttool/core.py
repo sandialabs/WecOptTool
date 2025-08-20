@@ -61,9 +61,9 @@ import warnings
 from datetime import datetime
 
 from numpy.typing import ArrayLike
-import numpy as np_orig
-import jax.numpy as np
-from jax.numpy import ndarray
+import numpy as np
+import jax.numpy as jnp
+from numpy import ndarray
 from jax import grad, jacobian, random
 import xarray as xr
 from xarray import DataArray, Dataset
@@ -722,7 +722,7 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
-        scale = np.concatenate([scale_x_wec, scale_x_opt])
+        scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
 
         # decision variable initial guess
         key = random.PRNGKey(0) # could add key as input to select same initial guesses?
@@ -730,7 +730,7 @@ class WEC:
             x_wec_0 = random.normal(key, self.nstate_wec, dtype=np.float64)
         if x_opt_0 is None:
             x_opt_0 = random.normal(key, nstate_opt, dtype=np.float64)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+        x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -741,8 +741,8 @@ class WEC:
                 if isinstance(bii, tuple):
                     bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
                                             ub=[xibs[1] for xibs in bii])
-            inf_wec = np.ones(self.nstate_wec)*np.inf
-            inf_opt = np.ones(nstate_opt)*np.inf
+            inf_wec = jnp.ones(self.nstate_wec)*jnp.inf
+            inf_opt = jnp.ones(nstate_opt)*jnp.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
                             Bounds(lb=-inf_opt, ub=inf_opt)]
             bounds_list = []
@@ -752,8 +752,8 @@ class WEC:
                 else:
                     bo = bd
                 bounds_list.append(bo)
-            bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
-                            ub=np.hstack([le.ub for le in bounds_list])*scale)
+            bounds = Bounds(lb=jnp.hstack([le.lb for le in bounds_list])*scale,
+                            ub=jnp.hstack([le.ub for le in bounds_list])*scale)
 
         for realization, wave in waves.groupby('realization'):
 
@@ -899,9 +899,9 @@ class WEC:
         def _postproc(res, waves, nsubsteps):
             create_time = f"{datetime.utcnow()}"
 
-            omega_vals = np.concatenate([np.array([0]), waves.omega.values])
-            freq_vals = np.concatenate([np.array([0]), waves.freq.values])
-            period_vals = np.concatenate([np.array([np.inf]), 1/waves.freq.values])
+            omega_vals = np.concatenate([[0], waves.omega.values])
+            freq_vals = np.concatenate([[0], waves.freq.values])
+            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
             pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -1066,7 +1066,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate((np.array([np.inf]), np.array(1/self._freq[1:])))
+        return np.concatenate(([np.inf], 1/self._freq[1:]))
 
     @property
     def w1(self) -> float:
@@ -1430,9 +1430,12 @@ def time_mat(
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
-    time_mat = time_mat.at[:, 0].set(1.0)
-    time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
-    time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component
+    #time_mat = time_mat.at[:, 0].set(1.0)
+    #time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
+    #time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component
+    time_mat[:, 0] = 1.0
+    time_mat[:, 1::2] = np.cos(wt)
+    time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
     if not zero_freq:
         time_mat = time_mat[:, 1:]
     return time_mat
@@ -1507,7 +1510,7 @@ def derivative2_mat(
     vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
     diagonal = np.repeat(-np.ones(nfreq) * np.array(vals), 2)[:-1] # remove 2pt wave sine
     if zero_freq:
-        diagonal = np.concatenate((np.array([0.0]), diagonal))
+        diagonal = np.concatenate(([0.0], diagonal))
     return np.diag(diagonal)
 
 
@@ -1543,28 +1546,28 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
-    if not isinstance(transfer_mat, np.ndarray):
-        transfer_mat = transfer_mat.values
+    #if not isinstance(transfer_mat, jnp.ndarray):
+    #    transfer_mat = transfer_mat.values
     ndof = transfer_mat.shape[1]
     assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
+    def block(re, im): return jnp.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
                 Zp0 = transfer_mat[0, idof, jdof]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
+                assert jnp.all(jnp.isreal(jnp.array(Zp0)))
+                Zp0 = jnp.real(jnp.array(Zp0))
                 Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
                 Zp = transfer_mat[:, idof, jdof]
-            re = np.real(Zp)
-            im = np.imag(Zp)
+            re = jnp.real(jnp.array(Zp))
+            im = jnp.imag(jnp.array(Zp))
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             blocks = [Zp0] + blocks + [re[-1]]
             elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+    return jnp.block(elem)
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1587,7 +1590,7 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     --------
     dofmat_to_vec,
     """
-    return np.reshape(vec, (-1, ndof), order='F')
+    return jnp.reshape(jnp.array(vec), (-1, ndof), order='F')
 
 
 def dofmat_to_vec(mat: ArrayLike) -> ndarray:
@@ -1606,7 +1609,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     --------
     vec_to_dofmat,
     """
-    return np.reshape(mat, -1, order='F')
+    return jnp.reshape(jnp.array(mat), -1, order='F')
 
 
 def real_to_complex(
@@ -1651,10 +1654,10 @@ def real_to_complex(
         assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(np.array(fd[0:-1:2, :] + 1j*fd[1::2, :]),
-                    np.array([fd[-1, :]]), axis=0)
+    fdc = jnp.append(jnp.array(fd[0:-1:2, :] + 1j*fd[1::2, :]),
+                    jnp.array([fd[-1, :]]), axis=0)
     if zero_freq:
-        fdc = np.concatenate((mean, fdc), axis=0)
+        fdc = jnp.concatenate((jnp.array(mean), jnp.array(fdc)), axis=0)
     return fdc
 
 
@@ -1698,22 +1701,22 @@ def complex_to_real(
     nfreq = fd.shape[0] - 1 if zero_freq else fd.shape[0]
     ndof = fd.shape[1]
     if zero_freq:
-        assert np.all(np.isreal(fd[0, :]))
-        a = np.real(fd[0:1, :])
-        b = np.real(fd[1:-1, :])
-        c = np.imag(fd[1:-1, :])
-        d = np.real(fd[-1:, :])
+        assert jnp.all(jnp.isreal(fd[0, :]))
+        a = jnp.real(fd[0:1, :])
+        b = jnp.real(fd[1:-1, :])
+        c = jnp.imag(fd[1:-1, :])
+        d = jnp.real(fd[-1:, :])
     else:
-        b = np.real(fd[:-1, :])
-        c = np.imag(fd[:-1, :])
-        d = np.real(fd[-1:, :])
-    out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+        b = jnp.real(fd[:-1, :])
+        c = jnp.imag(fd[:-1, :])
+        d = jnp.real(fd[-1:, :])
+    out = jnp.concatenate([jnp.transpose(b), jnp.transpose(c)])
+    out = jnp.reshape(jnp.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
-        out = np.concatenate([a, out, d])
+        out = jnp.concatenate([a, out, d])
         assert out.shape == (2*nfreq, ndof)
     else:
-        out = np.concatenate([out, d])
+        out = jnp.concatenate([out, d])
         assert out.shape == (2*nfreq-1, ndof)
     return out
 
@@ -1819,13 +1822,13 @@ def td_to_fd(
     --------
     fd_to_td
     """
-    td= atleast_2d(td)
+    td = atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
+        fd = jnp.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
-    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
+        fd = jnp.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = jnp.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
@@ -1916,7 +1919,7 @@ def check_radiation_damping(
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close ' +
                     'to zero terms. Shifting up radiation damping by ' +
-                    f'{delta.values} N/(m/s).')
+                    f'{delta} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
             dof = hydro_data_new.influenced_dof.values[idof]
@@ -2001,8 +2004,8 @@ def force_from_rao_transfer_function(
     """
     def force(wec, x_wec, x_opt, waves):
         transfer_mat = mimo_transfer_mat(rao_transfer_mat, zero_freq)
-        force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
-        return np.dot(wec.time_mat, force_fd)
+        force_fd = wec.vec_to_dofmat(jnp.dot(transfer_mat, x_wec))
+        return jnp.dot(wec.time_mat, force_fd)
     return force
 
 
@@ -2038,7 +2041,7 @@ def force_from_waves(force_coeff: DataArray,
     """
     def force(wec, x_wec, x_opt, waves):
         force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        return np.dot(wec.time_mat[:, 1:], force_fd)
+        return jnp.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
 
@@ -2229,10 +2232,10 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data
         Linear hydrodynamic coefficients for the WEC.
     """
-    bem_data['Froude_Krylov_force'] = np_orig.conjugate(
+    bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
-    bem_data['diffraction_force'] = np_orig.conjugate(bem_data['diffraction_force'])
-    bem_data['excitation_force'] = np_orig.conjugate(bem_data['excitation_force'])
+    bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2269,7 +2272,7 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            friction_data = atleast_2d(friction)
+            friction_data = np.atleast_2d(friction)
             hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
@@ -2323,7 +2326,7 @@ def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    return jnp.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
@@ -2358,8 +2361,8 @@ def atleast_2d(array: ArrayLike) -> ndarray:
     array
         Input array.
     """
-    array = np.atleast_1d(array)
-    return np.expand_dims(array, -1) if len(array.shape)==1 else array
+    array = jnp.atleast_1d(array)
+    return jnp.expand_dims(array, -1) if len(array.shape)==1 else array
 
 
 def degrees_to_radians(
@@ -2377,9 +2380,9 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
-    degrees = np.asarray(degrees)
+    
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
-    radians = radians.at[radians > np.pi].set(radians[radians > np.pi] - 2*np.pi)
+    radians[radians > np.pi] -= 2*np.pi
     if radians.size > 1 and sort:
         radians = np.sort(radians)
     return radians
@@ -2554,7 +2557,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([np.array([0.0]), freqs])
+            freqs0 = np.concatenate([[0.0], freqs])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
@@ -2577,10 +2580,10 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
     time
         Time array.
     """
-    out = np_orig.zeros((*fd.isel(omega=0).shape, len(time)))
+    out = np.zeros((*fd.isel(omega=0).shape, len(time)))
     for w, mag in zip(fd.omega, fd):
         out = out + \
-            np_orig.real(mag)*np_orig.cos(w*time) - np_orig.imag(mag)*np_orig.sin(w*time)
+            np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
 
 

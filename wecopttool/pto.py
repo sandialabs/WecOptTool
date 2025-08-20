@@ -25,8 +25,9 @@ __all__ = [
 import logging
 from typing import Optional, TypeVar, Callable, Union
 
-import jax.numpy as np
-from jax.numpy import ndarray
+import numpy as np
+import jax.numpy as jnp
+from numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset, concat
@@ -111,12 +112,12 @@ class PTO:
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
                 pos_wec = wec.vec_to_dofmat(x_wec)
                 tmat = self._tmat(wec, nsubsteps)
-                pos_wec_td = np.dot(tmat, pos_wec)
+                pos_wec_td = jnp.dot(tmat, pos_wec)
                 return kinematics(pos_wec_td)
         else:
             def kinematics_fun(wec, x_wec, x_opt, waves, nsubsteps=1):
                 n = wec.nt*nsubsteps
-                return np.repeat(kinematics[:, :, np.newaxis], n, axis=-1)
+                return jnp.repeat(kinematics[:, :, jnp.newaxis], n, axis=-1)
         self._kinematics = kinematics_fun
         
         # controller
@@ -228,11 +229,11 @@ class PTO:
             length.
         """
         time_mat = self._tmat(wec, nsubsteps)
-        f_wec_td = np.dot(time_mat, f_wec)
+        f_wec_td = jnp.dot(time_mat, f_wec)
         assert f_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
-        f_wec_td = np.expand_dims(np.transpose(f_wec_td), axis=0)
+        f_wec_td = jnp.expand_dims(jnp.transpose(f_wec_td), axis=0)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
-        return np.transpose(np.sum(kinematics_mat*f_wec_td, axis=1))
+        return jnp.transpose(jnp.sum(kinematics_mat*f_wec_td, axis=1))
 
     def position(self,
         wec: TWEC,
@@ -288,7 +289,7 @@ class PTO:
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
-        vel_wec = np.dot(wec.derivative_mat, pos_wec)
+        vel_wec = jnp.dot(wec.derivative_mat, pos_wec)
         return self._fkinematics(vel_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def acceleration(self,
@@ -297,7 +298,7 @@ class PTO:
         x_opt: ndarray,
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> np.ndarray:
+    ) -> jnp.ndarray:
         """Calculate the PTO acceleration time-series.
 
         Parameters
@@ -317,7 +318,7 @@ class PTO:
             length.
         """
         pos_wec = wec.vec_to_dofmat(x_wec)
-        acc_wec = np.dot(wec.derivative2_mat, pos_wec)
+        acc_wec = jnp.dot(wec.derivative2_mat, pos_wec)
         return self._fkinematics(acc_wec, wec, x_wec, x_opt, waves, nsubsteps)
 
     def force_on_wec(self,
@@ -347,11 +348,11 @@ class PTO:
         """
         force_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
         assert force_td.shape == (wec.nt*nsubsteps, self.ndof)
-        force_td = np.expand_dims(np.transpose(force_td), axis=0)
+        force_td = jnp.expand_dims(jnp.transpose(force_td), axis=0)
         assert force_td.shape == (1, self.ndof, wec.nt*nsubsteps)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, waves, nsubsteps)
-        kinematics_mat = np.transpose(kinematics_mat, (1,0,2))
-        return np.transpose(np.sum(kinematics_mat*force_td, axis=1))
+        kinematics_mat = jnp.transpose(kinematics_mat, (1,0,2))
+        return jnp.transpose(jnp.sum(kinematics_mat*force_td, axis=1))
 
     def mechanical_power(self,
         wec: TWEC,
@@ -359,7 +360,7 @@ class PTO:
         x_opt: ndarray,
         waves: Optional[Dataset] = None,
         nsubsteps: Optional[int] = 1,
-    ) -> np.ndarray:
+    ) -> jnp.ndarray:
         """Calculate the mechanical power time-series in each PTO DOF
         for a given system state.
 
@@ -410,7 +411,7 @@ class PTO:
             length.
         """
         power_td = self.mechanical_power(wec, x_wec, x_opt, waves, nsubsteps)
-        return np.sum(power_td) * wec.dt/nsubsteps
+        return jnp.sum(power_td) * wec.dt/nsubsteps
 
     def mechanical_average_power(self,
         wec: TWEC,
@@ -474,15 +475,15 @@ class PTO:
             e1_td = self.force(wec, x_wec, x_opt, waves)
             q1 = complex_to_real(td_to_fd(q1_td, False))
             e1 = complex_to_real(td_to_fd(e1_td, False))
-            vars_1 = np.hstack([q1, e1])
+            vars_1 = jnp.hstack([q1, e1])
             vars_1_flat = dofmat_to_vec(vars_1)
-            vars_2_flat = np.dot(self.transfer_mat, vars_1_flat)
+            vars_2_flat = jnp.dot(self.transfer_mat, vars_1_flat)
             vars_2 = vec_to_dofmat(vars_2_flat, 2*self.ndof)
             q2 = vars_2[:, :self.ndof]
             e2 = vars_2[:, self.ndof:]
             time_mat = self._tmat(wec, nsubsteps)
-            q2_td = np.dot(time_mat, q2)
-            e2_td = np.dot(time_mat, e2)
+            q2_td = jnp.dot(time_mat, q2)
+            e2_td = jnp.dot(time_mat, e2)
         else:
             q2_td = self.velocity(wec, x_wec, x_opt, waves, nsubsteps)
             e2_td = self.force(wec, x_wec, x_opt, waves, nsubsteps)
@@ -549,7 +550,7 @@ class PTO:
             length.
         """
         power_td = self.power(wec, x_wec, x_opt, waves, nsubsteps)
-        return np.sum(power_td) * wec.dt/nsubsteps
+        return jnp.sum(power_td) * wec.dt/nsubsteps
 
     def average_power(self,
         wec: TWEC,
@@ -851,23 +852,23 @@ def _make_abcd(impedance: ndarray, ndof: int) -> ndarray:
     z_12 = impedance[:ndof, ndof:, :]  # Fi
     z_21 = impedance[ndof:, :ndof, :]  # Vu
     z_22 = impedance[ndof:, ndof:, :]  # Vi
-    z_12_inv = np.linalg.inv(z_12.T).T
+    z_12_inv = jnp.linalg.inv(z_12.T).T
 
-    mmult = lambda a,b: np.einsum('mnr,mnr->mnr', a, b)
+    mmult = lambda a,b: jnp.einsum('mnr,mnr->mnr', a, b)
     abcd_11 = -1 * mmult(z_12_inv, z_11)
     abcd_12 = z_12_inv
     abcd_21 = z_21 - mmult(z_22, mmult(z_12_inv, z_11))
     abcd_22 = mmult(z_22, z_12_inv)
 
-    row_1 = np.hstack([abcd_11, abcd_12])
-    row_2 = np.hstack([abcd_21, abcd_22])
-    return np.vstack([row_1, row_2])
+    row_1 = jnp.hstack([abcd_11, abcd_12])
+    row_2 = jnp.hstack([abcd_21, abcd_22])
+    return jnp.vstack([row_1, row_2])
 
 
 def _make_mimo_transfer_mat(
     impedance_abcd: ndarray,
     ndof: int,
-) -> np.ndarray:
+) -> jnp.ndarray:
     """Create a block matrix of a MIMO transfer function.
 
     Parameters
@@ -877,12 +878,12 @@ def _make_mimo_transfer_mat(
     ndof
         Number of degrees of freedom.
     """
-    def block(re, im): return np.array([[re, -im], [im, re]])
+    def block(re, im): return jnp.array([[re, -im], [im, re]])
     for idof in range(2*ndof):
         for jdof in range(2*ndof):
             Zp = impedance_abcd[idof, jdof, :]
-            re = np.real(Zp)
-            im = np.imag(Zp)
+            re = jnp.real(Zp)
+            im = jnp.imag(Zp)
             # Exclude the sine component of the 2-point wave
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             # re[0] added for the zero frequency power loss (DC), could be re[n]
@@ -890,10 +891,10 @@ def _make_mimo_transfer_mat(
             if jdof==0:
                 row = block_diag(*blocks)
             else:
-                row = np.hstack([row, block_diag(*blocks)])
+                row = jnp.hstack([row, block_diag(*blocks)])
         if idof==0:
             mat = row
         else:
-            mat = np.vstack([mat, row])
+            mat = jnp.vstack([mat, row])
     return mat
 

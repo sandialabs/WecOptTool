@@ -18,8 +18,9 @@ __all__ = [
 import logging
 from typing import Optional, TypeVar, Callable, Union
 
-import jax.numpy as np
-from jax.numpy import ndarray
+import numpy as np
+import jax.numpy as jnp
+from numpy import ndarray
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 from xarray import DataArray, Dataset
@@ -99,21 +100,21 @@ class pid_controller(_controller_):
         ndof = self.ndof
 
         if self.proportional:
-            gain_p = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+            gain_p = jnp.diag(jnp.array(x_opt[idx*ndof:(idx+1)*ndof]))
             idx = idx + 1
         else:
-            gain_p = np.zeros([ndof, ndof])
+            gain_p = jnp.zeros([ndof, ndof])
 
         if self.integral:
-            gain_i = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+            gain_i = jnp.diag(jnp.array(x_opt[idx*ndof:(idx+1)*ndof]))
             idx = idx + 1
         else:
-            gain_i = np.zeros([ndof, ndof])
+            gain_i = jnp.zeros([ndof, ndof])
 
         if self.derivative:
-            gain_d = np.diag(x_opt[idx*ndof:(idx+1)*ndof])
+            gain_d = jnp.diag(jnp.array(x_opt[idx*ndof:(idx+1)*ndof]))
         else:
-            gain_d = np.zeros([ndof, ndof])
+            gain_d = jnp.zeros([ndof, ndof])
 
         return gain_p, gain_i, gain_d
         
@@ -133,9 +134,9 @@ class pid_controller(_controller_):
         acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
 
         force_td = (
-            np.dot(vel_td, gain_p.T) +
-            np.dot(pos_td, gain_i.T) +
-            np.dot(acc_td, gain_d.T)
+            jnp.dot(vel_td, gain_p.T) +
+            jnp.dot(pos_td, gain_i.T) +
+            jnp.dot(acc_td, gain_d.T)
         )
 
         if self.saturation is not None:
@@ -145,7 +146,7 @@ class pid_controller(_controller_):
     
     def _apply_saturation(self, force_td):
         if self.saturation is not None:
-            saturation = np.atleast_2d(np.squeeze(self.saturation))
+            saturation = jnp.atleast_2d(jnp.squeeze(jnp.array(self.saturation)))
             assert len(saturation)==self.ndof
             if len(saturation.shape) > 2:
                 raise ValueError("`saturation` must have <= 2 dimensions.")
@@ -159,9 +160,9 @@ class pid_controller(_controller_):
 
             force_td_list = []
             for i in range(self.ndof):
-                tmp = np.clip(force_td[:,i], f_min[i], f_max[i])
+                tmp = jnp.clip(force_td[:,i], f_min[i], f_max[i])
                 force_td_list.append(tmp)
-            force_td = np.array(force_td_list).T
+            force_td = jnp.array(force_td_list).T
         return force_td
 
 
@@ -199,8 +200,8 @@ class unstructured_controller(_controller_):
             length.
         """
         tmat = pto._tmat(wec, nsubsteps)
-        x_opt = np.reshape(x_opt[:len(tmat[0])*pto.ndof], (-1, pto.ndof), order='F')
-        return np.dot(tmat, x_opt)
+        x_opt = jnp.reshape(jnp.array(x_opt[:len(tmat[0])*pto.ndof]), (-1, pto.ndof), order='F')
+        return jnp.dot(tmat, x_opt)
 
 # utilities
 def nstate_unstructured(nfreq: int, ndof: int) -> int:
