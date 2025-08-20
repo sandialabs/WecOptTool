@@ -1110,8 +1110,8 @@ class TestForceFromImpedanceOrTransferFunction:
         assert np.allclose(force_calculated, force)
 
 
-class TestForceFromWaves:
-    """Test function :python:`force_from_waves`."""
+class TestForceFromWave:
+    """Test function :python:`force_from_wave`."""
 
     def test_regular(
             self, exc_coeff, f1, nfreq, ndof_waves, wave_regular, fexc_regular
@@ -1128,17 +1128,17 @@ class TestForceFromWaves:
                 Ar, Ai = np.real(A[j, i]), np.imag(A[j, i])
                 force[:, i] += Ar*np.cos(w[j]*t) - Ai*np.sin(w[j]*t)
         # calculated
-        force_func = wot.force_from_waves(exc_coeff)
+        force_func = wot.force_from_wave(exc_coeff)
         wec = wot.WEC(f1, nfreq, {}, ndof=ndof_waves, inertia_in_forces=True)
-        waves, _ = wave_regular
-        force_calculated = force_func(wec, None, None, waves)
+        wave, _ = wave_regular
+        force_calculated = force_func(wec, None, None, wave)
         # test
         assert np.allclose(force_calculated, force)
 
     def test_multi(
             self, exc_coeff, f1, nfreq, ndof_waves, waves_multi, fexc_multi
         ):
-        """Test iregular wave forces."""
+        """Test multidirectional wave forces."""
         # correct
         A = fexc_multi
         force = np.zeros((wot.ncomponents(nfreq), ndof_waves))
@@ -1150,7 +1150,7 @@ class TestForceFromWaves:
                 Ar, Ai = np.real(A[j, i]), np.imag(A[j, i])
                 force[:, i] += Ar*np.cos(w[j]*t) - Ai*np.sin(w[j]*t)
         # calculated
-        force_func = wot.force_from_waves(exc_coeff)
+        force_func = wot.force_from_wave(exc_coeff)
         wec = wot.WEC(f1, nfreq, {}, ndof=ndof_waves, inertia_in_forces=True)
         waves, _ = waves_multi
         force_calculated = force_func(wec, None, None, waves)

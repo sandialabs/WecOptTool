@@ -199,7 +199,7 @@ def test_solve_bounds(bounds_opt, wec_from_bem, regular_wave,
                              obj_fun=p_controller_pto.average_power,
                              nstate_opt=1,
                              x_opt_0=[kplim*0.1],
-                             optim_options={'maxiter': 2e1,
+                             optim_options={'maxiter': 200,
                                             'ftol': 1e-8},
                              bounds_opt=bounds_opt,
                              )
@@ -397,8 +397,8 @@ class TestTheoreticalPowerLimits:
 
         nstate_opt['us'] = 2*nfreq
         pto['us'] = pto_tmp
-        def const_f_pto(wec, x_wec, x_opt, waves):
-            f = pto['us'].force_on_wec(wec, x_wec, x_opt, waves, 
+        def const_f_pto(wec, x_wec, x_opt, wave):
+            f = pto['us'].force_on_wec(wec, x_wec, x_opt, wave, 
                                        nsubsteps=4)
             return f_max - jnp.abs(f.flatten())
         wec['us'] = wot.WEC.from_bem(hydro_data,

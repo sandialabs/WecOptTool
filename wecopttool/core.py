@@ -35,7 +35,7 @@ __all__ = [
     "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
-    "force_from_waves",
+    "force_from_wave",
     "inertia",
     "standard_forces",
     "run_bem",
@@ -153,7 +153,7 @@ class WEC:
         forces
             Dictionary with entries :python:`{'force_name': fun}`,
             where :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq+1, ndof)`.
         constraints
@@ -330,7 +330,7 @@ class WEC:
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq+1, ndof)`.
         constraints
@@ -433,7 +433,7 @@ class WEC:
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq, ndof)`.
         constraints
@@ -515,7 +515,7 @@ class WEC:
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq, ndof)`.
         constraints
@@ -560,7 +560,7 @@ class WEC:
         force_impedance = force_from_rao_transfer_function(transfer_func)
 
         # excitation force
-        force_excitation = force_from_waves(exc_coeff)
+        force_excitation = force_from_wave(exc_coeff)
 
         # all forces
         f_add = {} if (f_add is None) else f_add
@@ -575,7 +575,7 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[1])
         return wec
 
-    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+    def residual(self, x_wec: ndarray, x_opt: ndarray, wave: DataArray,
         ) -> float:
         """
         Return the residual of the dynamic equation (r = m⋅a-Σf).
@@ -586,22 +586,24 @@ class WEC:
             WEC state vector.
         x_opt
             Optimization (control) state.
-        waves
-            :py:class:`xarray.Dataset` with the structure and elements
-            shown by :py:mod:`wecopttool.waves`.
+        wave
+            2D :py:class:`xarray.DataArray` containing the wave's complex 
+            amplitude for a single realization as a function of wave 
+            angular frequency :python:`omega` (rad/s) and direction 
+            :python:`wave_direction` (rad).
         """
         if not self.inertia_in_forces:
-            ri = self.inertia(self, x_wec, x_opt, waves)
+            ri = self.inertia(self, x_wec, x_opt, wave)
         else:
             ri = np.zeros([self.ncomponents, self.ndof])
         # forces, -Σf
         for f in self.forces.values():
-            ri = ri - f(self, x_wec, x_opt, waves)
+            ri = ri - f(self, x_wec, x_opt, wave)
         return self.dofmat_to_vec(ri)
 
     # solve
     def solve(self,
-        waves: Dataset,
+        waves: DataArray,
         obj_fun: TStateFunction,
         nstate_opt: int,
         x_wec_0: Optional[ndarray] = None,
@@ -623,11 +625,11 @@ class WEC:
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements
+            :py:class:`xarray.DataArray` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
-            must have signature :python:`fun(wec, x_wec, x_opt, waves)`
+            must have signature :python:`fun(wec, x_wec, x_opt, wave)`
             and return a scalar.
         nstate_opt
             Length of the optimization (controls) state vector.
@@ -667,7 +669,7 @@ class WEC:
             See :py:func:`scipy.optimize.minimize`.
         callback
             Function called after each iteration, must have signature
-            :python:`fun(wec, x_wec, x_opt, waves)`. The default
+            :python:`fun(wec, x_wec, x_opt, wave)`. The default
             provides status reports at each iteration via logging at the
             INFO level.
 
@@ -686,7 +688,7 @@ class WEC:
         The :py:meth:`wecopttool.WEC.solve` method only returns the
         raw results dictionary produced by :py:func:`scipy.optimize.minimize`.
 
-        >>> res_opt = wec.solve(waves=wave,
+        >>> res_opt = wec.solve(waves=waves,
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
@@ -695,8 +697,8 @@ class WEC:
         may call
 
         >>> realization = 0 # realization index
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,wave,nsubsteps)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,wave,nsubsteps)
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,waves,nsubsteps)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,waves,nsubsteps)
 
         See Also
         --------
@@ -851,7 +853,7 @@ class WEC:
     def post_process(self,
         wec: TWEC,
         res: Union[OptimizeResult, Iterable],
-        waves: Dataset,
+        waves: DataArray,
         nsubsteps: Optional[int] = 1,
     ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
@@ -863,7 +865,7 @@ class WEC:
         res
             Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements
+            :py:class:`xarray.DataArray` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
@@ -882,7 +884,7 @@ class WEC:
         The :py:meth:`wecopttool.WEC.solve` method only returns the
         raw results dictionary produced by :py:func:`scipy.optimize.minimize`.
 
-        >>> res_opt = wec.solve(waves=wave,
+        >>> res_opt = wec.solve(waves=waves,
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
@@ -896,12 +898,12 @@ class WEC:
         assert self == wec , ("The same wec object should be used to call " +
                                 "post-process and be passed as an input.")
 
-        def _postproc(res, waves, nsubsteps):
+        def _postproc(res, wave, nsubsteps):
             create_time = f"{datetime.utcnow()}"
 
-            omega_vals = np.concatenate([[0], waves.omega.values])
-            freq_vals = np.concatenate([[0], waves.freq.values])
-            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+            omega_vals = np.concatenate([[0], wave.omega.values])
+            freq_vals = np.concatenate([[0], wave.freq.values])
+            period_vals = np.concatenate([[np.inf], 1/wave.freq.values])
             pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -921,7 +923,7 @@ class WEC:
             # frequency domain
             force_da_list = []
             for name, force in self.forces.items():
-                force_td_tmp = force(self, x_wec, x_opt, waves)
+                force_td_tmp = force(self, x_wec, x_opt, wave)
                 force_fd = self.td_to_fd(force_td_tmp)
                 force_da = DataArray(data=force_fd,
                                     dims=["omega", "influenced_dof"],
@@ -961,7 +963,7 @@ class WEC:
                 attrs={"time_created_utc": create_time}
             )
 
-            results_fd = xr.merge([fd_state, fd_forces, waves])
+            results_fd = xr.merge([fd_state, fd_forces, wave])
             results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                             'wave_direction')
             results_fd = results_fd.fillna(0)
@@ -2002,7 +2004,7 @@ def force_from_rao_transfer_function(
     --------
     force_from_impedance,
     """
-    def force(wec, x_wec, x_opt, waves):
+    def force(wec, x_wec, x_opt, wave):
         transfer_mat = mimo_transfer_mat(rao_transfer_mat, zero_freq)
         force_fd = wec.vec_to_dofmat(jnp.dot(transfer_mat, x_wec))
         return jnp.dot(wec.time_mat, force_fd)
@@ -2029,9 +2031,9 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
-def force_from_waves(force_coeff: DataArray,
+def force_from_wave(force_coeff: DataArray,
                      ) -> TStateFunction:
-    """Create a force function from waves excitation coefficients.
+    """Create a force function from wave excitation coefficients.
 
     Parameters
     ----------
@@ -2039,8 +2041,8 @@ def force_from_waves(force_coeff: DataArray,
         Complex excitation coefficients indexed by frequency and
         direction angle.
     """
-    def force(wec, x_wec, x_opt, waves):
-        force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
+    def force(wec, x_wec, x_opt, wave):
+        force_fd = complex_to_real(wave_excitation(force_coeff, wave), False)
         return jnp.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
@@ -2115,7 +2117,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     }
 
     for name, value in excitation_coefficients.items():
-        linear_force_functions[name] = force_from_waves(value)
+        linear_force_functions[name] = force_from_wave(value)
 
     return linear_force_functions
 
@@ -2281,13 +2283,13 @@ def add_linear_friction(
     return hydro_data
 
 
-def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
-    waves.
+    the wave.
 
     The resulting force is indexed only by frequency and not direction
     angle.
-    The input :python:`waves` frequencies must be same as
+    The input :python:`wave` frequencies must be same as
     :python:`exc_coeff`, but the directions can be a subset.
 
     Parameters
@@ -2295,25 +2297,28 @@ def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
     exc_coeff
         Complex excitation coefficients indexed by frequency and
         direction angle.
-    waves
-        Complex frequency-domain wave elevation.
+    wave
+        2D :py:class:`xarray.DataArray` containing the wave's complex 
+        amplitude for a single realization as a function of wave 
+        angular frequency :python:`omega` (rad/s) and direction 
+        :python:`wave_direction` (rad).
 
     Raises
     ------
     ValueError
         If the frequency vectors of :python:`exc_coeff` and
-        :python:`waves` are different.
+        :python:`wave` are different.
     ValueError
-        If any of the directions in :python:`waves` is not in
+        If any of the directions in :python:`wave` is not in
         :python:`exc_coeff`.
     """
-    omega_w = waves['omega'].values
+    omega_w = wave['omega'].values
     omega_e = exc_coeff['omega'].values
-    dir_w = waves['wave_direction'].values
+    dir_w = wave['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
     exc_coeff = exc_coeff.values
 
-    wave_elev_fd = np.expand_dims(waves.values, -1)
+    wave_elev_fd = np.expand_dims(wave.values, -1)
 
     if not np.allclose(omega_w, omega_e):
         raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
