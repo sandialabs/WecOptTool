@@ -211,7 +211,7 @@ def calculate_power_flows(wec,
         Results produced by :py:func:`scipy.optimize.minimize` for a single wave
         realization.
     waves
-        :py:class:`xarray.Dataset` with the structure and elements
+        :py:class:`xarray.DataArray` with the structure and elements
         shown by :py:mod:`wecopttool.waves`.
     intrinsic_impedance: DataArray
         Complex intrinsic impedance matrix produced by
@@ -222,8 +222,8 @@ def calculate_power_flows(wec,
     x_wec, x_opt = wec.decompose_state(results[0].x)
 
     #power quntities from solver
-    P_mech = pto.mechanical_average_power(wec, x_wec, x_opt, waves)
-    P_elec = pto.average_power(wec, x_wec, x_opt, waves)
+    P_mech = pto.mechanical_average_power(wec, x_wec, x_opt, waves.sel(realization=0))
+    P_elec = pto.average_power(wec, x_wec, x_opt, waves.sel(realization=0))
 
     #compute analytical power flows
     Fex_FD = wec_fdom.force.sel(realization=0, type=['Froude_Krylov', 'diffraction']).sum('type')
@@ -373,7 +373,7 @@ def plot_power_flow(power_flows: dict[str, float],
     return fig, ax
 
 
-def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubsteps=1):
+def linear_solve(bem_data, pto_impedance, wave, kinematics, nsubsteps=1):
     """Solve a linear problem in the frequency domain with optimal
     controller.
 
@@ -386,9 +386,11 @@ def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubstep
     pto_impedance
         Matrix representing the PTO impedance.
         Size 2*n_dof.
-    wave_realization
-        :py:class:`xarray.Dataset` with the structure and elements
-        shown by :py:mod:`wecopttool.waves`.
+    wave
+        2D :py:class:`xarray.DataArray` containing the wave's complex 
+        amplitude for a single realization as a function of wave 
+        angular frequency :python:`omega` (rad/s) and direction 
+        :python:`wave_direction` (rad).
     kinematics
         Matrix that transforms state from WEC to PTO frame.
     nsubsteps
@@ -412,8 +414,8 @@ def linear_solve(bem_data, pto_impedance, wave_realization, kinematics, nsubstep
     bem_data = check_radiation_damping(bem_data)
     intrinsic_impedance = hydrodynamic_impedance(bem_data)
     Zi = intrinsic_impedance.data
-    wave = np.expand_dims(wave_realization, axis=-1)
-    Fe = np.expand_dims((np.conjugate(bem_data.excitation_force) * wave).sum(dim="wave_direction").data, -1)
+    wave_amp = np.expand_dims(wave, axis=-1)
+    Fe = np.expand_dims((np.conjugate(bem_data.excitation_force) * wave_amp).sum(dim="wave_direction").data, -1)
 
     # PTO: Impedance and kinematics
     Zp = pto_impedance.transpose(2,0,1)
