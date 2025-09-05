@@ -37,6 +37,7 @@ jobs:
           miniforge-version: latest
           activate-environment: test-env
           use-mamba: true
+          architecture: 'arm64'
 
     # save the date to include in the cache key
     - name: Get Date
@@ -83,18 +84,6 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install gmsh pygmsh coveralls pytest
         pip3 install .
-        if [ "${{ runner.os }}" == "macOS" ]; then
-          pip install --upgrade jax jaxlib==0.4.0+cpu -f https://storage.googleapis.com/jax-releases/jax_releases.html
-        fi
-
-    # Install JAX and jaxlib for macOS
-    - name: Install JAX and jaxlib
-      if: matrix.os == 'macos-latest'
-      run: |
-        conda init bash
-        conda activate test-env
-        pip install --upgrade pip
-        pip install --upgrade jax jaxlib==0.4.0+cpu -f https://storage.googleapis.com/jax-releases/jax_releases.html
 
     # run all tests & coverage
     - name: Run Test
