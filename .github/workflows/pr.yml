@@ -88,6 +88,7 @@ jobs:
     - name: Install JAX and jaxlib
       if: matrix.os == 'macos-latest'
       run: |
+        conda init bash
         conda activate test-env
         pip install --upgrade pip
         pip install --upgrade jax jaxlib==0.4.0+cpu -f https://storage.googleapis.com/jax-releases/jax_releases.html
