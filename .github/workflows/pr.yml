@@ -84,6 +84,14 @@ jobs:
         pip3 install gmsh pygmsh coveralls pytest
         pip3 install .
 
+    # Install JAX and jaxlib for macOS
+    - name: Install JAX and jaxlib
+      if: matrix.os == 'macos-latest'
+      run: |
+        conda activate test-env
+        pip install --upgrade pip
+        pip install --upgrade jax jaxlib==0.4.0+cpu -f https://storage.googleapis.com/jax-releases/jax_releases.html
+
     # run all tests & coverage
     - name: Run Test
       shell: bash -l {0}
