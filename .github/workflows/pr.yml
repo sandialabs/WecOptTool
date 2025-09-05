@@ -83,6 +83,9 @@ jobs:
         python3 -m pip install --upgrade pip
         pip3 install gmsh pygmsh coveralls pytest
         pip3 install .
+        if [ "${{ runner.os }}" == "macOS" ]; then
+          pip install --upgrade jax jaxlib==0.4.0+cpu -f https://storage.googleapis.com/jax-releases/jax_releases.html
+        fi
 
     # Install JAX and jaxlib for macOS
     - name: Install JAX and jaxlib
