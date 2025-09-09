@@ -9,6 +9,7 @@ General resources
         * `Incorporating empirical nonlinear efficiency into control co-optimization of a real world heaving point absorber using WECOPTTOOL <https://github.com/dtgaebe/OMAE_2023_103899>`_ (:cite:t:`Gaebele:2023wf`:)
         * `Control co-design and uncertainty analysis of the LUPA's PTO using WecOptTool <https://github.com/cmichelenstrofer/EWTEC_2023>`_ (:cite:t:`Strofer:2023vw`:)
     * Webinar recordings:
+        * `June, 2025 <https://www.youtube.com/watch?v=uThGhTGYzwY>`_
         * `October, 2022 <https://digitalops.sandia.gov/Mediasite/Play/b3a653193c1a4da4a4d71d9908c3ac031d?enablejsapi=1>`_
         * `February, 2022 <https://digitalops.sandia.gov/Mediasite/Play/fde6b77d82f944319dc19d9c7d11d8a51d?enablejsapi=1>`_
 
