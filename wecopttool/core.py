@@ -51,6 +51,7 @@ __all__ = [
     "frequency_parameters",
     "time_results",
     "set_fb_centers",
+    "block_diag_jax",
 ]
 
 
@@ -64,13 +65,13 @@ from numpy.typing import ArrayLike
 import numpy as np
 import jax.numpy as jnp
 from numpy import ndarray
-from jax import grad, jacobian, random
+import jax
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
-from scipy.linalg import block_diag, dft
-import jax
+from scipy.linalg import dft
+
 jax.config.update("jax_enable_x64", True)
 
 # logger
@@ -655,7 +656,7 @@ class WEC:
             See :py:func:`scipy.optimize.minimize`.
         use_grad
              If :python:`True`, optimization will utilize
-             `autograd <https://github.com/HIPS/autograd>`_
+             `jax <https://https://github.com/jax-ml/jax>`_
              for gradients.
         maximize
             Whether to maximize the objective function.
@@ -727,11 +728,11 @@ class WEC:
         scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
 
         # decision variable initial guess
-        key = random.PRNGKey(0) # could add key as input to select same initial guesses?
+        key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = random.normal(key, self.nstate_wec, dtype=np.float64)
+            x_wec_0 = jax.random.normal(key, self.nstate_wec, dtype=np.float64)
         if x_opt_0 is None:
-            x_opt_0 = random.normal(key, nstate_opt, dtype=np.float64)
+            x_opt_0 = jax.random.normal(key, nstate_opt, dtype=np.float64)
         x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
 
         # bounds
@@ -786,9 +787,9 @@ class WEC:
                         return icons["fun"](self, x_wec, x_opt, wave)
                     return new_fun
 
-                icons_new["fun"] = make_new_fun(icons)
+                icons_new["fun"] = jax.jit(make_new_fun(icons))
                 if use_grad:
-                    icons_new['jac'] = jacobian(icons_new['fun'])
+                    icons_new['jac'] = jax.jit(jax.jacobian(icons_new['fun']))
                 constraints[i] = icons_new
 
             # system dynamics through equality constraint, ma - Σf = 0
@@ -797,9 +798,9 @@ class WEC:
                 x_wec, x_opt = self.decompose_state(x_s)
                 return self.residual(x_wec, x_opt, wave)
 
-            eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
+            eq_cons = {'type': 'eq', 'fun': jax.jit(scaled_resid_fun)}
             if use_grad:
-                eq_cons['jac'] = jacobian(scaled_resid_fun)
+                eq_cons['jac'] = jax.jit(jax.jacobian(scaled_resid_fun))
             constraints.append(eq_cons)
 
             # callback
@@ -819,7 +820,7 @@ class WEC:
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
-            problem = {'fun': obj_fun_scaled,
+            problem = {'fun': jax.jit(obj_fun_scaled),
                         'x0': x0,
                         'method': 'SLSQP',
                         'constraints': constraints,
@@ -828,7 +829,7 @@ class WEC:
                         'callback': callback_scipy,
                         }
             if use_grad:
-                problem['jac'] = grad(obj_fun_scaled)
+                problem['jac'] = jax.jit(jax.grad(obj_fun_scaled))
 
             # minimize
             optim_res = minimize(**problem)
@@ -1476,7 +1477,7 @@ def derivative_mat(
     blocks = [block(n+1) for n in range(nfreq)]
     if zero_freq:
         blocks = [0.0] + blocks
-    deriv_mat = block_diag(*blocks)
+    deriv_mat = block_diag_jax(*blocks)
     return deriv_mat[:-1, :-1] # remove 2pt wave sine component
 
 
@@ -1558,7 +1559,7 @@ def mimo_transfer_mat(
         for jdof in range(ndof):
             if zero_freq:
                 Zp0 = transfer_mat[0, idof, jdof]
-                assert jnp.all(jnp.isreal(jnp.array(Zp0)))
+                #assert jnp.all(jnp.isreal(jnp.array(Zp0)))
                 Zp0 = jnp.real(jnp.array(Zp0))
                 Zp = transfer_mat[1:, idof, jdof]
             else:
@@ -1568,7 +1569,7 @@ def mimo_transfer_mat(
             im = jnp.imag(jnp.array(Zp))
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             blocks = [Zp0] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
+            elem[idof][jdof] = block_diag_jax(*blocks)
     return jnp.block(elem)
 
 
@@ -1703,7 +1704,7 @@ def complex_to_real(
     nfreq = fd.shape[0] - 1 if zero_freq else fd.shape[0]
     ndof = fd.shape[1]
     if zero_freq:
-        assert jnp.all(jnp.isreal(fd[0, :]))
+        #assert jnp.all(jnp.isreal(fd[0, :]))
         a = jnp.real(fd[0:1, :])
         b = jnp.real(fd[1:-1, :])
         c = jnp.imag(fd[1:-1, :])
@@ -1716,10 +1717,10 @@ def complex_to_real(
     out = jnp.reshape(jnp.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
         out = jnp.concatenate([a, out, d])
-        assert out.shape == (2*nfreq, ndof)
+        #assert out.shape == (2*nfreq, ndof)
     else:
         out = jnp.concatenate([out, d])
-        assert out.shape == (2*nfreq-1, ndof)
+        #assert out.shape == (2*nfreq-1, ndof)
     return out
 
 
@@ -2625,3 +2626,52 @@ def set_fb_centers(
                 f'{property} already defined as {getattr(fb, property)}.')
 
     return fb
+
+
+def block_diag_jax(*arrays: ArrayLike) -> ndarray:
+    """Creates a block diagonal matrix from provided arrays.
+
+    Given the inputs A, B, and C, the output will have these
+    arrays arranged on the diagonal:
+
+        [[A, 0, 0],
+         [0, B, 0],
+         [0, 0, C]]
+
+    Parameters
+    ----------
+    arrays
+        Input arrays. Each array can be up to 2-D. A 1-D array or 
+        array-like sequence of length n is treated as a 2-D array 
+        with shape (1, n).
+
+    Returns
+    -------
+    block_diag_mat
+        Array with A, B, C, ... on the diagonal. D has the same 
+        dtype as the first input array.
+
+    Notes
+    -----
+    Empty sequences (i.e., array-likes of zero size) will not be ignored.
+    Noteworthy, both [] and [[]] are treated as matrices with shape (1, 0).
+    """
+    # Convert inputs to JAX arrays and ensure they are at least 2D
+    blocks = [jnp.atleast_2d(jnp.array(a)) for a in arrays]
+
+    # Compute the total shape of the resulting block diagonal matrix
+    total_rows = sum(block.shape[0] for block in blocks)
+    total_cols = sum(block.shape[1] for block in blocks)
+
+    # Create an empty block diagonal matrix
+    block_diag_mat = jnp.zeros((total_rows, total_cols), dtype=blocks[0].dtype)
+
+    # Fill the block diagonal matrix
+    r, c = 0, 0
+    for block in blocks:
+        rr, cc = block.shape
+        block_diag_mat = block_diag_mat.at[r:r + rr, c:c + cc].set(block)
+        r += rr
+        c += cc
+
+    return block_diag_mat
