@@ -123,15 +123,36 @@ class pid_controller(_controller_):
               wec: TWEC,
               x_wec: ndarray,
               x_opt: ndarray,
-              waves: Optional[Dataset] = None,
+              wave: Optional[DataArray] = None,
               nsubsteps: Optional[int] = 1):
-        '''Time history of PTO force'''
+        """PID controller that returns a time history of PTO forces.
+
+        Parameters
+        ----------
+        pto
+            :py:class:`wecopttool.pto.PTO` object.
+        wec
+            :py:class:`wecopttool.WEC` object.
+        x_wec
+            WEC dynamic state.
+        x_opt
+            Optimization (control) state.
+        wave
+            2D :py:class:`xarray.DataArray` containing the wave's complex 
+            amplitude for a single realization as a function of wave 
+            angular frequency :python:`omega` (rad/s) and direction 
+            :python:`wave_direction` (rad).
+        nsubsteps
+            Number of steps between the default (implied) time steps.
+            A value of :python:`1` corresponds to the default step
+            length.
+        """
 
         gain_p, gain_i, gain_d = self._gains(x_opt)
 
-        vel_td = pto.velocity(wec, x_wec, x_opt, waves, nsubsteps)
-        pos_td = pto.position(wec, x_wec, x_opt, waves, nsubsteps)
-        acc_td = pto.acceleration(wec, x_wec, x_opt, waves, nsubsteps)
+        vel_td = pto.velocity(wec, x_wec, x_opt, wave, nsubsteps)
+        pos_td = pto.position(wec, x_wec, x_opt, wave, nsubsteps)
+        acc_td = pto.acceleration(wec, x_wec, x_opt, wave, nsubsteps)
 
         force_td = (
             np.dot(vel_td, gain_p.T) +
@@ -175,7 +196,7 @@ class unstructured_controller(_controller_):
               wec: TWEC,
               x_wec: ndarray,
               x_opt: ndarray,
-              waves: Optional[Dataset] = None,
+              wave: Optional[Dataset] = None,
               nsubsteps: Optional[int] = 1,
               ) -> ndarray:
         """Unstructured numerical optimal controller that returns a time
@@ -191,9 +212,11 @@ class unstructured_controller(_controller_):
             WEC dynamic state.
         x_opt
             Optimization (control) state.
-        waves
-            :py:class:`xarray.Dataset` with the structure and elements
-            shown by :py:mod:`wecopttool.waves`.
+        wave
+            2D :py:class:`xarray.DataArray` containing the wave's complex 
+            amplitude for a single realization as a function of wave 
+            angular frequency :python:`omega` (rad/s) and direction 
+            :python:`wave_direction` (rad).
         nsubsteps
             Number of steps between the default (implied) time steps.
             A value of :python:`1` corresponds to the default step
