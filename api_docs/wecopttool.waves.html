@@ -80,7 +80,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_impedance.html">wecopttool.force_from_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html">wecopttool.force_from_rao_transfer_function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_waves.html">wecopttool.force_from_waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_wave.html">wecopttool.force_from_wave</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency.html">wecopttool.frequency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
@@ -139,10 +139,11 @@ functions for creating different common types of waves.</p>
 <code class="code highlight python docutils literal highlight-python"><span class="n">wecopttool</span></code>.
 It also provides functions for creating common types of waves such as
 regular waves and irregular waves.
-The data structure is a 2D complex <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.9.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a>
+The data structure is a 3D complex <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.9.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a>
 containing the complex amplitude.
-The 2D coordinates are: wave angular frequency <code class="code highlight python docutils literal highlight-python"><span class="n">omega</span></code> (rad/s)
-and direction <code class="code highlight python docutils literal highlight-python"><span class="n">wave_direction</span></code> (rad).</p>
+The 3D coordinates are: wave angular frequency <code class="code highlight python docutils literal highlight-python"><span class="n">omega</span></code> (rad/s),
+direction <code class="code highlight python docutils literal highlight-python"><span class="n">wave_direction</span></code> (rad), and realization
+<code class="code highlight python docutils literal highlight-python"><span class="n">realization</span></code> ().</p>
 <p>This module uses wave spectrum data in the
 <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a> format, but does not require that you
 use <a class="reference external" href="https://wavespectra.readthedocs.io/en/latest/generated/wavespectra.SpecArray.html#wavespectra.SpecArray" title="(in wavespectra v4.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">wavespectra.SpecArray</span></code></a> objects.</p>

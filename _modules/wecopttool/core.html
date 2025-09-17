@@ -114,7 +114,7 @@
     <span class="s2">&quot;check_impedance&quot;</span><span class="p">,</span>
     <span class="s2">&quot;force_from_rao_transfer_function&quot;</span><span class="p">,</span>
     <span class="s2">&quot;force_from_impedance&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;force_from_waves&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;force_from_wave&quot;</span><span class="p">,</span>
     <span class="s2">&quot;inertia&quot;</span><span class="p">,</span>
     <span class="s2">&quot;standard_forces&quot;</span><span class="p">,</span>
     <span class="s2">&quot;run_bem&quot;</span><span class="p">,</span>
@@ -235,7 +235,7 @@
 <span class="sd">        forces</span>
 <span class="sd">            Dictionary with entries :python:`{&#39;force_name&#39;: fun}`,</span>
 <span class="sd">            where :python:`fun` has a  signature</span>
-<span class="sd">            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns</span>
+<span class="sd">            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns</span>
 <span class="sd">            forces in the time-domain of size</span>
 <span class="sd">            :python:`(2*nfreq+1, ndof)`.</span>
 <span class="sd">        constraints</span>
@@ -415,7 +415,7 @@
 <span class="sd">        f_add</span>
 <span class="sd">            Dictionary with entries :python:`{&#39;force_name&#39;: fun}`, where</span>
 <span class="sd">            :python:`fun` has a  signature</span>
-<span class="sd">            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns</span>
+<span class="sd">            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns</span>
 <span class="sd">            forces in the time-domain of size</span>
 <span class="sd">            :python:`(2*nfreq+1, ndof)`.</span>
 <span class="sd">        constraints</span>
@@ -521,7 +521,7 @@
 <span class="sd">        f_add</span>
 <span class="sd">            Dictionary with entries :python:`{&#39;force_name&#39;: fun}`, where</span>
 <span class="sd">            :python:`fun` has a  signature</span>
-<span class="sd">            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns</span>
+<span class="sd">            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns</span>
 <span class="sd">            forces in the time-domain of size</span>
 <span class="sd">            :python:`(2*nfreq, ndof)`.</span>
 <span class="sd">        constraints</span>
@@ -606,7 +606,7 @@
 <span class="sd">        f_add</span>
 <span class="sd">            Dictionary with entries :python:`{&#39;force_name&#39;: fun}`, where</span>
 <span class="sd">            :python:`fun` has a  signature</span>
-<span class="sd">            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns</span>
+<span class="sd">            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns</span>
 <span class="sd">            forces in the time-domain of size</span>
 <span class="sd">            :python:`(2*nfreq, ndof)`.</span>
 <span class="sd">        constraints</span>
@@ -651,7 +651,7 @@
         <span class="n">force_impedance</span> <span class="o">=</span> <span class="n">force_from_rao_transfer_function</span><span class="p">(</span><span class="n">transfer_func</span><span class="p">)</span>
 
         <span class="c1"># excitation force</span>
-        <span class="n">force_excitation</span> <span class="o">=</span> <span class="n">force_from_waves</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">)</span>
+        <span class="n">force_excitation</span> <span class="o">=</span> <span class="n">force_from_wave</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">)</span>
 
         <span class="c1"># all forces</span>
         <span class="n">f_add</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="p">(</span><span class="n">f_add</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="k">else</span> <span class="n">f_add</span>
@@ -669,7 +669,7 @@
 
 <div class="viewcode-block" id="WEC.residual">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.residual.html#wecopttool.WEC.residual">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">:</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">wave</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
         <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the residual of the dynamic equation (r = m⋅a-Σf).</span>
@@ -680,17 +680,19 @@
 <span class="sd">            WEC state vector.</span>
 <span class="sd">        x_opt</span>
 <span class="sd">            Optimization (control) state.</span>
-<span class="sd">        waves</span>
-<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
-<span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
+<span class="sd">        wave</span>
+<span class="sd">            2D :py:class:`xarray.DataArray` containing the wave&#39;s complex </span>
+<span class="sd">            amplitude for a single realization as a function of wave </span>
+<span class="sd">            angular frequency :python:`omega` (rad/s) and direction </span>
+<span class="sd">            :python:`wave_direction` (rad).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia_in_forces</span><span class="p">:</span>
-            <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+            <span class="n">ri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">ncomponents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">])</span>
         <span class="c1"># forces, -Σf</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">ri</span> <span class="o">=</span> <span class="n">ri</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+            <span class="n">ri</span> <span class="o">=</span> <span class="n">ri</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dofmat_to_vec</span><span class="p">(</span><span class="n">ri</span><span class="p">)</span></div>
 
 
@@ -698,7 +700,7 @@
 <div class="viewcode-block" id="WEC.solve">
 <a class="viewcode-back" href="../../api_docs/wecopttool.core.WEC.solve.html#wecopttool.WEC.solve">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-        <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">waves</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
         <span class="n">obj_fun</span><span class="p">:</span> <span class="n">TStateFunction</span><span class="p">,</span>
         <span class="n">nstate_opt</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">x_wec_0</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -720,11 +722,11 @@
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        waves</span>
-<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
+<span class="sd">            :py:class:`xarray.DataArray` with the structure and elements</span>
 <span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
 <span class="sd">        obj_fun</span>
 <span class="sd">            Objective function to minimize for pseudo-spectral solution,</span>
-<span class="sd">            must have signature :python:`fun(wec, x_wec, x_opt, waves)`</span>
+<span class="sd">            must have signature :python:`fun(wec, x_wec, x_opt, wave)`</span>
 <span class="sd">            and return a scalar.</span>
 <span class="sd">        nstate_opt</span>
 <span class="sd">            Length of the optimization (controls) state vector.</span>
@@ -764,7 +766,7 @@
 <span class="sd">            See :py:func:`scipy.optimize.minimize`.</span>
 <span class="sd">        callback</span>
 <span class="sd">            Function called after each iteration, must have signature</span>
-<span class="sd">            :python:`fun(wec, x_wec, x_opt, waves)`. The default</span>
+<span class="sd">            :python:`fun(wec, x_wec, x_opt, wave)`. The default</span>
 <span class="sd">            provides status reports at each iteration via logging at the</span>
 <span class="sd">            INFO level.</span>
 
@@ -783,7 +785,7 @@
 <span class="sd">        The :py:meth:`wecopttool.WEC.solve` method only returns the</span>
 <span class="sd">        raw results dictionary produced by :py:func:`scipy.optimize.minimize`.</span>
 
-<span class="sd">        &gt;&gt;&gt; res_opt = wec.solve(waves=wave,</span>
+<span class="sd">        &gt;&gt;&gt; res_opt = wec.solve(waves=waves,</span>
 <span class="sd">                                obj_fun=pto.average_power,</span>
 <span class="sd">                                nstate_opt=2*nfreq+1)</span>
 
@@ -792,8 +794,8 @@
 <span class="sd">        may call</span>
 
 <span class="sd">        &gt;&gt;&gt; realization = 0 # realization index</span>
-<span class="sd">        &gt;&gt;&gt; res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,wave,nsubsteps)</span>
-<span class="sd">        &gt;&gt;&gt; res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,wave,nsubsteps)</span>
+<span class="sd">        &gt;&gt;&gt; res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,waves,nsubsteps)</span>
+<span class="sd">        &gt;&gt;&gt; res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,waves,nsubsteps)</span>
 
 <span class="sd">        See Also</span>
 <span class="sd">        --------</span>
@@ -950,7 +952,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">post_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
         <span class="n">wec</span><span class="p">:</span> <span class="n">TWEC</span><span class="p">,</span>
         <span class="n">res</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">],</span>
-        <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">waves</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
         <span class="n">nsubsteps</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Post-process the results from :py:meth:`wecopttool.WEC.solve`.</span>
@@ -962,7 +964,7 @@
 <span class="sd">        res</span>
 <span class="sd">            Results produced by :py:meth:`wecopttool.WEC.solve`.</span>
 <span class="sd">        waves</span>
-<span class="sd">            :py:class:`xarray.Dataset` with the structure and elements</span>
+<span class="sd">            :py:class:`xarray.DataArray` with the structure and elements</span>
 <span class="sd">            shown by :py:mod:`wecopttool.waves`.</span>
 <span class="sd">        nsubsteps</span>
 <span class="sd">            Number of steps between the default (implied) time steps.</span>
@@ -981,7 +983,7 @@
 <span class="sd">        The :py:meth:`wecopttool.WEC.solve` method only returns the</span>
 <span class="sd">        raw results dictionary produced by :py:func:`scipy.optimize.minimize`.</span>
 
-<span class="sd">        &gt;&gt;&gt; res_opt = wec.solve(waves=wave,</span>
+<span class="sd">        &gt;&gt;&gt; res_opt = wec.solve(waves=waves,</span>
 <span class="sd">                                obj_fun=pto.average_power,</span>
 <span class="sd">                                nstate_opt=2*nfreq+1)</span>
 
@@ -995,12 +997,12 @@
         <span class="k">assert</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">wec</span> <span class="p">,</span> <span class="p">(</span><span class="s2">&quot;The same wec object should be used to call &quot;</span> <span class="o">+</span>
                                 <span class="s2">&quot;post-process and be passed as an input.&quot;</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">_postproc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">):</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_postproc</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">):</span>
             <span class="n">create_time</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
 
-            <span class="n">omega_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
-            <span class="n">freq_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">waves</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
-            <span class="n">period_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="n">waves</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+            <span class="n">omega_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wave</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+            <span class="n">freq_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wave</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+            <span class="n">period_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="n">wave</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
             <span class="n">pos_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Position&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m or rad&#39;</span><span class="p">}</span>
             <span class="n">vel_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Velocity&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s or rad/s&#39;</span><span class="p">}</span>
             <span class="n">acc_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Acceleration&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m/s^2 or rad/s^2&#39;</span><span class="p">}</span>
@@ -1020,7 +1022,7 @@
             <span class="c1"># frequency domain</span>
             <span class="n">force_da_list</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">forces</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">force_td_tmp</span> <span class="o">=</span> <span class="n">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">)</span>
+                <span class="n">force_td_tmp</span> <span class="o">=</span> <span class="n">force</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
                 <span class="n">force_fd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">td_to_fd</span><span class="p">(</span><span class="n">force_td_tmp</span><span class="p">)</span>
                 <span class="n">force_da</span> <span class="o">=</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">force_fd</span><span class="p">,</span>
                                     <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;omega&quot;</span><span class="p">,</span> <span class="s2">&quot;influenced_dof&quot;</span><span class="p">],</span>
@@ -1060,7 +1062,7 @@
                 <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;time_created_utc&quot;</span><span class="p">:</span> <span class="n">create_time</span><span class="p">}</span>
             <span class="p">)</span>
 
-            <span class="n">results_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">fd_state</span><span class="p">,</span> <span class="n">fd_forces</span><span class="p">,</span> <span class="n">waves</span><span class="p">])</span>
+            <span class="n">results_fd</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">fd_state</span><span class="p">,</span> <span class="n">fd_forces</span><span class="p">,</span> <span class="n">wave</span><span class="p">])</span>
             <span class="n">results_fd</span> <span class="o">=</span> <span class="n">results_fd</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;influenced_dof&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;wave_direction&#39;</span><span class="p">)</span>
             <span class="n">results_fd</span> <span class="o">=</span> <span class="n">results_fd</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -2173,7 +2175,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    force_from_impedance,</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">transfer_mat</span> <span class="o">=</span> <span class="n">mimo_transfer_mat</span><span class="p">(</span><span class="n">rao_transfer_mat</span><span class="p">,</span> <span class="n">zero_freq</span><span class="p">)</span>
         <span class="n">force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">force_fd</span><span class="p">)</span>
@@ -2204,11 +2206,11 @@
 
 
 
-<div class="viewcode-block" id="force_from_waves">
-<a class="viewcode-back" href="../../api_docs/wecopttool.force_from_waves.html#wecopttool.force_from_waves">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">force_from_waves</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
+<div class="viewcode-block" id="force_from_wave">
+<a class="viewcode-back" href="../../api_docs/wecopttool.force_from_wave.html#wecopttool.force_from_wave">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">force_from_wave</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
                      <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TStateFunction</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a force function from waves excitation coefficients.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a force function from wave excitation coefficients.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -2216,8 +2218,8 @@
 <span class="sd">        Complex excitation coefficients indexed by frequency and</span>
 <span class="sd">        direction angle.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
-        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">wave_excitation</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">,</span> <span class="n">waves</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
+        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">wave_excitation</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">,</span> <span class="n">wave</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">force_fd</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">force</span></div>
 
@@ -2298,7 +2300,7 @@
     <span class="p">}</span>
 
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">excitation_coefficients</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">linear_force_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">force_from_waves</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">linear_force_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">force_from_wave</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">linear_force_functions</span></div>
 
@@ -2476,13 +2478,13 @@
 
 <div class="viewcode-block" id="wave_excitation">
 <a class="viewcode-back" href="../../api_docs/wecopttool.wave_excitation.html#wecopttool.wave_excitation">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">wave_excitation</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">waves</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">wave_excitation</span><span class="p">(</span><span class="n">exc_coeff</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">wave</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the complex, frequency-domain, excitation force due to</span>
-<span class="sd">    waves.</span>
+<span class="sd">    the wave.</span>
 
 <span class="sd">    The resulting force is indexed only by frequency and not direction</span>
 <span class="sd">    angle.</span>
-<span class="sd">    The input :python:`waves` frequencies must be same as</span>
+<span class="sd">    The input :python:`wave` frequencies must be same as</span>
 <span class="sd">    :python:`exc_coeff`, but the directions can be a subset.</span>
 
 <span class="sd">    Parameters</span>
@@ -2490,25 +2492,28 @@
 <span class="sd">    exc_coeff</span>
 <span class="sd">        Complex excitation coefficients indexed by frequency and</span>
 <span class="sd">        direction angle.</span>
-<span class="sd">    waves</span>
-<span class="sd">        Complex frequency-domain wave elevation.</span>
+<span class="sd">    wave</span>
+<span class="sd">        2D :py:class:`xarray.DataArray` containing the wave&#39;s complex </span>
+<span class="sd">        amplitude for a single realization as a function of wave </span>
+<span class="sd">        angular frequency :python:`omega` (rad/s) and direction </span>
+<span class="sd">        :python:`wave_direction` (rad).</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If the frequency vectors of :python:`exc_coeff` and</span>
-<span class="sd">        :python:`waves` are different.</span>
+<span class="sd">        :python:`wave` are different.</span>
 <span class="sd">    ValueError</span>
-<span class="sd">        If any of the directions in :python:`waves` is not in</span>
+<span class="sd">        If any of the directions in :python:`wave` is not in</span>
 <span class="sd">        :python:`exc_coeff`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">omega_w</span> <span class="o">=</span> <span class="n">waves</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">omega_w</span> <span class="o">=</span> <span class="n">wave</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">omega_e</span> <span class="o">=</span> <span class="n">exc_coeff</span><span class="p">[</span><span class="s1">&#39;omega&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">dir_w</span> <span class="o">=</span> <span class="n">waves</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">dir_w</span> <span class="o">=</span> <span class="n">wave</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">dir_e</span> <span class="o">=</span> <span class="n">exc_coeff</span><span class="p">[</span><span class="s1">&#39;wave_direction&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">exc_coeff</span> <span class="o">=</span> <span class="n">exc_coeff</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">wave_elev_fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">waves</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">wave_elev_fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">omega_w</span><span class="p">,</span> <span class="n">omega_e</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Wave and excitation frequencies do not match. WW: </span><span class="si">{</span><span class="n">omega_w</span><span class="si">}</span><span class="s2">, EE: </span><span class="si">{</span><span class="n">omega_e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

@@ -114,7 +114,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_impedance.html">wecopttool.force_from_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html">wecopttool.force_from_rao_transfer_function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_waves.html">wecopttool.force_from_waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_wave.html">wecopttool.force_from_wave</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency.html">wecopttool.frequency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
@@ -202,11 +202,11 @@ corrected. Also includes inertia and hydrostatic stiffness.</p></li>
 to zero.</p></li>
 <li><p><strong>f_add</strong> (<em>Mapping</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>StateFunction</em><em>] </em><em>| </em><em>None</em>) – Dictionary with entries <code class="code highlight python docutils literal highlight-python"><span class="p">{</span><span class="s1">&#39;force_name&#39;</span><span class="p">:</span> <span class="n">fun</span><span class="p">}</span></code>, where
 <code class="code highlight python docutils literal highlight-python"><span class="n">fun</span></code> has a  signature
-<code class="code highlight python docutils literal highlight-python"><span class="k">def</span><span class="w"> </span><span class="nf">fun</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span></code>, and returns
+<code class="code highlight python docutils literal highlight-python"><span class="k">def</span><span class="w"> </span><span class="nf">fun</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span></code>, and returns
 forces in the time-domain of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>constraints</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.13)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.13)"><em>Mapping</em></a><em>] </em><em>| </em><em>None</em>) – List of constraints, see documentation for
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.1)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
 options of constraints dictionaries.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code>: empty list <code class="code highlight python docutils literal highlight-python"><span class="p">[]</span></code>.</p></li>
 <li><p><strong>min_damping</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em> | </em><em>None</em>) – Minimum damping level to ensure a stable system.

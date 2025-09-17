@@ -115,7 +115,7 @@
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.check_impedance.html">wecopttool.core.check_impedance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.force_from_rao_transfer_function.html">wecopttool.core.force_from_rao_transfer_function</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.force_from_impedance.html">wecopttool.core.force_from_impedance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="wecopttool.core.force_from_waves.html">wecopttool.core.force_from_waves</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.core.force_from_wave.html">wecopttool.core.force_from_wave</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.inertia.html">wecopttool.core.inertia</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.standard_forces.html">wecopttool.core.standard_forces</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.run_bem.html">wecopttool.core.run_bem</a></li>
@@ -152,7 +152,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.fd_to_td.html">wecopttool.fd_to_td</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_impedance.html">wecopttool.force_from_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_rao_transfer_function.html">wecopttool.force_from_rao_transfer_function</a></li>
-<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_waves.html">wecopttool.force_from_waves</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.force_from_wave.html">wecopttool.force_from_wave</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency.html">wecopttool.frequency</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.frequency_parameters.html">wecopttool.frequency_parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.hydrodynamic_impedance.html">wecopttool.hydrodynamic_impedance</a></li>
@@ -209,15 +209,17 @@
 <h1>wecopttool.core.WEC.residual<a class="headerlink" href="#wecopttool-core-wec-residual" title="Link to this heading"></a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="wecopttool.core.WEC.residual">
-<span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_wec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">waves</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.residual" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">WEC.</span></span><span class="sig-name descname"><span class="pre">residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_wec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_opt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wave</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC.residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC.residual" title="Link to this definition"></a></dt>
 <dd><p>Return the residual of the dynamic equation (r = m⋅a-Σf).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x_wec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>) – WEC state vector.</p></li>
 <li><p><strong>x_opt</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>) – Optimization (control) state.</p></li>
-<li><p><strong>waves</strong> (<em>Dataset</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.9.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> with the structure and elements
-shown by <a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a>.</p></li>
+<li><p><strong>wave</strong> (<em>DataArray</em>) – 2D <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.9.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> containing the wave’s complex
+amplitude for a single realization as a function of wave
+angular frequency <code class="code highlight python docutils literal highlight-python"><span class="n">omega</span></code> (rad/s) and direction
+<code class="code highlight python docutils literal highlight-python"><span class="n">wave_direction</span></code> (rad).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
