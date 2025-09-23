@@ -6,7 +6,7 @@
 initially presented at UMERC 2025, Corvallis, OR (and since improved)
 
 This branch is intended to help users re-create visuals and animations like Sankey average power flows diagrams, WEC power curves, and dynamic animations including the phase space.
-Some example figures and animations are contained in the `gfx` folder.
+Some example figures and animations are contained in the [`gfx`](/gfx/) folder.
 
 
 It is strongly recommended that you create a dedicated virtual environment based on the `environment.yaml` file using [`conda`](https://www.anaconda.com/).
