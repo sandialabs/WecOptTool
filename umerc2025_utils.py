@@ -17,7 +17,7 @@ from xarray import DataArray, Dataset
 
 import wecopttool as wot
 from matplotlib.animation import FuncAnimation
-
+from typing import Tuple
 TPTO = TypeVar("TPTO", bound="PTO")
 from wecopttool.core import TWEC
 from scipy.optimize import OptimizeResult
@@ -56,7 +56,7 @@ def plot_power_flow(power_flows: dict[str, float],
                     axes_title: str = '', 
                     axes: Axes = None,
                     return_fig_and_axes: bool = False
-    )-> tuple(Figure, Axes):
+    )-> Tuple[Figure, Axes]:
     """Plot power flow through a Wave Energy Converter (WEC) as a Sankey diagram.
 
     This function visualizes the power flow through a WEC by creating a Sankey diagram.
@@ -245,18 +245,13 @@ def plot_power_flow(power_flows: dict[str, float],
                 facecolor = clrs['elec'] #viridis(0.9)
         )
 
-    # with warnings.catch_warnings():
-    #     warnings.simplefilter("ignore", category=UserWarning)
 
-    # diagrams = sankey.finish()
     sankey.ax.axis([sankey.extent[0] - sankey.margin,
                       sankey.extent[1] + sankey.margin,
                       sankey.extent[2] - sankey.margin,
                       sankey.extent[3] + sankey.margin])
     sankey.ax.set_aspect('equal', adjustable='box') 
     diagrams = sankey.diagrams
-    # with warnings.catch_warnings():
-    #     warnings.simplefilter("ignore", category=UserWarning)
     for diagram in diagrams:
         for text in diagram.texts:
             text.set_fontsize(8)
@@ -276,17 +271,6 @@ def plot_power_flow(power_flows: dict[str, float],
     if len_diagrams >6:
       diagrams[1].texts[0].set_text('') 
 
-    # max_flow = max(flows)
-    # min_flow = min(flows)
-    # scale = 1 / power_flows['Optimal Excitation']
-    # padding = 0.1  # Adjust as needed
-    # y_min = min_flow * scale - padding
-    # y_max = max_flow * scale + padding
-
-    # Set the y limits
-    # axes.set_ylim(0, 1)
-
-    # Set the aspect ratio
     axes.set_aspect('equal')
 
     axes.set_title(axes_title)
@@ -448,8 +432,6 @@ def Ploss_translatory_space(flow, effort):
     winding_resistance = 0.5
     drivetrain_friction = 2.0
 
-    # current = effort/off_diag
-    # rot_speed = flow*gear_ratio
 
     Ploss = [((eff/off_diag)**2 * winding_resistance +
                drivetrain_friction*(flo*gear_ratio)**2) 
@@ -469,8 +451,8 @@ def two_port_element_dimensions(xlim):
     wElem = w2p + wICon + wZ + 0.5*r_src
     hElem = 1.1*h2p
 
-    # wCon = 1.0*wZ   #length connectors
-    wCon = (1*dx-(2*r_src +3*wZ+ 2*w2p + 2*wICon + hZ))/4
+    #length connectors
+    wCon = (0.9*dx-(2*r_src +3*wZ+ 2*w2p + 2*wICon + hZ))/4
 
     return w2p, h2p, r_src, wZ, hZ, wCon, wElem, hElem, wICon
 def two_port_x_coords(xlim):
@@ -488,7 +470,6 @@ def two_port_x_coords(xlim):
     return xSrc, xZi, x2p1, xZd, x2p2, xZw, xZl, xElem1, xElem2
 
 def plot_twoport_network(xlim, y_low, ax):
-    # dx = xlim[1]-xlim[0]
 
     w2p, h2p, r_src, wZ, hZ, wCon, wElem, hElem, wICon = two_port_element_dimensions(xlim)
 
@@ -542,22 +523,18 @@ def plot_twoport_network(xlim, y_low, ax):
 
     def add_angle_connector(rectA, rectB, y, ax, dir = 'lrd'):
         if dir == 'lrd':
-            # arr_style = "-|>"
             xyA = (rectA.get_x() + rectA.get_width(), y)
             xyInt = (rectB.get_x() + rectB.get_width()/2 , y)
             xyB = (rectB.get_x() + rectB.get_width()/2, rectB.get_y() + rectB.get_height())
         elif dir == 'rld':
-            # arr_style = "-|>"
             xyA = (rectA.get_x() + rectA.get_width()/2, rectA.get_y())
             xyInt = (rectA.get_x() + rectA.get_width()/2 , y)
             xyB = (rectB.get_x() + rectB.get_width(), y)
         elif dir == 'rlu':
-            # arr_style = "-|>"
             xyA = (rectA.get_x() , y)
             xyInt = (rectB.get_x() + rectB.get_width()/2 , y)
             xyB = (rectB.get_x() + rectB.get_width()/2, rectB.get_y())
         elif dir == 'lru':
-            # arr_style = "-|>"
             xyA = (rectA.get_x() + rectA.get_width()/2 , rectA.get_y() + rectA.get_height())
             xyInt = (rectA.get_x() + rectA.get_width()/2 , y)
             xyB = (rectB.get_x() , y)
@@ -634,10 +611,8 @@ def create_wb_animation(wec: TWEC,
 
     """
     fig = plt.figure(figsize=(10, 5))
-    # Define a GridSpec with width ratios
     gs = GridSpec(1, 2, width_ratios=[2, 1])  # First subplot is X as wide
 
-    # Create subplots using GridSpec
     ax1 = fig.add_subplot(gs[0])  # First axis
     ax2 = fig.add_subplot(gs[1], projection='3d')  # Second axis
     clrs = power_flow_colors()
