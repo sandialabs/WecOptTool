@@ -642,7 +642,7 @@ def create_wb_animation(wec: TWEC,
     ax2 = fig.add_subplot(gs[1], projection='3d')  # Second axis
     clrs = power_flow_colors()
     # Set the limits of the plot
-    xlim = [-4, 2]
+    xlim = [-5, 2]
     dx = xlim[1]-xlim[0]
     ylim0 = -1
     ylim = [ylim0, 3]
@@ -681,7 +681,7 @@ def create_wb_animation(wec: TWEC,
     Pw_loss = Rpto22*p_tdom.trans_flo.squeeze()**2
 
     # x_pow_bars = -2
-    y_pow_bars = 0.85*ylim[1] 
+    y_pow_bars = 0.95*ylim[1] 
 
     if K_DT != 0:
         P_ms = w_tdom['force'].sel(type = 'MagSpring').squeeze()*w_tdom.vel.squeeze()
@@ -700,7 +700,7 @@ def create_wb_animation(wec: TWEC,
     
     # pow_norm_factor = 1.0*np.max(np.array([np.max(np.abs(power_dict_flow[key])).values for key in power_dict_flow]))
     #fixed pow_norm_factor based on 
-    pow_norm_factor = 1000
+    pow_norm_factor = 1500
 
     def animate_WaveBot_c(frame,ax):
         ax.clear()  # Clear the current axes
@@ -710,7 +710,7 @@ def create_wb_animation(wec: TWEC,
             z = heave_pos[frame-ii].item()
             x,y = WaveBot_hull_coords_heave(wb,z)
             ax.plot(x,y, color = 'C0', alpha = 1-ii/3)
-
+        
         dy_labels = dx*0.025
         dx_Z = 0.5
         xSrc, xZi, x2p1, xZd, x2p2, xZw, xZl, xElem1, xElem2 = two_port_x_coords(xlim)
@@ -725,13 +725,13 @@ def create_wb_animation(wec: TWEC,
             ax.text(x ,y+ dy_labels,s = f'$P_{{{lbl_subscript}}}$', color= 'black', verticalalignment = 'center')
             P_mean_norm = np.mean(P)/pow_norm_factor
             if -1*np.mean(P) >0:   #plot average power arrow
-                ax.scatter(x -P_mean_norm,y,s = 75, marker = 5, color= clr)
+                ax.scatter(x -P_mean_norm,y,s = 50, marker = 5, color= clr)
                 clr_arr = clr
             elif np.isclose(np.mean(P),0):
                 clr_arr = "None"
                 pass 
             else:
-                ax.scatter(x -P_mean_norm,y,s = 75, marker = 4, color= 'red')
+                ax.scatter(x -P_mean_norm,y,s = 50, marker = 4, color= 'red')
                 clr_arr = 'red'
             ax.plot([x, x -P_mean_norm], [y, y ], solid_capstyle="butt", #no projections with line width 
                     color=clr_arr, linewidth=3.0, alpha = 1)
@@ -741,25 +741,25 @@ def create_wb_animation(wec: TWEC,
                 [y, y ],
                     solid_capstyle="butt", #no projections with line width 
                     color=clr, linewidth=0.5, alpha = 0.5)
-
+        dy_pow_main = 0.18
         for ik, key in enumerate(power_dict_flow):
             power_traj = power_dict_flow[key]
             power_inst = power_traj[frame].item()/pow_norm_factor
             if (key == 'elec' or key == 'use') and power_inst >0:
                 ax.plot([x_coord_flow_list[ik], x_coord_flow_list[ik]-power_inst],
-                    [y_pow_bars, y_pow_bars ],
+                    [y_pow_bars -ik*dy_pow_main, y_pow_bars -ik*dy_pow_main],
                     solid_capstyle="butt", #no projections with line width 
-                    color='red', linewidth=10, alpha = 0.5)
+                    color='red', linewidth=8, alpha = 0.5)
             else:   #red bars to indicate power in
                 ax.plot([x_coord_flow_list[ik], x_coord_flow_list[ik]-power_inst],
-                        [y_pow_bars, y_pow_bars],
+                        [y_pow_bars-ik*dy_pow_main, y_pow_bars-ik*dy_pow_main],
                         solid_capstyle="butt", #no projections with line width 
-                        color=clrs[key], linewidth=10, alpha = 0.5)
-            plot_power_bar_axis(x_coord_flow_list[ik], y_pow_bars, power_traj, clrs[key], key)
+                        color=clrs[key], linewidth=8, alpha = 0.5)
+            plot_power_bar_axis(x_coord_flow_list[ik], y_pow_bars-ik*dy_pow_main, power_traj, clrs[key], key)
             
         #plot Ctrl and MagSpring force separatly
         dx_force = 0.05
-        dy_pow = 0.2
+        dy_pow =  +0.15
         force_norm_factor = 10000
 
         if K_DT != 0:
@@ -779,8 +779,8 @@ def create_wb_animation(wec: TWEC,
             ax.text(-dx_force, 0, '$F_{ctrl}$', color= 'black', horizontalalignment = 'right', fontsize = 7)
             #power ctrl and magspring
             i_abs = 1 #same index as absorbed power
-            y_ms = y_pow_bars + dy_pow
-            y_ctrl = y_pow_bars - dy_pow
+            y_ms = y_pow_bars -1*dy_pow_main + dy_pow
+            y_ctrl = y_pow_bars -1*dy_pow_main - dy_pow
             power_inst_MS = P_ms[frame].item()/pow_norm_factor
             ax.plot([x_coord_flow_list[i_abs], x_coord_flow_list[i_abs]-power_inst_MS],
                 [y_ms, y_ms ],
@@ -814,7 +814,7 @@ def create_wb_animation(wec: TWEC,
             solid_capstyle="butt", #no projections with line width 
             linewidth=3.0)
 
-        dy_loss = 1.0
+        dy_loss = 1.1
         for ik, key in enumerate(power_dict_loss):
             power_traj = -1*power_dict_loss[key]
             power_inst = power_traj[frame].item()/pow_norm_factor
@@ -843,7 +843,7 @@ def create_wb_animation(wec: TWEC,
         ax.set_aspect('equal')#, adjustable='box')  
         ax.grid(True)  
         ax.set_axis_off()
-        plot_twoport_network(xlim, y_pow_bars -dy_loss-0.6 , ax)
+        plot_twoport_network(xlim, y_pow_bars -dy_loss-1.0 , ax)
         # ax.legend(loc = 'upper left', 
         #         fontsize = 9,)
         # if K_DT != 0:
