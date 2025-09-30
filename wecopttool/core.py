@@ -507,7 +507,7 @@ class WEC:
             Complex impedance of size :python:`(nfreq, ndof, ndof)`.
         exc_coeff
             Complex excitation transfer function of size
-            :python:`(ndof, nfreq)`.
+            :python:`(nfreq, nwavedir, ndof)`.
         hydrostatic_stiffness
             Linear hydrostatic restoring coefficient of size
             :python:`(ndof, ndof)`.
@@ -2033,7 +2033,7 @@ def force_from_wave(force_coeff: DataArray,
     ----------
     force_coeff
         Complex excitation coefficients indexed by frequency and
-        direction angle.
+        direction angle and degree of freedom.
     """
     def force(wec, x_wec, x_opt, wave):
         force_fd = complex_to_real(wave_excitation(force_coeff, wave), False)
@@ -2289,8 +2289,8 @@ def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
     Parameters
     ----------
     exc_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle.
+        Complex excitation coefficients indexed by frequency,
+        direction angle, and degree of freedom.
     wave
         2D :py:class:`xarray.DataArray` containing the wave's complex
         amplitude for a single realization as a function of wave
