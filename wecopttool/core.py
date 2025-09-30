@@ -553,7 +553,7 @@ class WEC:
         omega = freqs * 2*np.pi
         omega0 = np.expand_dims(omega, [1,2])
         transfer_func = impedance * (1j*omega0)
-        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
+        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 0)
         transfer_func = np.concatenate([transfer_func0, transfer_func], axis=0)
         transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
         force_impedance = force_from_rao_transfer_function(transfer_func)
@@ -586,9 +586,9 @@ class WEC:
         x_opt
             Optimization (control) state.
         wave
-            2D :py:class:`xarray.DataArray` containing the wave's complex 
-            amplitude for a single realization as a function of wave 
-            angular frequency :python:`omega` (rad/s) and direction 
+            2D :py:class:`xarray.DataArray` containing the wave's complex
+            amplitude for a single realization as a function of wave
+            angular frequency :python:`omega` (rad/s) and direction
             :python:`wave_direction` (rad).
         """
         if not self.inertia_in_forces:
@@ -2197,7 +2197,7 @@ def run_bem(
                      'will be calculated assuming a solid and constant ' +
                      'density body.')
         else:
-            _log.warning('FloatingBody has no inertia_matrix field. ' + 
+            _log.warning('FloatingBody has no inertia_matrix field. ' +
                      'The FloatingBody mass is defined and will be ' +
                      'used for calculating the inertia matrix.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
@@ -2292,9 +2292,9 @@ def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
         Complex excitation coefficients indexed by frequency and
         direction angle.
     wave
-        2D :py:class:`xarray.DataArray` containing the wave's complex 
-        amplitude for a single realization as a function of wave 
-        angular frequency :python:`omega` (rad/s) and direction 
+        2D :py:class:`xarray.DataArray` containing the wave's complex
+        amplitude for a single realization as a function of wave
+        angular frequency :python:`omega` (rad/s) and direction
         :python:`wave_direction` (rad).
 
     Raises
@@ -2607,8 +2607,8 @@ def set_fb_centers(
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
                     "for hydrostatics. Note that the hydrostatics do not use the " +
-                    "axes defined by the FloatingBody degrees of freedom, and the " + 
-                    "rotation center should be set manually when using Capytaine to " + 
+                    "axes defined by the FloatingBody degrees of freedom, and the " +
+                    "rotation center should be set manually when using Capytaine to " +
                     "calculate hydrostatics about an axis other than the COG.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
