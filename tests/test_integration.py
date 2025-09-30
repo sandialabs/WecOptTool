@@ -231,7 +231,7 @@ def wec_from_impedance_2d(hydro_data_2d, pto_2d, fb_2d):
 
     freqs = omega / (2 * np.pi)
     impedance = (A + mass)*(1j*w) + B + K/(1j*w)
-    exc_coeff = hydro_data['Froude_Krylov_force'] + hydro_data['diffraction_force']
+    exc_coeff = hydro_data_2d['Froude_Krylov_force'] + hydro_data_2d['diffraction_force']
     f_add = {"PTO": pto_2d.force_on_wec}
 
     wec = wot.WEC.from_impedance(freqs, impedance, exc_coeff, hstiff, f_add,
