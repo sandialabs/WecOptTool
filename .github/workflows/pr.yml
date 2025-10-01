@@ -89,7 +89,7 @@ jobs:
     # run all tests & coverage
     - name: Run Test
       shell: bash -l {0}
-      run: coverage run -m pytest
+      run: coverage run -m pytest -v --tb=short
 
     # upload coverage data
     - name: Upload coverage data to coveralls.io
