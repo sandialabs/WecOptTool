@@ -68,7 +68,7 @@ jobs:
     - name: Update environment
       run: |
         echo "skipping mamba install" # mamba env update -n test-env -f environment.yml
-        mamba install pip
+        # mamba install pip
       if: steps.cache.outputs.cache-hit != 'true'
     # <<< Cache the conda environment
 
@@ -84,7 +84,7 @@ jobs:
         conda activate test-env
         python3 -m pip install --upgrade pip
         pip3 install gmsh pygmsh coveralls pytest
-        pip3 install -e .
+        pip3 install .
 
     # run all tests & coverage
     - name: Run Test
