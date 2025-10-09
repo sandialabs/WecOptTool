@@ -2032,8 +2032,8 @@ def force_from_wave(force_coeff: DataArray,
     Parameters
     ----------
     force_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle and degree of freedom.
+        Complex excitation coefficients indexed by frequency,
+        direction angle, and degree of freedom.
     """
     def force(wec, x_wec, x_opt, wave):
         force_fd = complex_to_real(wave_excitation(force_coeff, wave), False)

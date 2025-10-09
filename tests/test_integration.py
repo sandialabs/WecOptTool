@@ -41,7 +41,7 @@ def pto():
 def pto_2d():
     """Basic PTO: unstructured, 1 DOF, mechanical power."""
     ndof = 1
-    kinematics = np.array([1,0])
+    kinematics = np.array([[1,0],])
     controller = wot.controllers.unstructured_controller()
     pto = wot.pto.PTO(ndof=ndof,
                       kinematics=kinematics,
