@@ -730,9 +730,9 @@ class WEC:
         # decision variable initial guess
         key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = jax.random.normal(key, self.nstate_wec, dtype=np.float64)
+            x_wec_0 = jax.random.normal(key, [self.nstate_wec], dtype=np.float64)
         if x_opt_0 is None:
-            x_opt_0 = jax.random.normal(key, nstate_opt, dtype=np.float64)
+            x_opt_0 = jax.random.normal(key, [nstate_opt], dtype=np.float64)
         x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
 
         # bounds
