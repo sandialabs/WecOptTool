@@ -13,7 +13,7 @@ git pull <upstream remote name> dev
 git checkout main
 git pull <upstream remote name> main
 ```
-**Note: replace <upstream remote name> with the name of your upstream remote.
+Note: replace <upstream remote name> with the name of your upstream remote.
 * Merge the `dev` branch into the `main` branch using the command line:
 ```
 git checkout main
@@ -21,6 +21,7 @@ git merge dev --ff-only
 git push <upstream remote name> main
 ```
 **Note: the `dev` branch should only be merged into `main` when it is ready for a new release.**
+If the merge does not work because the `main` branch is ahead of the `dev` branch, `dev` should be rebased onto main (`git rebase <upstream remote name> main` with the dev branch checked out).
 
 ## GitHub
 In the GitHub repository, click on *Releases*, click on *Draft new release*.
