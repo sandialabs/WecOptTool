@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 3 - LUPA &mdash; WecOptTool 3.1.1 documentation</title>
+  <title>Tutorial 3 - LUPA &mdash; WecOptTool 3.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=796a81b5"></script>
+      <script src="../_static/documentation_options.js?v=4f6ddb47"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -145,7 +145,8 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 <span class="kn">import</span><span class="w"> </span><span class="nn">gmsh</span><span class="o">,</span><span class="w"> </span><span class="nn">pygmsh</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">capytaine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cpy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">capytaine.io.meshio</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_from_meshio</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">brute</span>
@@ -856,8 +857,8 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <span class="c1"># maximum stroke</span>
 <span class="n">stroke_max</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># m</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
-    <span class="n">pos</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="c1">## GENERATOR</span>
 <span class="c1"># peak torque</span>
@@ -866,20 +867,20 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Instantaneous torque must not exceed max torque Tmax - |T| &gt;=0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="c1"># continuous torque</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;RMS torque must not exceed max continous torque</span>
 <span class="sd">        Tmax_conti - Trms &gt;=0 &quot;&quot;&quot;</span>
     <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-    <span class="n">torque_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">torque_rms</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;continuous_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">torque_rms</span>
 
 <span class="c1"># max speed</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">default_radius</span><span class="p">):</span>
     <span class="n">rot_vel</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">*</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="c1">## Constraints</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
@@ -1073,7 +1074,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:23:09] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:45:08] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         terms <span style="font-weight: bold">[</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1114,16 +1115,16 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011461053099234437
-            Iterations: 53
-            Function evaluations: 54
-            Gradient evaluations: 53
+            Current function value: -0.011461656459808164
+            Iterations: 54
+            Function evaluations: 55
+            Gradient evaluations: 54
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011461074022103534
-            Iterations: 53
+            Current function value: -0.011460762883248854
+            Iterations: 54
             Function evaluations: 54
-            Gradient evaluations: 53
-Optimal average electrical power: -1.1461063560668987 W
+            Gradient evaluations: 54
+Optimal average electrical power: -1.146120967152851 W
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1142,17 +1143,17 @@ Optimal average electrical power: -1.1461063560668987 W
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -1279,7 +1280,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-15.003222565052203, 2.48242344600239)
+(-23.24542011949944, 4.464533973154339)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1369,7 +1370,7 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
     <span class="n">stroke_max</span> <span class="o">=</span> <span class="mf">0.5</span>  <span class="c1"># m</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">const_stroke_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">position</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">stroke_max</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="c1">## GENERATOR</span>
     <span class="c1"># peak torque</span>
@@ -1378,20 +1379,20 @@ Text(0.5, 0.93, &#39;WEC Forces&#39;)
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantaneous torque must not exceed max torque Tmax - |T| &gt;=0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="c1"># continuous torque</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">const_torque_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;RMS torque must not exceed max continous torque</span>
 <span class="sd">            Tmax_conti - Trms &gt;=0 &quot;&quot;&quot;</span>
         <span class="n">torque</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">/</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-        <span class="n">torque_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">torque_rms</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torque</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;continuous_torque&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">torque_rms</span>
 
     <span class="c1"># max speed</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">const_speed_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">rot_vel</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">velocity</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span> <span class="o">*</span> <span class="n">gear_ratio</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">generator</span><span class="p">[</span><span class="s1">&#39;max_speed&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">rot_vel</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="c1">## Constraints</span>
     <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>

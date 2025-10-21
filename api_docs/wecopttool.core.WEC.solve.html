@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.core.WEC.solve &mdash; WecOptTool 3.1.1 documentation</title>
+  <title>wecopttool.core.WEC.solve &mdash; WecOptTool 3.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -14,7 +14,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=796a81b5"></script>
+      <script src="../_static/documentation_options.js?v=4f6ddb47"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -131,6 +131,7 @@
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.frequency_parameters.html">wecopttool.core.frequency_parameters</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.time_results.html">wecopttool.core.time_results</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wecopttool.core.set_fb_centers.html">wecopttool.core.set_fb_centers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wecopttool.core.block_diag_jax.html">wecopttool.core.block_diag_jax</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.geom.html">wecopttool.geom</a></li>
@@ -140,6 +141,7 @@
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.WEC.html">wecopttool.WEC</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.add_linear_friction.html">wecopttool.add_linear_friction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.atleast_2d.html">wecopttool.atleast_2d</a></li>
+<li class="toctree-l2"><a class="reference internal" href="wecopttool.block_diag_jax.html">wecopttool.block_diag_jax</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.change_bem_convention.html">wecopttool.change_bem_convention</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_impedance.html">wecopttool.check_impedance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="wecopttool.check_radiation_damping.html">wecopttool.check_radiation_damping</a></li>
@@ -226,7 +228,7 @@ and return a scalar.</p></li>
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> it is randomly initiated.</p></li>
 <li><p><strong>x_opt_0</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em> | </em><em>None</em>) – Initial guess for the optimization (control) state.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code> it is randomly initiated.</p></li>
-<li><p><strong>scale_x_wec</strong> (<em>list</em><em> | </em><em>None</em>) – Factor(s) to scale each DOF in <code class="code highlight python docutils literal highlight-python"><span class="n">x_wec</span></code> by, to
+<li><p><strong>scale_x_wec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> | </em><em>None</em>) – Factor(s) to scale each DOF in <code class="code highlight python docutils literal highlight-python"><span class="n">x_wec</span></code> by, to
 improve convergence.
 A single float or an array of size <code class="code highlight python docutils literal highlight-python"><span class="n">ndof</span></code>.</p></li>
 <li><p><strong>scale_x_opt</strong> (<em>FloatOrArray</em><em> | </em><em>None</em>) – Factor(s) to scale <code class="code highlight python docutils literal highlight-python"><span class="n">x_opt</span></code> by, to improve
@@ -237,7 +239,7 @@ convergence.</p></li>
 <li><p><strong>optim_options</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><em>Any</em></a><em>] </em><em>| </em><em>None</em>) – Optimization options passed to the optimizer.
 See <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></li>
 <li><p><strong>use_grad</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><em>None</em>) – If <code class="code highlight python docutils literal highlight-python"><span class="kc">True</span></code>, optimization will utilize
-<a class="reference external" href="https://github.com/HIPS/autograd">autograd</a>
+<a class="reference external" href="https://https://github.com/jax-ml/jax">jax</a>
 for gradients.</p></li>
 <li><p><strong>maximize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em> | </em><em>None</em>) – Whether to maximize the objective function.
 The default is to minimize the objective function.</p></li>
@@ -262,7 +264,7 @@ INFO level.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><em>list</em>[<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.16.2)"><em>OptimizeResult</em></a>]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.16.2)"><em>OptimizeResult</em></a>]</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial 1 - WaveBot &mdash; WecOptTool 3.1.1 documentation</title>
+  <title>Tutorial 1 - WaveBot &mdash; WecOptTool 3.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
@@ -15,7 +15,7 @@
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=796a81b5"></script>
+      <script src="../_static/documentation_options.js?v=4f6ddb47"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -137,7 +137,8 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">capytaine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cpy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">capytaine.io.meshio</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_from_meshio</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
@@ -161,7 +162,7 @@
 <li><p>The objective function</p></li>
 </ul>
 <p>The graphic below shows all the requirements for this first part of the tutorial: the wave environment on the left, the WEC object(with its relevant subcomponents) in the blue box in the middle, and the objective function (mechanical power) on the right.</p>
-<div><p><img alt="2a83fdf25f604238b289203592640827" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="98a3f95c650f44a0928c6e6a620d03f3" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435098523_37d6a2ca94_k.jpg" style="width: 1000px;" /></p>
 </div><section id="Waves-and-WEC-geometry">
 <h3>Waves and WEC geometry<a class="headerlink" href="#Waves-and-WEC-geometry" title="Link to this heading"></a></h3>
 <p>The pseudo-spectral solution used in WecOptTool requires a specified set of frequencies to analyze. To model the WEC accurately, we need to ensure the set of selected frequencies captures the full hydrodynamic response range of the WEC.</p>
@@ -341,7 +342,7 @@ WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (C
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:20:09] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:42:13] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
 </pre></div>
 </div>
 <div class="nboutput docutils container">
@@ -374,7 +375,7 @@ WARNING:wecopttool.core:FloatingBody has no inertia_matrix or mass field. The ma
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:20:10] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> FloatingBody has no inertia_matrix or mass field. The mass will be calculated based on a
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:42:14] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> FloatingBody has no inertia_matrix or mass field. The mass will be calculated based on a
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         neutral buoyancy assumption. The inertia matrix will be calculated assuming a solid and
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         constant density body.
 </pre></div>
@@ -418,7 +419,7 @@ This warning appears when the largest panel of this mesh has radius &gt; wavelen
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "940d3ab2231b40c68c0b6c9a84ae9127"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "3be5bc700ae84400bd4212888652d06c"}</script></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -457,7 +458,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:21:28] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:32] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -509,7 +510,7 @@ this results in a max PTO linear force of <span class="math notranslate nohighli
 
 <span class="k">def</span><span class="w"> </span><span class="nf">const_f_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span> <span class="c1"># Format for scipy.optimize.minimize</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
 <span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span>
              <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto</span><span class="p">,</span>
@@ -547,7 +548,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:33] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -619,11 +620,11 @@ frequency.</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.4829531622853016
+            Current function value: -0.48295373134379105
             Iterations: 11
             Function evaluations: 11
             Gradient evaluations: 11
-Optimal average mechanical power: -48.29531622853016 W
+Optimal average mechanical power: -48.295373134379105 W
 </pre></div></div>
 </div>
 </section>
@@ -645,11 +646,11 @@ Optimal average mechanical power: -48.29531622853016 W
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -669,7 +670,7 @@ Optimal average mechanical power: -48.29531622853016 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7f1fe1fe0b30&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f77a453d7f0&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -698,7 +699,7 @@ Optimal average mechanical power: -48.29531622853016 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[&lt;matplotlib.lines.Line2D at 0x7f1fe1e26150&gt;]
+[&lt;matplotlib.lines.Line2D at 0x7f77a4300890&gt;]
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1215,13 +1216,13 @@ Coordinates:
   * type     (type) &lt;U4 32B &#x27;mech&#x27; &#x27;elec&#x27;
 Dimensions without coordinates: realization
 Data variables:
-    pos      (realization, time, dof) float64 800B 0.06584 0.06776 ... 0.064
-    vel      (realization, time, dof) float64 800B 0.05665 0.05828 ... 0.0534
-    acc      (realization, time, dof) float64 800B 0.07478 0.02159 ... 0.1182
-    force    (realization, time, dof) float64 800B 750.0 750.6 ... 715.2 740.3
-    power    (realization, type, time, dof) float64 2kB 42.49 43.74 ... 39.53
+    pos      (realization, time, dof) float64 800B ...
+    vel      (realization, time, dof) float64 800B ...
+    acc      (realization, time, dof) float64 800B ...
+    force    (realization, time, dof) float64 800B ...
+    power    (realization, type, time, dof) float64 2kB 42.47 43.72 ... 39.52
 Attributes:
-    time_created_utc:  2025-10-15 15:21:29.591541</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-6c4eba69-0d1b-41e6-9f71-c2f0b5d0fa84' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-6c4eba69-0d1b-41e6-9f71-c2f0b5d0fa84' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span>realization</span>: 1</li><li><span class='xr-has-index'>time</span>: 100</li><li><span class='xr-has-index'>dof</span>: 1</li><li><span class='xr-has-index'>type</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-8b709e61-fcc7-4c6c-ac57-f4bc6c7dcf32' class='xr-section-summary-in' type='checkbox'  checked><label for='section-8b709e61-fcc7-4c6c-ac57-f4bc6c7dcf32' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.03333 0.06667 ... 3.267 3.3</div><input id='attrs-7d338c3e-fa69-4c00-9c2a-10ab0e237c33' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-7d338c3e-fa69-4c00-9c2a-10ab0e237c33' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-35e358c6-0148-43b3-a858-b6ef50fe6a69' class='xr-var-data-in' type='checkbox'><label for='data-35e358c6-0148-43b3-a858-b6ef50fe6a69' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([0.      , 0.033333, 0.066667, 0.1     , 0.133333, 0.166667, 0.2     ,
+    time_created_utc:  2025-10-21 20:43:34.910755</pre><div class='xr-wrap' style='display:none'><div class='xr-header'><div class='xr-obj-type'>xarray.Dataset</div></div><ul class='xr-sections'><li class='xr-section-item'><input id='section-ae268144-df0e-4a3f-ad52-1dfd74e7b0f0' class='xr-section-summary-in' type='checkbox' disabled ><label for='section-ae268144-df0e-4a3f-ad52-1dfd74e7b0f0' class='xr-section-summary'  title='Expand/collapse section'>Dimensions:</label><div class='xr-section-inline-details'><ul class='xr-dim-list'><li><span>realization</span>: 1</li><li><span class='xr-has-index'>time</span>: 100</li><li><span class='xr-has-index'>dof</span>: 1</li><li><span class='xr-has-index'>type</span>: 2</li></ul></div><div class='xr-section-details'></div></li><li class='xr-section-item'><input id='section-de46d6e3-d8fd-4e63-8d3f-b5597abd9abc' class='xr-section-summary-in' type='checkbox'  checked><label for='section-de46d6e3-d8fd-4e63-8d3f-b5597abd9abc' class='xr-section-summary' >Coordinates: <span>(3)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>time</span></div><div class='xr-var-dims'>(time)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.0 0.03333 0.06667 ... 3.267 3.3</div><input id='attrs-c2bf5e75-8fc8-45c2-a904-d182cc7d7840' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-c2bf5e75-8fc8-45c2-a904-d182cc7d7840' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-1b95c0b1-da95-4262-9aaa-8c87d4cb0977' class='xr-var-data-in' type='checkbox'><label for='data-1b95c0b1-da95-4262-9aaa-8c87d4cb0977' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Time</dd><dt><span>units :</span></dt><dd>s</dd></dl></div><div class='xr-var-data'><pre>array([0.      , 0.033333, 0.066667, 0.1     , 0.133333, 0.166667, 0.2     ,
        0.233333, 0.266667, 0.3     , 0.333333, 0.366667, 0.4     , 0.433333,
        0.466667, 0.5     , 0.533333, 0.566667, 0.6     , 0.633333, 0.666667,
        0.7     , 0.733333, 0.766667, 0.8     , 0.833333, 0.866667, 0.9     ,
@@ -1235,207 +1236,207 @@ Attributes:
        2.566667, 2.6     , 2.633333, 2.666667, 2.7     , 2.733333, 2.766667,
        2.8     , 2.833333, 2.866667, 2.9     , 2.933333, 2.966667, 3.      ,
        3.033333, 3.066667, 3.1     , 3.133333, 3.166667, 3.2     , 3.233333,
-       3.266667, 3.3     ])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-acebcb58-f73e-49b3-a1ae-fb8c9fd9c8dd' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-acebcb58-f73e-49b3-a1ae-fb8c9fd9c8dd' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9d0d4844-7992-49d6-aa39-0d7068ec3a0e' class='xr-var-data-in' type='checkbox'><label for='data-9d0d4844-7992-49d6-aa39-0d7068ec3a0e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>&lt;U4</div><div class='xr-var-preview xr-preview'>&#x27;mech&#x27; &#x27;elec&#x27;</div><input id='attrs-8a9ada6f-2af0-436d-b607-555dc9cb4a83' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8a9ada6f-2af0-436d-b607-555dc9cb4a83' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-edc75b9a-22e1-415a-8e53-5c09810a235e' class='xr-var-data-in' type='checkbox'><label for='data-edc75b9a-22e1-415a-8e53-5c09810a235e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;&lt;U4&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-cda15497-0660-40bf-826e-8d34fc6b58c1' class='xr-section-summary-in' type='checkbox'  checked><label for='section-cda15497-0660-40bf-826e-8d34fc6b58c1' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.06584 0.06776 ... 0.0623 0.064</div><input id='attrs-fa388137-4108-4191-9851-78e232c06627' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-fa388137-4108-4191-9851-78e232c06627' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-bf5e9483-83f7-4f0c-bb5d-4fe8bae0885f' class='xr-var-data-in' type='checkbox'><label for='data-bf5e9483-83f7-4f0c-bb5d-4fe8bae0885f' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>array([[[ 0.06584239],
-        [ 0.06776279],
-        [ 0.06970669],
-        [ 0.07160934],
-        [ 0.07340386],
-        [ 0.07502406],
-        [ 0.07640625],
-        [ 0.07749031],
-        [ 0.0782204 ],
-        [ 0.07854567],
-        [ 0.07842109],
-        [ 0.07780844],
-        [ 0.07667743],
-        [ 0.0750066 ],
-        [ 0.07278401],
-        [ 0.07000756],
-        [ 0.0666849 ],
-        [ 0.0628331 ],
-        [ 0.05847816],
-        [ 0.05365446],
+       3.266667, 3.3     ])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>dof</span></div><div class='xr-var-dims'>(dof)</div><div class='xr-var-dtype'>&lt;U9</div><div class='xr-var-preview xr-preview'>&#x27;PTO_Heave&#x27;</div><input id='attrs-0a838a58-28a6-4119-9650-2820e7d224d3' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-0a838a58-28a6-4119-9650-2820e7d224d3' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-a2b83c09-3c68-4122-a351-00b638a86d91' class='xr-var-data-in' type='checkbox'><label for='data-a2b83c09-3c68-4122-a351-00b638a86d91' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO degree of freedom</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;PTO_Heave&#x27;], dtype=&#x27;&lt;U9&#x27;)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span class='xr-has-index'>type</span></div><div class='xr-var-dims'>(type)</div><div class='xr-var-dtype'>&lt;U4</div><div class='xr-var-preview xr-preview'>&#x27;mech&#x27; &#x27;elec&#x27;</div><input id='attrs-d138be8e-8e50-404f-a591-56e9f1e8a1e9' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-d138be8e-8e50-404f-a591-56e9f1e8a1e9' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-9cbcedcd-507f-4afe-85f9-1e45aeaff7d1' class='xr-var-data-in' type='checkbox'><label for='data-9cbcedcd-507f-4afe-85f9-1e45aeaff7d1' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([&#x27;mech&#x27;, &#x27;elec&#x27;], dtype=&#x27;&lt;U4&#x27;)</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-1201e00e-9341-46dc-b89e-52d0ac67c7c8' class='xr-section-summary-in' type='checkbox'  checked><label for='section-1201e00e-9341-46dc-b89e-52d0ac67c7c8' class='xr-section-summary' >Data variables: <span>(5)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><ul class='xr-var-list'><li class='xr-var-item'><div class='xr-var-name'><span>pos</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-4a0ad961-b916-4108-a5f5-835fb5ea9c48' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-4a0ad961-b916-4108-a5f5-835fb5ea9c48' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-4f206cca-cee7-4621-9f33-1861eb2e5351' class='xr-var-data-in' type='checkbox'><label for='data-4f206cca-cee7-4621-9f33-1861eb2e5351' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Position</dd><dt><span>units :</span></dt><dd>m or rad</dd></dl></div><div class='xr-var-data'><pre>Array([[[ 0.0658681 ],
+        [ 0.06778756],
+        [ 0.06973011],
+        [ 0.07163103],
+        [ 0.0734235 ],
+        [ 0.07504137],
+        [ 0.07642102],
+        [ 0.07750238],
+        [ 0.07822967],
+        [ 0.0785521 ],
+        [ 0.0784247 ],
+        [ 0.0778093 ],
+        [ 0.07667565],
+        [ 0.07500233],
+        [ 0.07277745],
+        [ 0.06999894],
+        [ 0.06667447],
+        [ 0.06282114],
+        [ 0.05846497],
+        [ 0.05364032],
 ...
-        [ 0.01443691],
-        [ 0.0202362 ],
-        [ 0.02568499],
-        [ 0.03072709],
-        [ 0.03531385],
-        [ 0.03940763],
-        [ 0.04298587],
-        [ 0.04604499],
-        [ 0.04860348],
-        [ 0.05070317],
-        [ 0.05240815],
-        [ 0.05380103],
-        [ 0.05497669],
-        [ 0.05603436],
-        [ 0.05706874],
-        [ 0.05816177],
-        [ 0.05937585],
-        [ 0.06074953],
-        [ 0.06229597],
-        [ 0.06400418]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.05665 0.05828 ... 0.04893 0.0534</div><input id='attrs-1d330984-ffd6-478c-a103-5c6883f4bd94' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-1d330984-ffd6-478c-a103-5c6883f4bd94' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-c264e664-2b51-4409-9995-b859387d7bfa' class='xr-var-data-in' type='checkbox'><label for='data-c264e664-2b51-4409-9995-b859387d7bfa' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>array([[[ 0.05665069],
-        [ 0.05827809],
-        [ 0.05803145],
-        [ 0.05579321],
-        [ 0.05154735],
-        [ 0.04534625],
-        [ 0.03728375],
-        [ 0.02747885],
-        [ 0.01607027],
-        [ 0.00321902],
-        [-0.01088603],
-        [-0.02602406],
-        [-0.04194293],
-        [-0.05836536],
-        [-0.07499919],
-        [-0.09154888],
-        [-0.10772552],
-        [-0.12325332],
-        [-0.13787249],
-        [-0.15133979],
+        [ 0.01437736],
+        [ 0.02018128],
+        [ 0.02563548],
+        [ 0.03068363],
+        [ 0.03527693],
+        [ 0.03937757],
+        [ 0.0429628 ],
+        [ 0.04602889],
+        [ 0.04859414],
+        [ 0.05070023],
+        [ 0.05241111],
+        [ 0.0538093 ],
+        [ 0.05498961],
+        [ 0.05605121],
+        [ 0.05708881],
+        [ 0.05818435],
+        [ 0.05940025],
+        [ 0.0607751 ],
+        [ 0.06232212],
+        [ 0.06403036]]], dtype=float64)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>vel</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-667e61a7-6610-438e-a71c-5568db07eda1' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-667e61a7-6610-438e-a71c-5568db07eda1' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-d306fbdb-4601-4475-a240-feb2ade0810e' class='xr-var-data-in' type='checkbox'><label for='data-d306fbdb-4601-4475-a240-feb2ade0810e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Velocity</dd><dt><span>units :</span></dt><dd>m/s or rad/s</dd></dl></div><div class='xr-var-data'><pre>Array([[[ 0.05662931],
+        [ 0.0582432 ],
+        [ 0.05798448],
+        [ 0.05573573],
+        [ 0.05148106],
+        [ 0.0452729 ],
+        [ 0.0372051 ],
+        [ 0.02739657],
+        [ 0.01598597],
+        [ 0.00313422],
+        [-0.01096987],
+        [-0.02610549],
+        [-0.04202051],
+        [-0.0584377 ],
+        [-0.07506501],
+        [-0.09160711],
+        [-0.10777539],
+        [-0.12329437],
+        [-0.13790459],
+        [-0.15136301],
 ...
-        [ 0.17863437],
-        [ 0.16901714],
-        [ 0.15762929],
-        [ 0.14465321],
-        [ 0.13036328],
-        [ 0.11514936],
-        [ 0.09952497],
-        [ 0.08411286],
-        [ 0.06960473],
-        [ 0.05669775],
-        [ 0.04601671],
-        [ 0.03803471],
-        [ 0.03300713],
-        [ 0.03093202],
-        [ 0.0315452 ],
-        [ 0.03435148],
-        [ 0.03868653],
-        [ 0.04379786],
-        [ 0.04893005],
-        [ 0.0534    ]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>0.07478 0.02159 ... 0.1472 0.1182</div><input id='attrs-8011a106-8e66-4106-9826-7aa7b0a5936e' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-8011a106-8e66-4106-9826-7aa7b0a5936e' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-b6cd5c18-16e6-41c8-8590-9420987ca802' class='xr-var-data-in' type='checkbox'><label for='data-b6cd5c18-16e6-41c8-8590-9420987ca802' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>array([[[ 0.0747806 ],
-        [ 0.02159116],
-        [-0.03697848],
-        [-0.0973789 ],
-        [-0.15707909],
-        [-0.21448059],
-        [-0.26864297],
-        [-0.31894136],
-        [-0.36477124],
-        [-0.40537971],
-        [-0.43984819],
-        [-0.46719863],
-        [-0.48655966],
-        [-0.4973195 ],
-        [-0.49920936],
-        [-0.4922952 ],
-        [-0.47689385],
-        [-0.45345728],
-        [-0.42247687],
-        [-0.38444637],
+        [ 0.17876046],
+        [ 0.16916805],
+        [ 0.15780138],
+        [ 0.14484233],
+        [ 0.13056477],
+        [ 0.11535811],
+        [ 0.09973562],
+        [ 0.08432003],
+        [ 0.0698033 ],
+        [ 0.05688322],
+        [ 0.04618542],
+        [ 0.03818403],
+        [ 0.03313547],
+        [ 0.03103879],
+        [ 0.03163057],
+        [ 0.03441619],
+        [ 0.03873163],
+        [ 0.04382453],
+        [ 0.04893951],
+        [ 0.05339343]]], dtype=float64)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>acc</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-35854798-8b49-440e-8065-c9b4e30b5087' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-35854798-8b49-440e-8065-c9b4e30b5087' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-be92da11-7f60-449a-8ebf-7a739b27b451' class='xr-var-data-in' type='checkbox'><label for='data-be92da11-7f60-449a-8ebf-7a739b27b451' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Acceleration</dd><dt><span>units :</span></dt><dd>m/s^2 or rad/s^2</dd></dl></div><div class='xr-var-data'><pre>Array([[[ 0.07436666],
+        [ 0.02121577],
+        [-0.0373145 ],
+        [-0.09767269],
+        [-0.15732647],
+        [-0.21467721],
+        [-0.26878567],
+        [-0.31902907],
+        [-0.36480528],
+        [-0.40536344],
+        [-0.4397861 ],
+        [-0.46709538],
+        [-0.48641942],
+        [-0.49714587],
+        [-0.4990058 ],
+        [-0.49206574],
+        [-0.47664366],
+        [-0.45319275],
+        [-0.42220501],
+        [-0.3841738 ],
 ...
-        [-0.26066359],
-        [-0.31581486],
-        [-0.36657754],
-        [-0.41062796],
-        [-0.44480506],
-        [-0.46542673],
-        [-0.46887366],
-        [-0.45234385],
-        [-0.41461834],
-        [-0.35665368],
-        [-0.28183799],
-        [-0.19581377],
-        [-0.10586628],
-        [-0.01997696],
-        [ 0.05427783],
-        [ 0.11076443],
-        [ 0.14556158],
-        [ 0.15732045],
-        [ 0.14716837],
-        [ 0.11821213]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>750.0 750.6 747.4 ... 715.2 740.3</div><input id='attrs-4e71b014-8fb4-4f4b-b868-906b308b1472' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-4e71b014-8fb4-4f4b-b868-906b308b1472' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-2354926d-4812-4e7a-bce3-ac8545643c4a' class='xr-var-data-in' type='checkbox'><label for='data-2354926d-4812-4e7a-bce3-ac8545643c4a' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO force or torque</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>array([[[ 750.        ],
-        [ 750.61628085],
-        [ 747.42285268],
-        [ 744.11349255],
-        [ 742.57644473],
-        [ 743.14437149],
-        [ 745.13586417],
-        [ 747.48830247],
-        [ 749.29304709],
-        [ 750.10646661],
+        [-0.25985812],
+        [-0.3151131 ],
+        [-0.36599821],
+        [-0.4101881 ],
+        [-0.44451791],
+        [-0.46529978],
+        [-0.46890728],
+        [-0.45253077],
+        [-0.41494397],
+        [-0.35709726],
+        [-0.28237431],
+        [-0.19641533],
+        [-0.10650551],
+        [-0.02062841],
+        [ 0.05363571],
+        [ 0.11014801],
+        [ 0.14498157],
+        [ 0.15678225],
+        [ 0.14667315],
+        [ 0.11775856]]], dtype=float64)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>force</span></div><div class='xr-var-dims'>(realization, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>...</div><input id='attrs-e1b97ab3-4107-41fc-8bf5-6db07f940720' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-e1b97ab3-4107-41fc-8bf5-6db07f940720' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-ca588ca2-64f0-4651-ad76-6efaf68ba1f7' class='xr-var-data-in' type='checkbox'><label for='data-ca588ca2-64f0-4651-ad76-6efaf68ba1f7' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>PTO force or torque</dd><dt><span>units :</span></dt><dd>N or Nm</dd></dl></div><div class='xr-var-data'><pre>Array([[[ 750.        ],
+        [ 750.6172787 ],
+        [ 747.41821253],
+        [ 744.10173163],
+        [ 742.56002195],
+        [ 743.12761504],
+        [ 745.12275756],
+        [ 747.48085744],
+        [ 749.29074673],
+        [ 750.10684615],
         [ 750.        ],
-        [ 749.39937898],
-        [ 748.82102477],
-        [ 748.62777031],
-        [ 748.89702835],
-        [ 749.43693087],
-        [ 749.92270687],
-        [ 750.07971289],
-        [ 749.82650052],
-        [ 749.31392081],
+        [ 749.3968231 ],
+        [ 748.81555657],
+        [ 748.6208427 ],
+        [ 748.89097411],
+        [ 749.43357318],
+        [ 749.92220639],
+        [ 750.08027329],
+        [ 749.82517572],
+        [ 749.30822568],
 ...
-        [-745.13183863],
-        [-747.15773996],
-        [-749.52093515],
-        [-749.34987661],
-        [-742.09718145],
-        [-721.98772545],
-        [-682.91414461],
-        [-619.63149392],
-        [-529.0004515 ],
-        [-410.9844524 ],
-        [-269.13748197],
-        [-110.42241246],
-        [  55.64922486],
-        [ 218.40452831],
-        [ 367.64397277],
-        [ 495.18263556],
-        [ 595.97888589],
-        [ 668.63110961],
-        [ 715.17378229],
-        [ 740.26634562]]])</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(realization, type, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>42.49 43.74 43.37 ... 34.99 39.53</div><input id='attrs-0db47656-803c-4d3c-9e73-7b2c06eed241' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-0db47656-803c-4d3c-9e73-7b2c06eed241' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-955d33e0-2b28-426c-ba08-ff1c7c1834c4' class='xr-var-data-in' type='checkbox'><label for='data-955d33e0-2b28-426c-ba08-ff1c7c1834c4' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[[[  42.48802074],
-         [  43.74448126],
-         [  43.37403477],
-         [  41.5164818 ],
-         [  38.27784977],
-         [  33.69881162],
-         [  27.78146065],
-         [  20.54011619],
-         [  12.04134428],
-         [   2.41460858],
-         [  -8.16452579],
-         [ -19.50241632],
-         [ -31.40774827],
-         [ -43.69393256],
-         [ -56.16667051],
-         [ -68.6101118 ],
-         [ -80.78581237],
-         [ -92.44981508],
-         [-103.38045021],
-         [-113.40101256],
+        [-745.08124113],
+        [-747.11426751],
+        [-749.5017692 ],
+        [-749.37361507],
+        [-742.18055888],
+        [-722.14253436],
+        [-683.14497257],
+        [-619.93464937],
+        [-529.36417124],
+        [-411.39025103],
+        [-269.56236119],
+        [-110.84159258],
+        [  55.25939361],
+        [ 218.06381062],
+        [ 367.36598565],
+        [ 494.97340694],
+        [ 595.83650943],
+        [ 668.54663537],
+        [ 715.13326115],
+        [ 740.25367713]]], dtype=float64)</pre></div></li><li class='xr-var-item'><div class='xr-var-name'><span>power</span></div><div class='xr-var-dims'>(realization, type, time, dof)</div><div class='xr-var-dtype'>float64</div><div class='xr-var-preview xr-preview'>42.47 43.72 43.34 ... 35.0 39.52</div><input id='attrs-dd19677c-876f-4a40-9e07-4b0e0abce1c0' class='xr-var-attrs-in' type='checkbox' ><label for='attrs-dd19677c-876f-4a40-9e07-4b0e0abce1c0' title='Show/Hide attributes'><svg class='icon xr-icon-file-text2'><use xlink:href='#icon-file-text2'></use></svg></label><input id='data-be80d59b-a005-4255-8b32-3fb54444f57e' class='xr-var-data-in' type='checkbox'><label for='data-be80d59b-a005-4255-8b32-3fb54444f57e' title='Show/Hide data repr'><svg class='icon xr-icon-database'><use xlink:href='#icon-database'></use></svg></label><div class='xr-var-attrs'><dl class='xr-attrs'><dt><span>long_name :</span></dt><dd>Power</dd><dt><span>units :</span></dt><dd>W</dd></dl></div><div class='xr-var-data'><pre>array([[[[  42.47198447],
+         [  43.71834958],
+         [  43.33865762],
+         [  41.47305514],
+         [  38.22777723],
+         [  33.64354427],
+         [  27.72236372],
+         [  20.47841161],
+         [  11.97814312],
+         [   2.35099869],
+         [  -8.22740446],
+         [ -19.56336907],
+         [ -31.46560795],
+         [ -43.74767878],
+         [ -56.21550692],
+         [ -68.65344667],
+         [ -80.82315609],
+         [ -92.48067629],
+         [-103.40433123],
+         [-113.41755019],
 ...
-         [-133.10616027],
-         [-126.28246612],
-         [-118.14645248],
-         [-108.39586193],
-         [ -96.74222378],
-         [ -83.1364228 ],
-         [ -67.96700681],
-         [ -52.1189788 ],
-         [ -36.82093304],
-         [ -23.30189317],
-         [ -12.3848225 ],
-         [  -4.19988463],
-         [   1.83682107],
-         [   6.75569427],
-         [  11.59740356],
-         [  17.01025428],
-         [  23.05635561],
-         [  29.28460936],
-         [  34.99349064],
-         [  39.53022215]]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-cbf794d0-f8ee-4faf-b7fd-97f3c5ed06d3' class='xr-section-summary-in' type='checkbox'  checked><label for='section-cbf794d0-f8ee-4faf-b7fd-97f3c5ed06d3' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2025-10-15 15:21:29.591541</dd></dl></div></li></ul></div></div></div>
+         [-133.19106788],
+         [-126.38786327],
+         [-118.27241331],
+         [-108.54101735],
+         [ -96.90263196],
+         [ -83.30499878],
+         [ -68.13388731],
+         [ -52.27290804],
+         [ -36.95136794],
+         [ -23.40120183],
+         [ -12.44985194],
+         [  -4.23237815],
+         [   1.83104584],
+         [   6.76843619],
+         [  11.61999601],
+         [  17.03509666],
+         [  23.07772093],
+         [  29.29874351],
+         [  34.99826815],
+         [  39.52467951]]]])</pre></div></li></ul></div></li><li class='xr-section-item'><input id='section-172520e8-e374-400a-95fe-b3d1e80409f8' class='xr-section-summary-in' type='checkbox'  checked><label for='section-172520e8-e374-400a-95fe-b3d1e80409f8' class='xr-section-summary' >Attributes: <span>(1)</span></label><div class='xr-section-inline-details'></div><div class='xr-section-details'><dl class='xr-attrs'><dt><span>time_created_utc :</span></dt><dd>2025-10-21 20:43:34.910755</dd></dl></div></li></ul></div></div></div>
 </div>
 <p>Lastly, we will visualize the average power at different stages and how the power flows through the system.</p>
 <div class="nbinput docutils container">
@@ -1456,11 +1457,11 @@ Attributes:
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -1477,7 +1478,7 @@ Attributes:
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:21:30] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:38] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Ignoring fixed y limits to fulfill fixed data aspect with adjustable data limits.
 </pre></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1498,7 +1499,7 @@ into kinetic energy. For more information on this we refer to Johannes Falnes Bo
 <h2>2. Optimal control for maximum electrical power<a class="headerlink" href="#2.-Optimal-control-for-maximum-electrical-power" title="Link to this heading"></a></h2>
 <p>The rest of this tutorial will focus on a different objective function: we will now optimize for electrical power rather than mechanical, as this is a form of power that is usable and transportable.</p>
 <p>Since we are still dealing with the same WaveBot as in Part 1, we can reuse the BEM, WEC-PTO kinematics, and wave data from before.</p>
-<div><p><img alt="6d6a7c9546d04e9d945b838c45a59114" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="b6fda580c82a416ab5d73451fbabdff6" class="no-scaled-link" src="https://live.staticflickr.com/65535/52435033525_b8efc28d16_k.jpg" style="width: 1000px;" /></p>
 </div><p>The biggest difference when considering electrical power is the addition of the PTO dynamics. In other words, we no longer assume a lossless PTO. We will express the PTO dynamics in the form of a <a class="reference external" href="https://en.wikipedia.org/wiki/Impedance_parameters">2-port impedance model</a> to incorporate the dynamics of the drivetrain and generator. The additional mechanical energy storage through the drivetrain is modeled using Newton’s second law, and we assume a linear generator using a power-invariant park
 transform.</p>
 <p>The PTO impedance matrix components are then obtained under open-circuit conditions: no load current (<span class="math notranslate nohighlight">\(i_{pto}\)</span> in figure above) or no WEC velocity (<span class="math notranslate nohighlight">\(vel_{pto}\)</span> above), respectively. See Section II of Michelén et al. <a class="reference external" href="https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10114969">here</a> for more details about how the code below is derived.</p>
@@ -1545,7 +1546,7 @@ transform.</p>
 <span class="c1">## Update PTO constraints and forcing</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">const_f_pto_2</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 <span class="n">ineq_cons_2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto_2</span><span class="p">}</span>
 <span class="n">constraints_2</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons_2</span><span class="p">]</span>
 <span class="n">f_add_2</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;PTO&#39;</span><span class="p">:</span> <span class="n">pto_2</span><span class="o">.</span><span class="n">force_on_wec</span><span class="p">}</span>
@@ -1601,7 +1602,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:39] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1611,11 +1612,11 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.28000419798211496
+            Current function value: -0.28000388653913044
             Iterations: 10
-            Function evaluations: 11
+            Function evaluations: 10
             Gradient evaluations: 10
-Optimal average electrical power: -28.000419798211496 W
+Optimal average electrical power: -28.000388653913042 W
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1623,11 +1624,11 @@ Optimal average electrical power: -28.000419798211496 W
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -1671,7 +1672,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:21:31] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:41] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"Heave"</span> has negative or close to zero terms. Shifting up damping terms
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         <span style="font-weight: bold">[</span><span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1681,11 +1682,11 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;Heave&#34; has negative or c
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2918487161031911
-            Iterations: 11
-            Function evaluations: 11
-            Gradient evaluations: 11
-Optimal average electrical power: -29.184871610319107 W
+            Current function value: -0.2918490021417063
+            Iterations: 13
+            Function evaluations: 15
+            Gradient evaluations: 13
+Optimal average electrical power: -29.18490021417063 W
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1693,11 +1694,11 @@ Optimal average electrical power: -29.184871610319107 W
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -1732,7 +1733,7 @@ Optimal average electrical power: -29.184871610319107 W
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f1fe254db50&gt;
+&lt;matplotlib.legend.Legend at 0x7f77a4563b30&gt;
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1774,11 +1775,11 @@ over-design.</p>
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for join will change from join=&#39;outer&#39; to join=&#39;exact&#39;. This change will result in the following ValueError: cannot be aligned with join=&#39;exact&#39; because index/labels/sizes are not equal along these coordinates (dimensions): &#39;omega&#39; (&#39;omega&#39;,) The recommendation is to set join explicitly for this case.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
-/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:964: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
+/home/runner/work/WecOptTool/WecOptTool/wecopttool/core.py:967: FutureWarning: In a future version of xarray the default value for compat will change from compat=&#39;no_conflicts&#39; to compat=&#39;override&#39;. This is likely to lead to different results when combining overlapping variables with the same name. To opt in to new defaults and get rid of these warnings now use `set_options(use_new_combine_kwarg_defaults=True) or set compat explicitly.
   results_fd = xr.merge([fd_state, fd_forces, wave])
 </pre></div></div>
 </div>
@@ -1795,7 +1796,7 @@ over-design.</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:21:33] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[20:43:43] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Ignoring fixed x limits to fulfill fixed data aspect with adjustable data limits.
 </pre></div>
 </div>
 <div class="nboutput docutils container">
@@ -1820,7 +1821,7 @@ over-design.</p>
 <p>This example demonstrates a complete case of the control co-optimization studies WecOptTool is meant for. The inner optimization loop finds the control trajectory that produces the optimal PTO force for a given hull geometry, and the outer optimization loop finds the optimal hull geometry <em>amongst designs with optimal control trajectories</em>.</p>
 <p>The inner loop is consolidated into the <code class="docutils literal notranslate"><span class="pre">WEC.solve()</span></code> method, but the outer loop needs to be configured by the user for their particular design problem. In this example, we will do a simple <em>brute force</em> optimization using <code class="docutils literal notranslate"><span class="pre">scipy.optimize.brute</span></code> (click <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brute.html">here</a> for documentation).</p>
 <p><img alt="Device Diagram" src="https://live.staticflickr.com/65535/51751577441_515afec334_z.jpg" /></p>
-<div><p><img alt="4429475b5d374978b7663c1933345364" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
+<div><p><img alt="657eab39c03f4750bc2d4ca4072d2a8a" class="no-scaled-link" src="https://live.staticflickr.com/65535/52434071157_187eb4334c_k.jpg" style="width: 1000px;" /></p>
 </div><section id="Problem-setup">
 <h3>Problem setup<a class="headerlink" href="#Problem-setup" title="Link to this heading"></a></h3>
 <p>First, we define a function for <code class="docutils literal notranslate"><span class="pre">h2</span></code> based on <code class="docutils literal notranslate"><span class="pre">r1</span></code> that maintains a constant volume. We see that, as expected, smaller values of <code class="docutils literal notranslate"><span class="pre">r2</span></code> require larger values of <code class="docutils literal notranslate"><span class="pre">h2</span></code> in order to maintain a constant hull volume.</p>
@@ -1926,7 +1927,7 @@ over-design.</p>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">const_f_pto</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">pto</span><span class="o">.</span><span class="n">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">f_max</span> <span class="o">-</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
 
     <span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">const_f_pto</span><span class="p">}</span>
     <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
@@ -1993,7 +1994,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "2d659ae7bbf041fd9ccfc19198686431"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "1dc1fe7569f84a2c817ed1422c55ae00"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2007,9 +2008,9 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2798715289737127
+            Current function value: -0.27987163823363753
             Iterations: 10
-            Function evaluations: 10
+            Function evaluations: 11
             Gradient evaluations: 10
 
 r2 = 0.17:
@@ -2020,7 +2021,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "b412d18a565e48daa0ef2cdf91b10887"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "bb0dda0e3b2648aeba6aa93e3776cffb"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2034,10 +2035,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2798130817190095
-            Iterations: 9
-            Function evaluations: 9
-            Gradient evaluations: 9
+            Current function value: -0.2798132978900738
+            Iterations: 10
+            Function evaluations: 11
+            Gradient evaluations: 10
 
 r2 = 0.29:
 Info    : [ 90%] Union - Splitting solids
@@ -2047,7 +2048,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "42b396aaae0942b88643d7c17e988626"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "f973a9d1f6324e36a3a458036986b0cf"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2061,7 +2062,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.27994123670042714
+            Current function value: -0.2799412113129179
             Iterations: 10
             Function evaluations: 11
             Gradient evaluations: 10
@@ -2074,7 +2075,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "3d57a30dc0a5488dab8769da947485b2"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "798b3bdfbc814b92beb15a3d97aa8d7a"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2088,10 +2089,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.28020866438812664
-            Iterations: 10
+            Current function value: -0.2802085742875031
+            Iterations: 11
             Function evaluations: 11
-            Gradient evaluations: 10
+            Gradient evaluations: 11
 
 r2 = 0.52:
 Info    : [ 90%] Union - Splitting solids
@@ -2101,7 +2102,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "ef06fe2050ed4d5d996a72de8667e5a9"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "7739996e35194b66a602070e1cd8ba99"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2115,10 +2116,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2806946977703213
-            Iterations: 9
-            Function evaluations: 9
-            Gradient evaluations: 9
+            Current function value: -0.28069491642993505
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
 
 r2 = 0.64:
 Info    : [ 90%] Union - Splitting solids
@@ -2128,7 +2129,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "add9e3828453407486e22e476c54e14c"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "7a13dd460ddd42f2a40977ef3893227a"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2142,10 +2143,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.28162367779061354
-            Iterations: 9
-            Function evaluations: 9
-            Gradient evaluations: 9
+            Current function value: -0.28162365005863976
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
 
 r2 = 0.76:
 Info    : [ 90%] Union - Splitting solids
@@ -2155,7 +2156,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "0c9ea486891448f5b63c5e80ff1a7e80"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "669b0a6a727845d9a0e96597951dc076"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2169,10 +2170,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2834401055339516
-            Iterations: 10
-            Function evaluations: 10
-            Gradient evaluations: 10
+            Current function value: -0.28344035084054925
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
 
 r2 = 0.88:
 Info    : [ 90%] Union - Splitting solids
@@ -2182,7 +2183,7 @@ Info    : [ 90%] Union - Splitting solids
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "322cf56dd23540bcb40f64b70e405b8e"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "27b3a5c0eeb54a71896e503f4b0a4227"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -2196,10 +2197,10 @@ Info    : [ 90%] Union - Splitting solids
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.2873976955046532
-            Iterations: 9
-            Function evaluations: 10
-            Gradient evaluations: 9
+            Current function value: -0.2873977008577283
+            Iterations: 11
+            Function evaluations: 11
+            Gradient evaluations: 11
 </pre></div></div>
 </div>
 </section>
@@ -2231,7 +2232,7 @@ Optimization terminated successfully    (Exit mode 0)
 </div>
 <p>Note that in this case the difference in average power between the different keel radii is rather small. This is because the PTO force constraint is active most of the time, therefore all considered geometries perform similarly. If you remove the PTO constraint and re-run the co-optimization study, you will see that the impact of radius on average electrical power is significantly higher.</p>
 <script type="application/vnd.jupyter.widget-state+json">
-{"state": {"d838f04976e04ebdaa8a8a83ce39d0a8": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "940d3ab2231b40c68c0b6c9a84ae9127": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_d838f04976e04ebdaa8a8a83ce39d0a8", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "ecdd4a62734c48278ec83a3756a345bd": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "2d659ae7bbf041fd9ccfc19198686431": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_ecdd4a62734c48278ec83a3756a345bd", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "f629a801ee814aa78ae277d0bddaacd4": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "b412d18a565e48daa0ef2cdf91b10887": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_f629a801ee814aa78ae277d0bddaacd4", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "bbdd64f1b09645d49455c10ab5db3b8e": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "42b396aaae0942b88643d7c17e988626": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_bbdd64f1b09645d49455c10ab5db3b8e", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "75fff45eda4d44298e5bed077bac0057": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3d57a30dc0a5488dab8769da947485b2": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_75fff45eda4d44298e5bed077bac0057", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "52d5a29456c540b189122c0228861d32": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "ef06fe2050ed4d5d996a72de8667e5a9": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_52d5a29456c540b189122c0228861d32", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "de388e9dacda491a8ce7deda8753fd7f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "add9e3828453407486e22e476c54e14c": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_de388e9dacda491a8ce7deda8753fd7f", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "5d6a7307ca4b4d49a0f262e7929e2e03": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "0c9ea486891448f5b63c5e80ff1a7e80": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_5d6a7307ca4b4d49a0f262e7929e2e03", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "cbda8af9956c4fa9bb3fbf63ce681652": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "322cf56dd23540bcb40f64b70e405b8e": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_cbda8af9956c4fa9bb3fbf63ce681652", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+{"state": {"fe49b257561e40769c887f56fc1eda96": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "3be5bc700ae84400bd4212888652d06c": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_fe49b257561e40769c887f56fc1eda96", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "4b6aee69619443fe82fef77ca245cb5a": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "1dc1fe7569f84a2c817ed1422c55ae00": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_4b6aee69619443fe82fef77ca245cb5a", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "af07fcf7d55740d4a145e6a8c7f3a06f": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "bb0dda0e3b2648aeba6aa93e3776cffb": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_af07fcf7d55740d4a145e6a8c7f3a06f", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "3070236fe8164c5b93114c6ce71b2c04": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f973a9d1f6324e36a3a458036986b0cf": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3070236fe8164c5b93114c6ce71b2c04", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "98f206b3c526417c97a0c83b30695976": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "798b3bdfbc814b92beb15a3d97aa8d7a": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_98f206b3c526417c97a0c83b30695976", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "c2bce33794f642f492d5813e55e07396": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "7739996e35194b66a602070e1cd8ba99": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_c2bce33794f642f492d5813e55e07396", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "881d102f2d4d4944be3b96476253efd2": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "7a13dd460ddd42f2a40977ef3893227a": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_881d102f2d4d4944be3b96476253efd2", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "751c33e0cc39456cacfc0a38f6978a62": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "669b0a6a727845d9a0e96597951dc076": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_751c33e0cc39456cacfc0a38f6978a62", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "712162ef5ea742b48c90263ed1388306": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "27b3a5c0eeb54a71896e503f4b0a4227": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_712162ef5ea742b48c90263ed1388306", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;5;237m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m  0%\u001b[0m \u001b[36m-:--:--\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #3a3a3a; text-decoration-color: #3a3a3a\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">  0%</span> <span style=\"color: #008080; text-decoration-color: #008080\">-:--:--</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
 </script></section>
 </section>
 </section>

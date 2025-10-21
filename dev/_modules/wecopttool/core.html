@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>wecopttool.core &mdash; WecOptTool 3.1.1 documentation</title>
+  <title>wecopttool.core &mdash; WecOptTool 3.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=a0fb6060" />
@@ -13,7 +13,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=796a81b5"></script>
+      <script src="../../_static/documentation_options.js?v=4f6ddb47"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -130,6 +130,7 @@
     <span class="s2">&quot;frequency_parameters&quot;</span><span class="p">,</span>
     <span class="s2">&quot;time_results&quot;</span><span class="p">,</span>
     <span class="s2">&quot;set_fb_centers&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;block_diag_jax&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -140,16 +141,17 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">autograd.numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">autograd.builtins</span><span class="w"> </span><span class="kn">import</span> <span class="nb">isinstance</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="nb">dict</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">autograd</span><span class="w"> </span><span class="kn">import</span> <span class="n">grad</span><span class="p">,</span> <span class="n">jacobian</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ndarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataArray</span><span class="p">,</span> <span class="n">Dataset</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">capytaine</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cpy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span><span class="p">,</span> <span class="n">OptimizeResult</span><span class="p">,</span> <span class="n">Bounds</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">block_diag</span><span class="p">,</span> <span class="n">dft</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.linalg</span><span class="w"> </span><span class="kn">import</span> <span class="n">dft</span>
 
+<span class="n">jax</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="s2">&quot;jax_enable_x64&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># logger</span>
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -159,7 +161,7 @@
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">filter_msg</span><span class="p">)</span>
 
 <span class="c1"># default values</span>
-<span class="n">_default_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">1025.0</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="mf">9.81</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">}</span>
+<span class="n">_default_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rho&#39;</span><span class="p">:</span> <span class="mf">1025.0</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="mf">9.81</span><span class="p">,</span> <span class="s1">&#39;depth&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">}</span>
 <span class="n">_default_min_damping</span> <span class="o">=</span> <span class="mf">1e-6</span>
 
 <span class="c1"># type aliases</span>
@@ -599,7 +601,7 @@
 <span class="sd">            Complex impedance of size :python:`(nfreq, ndof, ndof)`.</span>
 <span class="sd">        exc_coeff</span>
 <span class="sd">            Complex excitation transfer function of size</span>
-<span class="sd">            :python:`(ndof, nfreq)`.</span>
+<span class="sd">            :python:`(nfreq, nwavedir, ndof)`.</span>
 <span class="sd">        hydrostatic_stiffness</span>
 <span class="sd">            Linear hydrostatic restoring coefficient of size</span>
 <span class="sd">            :python:`(ndof, ndof)`.</span>
@@ -645,7 +647,7 @@
         <span class="n">omega</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">*</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
         <span class="n">omega0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">omega</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">transfer_func</span> <span class="o">=</span> <span class="n">impedance</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">omega0</span><span class="p">)</span>
-        <span class="n">transfer_func0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">hydrostatic_stiffness</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">transfer_func0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">hydrostatic_stiffness</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">transfer_func</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">transfer_func0</span><span class="p">,</span> <span class="n">transfer_func</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">transfer_func</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">transfer_func</span>  <span class="c1"># RHS of equation: ma = Σf</span>
         <span class="n">force_impedance</span> <span class="o">=</span> <span class="n">force_from_rao_transfer_function</span><span class="p">(</span><span class="n">transfer_func</span><span class="p">)</span>
@@ -681,9 +683,9 @@
 <span class="sd">        x_opt</span>
 <span class="sd">            Optimization (control) state.</span>
 <span class="sd">        wave</span>
-<span class="sd">            2D :py:class:`xarray.DataArray` containing the wave&#39;s complex </span>
-<span class="sd">            amplitude for a single realization as a function of wave </span>
-<span class="sd">            angular frequency :python:`omega` (rad/s) and direction </span>
+<span class="sd">            2D :py:class:`xarray.DataArray` containing the wave&#39;s complex</span>
+<span class="sd">            amplitude for a single realization as a function of wave</span>
+<span class="sd">            angular frequency :python:`omega` (rad/s) and direction</span>
 <span class="sd">            :python:`wave_direction` (rad).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inertia_in_forces</span><span class="p">:</span>
@@ -752,7 +754,7 @@
 <span class="sd">            See :py:func:`scipy.optimize.minimize`.</span>
 <span class="sd">        use_grad</span>
 <span class="sd">             If :python:`True`, optimization will utilize</span>
-<span class="sd">             `autograd &lt;https://github.com/HIPS/autograd&gt;`_</span>
+<span class="sd">             `jax &lt;https://https://github.com/jax-ml/jax&gt;`_</span>
 <span class="sd">             for gradients.</span>
 <span class="sd">        maximize</span>
 <span class="sd">            Whether to maximize the objective function.</span>
@@ -821,14 +823,15 @@
             <span class="n">scale_x_opt</span> <span class="o">=</span> <span class="n">scale_dofs</span><span class="p">([</span><span class="n">scale_x_opt</span><span class="p">],</span> <span class="n">nstate_opt</span><span class="p">)</span>
 
         <span class="c1"># composite scaling vector</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">scale_x_wec</span><span class="p">,</span> <span class="n">scale_x_opt</span><span class="p">])</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale_x_wec</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">scale_x_opt</span><span class="p">)])</span>
 
         <span class="c1"># decision variable initial guess</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># could add key as input to select same initial guesses?</span>
         <span class="k">if</span> <span class="n">x_wec_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">x_wec_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span>
+            <span class="n">x_wec_0</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">x_opt_0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span>
-        <span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">x_wec_0</span><span class="p">,</span> <span class="n">x_opt_0</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span>
+            <span class="n">x_opt_0</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[</span><span class="n">nstate_opt</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_wec_0</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_opt_0</span><span class="p">)])</span><span class="o">*</span><span class="n">scale</span>
 
         <span class="c1"># bounds</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">bounds_wec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">bounds_opt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
@@ -839,8 +842,8 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bii</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                     <span class="n">bounds_in</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="p">[</span><span class="n">xibs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">xibs</span> <span class="ow">in</span> <span class="n">bii</span><span class="p">],</span>
                                             <span class="n">ub</span><span class="o">=</span><span class="p">[</span><span class="n">xibs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">xibs</span> <span class="ow">in</span> <span class="n">bii</span><span class="p">])</span>
-            <span class="n">inf_wec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
-            <span class="n">inf_opt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">inf_wec</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nstate_wec</span><span class="p">)</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">inf_opt</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nstate_opt</span><span class="p">)</span><span class="o">*</span><span class="n">jnp</span><span class="o">.</span><span class="n">inf</span>
             <span class="n">bounds_dflt</span> <span class="o">=</span> <span class="p">[</span><span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=-</span><span class="n">inf_wec</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">inf_wec</span><span class="p">),</span>
                             <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=-</span><span class="n">inf_opt</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="n">inf_opt</span><span class="p">)]</span>
             <span class="n">bounds_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -850,8 +853,8 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">bo</span> <span class="o">=</span> <span class="n">bd</span>
                 <span class="n">bounds_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bo</span><span class="p">)</span>
-            <span class="n">bounds</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">lb</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">,</span>
-                            <span class="n">ub</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">ub</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="n">Bounds</span><span class="p">(</span><span class="n">lb</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">lb</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">,</span>
+                            <span class="n">ub</span><span class="o">=</span><span class="n">jnp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">le</span><span class="o">.</span><span class="n">ub</span> <span class="k">for</span> <span class="n">le</span> <span class="ow">in</span> <span class="n">bounds_list</span><span class="p">])</span><span class="o">*</span><span class="n">scale</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">realization</span><span class="p">,</span> <span class="n">wave</span> <span class="ow">in</span> <span class="n">waves</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;realization&#39;</span><span class="p">):</span>
 
@@ -882,9 +885,9 @@
                         <span class="k">return</span> <span class="n">icons</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">new_fun</span>
 
-                <span class="n">icons_new</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">)</span>
+                <span class="n">icons_new</span><span class="p">[</span><span class="s2">&quot;fun&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">make_new_fun</span><span class="p">(</span><span class="n">icons</span><span class="p">))</span>
                 <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
-                    <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">])</span>
+                    <span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">icons_new</span><span class="p">[</span><span class="s1">&#39;fun&#39;</span><span class="p">]))</span>
                 <span class="n">constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">icons_new</span>
 
             <span class="c1"># system dynamics through equality constraint, ma - Σf = 0</span>
@@ -893,9 +896,9 @@
                 <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decompose_state</span><span class="p">(</span><span class="n">x_s</span><span class="p">)</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span>
 
-            <span class="n">eq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">scaled_resid_fun</span><span class="p">}</span>
+            <span class="n">eq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;eq&#39;</span><span class="p">,</span> <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">scaled_resid_fun</span><span class="p">)}</span>
             <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
-                <span class="n">eq_cons</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">scaled_resid_fun</span><span class="p">)</span>
+                <span class="n">eq_cons</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">scaled_resid_fun</span><span class="p">))</span>
             <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">eq_cons</span><span class="p">)</span>
 
             <span class="c1"># callback</span>
@@ -915,7 +918,7 @@
 
             <span class="c1"># optimization problem</span>
             <span class="n">optim_options</span><span class="p">[</span><span class="s1">&#39;disp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">optim_options</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disp&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-            <span class="n">problem</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">obj_fun_scaled</span><span class="p">,</span>
+            <span class="n">problem</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">),</span>
                         <span class="s1">&#39;x0&#39;</span><span class="p">:</span> <span class="n">x0</span><span class="p">,</span>
                         <span class="s1">&#39;method&#39;</span><span class="p">:</span> <span class="s1">&#39;SLSQP&#39;</span><span class="p">,</span>
                         <span class="s1">&#39;constraints&#39;</span><span class="p">:</span> <span class="n">constraints</span><span class="p">,</span>
@@ -924,7 +927,7 @@
                         <span class="s1">&#39;callback&#39;</span><span class="p">:</span> <span class="n">callback_scipy</span><span class="p">,</span>
                         <span class="p">}</span>
             <span class="k">if</span> <span class="n">use_grad</span><span class="p">:</span>
-                <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">)</span>
+                <span class="n">problem</span><span class="p">[</span><span class="s1">&#39;jac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">jax</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">obj_fun_scaled</span><span class="p">))</span>
 
             <span class="c1"># minimize</span>
             <span class="n">optim_res</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="o">**</span><span class="n">problem</span><span class="p">)</span>
@@ -1168,7 +1171,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">period</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Period vector [s].&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">Infinity</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_freq</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">w1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -1565,6 +1568,9 @@
     <span class="n">wt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">omega</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
     <span class="n">ncomp</span> <span class="o">=</span> <span class="n">ncomponents</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)</span>
     <span class="n">time_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nsubsteps</span><span class="o">*</span><span class="n">ncomp</span><span class="p">,</span> <span class="n">ncomp</span><span class="p">))</span>
+    <span class="c1">#time_mat = time_mat.at[:, 0].set(1.0)</span>
+    <span class="c1">#time_mat = time_mat.at[:, 1::2].set(np.cos(wt))</span>
+    <span class="c1">#time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component</span>
     <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span>
     <span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">wt</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># remove 2pt wave sine component</span>
@@ -1609,7 +1615,7 @@
     <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
         <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span>
-    <span class="n">deriv_mat</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+    <span class="n">deriv_mat</span> <span class="o">=</span> <span class="n">block_diag_jax</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">deriv_mat</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># remove 2pt wave sine component</span></div>
 
 
@@ -1646,7 +1652,7 @@
 <span class="sd">        Whether the first frequency should be zero.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">vals</span> <span class="o">=</span> <span class="p">[((</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">f1</span> <span class="o">*</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)]</span>
-    <span class="n">diagonal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)</span> <span class="o">*</span> <span class="n">vals</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># remove 2pt wave sine</span>
+    <span class="n">diagonal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nfreq</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">),</span> <span class="mi">2</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># remove 2pt wave sine</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
         <span class="n">diagonal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">diagonal</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">diagonal</span><span class="p">)</span></div>
@@ -1687,26 +1693,28 @@
 <span class="sd">    zero_freq</span>
 <span class="sd">        Whether the first frequency should be zero.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#if not isinstance(transfer_mat, jnp.ndarray):</span>
+    <span class="c1">#    transfer_mat = transfer_mat.values</span>
     <span class="n">ndof</span> <span class="o">=</span> <span class="n">transfer_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">assert</span> <span class="n">transfer_mat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">ndof</span>
     <span class="n">elem</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">None</span><span class="p">]</span><span class="o">*</span><span class="n">ndof</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">)]</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">block</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span> <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">re</span><span class="p">,</span> <span class="o">-</span><span class="n">im</span><span class="p">],</span> <span class="p">[</span><span class="n">im</span><span class="p">,</span> <span class="n">re</span><span class="p">]])</span>
     <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">jdof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
                 <span class="n">Zp0</span> <span class="o">=</span> <span class="n">transfer_mat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span>
-                <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">Zp0</span><span class="p">))</span>
-                <span class="n">Zp0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zp0</span><span class="p">)</span>
+                <span class="c1">#assert jnp.all(jnp.isreal(jnp.array(Zp0)))</span>
+                <span class="n">Zp0</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Zp0</span><span class="p">))</span>
                 <span class="n">Zp</span> <span class="o">=</span> <span class="n">transfer_mat</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">Zp0</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
                 <span class="n">Zp</span> <span class="o">=</span> <span class="n">transfer_mat</span><span class="p">[:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">jdof</span><span class="p">]</span>
-            <span class="n">re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
-            <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">Zp</span><span class="p">)</span>
+            <span class="n">re</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Zp</span><span class="p">))</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Zp</span><span class="p">))</span>
             <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">ire</span><span class="p">,</span> <span class="n">iim</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">re</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">im</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span>
             <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Zp0</span><span class="p">]</span> <span class="o">+</span> <span class="n">blocks</span> <span class="o">+</span> <span class="p">[</span><span class="n">re</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
-            <span class="n">elem</span><span class="p">[</span><span class="n">idof</span><span class="p">][</span><span class="n">jdof</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_diag</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span></div>
+            <span class="n">elem</span><span class="p">[</span><span class="n">idof</span><span class="p">][</span><span class="n">jdof</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_diag_jax</span><span class="p">(</span><span class="o">*</span><span class="n">blocks</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">block</span><span class="p">(</span><span class="n">elem</span><span class="p">)</span></div>
 
 
 
@@ -1732,7 +1740,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    dofmat_to_vec,</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vec</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
 
 
 
@@ -1754,7 +1762,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    vec_to_dofmat,</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mat</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mat</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span></div>
 
 
 
@@ -1802,10 +1810,10 @@
         <span class="k">assert</span> <span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span>
         <span class="n">mean</span> <span class="o">=</span> <span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
-    <span class="n">fdc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:],</span>
-                    <span class="p">[</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fdc</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]),</span>
+                    <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
-        <span class="n">fdc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">mean</span><span class="p">,</span> <span class="n">fdc</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">fdc</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mean</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fdc</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">fdc</span></div>
 
 
@@ -1852,23 +1860,23 @@
     <span class="n">nfreq</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">zero_freq</span> <span class="k">else</span> <span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">ndof</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isreal</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]))</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="c1">#assert jnp.all(jnp.isreal(fd[0, :]))</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">fd</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">c</span><span class="p">)])</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">imag</span><span class="p">(</span><span class="n">fd</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">real</span><span class="p">(</span><span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">c</span><span class="p">)])</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">),</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
-        <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
+        <span class="c1">#assert out.shape == (2*nfreq, ndof)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">out</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
-        <span class="k">assert</span> <span class="n">out</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">out</span><span class="p">,</span> <span class="n">d</span><span class="p">])</span>
+        <span class="c1">#assert out.shape == (2*nfreq-1, ndof)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -1979,13 +1987,13 @@
 <span class="sd">    --------</span>
 <span class="sd">    fd_to_td</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">td</span><span class="o">=</span> <span class="n">atleast_2d</span><span class="p">(</span><span class="n">td</span><span class="p">)</span>
+    <span class="n">td</span> <span class="o">=</span> <span class="n">atleast_2d</span><span class="p">(</span><span class="n">td</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">=</span> <span class="n">td</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">fft</span><span class="p">:</span>
-        <span class="n">fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">td</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">rfft</span><span class="p">(</span><span class="n">td</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="s1">&#39;forward&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dft</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">)[:</span><span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">td</span><span class="p">)</span>
-    <span class="n">fd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">fd</span><span class="p">[:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]))</span>
+        <span class="n">fd</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dft</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">)[:</span><span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">td</span><span class="p">)</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">fd</span><span class="p">[:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="n">fd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">zero_freq</span><span class="p">:</span>
         <span class="n">fd</span> <span class="o">=</span> <span class="n">fd</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
     <span class="k">return</span> <span class="n">fd</span></div>
@@ -2075,8 +2083,8 @@
     <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hydro_data_new</span><span class="o">.</span><span class="n">influenced_dof</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">ndof</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hydro_data</span><span class="o">.</span><span class="n">radiating_dof</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">idof</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndof</span><span class="p">):</span>
-        <span class="n">iradiation</span> <span class="o">=</span> <span class="n">radiation</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">)</span>
-        <span class="n">ifriction</span> <span class="o">=</span> <span class="n">friction</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">)</span>
+        <span class="n">iradiation</span> <span class="o">=</span> <span class="n">radiation</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ifriction</span> <span class="o">=</span> <span class="n">friction</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">radiating_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">,</span> <span class="n">influenced_dof</span><span class="o">=</span><span class="n">idof</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
         <span class="k">if</span> <span class="n">uniform_shift</span><span class="p">:</span>
             <span class="n">dmin</span> <span class="o">=</span> <span class="p">(</span><span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">dmin</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="o">+</span> <span class="n">min_damping</span><span class="p">:</span>
@@ -2085,7 +2093,7 @@
                 <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s1">&#39;Linear damping for DOF &quot;</span><span class="si">{</span><span class="n">dof</span><span class="si">}</span><span class="s1">&quot; has negative or close &#39;</span> <span class="o">+</span>
                     <span class="s1">&#39;to zero terms. Shifting up radiation damping by &#39;</span> <span class="o">+</span>
-                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">delta</span><span class="o">.</span><span class="n">values</span><span class="si">}</span><span class="s1"> N/(m/s).&#39;</span><span class="p">)</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">delta</span><span class="si">}</span><span class="s1"> N/(m/s).&#39;</span><span class="p">)</span>
                 <span class="n">hydro_data_new</span><span class="p">[</span><span class="s1">&#39;radiation_damping&#39;</span><span class="p">][:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">idof</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">iradiation</span> <span class="o">+</span> <span class="n">delta</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dof</span> <span class="o">=</span> <span class="n">hydro_data_new</span><span class="o">.</span><span class="n">influenced_dof</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idof</span><span class="p">]</span>
@@ -2095,8 +2103,7 @@
                     <span class="s1">&#39;zero terms. Shifting up damping terms &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">iradiation</span><span class="o">&lt;</span><span class="n">min_damping</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1"> to a minimum of &#39;</span> <span class="o">+</span>
                     <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">min_damping</span><span class="si">}</span><span class="s1"> N/(m/s)&#39;</span><span class="p">)</span>
-            <span class="n">new_damping</span> <span class="o">=</span> <span class="n">iradiation</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-                <span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="o">&gt;</span><span class="n">min_damping</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="n">min_damping</span><span class="p">)</span>
+            <span class="n">new_damping</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">iradiation</span><span class="o">+</span><span class="n">ifriction</span><span class="o">&gt;</span><span class="n">min_damping</span><span class="p">,</span> <span class="n">iradiation</span><span class="p">,</span> <span class="n">min_damping</span><span class="p">)</span>
             <span class="n">hydro_data_new</span><span class="p">[</span><span class="s1">&#39;radiation_damping&#39;</span><span class="p">][:,</span> <span class="n">idof</span><span class="p">,</span> <span class="n">idof</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_damping</span>
     <span class="k">return</span> <span class="n">hydro_data_new</span></div>
 
@@ -2177,8 +2184,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">transfer_mat</span> <span class="o">=</span> <span class="n">mimo_transfer_mat</span><span class="p">(</span><span class="n">rao_transfer_mat</span><span class="p">,</span> <span class="n">zero_freq</span><span class="p">)</span>
-        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">force_fd</span><span class="p">)</span>
+        <span class="n">force_fd</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">vec_to_dofmat</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">transfer_mat</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">,</span> <span class="n">force_fd</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">force</span></div>
 
 
@@ -2215,12 +2222,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    force_coeff</span>
-<span class="sd">        Complex excitation coefficients indexed by frequency and</span>
-<span class="sd">        direction angle.</span>
+<span class="sd">        Complex excitation coefficients indexed by frequency,</span>
+<span class="sd">        direction angle, and degree of freedom.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">force</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">):</span>
         <span class="n">force_fd</span> <span class="o">=</span> <span class="n">complex_to_real</span><span class="p">(</span><span class="n">wave_excitation</span><span class="p">(</span><span class="n">force_coeff</span><span class="p">,</span> <span class="n">wave</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">force_fd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">time_mat</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">force_fd</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">force</span></div>
 
 
@@ -2310,7 +2317,7 @@
 <a class="viewcode-back" href="../../api_docs/wecopttool.run_bem.html#wecopttool.run_bem">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">run_bem</span><span class="p">(</span>
     <span class="n">fb</span><span class="p">:</span> <span class="n">cpy</span><span class="o">.</span><span class="n">FloatingBody</span><span class="p">,</span>
-    <span class="n">freq</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">],</span>
+    <span class="n">freq</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">],</span>
     <span class="n">wave_dirs</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
     <span class="n">rho</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">],</span>
     <span class="n">g</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_default_parameters</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span>
@@ -2389,7 +2396,7 @@
                      <span class="s1">&#39;will be calculated assuming a solid and constant &#39;</span> <span class="o">+</span>
                      <span class="s1">&#39;density body.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no inertia_matrix field. &#39;</span> <span class="o">+</span> 
+            <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;FloatingBody has no inertia_matrix field. &#39;</span> <span class="o">+</span>
                      <span class="s1">&#39;The FloatingBody mass is defined and will be &#39;</span> <span class="o">+</span>
                      <span class="s1">&#39;used for calculating the inertia matrix.&#39;</span><span class="p">)</span>
         <span class="n">wec_im</span><span class="o">.</span><span class="n">inertia_matrix</span> <span class="o">=</span> <span class="n">wec_im</span><span class="o">.</span><span class="n">compute_rigid_body_inertia</span><span class="p">(</span><span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">)</span>
@@ -2466,7 +2473,7 @@
                     <span class="sa">f</span><span class="s1">&#39;Variable &quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; is already in BEM data &#39;</span> <span class="o">+</span>
                     <span class="s1">&#39;with same value.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">friction_data</span> <span class="o">=</span> <span class="n">atleast_2d</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
+            <span class="n">friction_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">friction</span><span class="p">)</span>
             <span class="n">hydro_data</span><span class="p">[</span><span class="s1">&#39;friction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="n">friction_data</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">friction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">ndof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hydro_data</span><span class="p">[</span><span class="s2">&quot;influenced_dof&quot;</span><span class="p">])</span>
@@ -2490,12 +2497,12 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    exc_coeff</span>
-<span class="sd">        Complex excitation coefficients indexed by frequency and</span>
-<span class="sd">        direction angle.</span>
+<span class="sd">        Complex excitation coefficients indexed by frequency,</span>
+<span class="sd">        direction angle, and degree of freedom.</span>
 <span class="sd">    wave</span>
-<span class="sd">        2D :py:class:`xarray.DataArray` containing the wave&#39;s complex </span>
-<span class="sd">        amplitude for a single realization as a function of wave </span>
-<span class="sd">        angular frequency :python:`omega` (rad/s) and direction </span>
+<span class="sd">        2D :py:class:`xarray.DataArray` containing the wave&#39;s complex</span>
+<span class="sd">        amplitude for a single realization as a function of wave</span>
+<span class="sd">        angular frequency :python:`omega` (rad/s) and direction</span>
 <span class="sd">        :python:`wave_direction` (rad).</span>
 
 <span class="sd">    Raises</span>
@@ -2526,7 +2533,7 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> Wave direction(s): </span><span class="si">{</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dir_w</span><span class="p">))</span><span class="si">}</span><span class="s2"> (deg)&quot;</span> <span class="o">+</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> BEM direction(s): </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dir_e</span><span class="p">)</span><span class="si">}</span><span class="s2"> (deg).&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">wave_elev_fd</span><span class="o">*</span><span class="n">exc_coeff</span><span class="p">[:,</span> <span class="n">sub_ind</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">wave_elev_fd</span><span class="o">*</span><span class="n">exc_coeff</span><span class="p">[:,</span> <span class="n">sub_ind</span><span class="p">,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
 
@@ -2567,8 +2574,8 @@
 <span class="sd">    array</span>
 <span class="sd">        Input array.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span> <span class="k">else</span> <span class="n">array</span></div>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span> <span class="k">else</span> <span class="n">array</span></div>
 
 
 
@@ -2589,6 +2596,7 @@
 <span class="sd">        Whether to sort the angles from smallest to largest in</span>
 <span class="sd">        :math:`[-π, π)`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    
     <span class="n">radians</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">degrees</span><span class="p">),</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
     <span class="n">radians</span><span class="p">[</span><span class="n">radians</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="k">if</span> <span class="n">radians</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">sort</span><span class="p">:</span>
@@ -2766,6 +2774,7 @@
 <span class="sd">        If the zero-frequency was expected but not included or not</span>
 <span class="sd">        expected but included.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">freqs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">freqs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">freqs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">zero_freq</span><span class="p">:</span>
             <span class="n">freqs0</span> <span class="o">=</span> <span class="n">freqs</span><span class="p">[:]</span>
@@ -2776,7 +2785,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s1">&#39;Frequency array must start with the zero frequency.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">freqs0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,],</span> <span class="n">freqs</span><span class="p">])</span>
+            <span class="n">freqs0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">freqs</span><span class="p">])</span>
 
     <span class="n">f1</span> <span class="o">=</span> <span class="n">freqs0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">nfreq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">freqs0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -2835,8 +2844,8 @@
                 <span class="n">log_str</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="s2">&quot;Using the center of gravity (COG) as the rotation center &quot;</span> <span class="o">+</span>
                     <span class="s2">&quot;for hydrostatics. Note that the hydrostatics do not use the &quot;</span> <span class="o">+</span>
-                    <span class="s2">&quot;axes defined by the FloatingBody degrees of freedom, and the &quot;</span> <span class="o">+</span> 
-                    <span class="s2">&quot;rotation center should be set manually when using Capytaine to &quot;</span> <span class="o">+</span> 
+                    <span class="s2">&quot;axes defined by the FloatingBody degrees of freedom, and the &quot;</span> <span class="o">+</span>
+                    <span class="s2">&quot;rotation center should be set manually when using Capytaine to &quot;</span> <span class="o">+</span>
                     <span class="s2">&quot;calculate hydrostatics about an axis other than the COG.&quot;</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span> <span class="nb">property</span><span class="p">,</span> <span class="n">def_val</span><span class="p">)</span>
             <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">log_str</span><span class="p">)</span>
@@ -2845,6 +2854,58 @@
                 <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">property</span><span class="si">}</span><span class="s1"> already defined as </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">fb</span><span class="p">,</span><span class="w"> </span><span class="nb">property</span><span class="p">)</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">fb</span></div>
+
+
+
+<div class="viewcode-block" id="block_diag_jax">
+<a class="viewcode-back" href="../../api_docs/wecopttool.core.block_diag_jax.html#wecopttool.block_diag_jax">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">block_diag_jax</span><span class="p">(</span><span class="o">*</span><span class="n">arrays</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a block diagonal matrix from provided arrays.</span>
+
+<span class="sd">    Given the inputs A, B, and C, the output will have these</span>
+<span class="sd">    arrays arranged on the diagonal:</span>
+
+<span class="sd">        [[A, 0, 0],</span>
+<span class="sd">         [0, B, 0],</span>
+<span class="sd">         [0, 0, C]]</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    arrays</span>
+<span class="sd">        Input arrays. Each array can be up to 2-D. A 1-D array or </span>
+<span class="sd">        array-like sequence of length n is treated as a 2-D array </span>
+<span class="sd">        with shape (1, n).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    block_diag_mat</span>
+<span class="sd">        Array with A, B, C, ... on the diagonal. D has the same </span>
+<span class="sd">        dtype as the first input array.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Empty sequences (i.e., array-likes of zero size) will not be ignored.</span>
+<span class="sd">    Noteworthy, both [] and [[]] are treated as matrices with shape (1, 0).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert inputs to JAX arrays and ensure they are at least 2D</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="p">[</span><span class="n">jnp</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">a</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">arrays</span><span class="p">]</span>
+
+    <span class="c1"># Compute the total shape of the resulting block diagonal matrix</span>
+    <span class="n">total_rows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+    <span class="n">total_cols</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">)</span>
+
+    <span class="c1"># Create an empty block diagonal matrix</span>
+    <span class="n">block_diag_mat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_rows</span><span class="p">,</span> <span class="n">total_cols</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">blocks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+    <span class="c1"># Fill the block diagonal matrix</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
+        <span class="n">rr</span><span class="p">,</span> <span class="n">cc</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">block_diag_mat</span> <span class="o">=</span> <span class="n">block_diag_mat</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">r</span><span class="p">:</span><span class="n">r</span> <span class="o">+</span> <span class="n">rr</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span><span class="n">c</span> <span class="o">+</span> <span class="n">cc</span><span class="p">]</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">+=</span> <span class="n">rr</span>
+        <span class="n">c</span> <span class="o">+=</span> <span class="n">cc</span>
+
+    <span class="k">return</span> <span class="n">block_diag_mat</span></div>
 
 </pre></div>
 
