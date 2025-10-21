@@ -19,10 +19,8 @@ from typing import Optional, Union
 import logging
 from pathlib import Path
 
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.numpy.linalg import inv
-from xarray import DataArray
+import numpy as np
+from numpy.linalg import inv
 from numpy.typing import ArrayLike
 from xarray import DataArray, concat
 import matplotlib.pyplot as plt
@@ -151,8 +149,8 @@ def plot_bode_impedance(impedance: DataArray,
     """
     radiating_dofs = impedance.radiating_dof.values
     influenced_dofs = impedance.influenced_dof.values
-    mag = 20.0 * np.log10(np.abs(impedance))
-    phase = np.rad2deg(np.unwrap(np.angle(impedance)))
+    mag = 20.0 * np.log10(np.abs(impedance.values))
+    phase = np.rad2deg(np.unwrap(np.angle(impedance.values)))
     freq = impedance.omega.values/2/np.pi
     if fig_axes is None:
         fig, axes = plt.subplots(

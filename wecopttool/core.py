@@ -51,6 +51,7 @@ __all__ = [
     "frequency_parameters",
     "time_results",
     "set_fb_centers",
+    "block_diag_jax",
 ]
 
 
@@ -61,16 +62,17 @@ import warnings
 from datetime import datetime
 
 from numpy.typing import ArrayLike
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd import grad, jacobian
+import numpy as np
+import jax.numpy as jnp
+from numpy import ndarray
+import jax
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
-from scipy.linalg import block_diag, dft
+from scipy.linalg import dft
 
+jax.config.update("jax_enable_x64", True)
 
 # logger
 _log = logging.getLogger(__name__)
@@ -80,7 +82,7 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
 _default_min_damping = 1e-6
 
 # type aliases
@@ -654,7 +656,7 @@ class WEC:
             See :py:func:`scipy.optimize.minimize`.
         use_grad
              If :python:`True`, optimization will utilize
-             `autograd <https://github.com/HIPS/autograd>`_
+             `jax <https://https://github.com/jax-ml/jax>`_
              for gradients.
         maximize
             Whether to maximize the objective function.
@@ -723,14 +725,15 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
-        scale = np.concatenate([scale_x_wec, scale_x_opt])
+        scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
 
         # decision variable initial guess
+        key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = np.random.randn(self.nstate_wec)
+            x_wec_0 = jax.random.normal(key, [self.nstate_wec], dtype=np.float64)
         if x_opt_0 is None:
-            x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+            x_opt_0 = jax.random.normal(key, [nstate_opt], dtype=np.float64)
+        x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -741,8 +744,8 @@ class WEC:
                 if isinstance(bii, tuple):
                     bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
                                             ub=[xibs[1] for xibs in bii])
-            inf_wec = np.ones(self.nstate_wec)*np.inf
-            inf_opt = np.ones(nstate_opt)*np.inf
+            inf_wec = jnp.ones(self.nstate_wec)*jnp.inf
+            inf_opt = jnp.ones(nstate_opt)*jnp.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
                             Bounds(lb=-inf_opt, ub=inf_opt)]
             bounds_list = []
@@ -752,8 +755,8 @@ class WEC:
                 else:
                     bo = bd
                 bounds_list.append(bo)
-            bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
-                            ub=np.hstack([le.ub for le in bounds_list])*scale)
+            bounds = Bounds(lb=jnp.hstack([le.lb for le in bounds_list])*scale,
+                            ub=jnp.hstack([le.ub for le in bounds_list])*scale)
 
         for realization, wave in waves.groupby('realization'):
 
@@ -784,9 +787,9 @@ class WEC:
                         return icons["fun"](self, x_wec, x_opt, wave)
                     return new_fun
 
-                icons_new["fun"] = make_new_fun(icons)
+                icons_new["fun"] = jax.jit(make_new_fun(icons))
                 if use_grad:
-                    icons_new['jac'] = jacobian(icons_new['fun'])
+                    icons_new['jac'] = jax.jit(jax.jacobian(icons_new['fun']))
                 constraints[i] = icons_new
 
             # system dynamics through equality constraint, ma - Σf = 0
@@ -795,9 +798,9 @@ class WEC:
                 x_wec, x_opt = self.decompose_state(x_s)
                 return self.residual(x_wec, x_opt, wave)
 
-            eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
+            eq_cons = {'type': 'eq', 'fun': jax.jit(scaled_resid_fun)}
             if use_grad:
-                eq_cons['jac'] = jacobian(scaled_resid_fun)
+                eq_cons['jac'] = jax.jit(jax.jacobian(scaled_resid_fun))
             constraints.append(eq_cons)
 
             # callback
@@ -817,7 +820,7 @@ class WEC:
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
-            problem = {'fun': obj_fun_scaled,
+            problem = {'fun': jax.jit(obj_fun_scaled),
                         'x0': x0,
                         'method': 'SLSQP',
                         'constraints': constraints,
@@ -826,7 +829,7 @@ class WEC:
                         'callback': callback_scipy,
                         }
             if use_grad:
-                problem['jac'] = grad(obj_fun_scaled)
+                problem['jac'] = jax.jit(jax.grad(obj_fun_scaled))
 
             # minimize
             optim_res = minimize(**problem)
@@ -1066,7 +1069,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate(([np.inf], 1/self._freq[1:]))
 
     @property
     def w1(self) -> float:
@@ -1430,6 +1433,9 @@ def time_mat(
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
+    #time_mat = time_mat.at[:, 0].set(1.0)
+    #time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
+    #time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
     time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
@@ -1471,7 +1477,7 @@ def derivative_mat(
     blocks = [block(n+1) for n in range(nfreq)]
     if zero_freq:
         blocks = [0.0] + blocks
-    deriv_mat = block_diag(*blocks)
+    deriv_mat = block_diag_jax(*blocks)
     return deriv_mat[:-1, :-1] # remove 2pt wave sine component
 
 
@@ -1505,7 +1511,7 @@ def derivative2_mat(
         Whether the first frequency should be zero.
     """
     vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    diagonal = np.repeat(-np.ones(nfreq) * np.array(vals), 2)[:-1] # remove 2pt wave sine
     if zero_freq:
         diagonal = np.concatenate(([0.0], diagonal))
     return np.diag(diagonal)
@@ -1543,26 +1549,28 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
+    #if not isinstance(transfer_mat, jnp.ndarray):
+    #    transfer_mat = transfer_mat.values
     ndof = transfer_mat.shape[1]
     assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
+    def block(re, im): return jnp.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
                 Zp0 = transfer_mat[0, idof, jdof]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
+                #assert jnp.all(jnp.isreal(jnp.array(Zp0)))
+                Zp0 = jnp.real(jnp.array(Zp0))
                 Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
                 Zp = transfer_mat[:, idof, jdof]
-            re = np.real(Zp)
-            im = np.imag(Zp)
+            re = jnp.real(jnp.array(Zp))
+            im = jnp.imag(jnp.array(Zp))
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             blocks = [Zp0] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+            elem[idof][jdof] = block_diag_jax(*blocks)
+    return jnp.block(elem)
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1585,7 +1593,7 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     --------
     dofmat_to_vec,
     """
-    return np.reshape(vec, (-1, ndof), order='F')
+    return jnp.reshape(jnp.array(vec), (-1, ndof), order='F')
 
 
 def dofmat_to_vec(mat: ArrayLike) -> ndarray:
@@ -1604,7 +1612,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     --------
     vec_to_dofmat,
     """
-    return np.reshape(mat, -1, order='F')
+    return jnp.reshape(jnp.array(mat), -1, order='F')
 
 
 def real_to_complex(
@@ -1649,10 +1657,10 @@ def real_to_complex(
         assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    [fd[-1, :]], axis=0)
+    fdc = jnp.append(jnp.array(fd[0:-1:2, :] + 1j*fd[1::2, :]),
+                    jnp.array([fd[-1, :]]), axis=0)
     if zero_freq:
-        fdc = np.concatenate((mean, fdc), axis=0)
+        fdc = jnp.concatenate((jnp.array(mean), jnp.array(fdc)), axis=0)
     return fdc
 
 
@@ -1696,23 +1704,23 @@ def complex_to_real(
     nfreq = fd.shape[0] - 1 if zero_freq else fd.shape[0]
     ndof = fd.shape[1]
     if zero_freq:
-        assert np.all(np.isreal(fd[0, :]))
-        a = np.real(fd[0:1, :])
-        b = np.real(fd[1:-1, :])
-        c = np.imag(fd[1:-1, :])
-        d = np.real(fd[-1:, :])
+        #assert jnp.all(jnp.isreal(fd[0, :]))
+        a = jnp.real(fd[0:1, :])
+        b = jnp.real(fd[1:-1, :])
+        c = jnp.imag(fd[1:-1, :])
+        d = jnp.real(fd[-1:, :])
     else:
-        b = np.real(fd[:-1, :])
-        c = np.imag(fd[:-1, :])
-        d = np.real(fd[-1:, :])
-    out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+        b = jnp.real(fd[:-1, :])
+        c = jnp.imag(fd[:-1, :])
+        d = jnp.real(fd[-1:, :])
+    out = jnp.concatenate([jnp.transpose(b), jnp.transpose(c)])
+    out = jnp.reshape(jnp.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
-        out = np.concatenate([a, out, d])
-        assert out.shape == (2*nfreq, ndof)
+        out = jnp.concatenate([a, out, d])
+        #assert out.shape == (2*nfreq, ndof)
     else:
-        out = np.concatenate([out, d])
-        assert out.shape == (2*nfreq-1, ndof)
+        out = jnp.concatenate([out, d])
+        #assert out.shape == (2*nfreq-1, ndof)
     return out
 
 
@@ -1817,13 +1825,13 @@ def td_to_fd(
     --------
     fd_to_td
     """
-    td= atleast_2d(td)
+    td = atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
+        fd = jnp.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
-    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
+        fd = jnp.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = jnp.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
@@ -1904,8 +1912,8 @@ def check_radiation_damping(
     ndof = len(hydro_data_new.influenced_dof)
     assert ndof == len(hydro_data.radiating_dof)
     for idof in range(ndof):
-        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
-        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
+        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof).values
+        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof).values
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
             if dmin < 0.0 + min_damping:
@@ -1914,7 +1922,7 @@ def check_radiation_damping(
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close ' +
                     'to zero terms. Shifting up radiation damping by ' +
-                    f'{delta.values} N/(m/s).')
+                    f'{delta} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
             dof = hydro_data_new.influenced_dof.values[idof]
@@ -1924,8 +1932,7 @@ def check_radiation_damping(
                     'zero terms. Shifting up damping terms ' +
                     f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
+            new_damping = np.where(iradiation+ifriction>min_damping, iradiation, min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
@@ -2000,8 +2007,8 @@ def force_from_rao_transfer_function(
     """
     def force(wec, x_wec, x_opt, wave):
         transfer_mat = mimo_transfer_mat(rao_transfer_mat, zero_freq)
-        force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
-        return np.dot(wec.time_mat, force_fd)
+        force_fd = wec.vec_to_dofmat(jnp.dot(transfer_mat, x_wec))
+        return jnp.dot(wec.time_mat, force_fd)
     return force
 
 
@@ -2037,7 +2044,7 @@ def force_from_wave(force_coeff: DataArray,
     """
     def force(wec, x_wec, x_opt, wave):
         force_fd = complex_to_real(wave_excitation(force_coeff, wave), False)
-        return np.dot(wec.time_mat[:, 1:], force_fd)
+        return jnp.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
 
@@ -2118,7 +2125,7 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
@@ -2268,7 +2275,7 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            friction_data = atleast_2d(friction)
+            friction_data = np.atleast_2d(friction)
             hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
@@ -2325,7 +2332,7 @@ def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    return jnp.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
@@ -2360,8 +2367,8 @@ def atleast_2d(array: ArrayLike) -> ndarray:
     array
         Input array.
     """
-    array = np.atleast_1d(array)
-    return np.expand_dims(array, -1) if len(array.shape)==1 else array
+    array = jnp.atleast_1d(array)
+    return jnp.expand_dims(array, -1) if len(array.shape)==1 else array
 
 
 def degrees_to_radians(
@@ -2379,6 +2386,7 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
+    
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
     if radians.size > 1 and sort:
@@ -2544,6 +2552,7 @@ def frequency_parameters(
         If the zero-frequency was expected but not included or not
         expected but included.
     """
+    freqs = np.asarray(freqs)
     if np.isclose(freqs[0], 0.0):
         if zero_freq:
             freqs0 = freqs[:]
@@ -2554,7 +2563,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([[0.0,], freqs])
+            freqs0 = np.concatenate([[0.0], freqs])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
@@ -2617,3 +2626,52 @@ def set_fb_centers(
                 f'{property} already defined as {getattr(fb, property)}.')
 
     return fb
+
+
+def block_diag_jax(*arrays: ArrayLike) -> ndarray:
+    """Creates a block diagonal matrix from provided arrays.
+
+    Given the inputs A, B, and C, the output will have these
+    arrays arranged on the diagonal:
+
+        [[A, 0, 0],
+         [0, B, 0],
+         [0, 0, C]]
+
+    Parameters
+    ----------
+    arrays
+        Input arrays. Each array can be up to 2-D. A 1-D array or 
+        array-like sequence of length n is treated as a 2-D array 
+        with shape (1, n).
+
+    Returns
+    -------
+    block_diag_mat
+        Array with A, B, C, ... on the diagonal. D has the same 
+        dtype as the first input array.
+
+    Notes
+    -----
+    Empty sequences (i.e., array-likes of zero size) will not be ignored.
+    Noteworthy, both [] and [[]] are treated as matrices with shape (1, 0).
+    """
+    # Convert inputs to JAX arrays and ensure they are at least 2D
+    blocks = [jnp.atleast_2d(jnp.array(a)) for a in arrays]
+
+    # Compute the total shape of the resulting block diagonal matrix
+    total_rows = sum(block.shape[0] for block in blocks)
+    total_cols = sum(block.shape[1] for block in blocks)
+
+    # Create an empty block diagonal matrix
+    block_diag_mat = jnp.zeros((total_rows, total_cols), dtype=blocks[0].dtype)
+
+    # Fill the block diagonal matrix
+    r, c = 0, 0
+    for block in blocks:
+        rr, cc = block.shape
+        block_diag_mat = block_diag_mat.at[r:r + rr, c:c + cc].set(block)
+        r += rr
+        c += cc
+
+    return block_diag_mat

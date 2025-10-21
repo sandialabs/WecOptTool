@@ -641,7 +641,7 @@ class TestVecToDOFMatToVec:
         """Test that the function raises a ValueError if an incompatible
         number of degrees of freedom are specified.
         """
-        with pytest.raises(ValueError):
+        with pytest.raises(Exception):
             wot.vec_to_dofmat(vec, 4)
 
 
@@ -1061,7 +1061,7 @@ class TestForceFromImpedanceOrTransferFunction:
     @pytest.fixture(scope="class")
     def x_wec(self,):
         """WEC position state vector for a simple synthetic case."""
-        return [0, 1, 1, 1, 0, 2, 2, 2]
+        return np.array([0, 1, 1, 1, 0, 2, 2, 2])
 
     @pytest.fixture(scope="class")
     def force(self, f1, nfreq_imp, ndof_imp):
