@@ -17,7 +17,7 @@ git pull <upstream remote name> main
 * Merge the `dev` branch into the `main` branch using the command line:
 ```
 git checkout main
-git merge dev
+git merge dev --ff-only
 git push <upstream remote name> main
 ```
 **Note: the `dev` branch should only be merged into `main` when it is ready for a new release.**
