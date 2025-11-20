@@ -309,7 +309,7 @@
     "y = np.arange(-1*torque_max, 1.0*torque_max, 5)\n",
     "X, Y = np.meshgrid(x, y)\n",
     "Z = power_loss(X, Y).copy()/1e3\n",
-    "Z[np.abs(X*Y) > power_max] = np.NaN  # cut off area outside of power limit\n",
+    "Z[np.abs(X*Y) > power_max] = np.nan  # cut off area outside of power limit\n",
     "\n",
     "fig = plt.figure(figsize=plt.figaspect(0.4))\n",
     "ax = [fig.add_subplot(1, 2, 1, projection=\"3d\"),\n",
