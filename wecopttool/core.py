@@ -2332,7 +2332,8 @@ def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return jnp.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    result = wave_elev_fd.astype(jnp.complex128) * exc_coeff[:, sub_ind, :].astype(jnp.complex128)
+    return jnp.sum(result, axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
