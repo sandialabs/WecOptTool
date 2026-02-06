@@ -20,11 +20,6 @@ The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch 
 
     - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
 
-.. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
-.. _WaveBot: https://doi.org/10.3390/en10040472
-.. _AquaHarmonics: https://aquaharmonics.com/technology/
-.. _LUPA: https://pmec-osu.github.io/LUPA/
-
 .. toctree::
     :maxdepth: 3
     :hidden:
@@ -33,3 +28,63 @@ The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch 
     _examples/tutorial_2_AquaHarmonics
     _examples/tutorial_3_LUPA
     _examples/tutorial_4_Pioneer
+
+
+Simulating WEC Dynamics without optimization
+--------------------------------------------
+
+There may be situations where it is useful to see the dynamics of the WEC subject to certain constraints without performing optimization on the device.
+This can be done by setting ``nstate_opt=0`` and using an objective function that does not depend on ``x_wec``.
+
+The easiest way to do this is to set an objective function that always equals zero. 
+Constraints and additional forces can also be added, but they must be independent of ``x_opt`` since there are no constrol states.
+The additional forces should also be defined at all nonzero states (i.e. returns length ``nfreq * 2``).
+
+Example:
+
+.. code-block:: python
+    
+   # define additional force
+   # (must be independent of x_opt and of length nfreq * 2)
+   def forcing_func(wec, x_wec, x_opt, waves):
+       frc = 50
+       return np.ones((nfreq*2, 1)) * frc
+    f_add = {'Additional force': forcing_func}
+
+   # define constraint
+   # (must be independent of x_opt)
+   f_max = 750.
+   def force_constraint(wec, x_wec, x_opt, waves):
+       return f_max
+   ineq_cons = {'type': 'ineq',
+                'fun': force_constraint,
+                }
+   constraints = [ineq_cons]
+
+   # define WEC object
+   wec = wot.WEC.from_bem(
+        bem_data, # define beforehand as you normally would
+        constraints=constraints,
+        friction=None,
+        f_add=f_add)
+
+   # create dummy objective function
+   obj_fun = lambda wec, x_wec, x_opt, waves : 0
+   nstate_opt = 0
+
+   # solve problem (should solve on first iteration)
+   results = wec.solve(
+       waves=waves, # define beforehand as you normally would
+       obj_fun=obj_fun, 
+       nstate_opt=nstate_opt
+       )
+       
+   # post process
+   nsubsteps = 5
+   wec_fdom, wec_tdom = wec.post_process(wec, results, waves, nsubsteps=nsubsteps)
+   wec_tdom[0]['pos'].plot()
+
+.. _GitHub repository: https://github.com/sandialabs/WecOptTool/tree/main/examples
+.. _WaveBot: https://doi.org/10.3390/en10040472
+.. _AquaHarmonics: https://aquaharmonics.com/technology/
+.. _LUPA: https://pmec-osu.github.io/LUPA/

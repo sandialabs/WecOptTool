@@ -35,7 +35,7 @@ __all__ = [
     "check_impedance",
     "force_from_rao_transfer_function",
     "force_from_impedance",
-    "force_from_waves",
+    "force_from_wave",
     "inertia",
     "standard_forces",
     "run_bem",
@@ -51,6 +51,7 @@ __all__ = [
     "frequency_parameters",
     "time_results",
     "set_fb_centers",
+    "block_diag_jax",
 ]
 
 
@@ -61,16 +62,17 @@ import warnings
 from datetime import datetime
 
 from numpy.typing import ArrayLike
-import autograd.numpy as np
-from autograd.numpy import ndarray
-from autograd.builtins import isinstance, tuple, list, dict
-from autograd import grad, jacobian
+import numpy as np
+import jax.numpy as jnp
+from numpy import ndarray
+import jax
 import xarray as xr
 from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
-from scipy.linalg import block_diag, dft
+from scipy.linalg import dft
 
+jax.config.update("jax_enable_x64", True)
 
 # logger
 _log = logging.getLogger(__name__)
@@ -80,7 +82,7 @@ filter_msg = "Casting complex values to real discards the imaginary part"
 warnings.filterwarnings("ignore", message=filter_msg)
 
 # default values
-_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.infty}
+_default_parameters = {'rho': 1025.0, 'g': 9.81, 'depth': np.inf}
 _default_min_damping = 1e-6
 
 # type aliases
@@ -152,7 +154,7 @@ class WEC:
         forces
             Dictionary with entries :python:`{'force_name': fun}`,
             where :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq+1, ndof)`.
         constraints
@@ -329,7 +331,7 @@ class WEC:
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq+1, ndof)`.
         constraints
@@ -432,7 +434,7 @@ class WEC:
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq, ndof)`.
         constraints
@@ -507,14 +509,14 @@ class WEC:
             Complex impedance of size :python:`(nfreq, ndof, ndof)`.
         exc_coeff
             Complex excitation transfer function of size
-            :python:`(ndof, nfreq)`.
+            :python:`(nfreq, nwavedir, ndof)`.
         hydrostatic_stiffness
             Linear hydrostatic restoring coefficient of size
             :python:`(ndof, ndof)`.
         f_add
             Dictionary with entries :python:`{'force_name': fun}`, where
             :python:`fun` has a  signature
-            :python:`def fun(wec, x_wec, x_opt, waves):`, and returns
+            :python:`def fun(wec, x_wec, x_opt, wave):`, and returns
             forces in the time-domain of size
             :python:`(2*nfreq, ndof)`.
         constraints
@@ -553,13 +555,13 @@ class WEC:
         omega = freqs * 2*np.pi
         omega0 = np.expand_dims(omega, [1,2])
         transfer_func = impedance * (1j*omega0)
-        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 2)
+        transfer_func0 = np.expand_dims(hydrostatic_stiffness, 0)
         transfer_func = np.concatenate([transfer_func0, transfer_func], axis=0)
         transfer_func = -1 * transfer_func  # RHS of equation: ma = Σf
         force_impedance = force_from_rao_transfer_function(transfer_func)
 
         # excitation force
-        force_excitation = force_from_waves(exc_coeff)
+        force_excitation = force_from_wave(exc_coeff)
 
         # all forces
         f_add = {} if (f_add is None) else f_add
@@ -574,7 +576,7 @@ class WEC:
                   inertia_in_forces=True, ndof=shape[1])
         return wec
 
-    def residual(self, x_wec: ndarray, x_opt: ndarray, waves: Dataset,
+    def residual(self, x_wec: ndarray, x_opt: ndarray, wave: DataArray,
         ) -> float:
         """
         Return the residual of the dynamic equation (r = m⋅a-Σf).
@@ -585,22 +587,24 @@ class WEC:
             WEC state vector.
         x_opt
             Optimization (control) state.
-        waves
-            :py:class:`xarray.Dataset` with the structure and elements
-            shown by :py:mod:`wecopttool.waves`.
+        wave
+            2D :py:class:`xarray.DataArray` containing the wave's complex
+            amplitude for a single realization as a function of wave
+            angular frequency :python:`omega` (rad/s) and direction
+            :python:`wave_direction` (rad).
         """
         if not self.inertia_in_forces:
-            ri = self.inertia(self, x_wec, x_opt, waves)
+            ri = self.inertia(self, x_wec, x_opt, wave)
         else:
             ri = np.zeros([self.ncomponents, self.ndof])
         # forces, -Σf
         for f in self.forces.values():
-            ri = ri - f(self, x_wec, x_opt, waves)
+            ri = ri - f(self, x_wec, x_opt, wave)
         return self.dofmat_to_vec(ri)
 
     # solve
     def solve(self,
-        waves: Dataset,
+        waves: DataArray,
         obj_fun: TStateFunction,
         nstate_opt: int,
         x_wec_0: Optional[ndarray] = None,
@@ -622,11 +626,11 @@ class WEC:
         Parameters
         ----------
         waves
-            :py:class:`xarray.Dataset` with the structure and elements
+            :py:class:`xarray.DataArray` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         obj_fun
             Objective function to minimize for pseudo-spectral solution,
-            must have signature :python:`fun(wec, x_wec, x_opt, waves)`
+            must have signature :python:`fun(wec, x_wec, x_opt, wave)`
             and return a scalar.
         nstate_opt
             Length of the optimization (controls) state vector.
@@ -652,7 +656,7 @@ class WEC:
             See :py:func:`scipy.optimize.minimize`.
         use_grad
              If :python:`True`, optimization will utilize
-             `autograd <https://github.com/HIPS/autograd>`_
+             `jax <https://https://github.com/jax-ml/jax>`_
              for gradients.
         maximize
             Whether to maximize the objective function.
@@ -666,7 +670,7 @@ class WEC:
             See :py:func:`scipy.optimize.minimize`.
         callback
             Function called after each iteration, must have signature
-            :python:`fun(wec, x_wec, x_opt, waves)`. The default
+            :python:`fun(wec, x_wec, x_opt, wave)`. The default
             provides status reports at each iteration via logging at the
             INFO level.
 
@@ -685,7 +689,7 @@ class WEC:
         The :py:meth:`wecopttool.WEC.solve` method only returns the
         raw results dictionary produced by :py:func:`scipy.optimize.minimize`.
 
-        >>> res_opt = wec.solve(waves=wave,
+        >>> res_opt = wec.solve(waves=waves,
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
@@ -694,8 +698,8 @@ class WEC:
         may call
 
         >>> realization = 0 # realization index
-        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,wave,nsubsteps)
-        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,wave,nsubsteps)
+        >>> res_wec_fd, res_wec_td = wec.post_process(wec,res_opt,waves,nsubsteps)
+        >>> res_pto_fd, res_pto_td = pto.post_process(wec,res_opt,waves,nsubsteps)
 
         See Also
         --------
@@ -721,14 +725,15 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
-        scale = np.concatenate([scale_x_wec, scale_x_opt])
+        scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
 
         # decision variable initial guess
+        key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = np.random.randn(self.nstate_wec)
+            x_wec_0 = jax.random.normal(key, [self.nstate_wec], dtype=np.float64)
         if x_opt_0 is None:
-            x_opt_0 = np.random.randn(nstate_opt)
-        x0 = np.concatenate([x_wec_0, x_opt_0])*scale
+            x_opt_0 = jax.random.normal(key, [nstate_opt], dtype=np.float64)
+        x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -739,8 +744,8 @@ class WEC:
                 if isinstance(bii, tuple):
                     bounds_in[idx] = Bounds(lb=[xibs[0] for xibs in bii],
                                             ub=[xibs[1] for xibs in bii])
-            inf_wec = np.ones(self.nstate_wec)*np.inf
-            inf_opt = np.ones(nstate_opt)*np.inf
+            inf_wec = jnp.ones(self.nstate_wec)*jnp.inf
+            inf_opt = jnp.ones(nstate_opt)*jnp.inf
             bounds_dflt = [Bounds(lb=-inf_wec, ub=inf_wec),
                             Bounds(lb=-inf_opt, ub=inf_opt)]
             bounds_list = []
@@ -750,8 +755,8 @@ class WEC:
                 else:
                     bo = bd
                 bounds_list.append(bo)
-            bounds = Bounds(lb=np.hstack([le.lb for le in bounds_list])*scale,
-                            ub=np.hstack([le.ub for le in bounds_list])*scale)
+            bounds = Bounds(lb=jnp.hstack([le.lb for le in bounds_list])*scale,
+                            ub=jnp.hstack([le.ub for le in bounds_list])*scale)
 
         for realization, wave in waves.groupby('realization'):
 
@@ -762,7 +767,7 @@ class WEC:
                 wave = wave.squeeze(dim='realization')
             except KeyError:
                 pass
-                      
+
             # objective function
             sign = -1.0 if maximize else 1.0
 
@@ -782,9 +787,9 @@ class WEC:
                         return icons["fun"](self, x_wec, x_opt, wave)
                     return new_fun
 
-                icons_new["fun"] = make_new_fun(icons)
+                icons_new["fun"] = jax.jit(make_new_fun(icons))
                 if use_grad:
-                    icons_new['jac'] = jacobian(icons_new['fun'])
+                    icons_new['jac'] = jax.jit(jax.jacobian(icons_new['fun']))
                 constraints[i] = icons_new
 
             # system dynamics through equality constraint, ma - Σf = 0
@@ -793,9 +798,9 @@ class WEC:
                 x_wec, x_opt = self.decompose_state(x_s)
                 return self.residual(x_wec, x_opt, wave)
 
-            eq_cons = {'type': 'eq', 'fun': scaled_resid_fun}
+            eq_cons = {'type': 'eq', 'fun': jax.jit(scaled_resid_fun)}
             if use_grad:
-                eq_cons['jac'] = jacobian(scaled_resid_fun)
+                eq_cons['jac'] = jax.jit(jax.jacobian(scaled_resid_fun))
             constraints.append(eq_cons)
 
             # callback
@@ -815,7 +820,7 @@ class WEC:
 
             # optimization problem
             optim_options['disp'] = optim_options.get('disp', True)
-            problem = {'fun': obj_fun_scaled,
+            problem = {'fun': jax.jit(obj_fun_scaled),
                         'x0': x0,
                         'method': 'SLSQP',
                         'constraints': constraints,
@@ -824,7 +829,7 @@ class WEC:
                         'callback': callback_scipy,
                         }
             if use_grad:
-                problem['jac'] = grad(obj_fun_scaled)
+                problem['jac'] = jax.jit(jax.grad(obj_fun_scaled))
 
             # minimize
             optim_res = minimize(**problem)
@@ -849,9 +854,9 @@ class WEC:
     def post_process(self,
         wec: TWEC,
         res: Union[OptimizeResult, Iterable],
-        waves: Dataset,
+        waves: DataArray,
         nsubsteps: Optional[int] = 1,
-    ) -> tuple[list[Dataset], list[Dataset]]:
+    ) -> tuple[Dataset, Dataset]:
         """Post-process the results from :py:meth:`wecopttool.WEC.solve`.
 
         Parameters
@@ -861,7 +866,7 @@ class WEC:
         res
             Results produced by :py:meth:`wecopttool.WEC.solve`.
         waves
-            :py:class:`xarray.Dataset` with the structure and elements
+            :py:class:`xarray.DataArray` with the structure and elements
             shown by :py:mod:`wecopttool.waves`.
         nsubsteps
             Number of steps between the default (implied) time steps.
@@ -880,7 +885,7 @@ class WEC:
         The :py:meth:`wecopttool.WEC.solve` method only returns the
         raw results dictionary produced by :py:func:`scipy.optimize.minimize`.
 
-        >>> res_opt = wec.solve(waves=wave,
+        >>> res_opt = wec.solve(waves=waves,
                                 obj_fun=pto.average_power,
                                 nstate_opt=2*nfreq+1)
 
@@ -894,12 +899,12 @@ class WEC:
         assert self == wec , ("The same wec object should be used to call " +
                                 "post-process and be passed as an input.")
 
-        def _postproc(res, waves, nsubsteps):
+        def _postproc(res, wave, nsubsteps):
             create_time = f"{datetime.utcnow()}"
 
-            omega_vals = np.concatenate([[0], waves.omega.values])
-            freq_vals = np.concatenate([[0], waves.freq.values])
-            period_vals = np.concatenate([[np.inf], 1/waves.freq.values])
+            omega_vals = np.concatenate([[0], wave.omega.values])
+            freq_vals = np.concatenate([[0], wave.freq.values])
+            period_vals = np.concatenate([[np.inf], 1/wave.freq.values])
             pos_attr = {'long_name': 'Position', 'units': 'm or rad'}
             vel_attr = {'long_name': 'Velocity', 'units': 'm/s or rad/s'}
             acc_attr = {'long_name': 'Acceleration', 'units': 'm/s^2 or rad/s^2'}
@@ -919,7 +924,7 @@ class WEC:
             # frequency domain
             force_da_list = []
             for name, force in self.forces.items():
-                force_td_tmp = force(self, x_wec, x_opt, waves)
+                force_td_tmp = force(self, x_wec, x_opt, wave)
                 force_fd = self.td_to_fd(force_td_tmp)
                 force_da = DataArray(data=force_fd,
                                     dims=["omega", "influenced_dof"],
@@ -959,7 +964,7 @@ class WEC:
                 attrs={"time_created_utc": create_time}
             )
 
-            results_fd = xr.merge([fd_state, fd_forces, waves])
+            results_fd = xr.merge([fd_state, fd_forces, wave])
             results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                             'wave_direction')
             results_fd = results_fd.fillna(0)
@@ -979,12 +984,16 @@ class WEC:
             results_td.attrs['time_created_utc'] = create_time
             return results_fd, results_td
 
-        results_fd = []
-        results_td = []
+        results_fd_list = []
+        results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            results_fd.append(ifd)
-            results_td.append(itd)
+            ifd.expand_dims({'realization':[ires]})
+            itd.expand_dims({'realization':[ires]})
+            results_fd_list.append(ifd)
+            results_td_list.append(itd)
+        results_fd = xr.concat(results_fd_list, dim='realization')
+        results_td = xr.concat(results_td_list, dim='realization')
         return results_fd, results_td
 
     # properties
@@ -1060,7 +1069,7 @@ class WEC:
     @property
     def period(self) -> ndarray:
         """Period vector [s]."""
-        return np.concatenate([[np.Infinity], 1/self._freq[1:]])
+        return np.concatenate(([np.inf], 1/self._freq[1:]))
 
     @property
     def w1(self) -> float:
@@ -1274,7 +1283,7 @@ class WEC:
         --------
         fd_to_td, WEC.td_to_fd
         """
-        return fd_to_td(fd, self.f1, self.nfreq, True)
+        return fd_to_td(fd, self.f1, self.nfreq, 1, True)
 
     def td_to_fd(
         self,
@@ -1424,6 +1433,9 @@ def time_mat(
     wt = np.outer(t, omega[1:])
     ncomp = ncomponents(nfreq)
     time_mat = np.empty((nsubsteps*ncomp, ncomp))
+    #time_mat = time_mat.at[:, 0].set(1.0)
+    #time_mat = time_mat.at[:, 1::2].set(np.cos(wt))
+    #time_mat = time_mat.at[:, 2::2].set(-np.sin(wt[:, :-1])) # remove 2pt wave sine component
     time_mat[:, 0] = 1.0
     time_mat[:, 1::2] = np.cos(wt)
     time_mat[:, 2::2] = -np.sin(wt[:, :-1]) # remove 2pt wave sine component
@@ -1465,7 +1477,7 @@ def derivative_mat(
     blocks = [block(n+1) for n in range(nfreq)]
     if zero_freq:
         blocks = [0.0] + blocks
-    deriv_mat = block_diag(*blocks)
+    deriv_mat = block_diag_jax(*blocks)
     return deriv_mat[:-1, :-1] # remove 2pt wave sine component
 
 
@@ -1499,7 +1511,7 @@ def derivative2_mat(
         Whether the first frequency should be zero.
     """
     vals = [((n+1)*f1 * 2*np.pi)**2 for n in range(nfreq)]
-    diagonal = np.repeat(-np.ones(nfreq) * vals, 2)[:-1] # remove 2pt wave sine
+    diagonal = np.repeat(-np.ones(nfreq) * np.array(vals), 2)[:-1] # remove 2pt wave sine
     if zero_freq:
         diagonal = np.concatenate(([0.0], diagonal))
     return np.diag(diagonal)
@@ -1537,26 +1549,28 @@ def mimo_transfer_mat(
     zero_freq
         Whether the first frequency should be zero.
     """
+    #if not isinstance(transfer_mat, jnp.ndarray):
+    #    transfer_mat = transfer_mat.values
     ndof = transfer_mat.shape[1]
     assert transfer_mat.shape[2] == ndof
     elem = [[None]*ndof for _ in range(ndof)]
-    def block(re, im): return np.array([[re, -im], [im, re]])
+    def block(re, im): return jnp.array([[re, -im], [im, re]])
     for idof in range(ndof):
         for jdof in range(ndof):
             if zero_freq:
                 Zp0 = transfer_mat[0, idof, jdof]
-                assert np.all(np.isreal(Zp0))
-                Zp0 = np.real(Zp0)
+                #assert jnp.all(jnp.isreal(jnp.array(Zp0)))
+                Zp0 = jnp.real(jnp.array(Zp0))
                 Zp = transfer_mat[1:, idof, jdof]
             else:
                 Zp0 = [0.0]
                 Zp = transfer_mat[:, idof, jdof]
-            re = np.real(Zp)
-            im = np.imag(Zp)
+            re = jnp.real(jnp.array(Zp))
+            im = jnp.imag(jnp.array(Zp))
             blocks = [block(ire, iim) for (ire, iim) in zip(re[:-1], im[:-1])]
             blocks = [Zp0] + blocks + [re[-1]]
-            elem[idof][jdof] = block_diag(*blocks)
-    return np.block(elem)
+            elem[idof][jdof] = block_diag_jax(*blocks)
+    return jnp.block(elem)
 
 
 def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
@@ -1579,7 +1593,7 @@ def vec_to_dofmat(vec: ArrayLike, ndof: int) -> ndarray:
     --------
     dofmat_to_vec,
     """
-    return np.reshape(vec, (-1, ndof), order='F')
+    return jnp.reshape(jnp.array(vec), (-1, ndof), order='F')
 
 
 def dofmat_to_vec(mat: ArrayLike) -> ndarray:
@@ -1598,7 +1612,7 @@ def dofmat_to_vec(mat: ArrayLike) -> ndarray:
     --------
     vec_to_dofmat,
     """
-    return np.reshape(mat, -1, order='F')
+    return jnp.reshape(jnp.array(mat), -1, order='F')
 
 
 def real_to_complex(
@@ -1643,10 +1657,10 @@ def real_to_complex(
         assert fd.shape[0]%2==0
         mean = fd[0:1, :]
         fd = fd[1:, :]
-    fdc = np.append(fd[0:-1:2, :] + 1j*fd[1::2, :],
-                    [fd[-1, :]], axis=0)
+    fdc = jnp.append(jnp.array(fd[0:-1:2, :] + 1j*fd[1::2, :]),
+                    jnp.array([fd[-1, :]]), axis=0)
     if zero_freq:
-        fdc = np.concatenate((mean, fdc), axis=0)
+        fdc = jnp.concatenate((jnp.array(mean), jnp.array(fdc)), axis=0)
     return fdc
 
 
@@ -1690,23 +1704,23 @@ def complex_to_real(
     nfreq = fd.shape[0] - 1 if zero_freq else fd.shape[0]
     ndof = fd.shape[1]
     if zero_freq:
-        assert np.all(np.isreal(fd[0, :]))
-        a = np.real(fd[0:1, :])
-        b = np.real(fd[1:-1, :])
-        c = np.imag(fd[1:-1, :])
-        d = np.real(fd[-1:, :])
+        #assert jnp.all(jnp.isreal(fd[0, :]))
+        a = jnp.real(fd[0:1, :])
+        b = jnp.real(fd[1:-1, :])
+        c = jnp.imag(fd[1:-1, :])
+        d = jnp.real(fd[-1:, :])
     else:
-        b = np.real(fd[:-1, :])
-        c = np.imag(fd[:-1, :])
-        d = np.real(fd[-1:, :])
-    out = np.concatenate([np.transpose(b), np.transpose(c)])
-    out = np.reshape(np.reshape(out, [-1], order='F'), [-1, ndof])
+        b = jnp.real(fd[:-1, :])
+        c = jnp.imag(fd[:-1, :])
+        d = jnp.real(fd[-1:, :])
+    out = jnp.concatenate([jnp.transpose(b), jnp.transpose(c)])
+    out = jnp.reshape(jnp.reshape(out, [-1], order='F'), [-1, ndof])
     if zero_freq:
-        out = np.concatenate([a, out, d])
-        assert out.shape == (2*nfreq, ndof)
+        out = jnp.concatenate([a, out, d])
+        #assert out.shape == (2*nfreq, ndof)
     else:
-        out = np.concatenate([out, d])
-        assert out.shape == (2*nfreq-1, ndof)
+        out = jnp.concatenate([out, d])
+        #assert out.shape == (2*nfreq-1, ndof)
     return out
 
 
@@ -1714,6 +1728,7 @@ def fd_to_td(
     fd: ArrayLike,
     f1: Optional[float] = None,
     nfreq: Optional[int] = None,
+    nsubsteps: int = 1,
     zero_freq: Optional[bool] = True,
 ) -> ndarray:
     """Convert a complex array of Fourier coefficients to a real array
@@ -1749,6 +1764,9 @@ def fd_to_td(
         Fundamental frequency :python:`f1` [:math:`Hz`].
     nfreq
         Number of frequencies.
+    nsubsteps
+        Number of steps between the default (implied) time steps.
+        A value of :python:`1` corresponds to the default step length.
     zero_freq
         Whether the mean (DC) component is included.
 
@@ -1769,7 +1787,7 @@ def fd_to_td(
         assert np.allclose(np.imag(fd[0, :]), 0), msg
 
     if (f1 is not None) and (nfreq is not None):
-        tmat = time_mat(f1, nfreq, zero_freq=zero_freq)
+        tmat = time_mat(f1, nfreq, nsubsteps, zero_freq=zero_freq)
         td = tmat @ complex_to_real(fd, zero_freq)
     elif (f1 is None) and (nfreq is None):
         n = 2*(fd.shape[0]-1)
@@ -1807,13 +1825,13 @@ def td_to_fd(
     --------
     fd_to_td
     """
-    td= atleast_2d(td)
+    td = atleast_2d(td)
     n = td.shape[0]
     if fft:
-        fd = np.fft.rfft(td, n=n, axis=0, norm='forward')
+        fd = jnp.fft.rfft(td, n=n, axis=0, norm='forward')
     else:
-        fd = np.dot(dft(n, 'n')[:n//2+1, :], td)
-    fd = np.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
+        fd = jnp.dot(dft(n, 'n')[:n//2+1, :], td)
+    fd = jnp.concatenate((fd[:1, :], fd[1:-1, :]*2, fd[-1:, :]))
     if not zero_freq:
         fd = fd[1:, :]
     return fd
@@ -1894,28 +1912,27 @@ def check_radiation_damping(
     ndof = len(hydro_data_new.influenced_dof)
     assert ndof == len(hydro_data.radiating_dof)
     for idof in range(ndof):
-        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof)
-        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof)
+        iradiation = radiation.isel(radiating_dof=idof, influenced_dof=idof).values
+        ifriction = friction.isel(radiating_dof=idof, influenced_dof=idof).values
         if uniform_shift:
             dmin = (iradiation+ifriction).min()
-            if dmin <= 0.0 + min_damping:
+            if dmin < 0.0 + min_damping:
                 dof = hydro_data_new.influenced_dof.values[idof]
                 delta = min_damping-dmin
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close ' +
                     'to zero terms. Shifting up radiation damping by ' +
-                    f'{delta.values} N/(m/s).')
+                    f'{delta} N/(m/s).')
                 hydro_data_new['radiation_damping'][:, idof, idof] = (iradiation + delta)
         else:
-            new_damping = iradiation.where(
-                iradiation+ifriction>min_damping, other=min_damping)
             dof = hydro_data_new.influenced_dof.values[idof]
-            if (new_damping==min_damping).any():
+            if (iradiation<min_damping).any():
                 _log.warning(
                     f'Linear damping for DOF "{dof}" has negative or close to ' +
                     'zero terms. Shifting up damping terms ' +
-                    f'{np.where(new_damping==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(iradiation<min_damping)[0]} to a minimum of ' +
                     f'{min_damping} N/(m/s)')
+            new_damping = np.where(iradiation+ifriction>min_damping, iradiation, min_damping)
             hydro_data_new['radiation_damping'][:, idof, idof] = new_damping
     return hydro_data_new
 
@@ -1951,17 +1968,16 @@ def check_impedance(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up by {delta:.2f}')
         else:
-            points = np.where(np.real(Zi_diag[:, dof])<min_damping)
             Zi_dof_real = Zi_diag[:,dof].real.copy()
             Zi_dof_imag = Zi_diag[:,dof].imag.copy()
-            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
-            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
-            if (Zi_dof_real==min_damping).any():
+            if (Zi_dof_real<min_damping).any():
                 _log.warning(
                     f'Real part of impedance for {dof} has negative or close to ' +
                     f'zero terms. Shifting up elements '
-                    f'{np.where(Zi_dof_real==min_damping)[0]} to a minimum of ' +
+                    f'{np.where(Zi_dof_real<min_damping)[0]} to a minimum of ' +
                     f' {min_damping} N/(m/s)')
+            Zi_dof_real[Zi_dof_real < min_damping] = min_damping
+            Zi_shifted[:, dof, dof] = Zi_dof_real + Zi_dof_imag*1j
     return Zi_shifted
 
 
@@ -1989,10 +2005,10 @@ def force_from_rao_transfer_function(
     --------
     force_from_impedance,
     """
-    def force(wec, x_wec, x_opt, waves):
+    def force(wec, x_wec, x_opt, wave):
         transfer_mat = mimo_transfer_mat(rao_transfer_mat, zero_freq)
-        force_fd = wec.vec_to_dofmat(np.dot(transfer_mat, x_wec))
-        return np.dot(wec.time_mat, force_fd)
+        force_fd = wec.vec_to_dofmat(jnp.dot(transfer_mat, x_wec))
+        return jnp.dot(wec.time_mat, force_fd)
     return force
 
 
@@ -2016,19 +2032,19 @@ def force_from_impedance(
     return force_from_rao_transfer_function(impedance*(1j*omega), False)
 
 
-def force_from_waves(force_coeff: DataArray,
+def force_from_wave(force_coeff: DataArray,
                      ) -> TStateFunction:
-    """Create a force function from waves excitation coefficients.
+    """Create a force function from wave excitation coefficients.
 
     Parameters
     ----------
     force_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle.
+        Complex excitation coefficients indexed by frequency,
+        direction angle, and degree of freedom.
     """
-    def force(wec, x_wec, x_opt, waves):
-        force_fd = complex_to_real(wave_excitation(force_coeff, waves), False)
-        return np.dot(wec.time_mat[:, 1:], force_fd)
+    def force(wec, x_wec, x_opt, wave):
+        force_fd = complex_to_real(wave_excitation(force_coeff, wave), False)
+        return jnp.dot(wec.time_mat[:, 1:], force_fd)
     return force
 
 
@@ -2102,14 +2118,14 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
     }
 
     for name, value in excitation_coefficients.items():
-        linear_force_functions[name] = force_from_waves(value)
+        linear_force_functions[name] = force_from_wave(value)
 
     return linear_force_functions
 
 
 def run_bem(
     fb: cpy.FloatingBody,
-    freq: Iterable[float] = [np.infty],
+    freq: Iterable[float] = [np.inf],
     wave_dirs: Iterable[float] = [0],
     rho: float = _default_parameters['rho'],
     g: float = _default_parameters['g'],
@@ -2124,7 +2140,7 @@ def run_bem(
     :py:func:`wecopttool.change_bem_convention`).
 
     It creates the *test matrix*, calls
-    :py:meth:`capytaine.bodies.bodies.FloatingBody.keep_immersed_part`,
+    :py:meth:`capytaine.bodies.bodies.FloatingBody.immersed_part`,
     calls :py:meth:`capytaine.bem.solver.BEMSolver.fill_dataset`,
     and changes the sign convention using
     :py:func:`wecopttool.change_bem_convention`.
@@ -2177,15 +2193,23 @@ def run_bem(
                       'wavelength': False,
                       'wavenumber': False,
                      }
-    wec_im = fb.copy(name=f"{fb.name}_immersed").keep_immersed_part()
+    wec_im = fb.copy()
     wec_im = set_fb_centers(wec_im, rho=rho)
     if not hasattr(wec_im, 'inertia_matrix'):
-        _log.warning('FloatingBody has no inertia_matrix field. ' + 
-                     'If the FloatingBody mass is defined, it will be ' + 
-                     'used for calculating the inertia matrix here. ' + 
-                     'Otherwise, the neutral buoyancy assumption will ' + 
-                     'be used to auto-populate.')
+        if wec_im.mass is None:
+            wec_im.mass = rho*wec_im.immersed_part().volume
+            _log.warning('FloatingBody has no inertia_matrix or mass ' +
+                     'field. The mass will be calculated based on a ' +
+                     'neutral buoyancy assumption. The inertia matrix ' +
+                     'will be calculated assuming a solid and constant ' +
+                     'density body.')
+        else:
+            _log.warning('FloatingBody has no inertia_matrix field. ' +
+                     'The FloatingBody mass is defined and will be ' +
+                     'used for calculating the inertia matrix.')
         wec_im.inertia_matrix = wec_im.compute_rigid_body_inertia(rho=rho)
+    wec_im = wec_im.immersed_part()
+    wec_im.name = f"{wec_im.name}_immersed"
     if not hasattr(wec_im, 'hydrostatic_stiffness'):
         _log.warning('FloatingBody has no hydrostatic_stiffness field. ' +
                      'Capytaine will auto-populate the hydrostatic ' +
@@ -2214,6 +2238,7 @@ def change_bem_convention(bem_data: Dataset) -> Dataset:
     bem_data['Froude_Krylov_force'] = np.conjugate(
         bem_data['Froude_Krylov_force'])
     bem_data['diffraction_force'] = np.conjugate(bem_data['diffraction_force'])
+    bem_data['excitation_force'] = np.conjugate(bem_data['excitation_force'])
     return bem_data
 
 
@@ -2250,8 +2275,8 @@ def add_linear_friction(
                     f'Variable "{name}" is already in BEM data ' +
                     'with same value.')
         else:
-            data = atleast_2d(friction)
-            hydro_data['friction'] = (dims, friction)
+            friction_data = np.atleast_2d(friction)
+            hydro_data['friction'] = (dims, friction_data)
     elif friction is None:
         ndof = len(hydro_data["influenced_dof"])
         hydro_data['friction'] = (dims, np.zeros([ndof, ndof]))
@@ -2259,39 +2284,42 @@ def add_linear_friction(
     return hydro_data
 
 
-def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
+def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
     """Calculate the complex, frequency-domain, excitation force due to
-    waves.
+    the wave.
 
     The resulting force is indexed only by frequency and not direction
     angle.
-    The input :python:`waves` frequencies must be same as
+    The input :python:`wave` frequencies must be same as
     :python:`exc_coeff`, but the directions can be a subset.
 
     Parameters
     ----------
     exc_coeff
-        Complex excitation coefficients indexed by frequency and
-        direction angle.
-    waves
-        Complex frequency-domain wave elevation.
+        Complex excitation coefficients indexed by frequency,
+        direction angle, and degree of freedom.
+    wave
+        2D :py:class:`xarray.DataArray` containing the wave's complex
+        amplitude for a single realization as a function of wave
+        angular frequency :python:`omega` (rad/s) and direction
+        :python:`wave_direction` (rad).
 
     Raises
     ------
     ValueError
         If the frequency vectors of :python:`exc_coeff` and
-        :python:`waves` are different.
+        :python:`wave` are different.
     ValueError
-        If any of the directions in :python:`waves` is not in
+        If any of the directions in :python:`wave` is not in
         :python:`exc_coeff`.
     """
-    omega_w = waves['omega'].values
+    omega_w = wave['omega'].values
     omega_e = exc_coeff['omega'].values
-    dir_w = waves['wave_direction'].values
+    dir_w = wave['wave_direction'].values
     dir_e = exc_coeff['wave_direction'].values
     exc_coeff = exc_coeff.values
 
-    wave_elev_fd = np.expand_dims(waves.values, -1)
+    wave_elev_fd = np.expand_dims(wave.values, -1)
 
     if not np.allclose(omega_w, omega_e):
         raise ValueError(f"Wave and excitation frequencies do not match. WW: {omega_w}, EE: {omega_e}")
@@ -2304,7 +2332,7 @@ def wave_excitation(exc_coeff: DataArray, waves: Dataset) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return np.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    return jnp.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
@@ -2339,8 +2367,8 @@ def atleast_2d(array: ArrayLike) -> ndarray:
     array
         Input array.
     """
-    array = np.atleast_1d(array)
-    return np.expand_dims(array, -1) if len(array.shape)==1 else array
+    array = jnp.atleast_1d(array)
+    return jnp.expand_dims(array, -1) if len(array.shape)==1 else array
 
 
 def degrees_to_radians(
@@ -2358,6 +2386,7 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
+    
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
     if radians.size > 1 and sort:
@@ -2523,6 +2552,7 @@ def frequency_parameters(
         If the zero-frequency was expected but not included or not
         expected but included.
     """
+    freqs = np.asarray(freqs)
     if np.isclose(freqs[0], 0.0):
         if zero_freq:
             freqs0 = freqs[:]
@@ -2533,7 +2563,7 @@ def frequency_parameters(
             raise ValueError(
                 'Frequency array must start with the zero frequency.')
         else:
-            freqs0 = np.concatenate([[0.0,], freqs])
+            freqs0 = np.concatenate([[0.0], freqs])
 
     f1 = freqs0[1]
     nfreq = len(freqs0) - 1
@@ -2585,7 +2615,10 @@ def set_fb_centers(
                 def_val = fb.center_of_mass
                 log_str = (
                     "Using the center of gravity (COG) as the rotation center " +
-                    "for hydrostatics.")
+                    "for hydrostatics. Note that the hydrostatics do not use the " +
+                    "axes defined by the FloatingBody degrees of freedom, and the " +
+                    "rotation center should be set manually when using Capytaine to " +
+                    "calculate hydrostatics about an axis other than the COG.")
             setattr(fb, property, def_val)
             _log.warning(log_str)
         elif getattr(fb, property) is not None:
@@ -2593,3 +2626,52 @@ def set_fb_centers(
                 f'{property} already defined as {getattr(fb, property)}.')
 
     return fb
+
+
+def block_diag_jax(*arrays: ArrayLike) -> ndarray:
+    """Creates a block diagonal matrix from provided arrays.
+
+    Given the inputs A, B, and C, the output will have these
+    arrays arranged on the diagonal:
+
+        [[A, 0, 0],
+         [0, B, 0],
+         [0, 0, C]]
+
+    Parameters
+    ----------
+    arrays
+        Input arrays. Each array can be up to 2-D. A 1-D array or 
+        array-like sequence of length n is treated as a 2-D array 
+        with shape (1, n).
+
+    Returns
+    -------
+    block_diag_mat
+        Array with A, B, C, ... on the diagonal. D has the same 
+        dtype as the first input array.
+
+    Notes
+    -----
+    Empty sequences (i.e., array-likes of zero size) will not be ignored.
+    Noteworthy, both [] and [[]] are treated as matrices with shape (1, 0).
+    """
+    # Convert inputs to JAX arrays and ensure they are at least 2D
+    blocks = [jnp.atleast_2d(jnp.array(a)) for a in arrays]
+
+    # Compute the total shape of the resulting block diagonal matrix
+    total_rows = sum(block.shape[0] for block in blocks)
+    total_cols = sum(block.shape[1] for block in blocks)
+
+    # Create an empty block diagonal matrix
+    block_diag_mat = jnp.zeros((total_rows, total_cols), dtype=blocks[0].dtype)
+
+    # Fill the block diagonal matrix
+    r, c = 0, 0
+    for block in blocks:
+        rr, cc = block.shape
+        block_diag_mat = block_diag_mat.at[r:r + rr, c:c + cc].set(block)
+        r += rr
+        c += cc
+
+    return block_diag_mat
