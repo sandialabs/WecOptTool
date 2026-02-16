@@ -8,18 +8,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.core.WEC &mdash; WecOptTool 3.2.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -212,7 +212,7 @@
 <h1>wecopttool.core.WEC<a class="headerlink" href="#wecopttool-core-wec" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="wecopttool.core.WEC">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">WEC</span></span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">WEC</span></span><a class="reference internal" href="../_modules/wecopttool/core.html#WEC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#wecopttool.core.WEC" title="Link to this definition"></a></dt>
 <dd><p>A wave energy converter (WEC) object for performing simulations
 using the pseudo-spectral solution method.</p>
 <p>To create the WEC use one of the initialization methods:</p>
@@ -266,10 +266,10 @@ where <code class="code highlight python docutils literal highlight-python"><spa
 forces in the time-domain of size
 <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">nfreq</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.</p></li>
 <li><p><strong>constraints</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>] </em><em>| </em><em>None</em>) – List of constraints, see documentation for
-<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
+<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.17.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a> for description and
 options of constraints dictionaries.
 If <code class="code highlight python docutils literal highlight-python"><span class="kc">None</span></code>: empty list <code class="code highlight python docutils literal highlight-python"><span class="p">[]</span></code>.</p></li>
-<li><p><strong>inertia_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em> | </em><em>None</em>) – Inertia matrix of size <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
+<li><p><strong>inertia_matrix</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em> | </em><em>None</em>) – Inertia matrix of size <code class="code highlight python docutils literal highlight-python"><span class="p">(</span><span class="n">ndof</span><span class="p">,</span> <span class="n">ndof</span><span class="p">)</span></code>.
 Not used if <code class="code highlight python docutils literal highlight-python"><span class="n">inertia_in_forces</span></code> is <code class="code highlight python docutils literal highlight-python"><span class="kc">True</span></code>.</p></li>
 <li><p><strong>ndof</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>) – Number of degrees of freedom.
 Must be specified if <code class="code highlight python docutils literal highlight-python"><span class="n">inertia_in_forces</span> <span class="ow">is</span> <span class="kc">True</span></code>,
@@ -415,7 +415,7 @@ If <code class="code highlight python docutils literal highlight-python"><span c
 <td><p>Return the residual of the dynamic equation (r = m⋅a-Σf).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="wecopttool.core.WEC.solve.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">solve</span></code></a></p></td>
-<td><p>Simulate WEC dynamics using a pseudo-spectral solution method and returns the raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></td>
+<td><p>Simulate WEC dynamics using a pseudo-spectral solution method and returns the raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.17.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="wecopttool.core.WEC.td_to_fd.html#wecopttool.core.WEC.td_to_fd" title="wecopttool.core.WEC.td_to_fd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">td_to_fd</span></code></a></p></td>
 <td><p>Convert a time-domain array to frequency-domain.</p></td>

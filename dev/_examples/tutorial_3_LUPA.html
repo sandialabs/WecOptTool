@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorial 3 - LUPA &mdash; WecOptTool 3.2.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
       <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
 
@@ -16,11 +16,11 @@
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -135,7 +135,7 @@ Large Wave Flume at the <a class="reference external" href="https://engineering.
 <li><p><a class="reference internal" href="#1.-Optimal-control-of-a-two-body-WEC"><span class="std std-ref">Optimal control of a two-body WEC</span></a></p></li>
 <li><p><a class="reference internal" href="#2.-Control-co-design-of-the-PTO-sprocket-sizing-for-maximum-electrical-power"><span class="std std-ref">Control co-design of the PTO sprocket sizing for maximum electrical power</span></a></p></li>
 </ol>
-<p><p><img alt="Digital rendering of the LUPA" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793669495_72ba57da99_z.jpg" style="width: 307px;" /> <img alt="Picture of the LUPA floating in the flume in calm water. Both bodies and mooring are visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52792718812_b750791167_k.jpg" style="width: 500px;" /> <img alt="Picture of the LUPA in the dry flume. Both bodies and mooring are visible. A ladder and person next to it gives context of the scale." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276446_9b35889ccd_k.jpg" style="width: 500px;" /></p>
+<p><p><img alt="Digital rendering of the LUPA" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793669495_72ba57da99_z.jpg" width="307" /> <img alt="Picture of the LUPA floating in the flume in calm water. Both bodies and mooring are visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52792718812_b750791167_k.jpg" width="500" /> <img alt="Picture of the LUPA in the dry flume. Both bodies and mooring are visible. A ladder and person next to it gives context of the scale." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276446_9b35889ccd_k.jpg" width="500" /></p>
 </p><div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
@@ -274,7 +274,7 @@ each body separately with a heave DOF, combine them into a single object afterwa
 <section id="Mesh-creation-of-the-spar">
 <h4>Mesh creation of the spar<a class="headerlink" href="#Mesh-creation-of-the-spar" title="Link to this heading"></a></h4>
 <p>We now create the spar mesh in the same way as for the float, with the dimensions given by Oregon State University.</p>
-<p><p><img alt="spar dimensions schematic from OSU" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793722023_cd0b2e5d4f_k.jpg" style="width: 700px;" /></p>
+<p><p><img alt="spar dimensions schematic from OSU" class="no-scaled-link" src="https://live.staticflickr.com/65535/52793722023_cd0b2e5d4f_k.jpg" width="700" /></p>
 </p><div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
@@ -610,7 +610,7 @@ time to equal 20 minutes. For this tutorial, the number of realizations has been
 <p>The PTO model is similar to the one developed in Tutorial 2 but using the values corresponding to the LUPA PTO. The main difference is that in the LUPA the gear ratio can be modified by changing the interchangeable sprocket for one with a different radius. The motivation here is that operation in different wave conditions or different control schemes might have different torque and speed requirements. Oregon State University has three sprockets of diameters 81.5mm (8MX-32S-36), 127.3mm
 (8MX-50S-36), 203.7mm (8MX-80S-36), but the manufacturer provides a larger selection of radius size in this range.</p>
 <p>The PTO system consists of a <a class="reference external" href="https://akribis-systems.s3-us-west-2.amazonaws.com/pdfs/catalogs/adr-b.pdf">generator</a>, the <a class="reference external" href="https://assets.gates.com/content/dam/gates/home/knowledge-center/resource-library/catalogs/old-pc_carbon_manual17595_2011.pdf">interchangeable sprocket</a>, and two <a class="reference external" href="https://dpk3n3gg92jwt.cloudfront.net/domains/gates.pt/pdf/77234200.pdf">idler pulleys</a> driven by a belt.</p>
-<p><p><img alt="Schematic of the PTO system showing dimensions and parts." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276361_ff6a78ce4f_k.jpg" style="width: 740px;" /> <img alt="Digital rendering of the LUPA with PTO mechanism visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793518059_5f4b559d2a_h.jpg" style="width: 458px;" /></p>
+<p><p><img alt="Schematic of the PTO system showing dimensions and parts." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793276361_ff6a78ce4f_k.jpg" width="740" /> <img alt="Digital rendering of the LUPA with PTO mechanism visible." class="no-scaled-link" src="https://live.staticflickr.com/65535/52793518059_5f4b559d2a_h.jpg" width="458" /></p>
 </p><p>We start by defining all the manufacturer-specified components:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
@@ -1074,7 +1074,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[16:57:34] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:15:30] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         terms <span style="font-weight: bold">[</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1115,16 +1115,16 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011461522001027602
+            Current function value: -0.011461493070923142
             Iterations: 54
             Function evaluations: 55
             Gradient evaluations: 54
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011461459222552107
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
-Optimal average electrical power: -1.1461490611789853 W
+            Current function value: -0.011460915665056297
+            Iterations: 53
+            Function evaluations: 54
+            Gradient evaluations: 53
+Optimal average electrical power: -1.146120436798972 W
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1280,7 +1280,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-13.465563838526071, 2.860294862098893)
+(-15.012351954261726, 2.231932720303307)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">

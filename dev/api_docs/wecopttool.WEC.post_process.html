@@ -8,15 +8,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>wecopttool.WEC.post_process &mdash; WecOptTool 3.2.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=a0fb6060" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -177,8 +177,8 @@
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>wec</strong> (<a class="reference internal" href="wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.WEC"><em>WEC</em></a>) – <a class="reference internal" href="wecopttool.WEC.html#wecopttool.WEC" title="wecopttool.WEC"><code class="xref py py-class docutils literal notranslate"><span class="pre">wecopttool.WEC</span></code></a> object.</p></li>
-<li><p><strong>res</strong> (<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.16.2)"><em>OptimizeResult</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>) – Results produced by <a class="reference internal" href="wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a>.</p></li>
-<li><p><strong>waves</strong> (<em>DataArray</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.10.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> with the structure and elements
+<li><p><strong>res</strong> (<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.OptimizeResult.html#scipy.optimize.OptimizeResult" title="(in SciPy v1.17.0)"><em>OptimizeResult</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>) – Results produced by <a class="reference internal" href="wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a>.</p></li>
+<li><p><strong>waves</strong> (<em>DataArray</em>) – <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2026.2.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.DataArray</span></code></a> with the structure and elements
 shown by <a class="reference internal" href="wecopttool.waves.html#module-wecopttool.waves" title="wecopttool.waves"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wecopttool.waves</span></code></a>.</p></li>
 <li><p><strong>nsubsteps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em> | </em><em>None</em>) – Number of steps between the default (implied) time steps.
 A value of <code class="code highlight python docutils literal highlight-python"><span class="mi">1</span></code> corresponds to the default step
@@ -193,12 +193,12 @@ length.</p></li>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[Dataset, Dataset]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[TypeAliasForwardRef(‘Dataset’), TypeAliasForwardRef(‘Dataset’)]</p>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
 <p>The <a class="reference internal" href="wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a> method only returns the
-raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.16.2)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p>
+raw results dictionary produced by <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.17.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">res_opt</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">waves</span><span class="o">=</span><span class="n">waves</span><span class="p">,</span>
 <span class="go">                        obj_fun=pto.average_power,</span>
 <span class="go">                        nstate_opt=2*nfreq+1)</span>
