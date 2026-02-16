@@ -1074,7 +1074,7 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:05:58] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[18:31:54] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Linear damping for DOF <span style="color: #008000; text-decoration-color: #008000">"spar__Heave"</span> has negative or close to zero terms. Shifting up damping
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         terms <span style="font-weight: bold">[</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">6</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">7</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>  <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">10</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">11</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">13</span> <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">14</span><span style="font-weight: bold">]</span> to a minimum of <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1e-06</span> N/<span style="font-weight: bold">(</span>m/s<span style="font-weight: bold">)</span>
 </pre></div>
 </div>
@@ -1115,16 +1115,16 @@ WARNING:wecopttool.core:Linear damping for DOF &#34;spar__Heave&#34; has negativ
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011461316393383165
-            Iterations: 54
-            Function evaluations: 55
-            Gradient evaluations: 54
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.011460895076291886
+            Current function value: -0.011460883421009987
             Iterations: 54
             Function evaluations: 54
             Gradient evaluations: 54
-Optimal average electrical power: -1.1461105734837527 W
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.011461674970195285
+            Iterations: 54
+            Function evaluations: 55
+            Gradient evaluations: 54
+Optimal average electrical power: -1.1461279195602636 W
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1230,8 +1230,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 <span class="c1"># Torque</span>
 <span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">force</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
     <span class="n">ax</span><span class="o">=</span><span class="n">ax_res1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;PTO trq.&#39;</span><span class="p">)</span>
-<span class="n">pto_rms_tq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">force</span><span class="o">.</span><span class="n">values</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-                     <span class="o">/</span> <span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">pto_rms_tq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">force</span><span class="o">.</span><span class="n">values</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
 <span class="n">ax_res1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
     <span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">pto_rms_tq</span> <span class="o">*</span>
     <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">pto_tdom</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">realization</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
@@ -1280,7 +1279,7 @@ velocities (or their rotational equivalents) are nowhere near the generator maxi
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-(-14.410846977184704, 2.517977684982085)
+(-15.702482770773143, 3.8861360300941756)
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
