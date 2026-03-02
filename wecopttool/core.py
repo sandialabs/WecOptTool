@@ -964,7 +964,7 @@ class WEC:
                 attrs={"time_created_utc": create_time}
             )
 
-            results_fd = xr.merge([fd_state, fd_forces, wave])
+            results_fd = xr.merge([fd_state, fd_forces, wave], join="outer", compat="no_conflicts")
             results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                             'wave_direction')
             results_fd = results_fd.fillna(0)
@@ -988,8 +988,8 @@ class WEC:
         results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            ifd.expand_dims({'realization':[ires]})
-            itd.expand_dims({'realization':[ires]})
+            ifd = ifd.expand_dims(realization=[idx])
+            itd = itd.expand_dims(realization=[idx])
             results_fd_list.append(ifd)
             results_td_list.append(itd)
         results_fd = xr.concat(results_fd_list, dim='realization')
