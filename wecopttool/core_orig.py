@@ -38,8 +38,6 @@ __all__ = [
     "force_from_wave",
     "inertia",
     "standard_forces",
-    "setup_dymos_ode",
-    "setup_dymos_problem",
     "run_bem",
     "change_bem_convention",
     "add_linear_friction",
@@ -73,8 +71,6 @@ from xarray import DataArray, Dataset
 import capytaine as cpy
 from scipy.optimize import minimize, OptimizeResult, Bounds
 from scipy.linalg import dft
-import openmdao.api as om
-import dymos as dm
 
 jax.config.update("jax_enable_x64", True)
 
@@ -214,7 +210,6 @@ class WEC:
         """
         self._freq = frequency(f1, nfreq)
         self._time = time(f1, nfreq)
-        self._time_dymos = time_dymos(f1, nfreq)
         self._time_mat = time_mat(f1, nfreq)
         self._derivative_mat = derivative_mat(f1, nfreq)
         self._derivative2_mat = derivative2_mat(f1, nfreq)
@@ -1399,34 +1394,6 @@ def time(
     nsteps = nsubsteps * ncomponents(nfreq)
     return np.linspace(0, 1/f1, nsteps, endpoint=False)
 
-def time_dymos(
-    f1: float,
-    nfreq: int,
-    nsubsteps: Optional[int] = 1,
-) -> ndarray:
-    """Assemble the time vector with :python:`nsubsteps` subdivisions.
-
-    Returns the 1D time vector, in seconds, starting at time
-    :python:`0`, and not containing the end time :python:`tf=1/f1`.
-    The time vector has length :python:`(2*nfreq)*nsubsteps`.
-    The timestep length is :python:`dt = dt_default * 1/nsubsteps`,
-    where :python:`dt_default=tf/(2*nfreq)`.
-
-    Parameters
-    ----------
-    f1
-        Fundamental frequency :python:`f1` [:math:`Hz`].
-    nfreq
-        Number of frequencies.
-    nsubsteps
-        Number of steps between the default (implied) time steps.
-        A value of :python:`1` corresponds to the default step length.
-    """
-    if nsubsteps < 1:
-        raise ValueError("'nsubsteps' must be 1 or greater")
-    nsteps = nsubsteps * ncomponents(nfreq)
-    return np.linspace(0, 1/f1, nsteps, endpoint=True)
-
 
 def time_mat(
     f1: float,
@@ -2155,198 +2122,6 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
     return linear_force_functions
 
-def setup_dymos_ode():
-    """Setup dymos ordinary differential equation class"""
-    class OscillatorODE(om.ExplicitComponent):
-        """
-        A Dymos ODE for a damped harmonic oscillator. 
-        Current option is 1 dof.
-        """
-
-        def initialize(self):
-            self.options.declare('num_nodes', types=int)
-            # "Constants" moved from inputs to options
-            self.options.declare('m', types=(int, float, np.ndarray, xr.DataArray), desc='mass [kg]')
-            self.options.declare('excitation_force_ts', types=(int, float, np.ndarray, xr.DataArray), desc='excitation force timeseries [N]')
-            self.options.declare('wave_freq', types=(int, float), desc='fundamental frequency [Hz]')
-
-            # If these are also constants in your usage, move them too
-            self.options.declare('t_interp', types=np.ndarray, desc='timeseries for interpolation')
-            self.options.declare('omega', types=(np.ndarray, xr.DataArray), desc='frequencies [rad/s]')
-            self.options.declare('radiation_damping', types=(np.ndarray, xr.DataArray), desc='radiation damping coefficients')
-            self.options.declare('added_mass', types=(np.ndarray, xr.DataArray), desc='added mass coefficients')
-            self.options.declare('hydrostatic_stiffness', types=(int, float, np.ndarray, xr.DataArray), desc='hydrostatic stiffness coefficients [N/m]')
-
-            # If you need these too (they were referenced in compute but not defined here)
-            self.options.declare('nfreq', types=int, desc='number of frequencies')
-            self.options.declare('f1', default=None, desc='arg for time_mat_func (as used in your code)')
-            self.options.declare('t_interp_full', default=None, desc='full interpolation time vector used in your code')
-
-        def setup(self):
-            nn = self.options['num_nodes']
-            nf = self.options['nfreq']
-            ar = np.arange(nn)
-
-            # Inputs
-            self.add_input('x', shape=(nn,), desc='displacement', units='m')
-            self.add_input('v', shape=(nn,), desc='velocity', units='m/s')
-            self.add_input('time',shape=(nn,),desc='time',units='s') # New input for time
-            #self.add_input("u", shape=(nn,), units="N", desc="control force applied") # control force
-
-            self.add_output('v_dot', val=np.zeros(nn), desc='rate of change of velocity', units='m/s**2')
-            self.add_output("power", shape=(nn,), units="W", desc="power to be integrated")
-            self.add_output("x_dot", shape=(nn,), desc="rate of change of displacement", units="m/s") # for integration
-
-            # v_dot wrt vector inputs (diagonal)
-            self.declare_partials('v_dot', 'x', rows=ar, cols=ar)
-            self.declare_partials('v_dot', 'v', method='fd') # forward differentiation since we use frequency dependent damping
-            #self.declare_partials('v_dot', 'u', rows=ar, cols=ar)
-            #self.declare_partials('v_dot', 'time', rows=ar, cols=ar)
-
-            # power wrt vector inputs (diagonal)
-            self.declare_partials('power', 'v', rows=ar, cols=ar)
-            #self.declare_partials('power', 'u', rows=ar, cols=ar)
-
-            self.declare_partials('x_dot', 'v', rows=ar, cols=ar)
-
-        def compute(self, inputs, outputs):
-            x = inputs['x']
-            v = inputs['v']
-            t = inputs['time']
-            #u = inputs['u']
-            
-            m = self.options['m']
-            excitation_force_ts = self.options['excitation_force_ts']
-            wave_freq = self.options['wave_freq']
-
-            t_interp = self.options['t_interp']
-            omega = self.options['omega']
-            radiation_damping = self.options['radiation_damping']
-            added_mass = self.options['added_mass']
-            hydrostatic_stiffness = self.options['hydrostatic_stiffness']
-
-            nfreq = self.options['nfreq']
-            f1 = self.options['f1']
-            t_interp_full = self.options['t_interp_full']
-
-            # convert velocity to frequency domain
-            t_round = np.round(t, 14)
-            v_interp = np.interp(t_interp,t_round,v)
-            v_fd = td_to_fd(v_interp)
-            v_fd_real = complex_to_real(v_fd)
-
-            rao_transfer_func_rad = -radiation_damping + 1j*omega*added_mass
-            transfer_mat = mimo_transfer_mat(rao_transfer_func_rad, False)
-            time_matrix = time_mat(f1, nfreq)
-
-            rad_fd = np.dot(transfer_mat,v_fd_real) #  
-            radiation_damping_force_td = np.dot(time_matrix,rad_fd)
-            radiation_damping_force_td = np.append(radiation_damping_force_td, radiation_damping_force_td[0])
-            radiation_damping_force_td_interp = np.interp(t,t_interp_full,np.squeeze(radiation_damping_force_td))
-
-            f_hydrostatic_stiffness = -hydrostatic_stiffness * x
-            #f_control = u
-
-            outputs['v_dot'] = (f_hydrostatic_stiffness + radiation_damping_force_td_interp + excitation_force_ts) / m # this is the residual
-            outputs['power'] = 0*v # power is control force*velocity
-            outputs['x_dot'] = v # for integration
-
-        def compute_partials(self, inputs, partials):
-            nn = self.options['num_nodes']
-
-            x = inputs['x']
-            v = inputs['v']
-            t = inputs['time']
-            #u = inputs['u']
-
-            hydrostatic_stiffness = self.options['hydrostatic_stiffness']
-            m = self.options['m']
-
-            partials['v_dot', 'x'] = (-hydrostatic_stiffness / m) * np.ones(nn)
-            #partials['v_dot', 'u'] = (1 / m) * np.ones(nn)
-            
-            partials['power', 'v'] = 0
-            #partials['power', 'u'] = v
-
-            partials['x_dot', 'v'] = np.ones(nn)
-
-    return OscillatorODE
-
-def setup_dymos_problem(bem_data, wave_freq, nfreq, f1, waves, 
-                        driver=om.pyOptSparseDriver(), optimizer = 'IPOPT', 
-                        transcription=dm.GaussLobatto(num_segments=10, order=3),
-                        scale_x_wec=1, scale_control=1e-2, scale_energy=1e-3):
-
-    # Instantiate an OpenMDAO Problem instance.
-    prob = om.Problem()
-
-    # We need an optimization driver.  To solve this simple problem ScipyOptimizerDriver will work.
-    #prob.driver = om.ScipyOptimizeDriver(maxiter=500)
-    prob.driver = driver
-    prob.driver.options['optimizer'] = optimizer
-    prob.driver.declare_coloring()
-
-    # Instantiate a Dymos Trajectory and add it to the Problem model.
-    traj = dm.Trajectory()
-    prob.model.add_subsystem('traj', traj)
-
-    t_interp = np.linspace(0, 1/f1, 2*nfreq, endpoint=False)
-    t_interp_full = np.linspace(0, 1/f1, 2*nfreq+1, endpoint=True)
-
-    force_fd = wave_excitation(bem_data['excitation_force'], waves.sel(realization=0))
-    t_mat = time_mat(f1, nfreq)
-    force_td = np.dot(t_mat[:, 1:], force_fd)
-
-    # Instantiate a Phase and add it to the Trajectory.
-    OscillatorODE = setup_dymos_ode()
-    phase = dm.Phase(ode_class=OscillatorODE, transcription=transcription,
-                    ode_init_kwargs=dict(
-                        m=float(np.squeeze(bem_data['inertia_matrix'].values)),
-                        excitation_force_ts=force_td,
-                        wave_freq=wave_freq,
-                        t_interp=t_interp, 
-                        omega=bem_data['omega'], 
-                        radiation_damping=bem_data['radiation_damping'], 
-                        added_mass=bem_data['added_mass'], 
-                        hydrostatic_stiffness=float(np.squeeze(bem_data['hydrostatic_stiffness'].values)),  # Add comma here
-                        nfreq=nfreq,
-                        f1=f1,
-                        t_interp_full=t_interp_full)
-                        )
-    traj.add_phase('phase0', phase)
-
-    # Tell Dymos that the duration of the phase is bounded.
-    phase.set_time_options(fix_initial=True, fix_duration=True, targets=['time'])
-
-    # Tell Dymos the states to be propagated using the given ODE.
-    phase.add_state('x', fix_initial=False, fix_final=False, rate_source='x_dot', scaler=scale_x_wec, targets=['x'], units='m')
-    phase.add_state('v', fix_initial=False, fix_final=False, rate_source='v_dot', targets=['v'], units='m/s')
-    phase.add_state('energy', fix_initial=True, rate_source='power', ref=10, defect_ref=1, units='J')  # integration of power
-
-    #phase.add_control('u', fix_initial=False, rate_continuity=False, opt=True, continuity=True, lower=-300, upper=300, scaler=scale_control, units='N')
-
-    # Enforce periodic states: final = initial
-    #traj.link_phases(phases=['phase0', 'phase0'], vars=['x','v'], locs=('final', 'initial'))
-
-    phase.add_timeseries_output('time', output_name='time')
-
-    # Since we're using an optimization driver, an objective is required.  We'll minimize
-    # the final time in this case.
-    #phase.add_objective('energy', loc='final',scaler=scale_energy)
-    #prob.model.linear_solver = om.DirectSolver()
-    phase.add_objective('time', loc='final')
-
-    # Setup the OpenMDAO problem
-    prob.setup()
-
-    # Assign values to the times and states
-    phase.set_time_val(0.0, t_interp_full[-1]) # 1 period
-    phase.set_state_val('x', vals=[1.0, 1.0], time_vals=[0.0, t_interp_full[-1]])
-    phase.set_state_val('v', vals=[0.0,0.0], time_vals=[0.0, t_interp_full[-1]])
-    #phase.set_control_val('u', vals=[0.0, 0.0], time_vals=[0.0, t_interp_full[-1]])
-    phase.set_state_val('energy', vals=[0.0,-1000], time_vals=[0.0, t_interp_full[-1]])
-
-    return prob, traj, phase
 
 def run_bem(
     fb: cpy.FloatingBody,
