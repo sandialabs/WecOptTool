@@ -2157,9 +2157,42 @@ def standard_forces(hydro_data: Dataset) -> TForceDict:
 
 def setup_dymos_ode():
     """Setup dymos ordinary differential equation class"""
+    def function_vdot(x, v, t, options, f_excitation):
+        # parameters
+        m = options['m']
+        t_interp = options['t_interp']
+        omega = options['omega']
+        radiation_damping = options['radiation_damping']
+        added_mass = options['added_mass']
+        hydrostatic_stiffness = options['hydrostatic_stiffness']
+        nfreq = options['nfreq']
+        f1 = options['f1']
+        t_interp_full = options['t_interp_full']
+
+        # radiation force
+        t_round = jnp.round(t, 14)
+        v_interp = jnp.interp(t_interp,t_round,v)
+        v_fd = td_to_fd(v_interp)
+        v_fd_real = complex_to_real(v_fd)
+        rao_transfer_func_rad = -radiation_damping - 1j*omega*added_mass
+        transfer_mat = mimo_transfer_mat(rao_transfer_func_rad, False)
+        time_matrix = time_mat(f1, nfreq)
+        rad_fd = jnp.dot(transfer_mat,v_fd_real)
+        radiation_damping_force_td = jnp.dot(time_matrix,rad_fd)
+        radiation_damping_force_td = jnp.append(radiation_damping_force_td, radiation_damping_force_td[0])
+        f_radiation = jnp.interp(t,t_interp_full, jnp.squeeze(radiation_damping_force_td))
+
+        # hydrostatic force
+        f_hydrostatic = -hydrostatic_stiffness * x
+
+        f_total = f_excitation + f_radiation + f_hydrostatic
+        return f_total / m
+
+    jac_vdot_v = jax.jacobian(function_vdot, 1)
+
     class OscillatorODE(om.ExplicitComponent):
         """
-        A Dymos ODE for a damped harmonic oscillator. 
+        A Dymos ODE for a damped harmonic oscillator.
         Current option is 1 dof.
         """
 
@@ -2198,7 +2231,7 @@ def setup_dymos_ode():
 
             # v_dot wrt vector inputs (diagonal)
             self.declare_partials('v_dot', 'x', rows=ar, cols=ar)
-            self.declare_partials('v_dot', 'v', method='fd') # forward differentiation since we use frequency dependent damping
+            self.declare_partials('v_dot', 'v') # JAX # forward differentiation since we use frequency dependent damping
             self.declare_partials('v_dot', 'u', rows=ar, cols=ar)
             #self.declare_partials('v_dot', 'time', rows=ar, cols=ar)
 
@@ -2211,46 +2244,15 @@ def setup_dymos_ode():
             x = inputs['x']
             v = inputs['v']
             t = inputs['time']
-            u = inputs['u']
-            
-            m = self.options['m']
-            wave_freq = self.options['wave_freq']
+
             waves = self.options['waves']
-
-            t_interp = self.options['t_interp']
-            omega = self.options['omega']
             excitation_force = self.options['excitation_force']
-            radiation_damping = self.options['radiation_damping']
-            added_mass = self.options['added_mass']
-            hydrostatic_stiffness = self.options['hydrostatic_stiffness']
 
-            nfreq = self.options['nfreq']
-            f1 = self.options['f1']
-            t_interp_full = self.options['t_interp_full']
-
-            # convert velocity to frequency domain
-            t_round = np.round(t, 14)
-            v_interp = np.interp(t_interp,t_round,v)
-            v_fd = td_to_fd(v_interp)
-            v_fd_real = complex_to_real(v_fd)
-
-            rao_transfer_func_rad = -radiation_damping - 1j*omega*added_mass
-            transfer_mat = mimo_transfer_mat(rao_transfer_func_rad, False)
-            time_matrix = time_mat(f1, nfreq)
-
-            rad_fd = np.dot(transfer_mat,v_fd_real) #  
-            radiation_damping_force_td = np.dot(time_matrix,rad_fd)
-            radiation_damping_force_td = np.append(radiation_damping_force_td, radiation_damping_force_td[0])
-            radiation_damping_force_td_interp = np.interp(t,t_interp_full,np.squeeze(radiation_damping_force_td))
-
-            f_hydrostatic_stiffness = -hydrostatic_stiffness * x
-            f_control = u
-
-            excitation_force_ts = excitation_force_td(excitation_force,
+            f_excitation = excitation_force_td(excitation_force,
                                 waves.sel(realization=0),  # wave_elev(omega,wave_direction)
                                 t=t)
 
-            outputs['v_dot'] = (f_hydrostatic_stiffness + radiation_damping_force_td_interp + excitation_force_ts) / m # this is the residual
+            outputs['v_dot'] = function_vdot(x, v, t, self.options, f_excitation) #JAX
             outputs['power'] = 0*v # power is control force*velocity
             outputs['x_dot'] = v # for integration
 
@@ -2263,13 +2265,20 @@ def setup_dymos_ode():
             u = inputs['u']
 
             m = self.options['m']
+            waves = self.options['waves']
+            excitation_force = self.options['excitation_force']
 
             hydrostatic_stiffness = self.options['hydrostatic_stiffness']
 
+            f_excitation = excitation_force_td(excitation_force,
+                            waves.sel(realization=0),
+                            t=t)
+
             partials['v_dot', 'x'] = (-hydrostatic_stiffness / m) * np.ones(nn)
+            partials['v_dot', 'v'] = jac_vdot_v(x, v, t, self.options, f_excitation) # JAX
             #partials['v_dot', 'time'] = -exc_amp*w*np.sin(w*t) / m
             partials['v_dot', 'u'] = (1 / m) * np.ones(nn)
-            
+
             partials['power', 'v'] = 0
             partials['power', 'u'] = v
 
@@ -2277,10 +2286,10 @@ def setup_dymos_ode():
 
     return OscillatorODE
 
-def setup_dymos_problem(bem_data, wave_freq, nfreq, f1, waves, 
-                        driver=om.pyOptSparseDriver(), optimizer = 'IPOPT', 
+def setup_dymos_problem(bem_data, wave_freq, nfreq, f1, waves,
+                        driver=om.pyOptSparseDriver(), optimizer = 'IPOPT',
                         transcription=dm.GaussLobatto(num_segments=10, order=3),
-                        scale_x_wec=1, scale_control=1e-2, scale_energy=1e-3, 
+                        scale_x_wec=1, scale_control=1e-2, scale_energy=1e-3,
                         opt=True, control_lb=-300, control_ub=300):
 
     # Instantiate an OpenMDAO Problem instance.
@@ -2308,10 +2317,10 @@ def setup_dymos_problem(bem_data, wave_freq, nfreq, f1, waves,
                         excitation_force=bem_data['excitation_force'],
                         waves=waves,
                         wave_freq=wave_freq,
-                        t_interp=t_interp, 
-                        omega=bem_data['omega'], 
-                        radiation_damping=bem_data['radiation_damping'], 
-                        added_mass=bem_data['added_mass'], 
+                        t_interp=t_interp,
+                        omega=bem_data['omega'],
+                        radiation_damping=bem_data['radiation_damping'],
+                        added_mass=bem_data['added_mass'],
                         hydrostatic_stiffness=float(np.squeeze(bem_data['hydrostatic_stiffness'].values)),  # Add comma here
                         nfreq=nfreq,
                         f1=f1,
@@ -2656,7 +2665,7 @@ def degrees_to_radians(
         Whether to sort the angles from smallest to largest in
         :math:`[-π, π)`.
     """
-    
+
     radians = np.asarray(np.remainder(np.deg2rad(degrees), 2*np.pi))
     radians[radians > np.pi] -= 2*np.pi
     if radians.size > 1 and sort:
@@ -2911,14 +2920,14 @@ def block_diag_jax(*arrays: ArrayLike) -> ndarray:
     Parameters
     ----------
     arrays
-        Input arrays. Each array can be up to 2-D. A 1-D array or 
-        array-like sequence of length n is treated as a 2-D array 
+        Input arrays. Each array can be up to 2-D. A 1-D array or
+        array-like sequence of length n is treated as a 2-D array
         with shape (1, n).
 
     Returns
     -------
     block_diag_mat
-        Array with A, B, C, ... on the diagonal. D has the same 
+        Array with A, B, C, ... on the diagonal. D has the same
         dtype as the first input array.
 
     Notes
