@@ -154,7 +154,7 @@ Irregular waves are defined in WecOptTool as a spectrum of complex frequency-dom
     t_{total} = \frac{n_{realizations}}{f1}
     :label: total_time
 
-The selection of the number of realizations is further detailed in :doc:`_examples/tutorial_4_Pioneer`.
+The selection of the number of realizations is further detailed in :cite:`Grasberger:2025ad` and :doc:`_examples/tutorial_4_Pioneer`.
 
 Troubleshooting
 ---------------
