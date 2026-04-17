@@ -80,9 +80,57 @@ def _load_versions() -> dict[str, str]:
     return versions
 
 
+def _git_ref_exists(git_ref: str) -> bool:
+    result = subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", git_ref],
+        cwd=docs_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def _pattern_from_refs(refs: list[str]) -> str:
+    if not refs:
+        return "^$"
+    return "^({})$".format("|".join(re.escape(ref) for ref in sorted(set(refs))))
+
+
+def _resolve_smv_ref_patterns(refs: list[str]) -> tuple[str, str]:
+    branch_refs: list[str] = []
+    tag_refs: list[str] = []
+
+    for ref in refs:
+        head_ref = f"refs/heads/{ref}"
+        remote_ref = f"refs/remotes/origin/{ref}"
+        tag_ref = f"refs/tags/{ref}"
+
+        if _git_ref_exists(head_ref):
+            branch_refs.append(ref)
+            continue
+
+        if _git_ref_exists(remote_ref):
+            logger.info("Creating local branch '%s' from origin/%s", ref, ref)
+            _run_command(["git", "branch", "--force", ref, remote_ref], cwd=docs_dir)
+            branch_refs.append(ref)
+            continue
+
+        if _git_ref_exists(tag_ref):
+            tag_refs.append(ref)
+            continue
+
+        raise RuntimeError(
+            f"Configured docs ref '{ref}' was not found as a local branch, origin branch, or tag. "
+            "Run git fetch --force --prune --tags and verify docs/versions.yaml."
+        )
+
+    return _pattern_from_refs(branch_refs), _pattern_from_refs(tag_refs)
+
+
 def _build_with_sphinx_multiversion(versions: dict[str, str]) -> None:
     refs = sorted({ref for ref in versions.values()})
-    whitelist = "^({})$".format("|".join(re.escape(ref) for ref in refs))
+    branch_whitelist, tag_whitelist = _resolve_smv_ref_patterns(refs)
 
     logger.info("Running sphinx-multiversion for refs: %s", ", ".join(refs))
     _run_command(
@@ -93,9 +141,9 @@ def _build_with_sphinx_multiversion(versions: dict[str, str]) -> None:
             source_dir,
             html_dir,
             "-D",
-            f"smv_branch_whitelist={whitelist}",
+            f"smv_branch_whitelist={branch_whitelist}",
             "-D",
-            "smv_tag_whitelist=^$",
+            f"smv_tag_whitelist={tag_whitelist}",
         ],
         cwd=docs_dir,
     )
