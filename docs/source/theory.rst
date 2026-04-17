@@ -88,9 +88,9 @@ Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` will often be quite large.
 For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`.
-To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Autograd`_.
-In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Autograd replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
-Note that Autograd does not support all of NumPy (see the `Autograd documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
+To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Jax`_.
+In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Jax replacement for `NumPy`_ by calling :code:`import jax.numpy as np`.
+Note that Jax does not support all of NumPy (see the `Jax documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
 
 Scaling
 ^^^^^^^
@@ -169,7 +169,7 @@ If your simulation is not behaving as expected, consider some of the general tro
     * Check that absorbed power is less than or equal to the theoretical maximum
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
-.. _Autograd: https://github.com/HIPS/autograd
-.. _Autograd documentation: https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy
+.. _Jax: https://github.com/jax-ml/jax
+.. _Jax documentation: https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html
 .. _automatic differentiation: https://en.wikipedia.org/wiki/Automatic_differentiation
 .. _NumPy: https://numpy.org
