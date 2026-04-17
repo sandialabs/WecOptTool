@@ -63,20 +63,41 @@ The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/)
 The source code (restructured text) is in `./docs/source` and images are in `./docs/source/_static`.
 The homepage source code is in `./docs/source/index.rst`.
 
-To build the documentation locally (not required but good check), go to `./docs/versions.yaml` and change the value of `latest` to be your local branch. Then run:
+To build the documentation locally for the current branch (not required, but a good check), run:
 
 ```bash
 python3 docs/build_docs.py
 ```
 
-The built documentation will be in `./docs/pages` and the homepage is `./docs/pages/index.html`.
-To delete, do `python3 docs/clean_docs.py`.
+This runs the debug build, which builds the current branch only and publishes the output to `./docs/pages`. The homepage is `./docs/pages/index.html`.
+
+To build the configured multiversion documentation output (for example `latest` and `dev` from `docs/versions.yaml`), run:
+
+```bash
+python3 docs/build_docs.py --build production
+```
+
+To delete generated documentation artifacts, run:
+
+```bash
+python3 docs/clean_docs.py
+```
 
 The documentation uses the Jupyter notebook tutorials in the `examples` directory.
 When building the documentation locally you will need to have installed [pandoc](https://pandoc.org/installing.html) and [gifsicle](https://github.com/kohler/gifsicle).
 We recommend installing pandoc using its Anaconda distribution: `conda install -c conda-forge pandoc`.
 
-**NOTE:** it may be expedient at times to avoid running the tutorial notebooks. To do so, add [`nbsphinx_execute = 'never'`](https://nbsphinx.readthedocs.io/en/0.9.3/configuration.html#nbsphinx_execute) to `docs/source/conf.py`. Make sure not to commit these changes!
+**NOTE:** Building the full documentation including tutorial notebooks is slow. To include the example pages without executing notebooks, use the `--skip-notebook-execution` flag.
+
+```bash
+python3 docs/build_docs.py --skip-notebook-execution
+```
+
+This option also works with production builds:
+
+```bash
+python3 docs/build_docs.py --build production --skip-notebook-execution
+```
 
 If you add or change any hyperlinks in the documentation, we recommend checking the "Build documentation" warnings in the GitHub Actions CI workflow to make sure the links will not cause an issue. The CI will not fail due to broken links, only issue a warning (see [issue #286](https://github.com/sandialabs/WecOptTool/issues/286)).
 
