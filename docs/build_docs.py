@@ -95,7 +95,7 @@ def _build_with_sphinx_multiversion(versions: dict[str, str]) -> None:
             "-D",
             f"smv_branch_whitelist={whitelist}",
             "-D",
-            f"smv_tag_whitelist={whitelist}",
+            "smv_tag_whitelist=^$",
         ],
         cwd=docs_dir,
     )
