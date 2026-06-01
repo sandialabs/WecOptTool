@@ -142,6 +142,7 @@ def _copy_examples() -> None:
         os.path.join(project_root, 'examples'),
         examples_dst,
         ignore=_all_but_ipynb,
+        dirs_exist_ok=True
     )
     shutil.copytree(
         os.path.join(project_root, 'examples/data'),
