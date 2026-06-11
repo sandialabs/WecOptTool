@@ -106,9 +106,9 @@ def plot_hydrodynamic_coefficients(bem_data,
                 bem_data.radiation_damping.sel(
                     radiating_dof=rdof, influenced_dof=idof).plot(ax=ax_rd[i, j])
                 if i == len(radiating_dofs)-1:
-                    ax_am[i, j].set_xlabel(f'$\omega$', fontsize=10)
-                    ax_rd[i, j].set_xlabel(f'$\omega$', fontsize=10)
-                    ax_ex[j, 0].set_xlabel(f'$\omega$', fontsize=10)
+                    ax_am[i, j].set_xlabel(r'$\omega$', fontsize=10)
+                    ax_rd[i, j].set_xlabel(r'$\omega$', fontsize=10)
+                    ax_ex[j, 0].set_xlabel(r'$\omega$', fontsize=10)
                 else:
                     ax_am[i, j].set_xlabel('')
                     ax_rd[i, j].set_xlabel('')
@@ -175,12 +175,12 @@ def plot_bode_impedance(impedance: DataArray,
             axes[2*i, j].grid(True, which = 'both')
             axes[2*i+1, j].grid(True, which = 'both')
             if i == len(radiating_dofs)-1:
-                axes[2*i+1, j].set_xlabel(f'Frequency [Hz]', fontsize=10)
+                axes[2*i+1, j].set_xlabel(r'Frequency [Hz]', fontsize=10)
             else:
                 axes[i, j].set_xlabel('')
             if j == 0:
                 axes[2*i, j].set_ylabel(f'{rdof} \n Mag. [dB]', fontsize=10)
-                axes[2*i+1, j].set_ylabel(f'Phase. [deg]', fontsize=10)
+                axes[2*i+1, j].set_ylabel(r'Phase. [deg]', fontsize=10)
             else:
                 axes[i, j].set_ylabel('')
             if i == 0:
