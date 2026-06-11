@@ -725,15 +725,21 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
-        scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
+        scale = jnp.concatenate([
+            jnp.array(scale_x_wec, dtype=jnp.float64),
+            jnp.array(scale_x_opt, dtype=jnp.float64),
+        ])
 
         # decision variable initial guess
         key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = jax.random.normal(key, [self.nstate_wec], dtype=np.float64)
+            x_wec_0 = jax.random.normal(key, [self.nstate_wec])
         if x_opt_0 is None:
-            x_opt_0 = jax.random.normal(key, [nstate_opt], dtype=np.float64)
-        x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
+            x_opt_0 = jax.random.normal(key, [nstate_opt])
+        x0 = jnp.concatenate([
+            jnp.array(x_wec_0, dtype=jnp.float64),
+            jnp.array(x_opt_0, dtype=jnp.float64),
+        ]) * scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
