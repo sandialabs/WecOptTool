@@ -15,8 +15,8 @@
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -231,7 +231,7 @@ If <code class="code highlight python docutils literal highlight-python"><span c
 <li><p><strong>scale_x_wec</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em> | </em><em>None</em>) – Factor(s) to scale each DOF in <code class="code highlight python docutils literal highlight-python"><span class="n">x_wec</span></code> by, to
 improve convergence.
 A single float or an array of size <code class="code highlight python docutils literal highlight-python"><span class="n">ndof</span></code>.</p></li>
-<li><p><strong>scale_x_opt</strong> (<em>TypeAliasForwardRef</em><em>(</em><em>'FloatOrArray'</em><em>) </em><em>| </em><em>None</em>) – Factor(s) to scale <code class="code highlight python docutils literal highlight-python"><span class="n">x_opt</span></code> by, to improve
+<li><p><strong>scale_x_opt</strong> (<em>FloatOrArray</em><em> | </em><em>None</em>) – Factor(s) to scale <code class="code highlight python docutils literal highlight-python"><span class="n">x_opt</span></code> by, to improve
 convergence.
 A single float or an array of size <code class="code highlight python docutils literal highlight-python"><span class="n">nstate_opt</span></code>.</p></li>
 <li><p><strong>scale_obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>) – Factor to scale <code class="code highlight python docutils literal highlight-python"><span class="n">obj_fun</span></code> by, to improve
@@ -248,7 +248,7 @@ See <a class="reference external" href="https://docs.scipy.org/doc/scipy/referen
 <li><p><strong>bounds_opt</strong> (<a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.Bounds.html#scipy.optimize.Bounds" title="(in SciPy v1.17.0)"><em>Bounds</em></a><em> | </em><em>None</em>) – Bounds on the optimization (control) components of the
 decision variable.
 See <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html#scipy.optimize.minimize" title="(in SciPy v1.17.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">scipy.optimize.minimize()</span></code></a>.</p></li>
-<li><p><strong>callback</strong> (<em>TypeAliasForwardRef</em><em>(</em><em>'StateFunction'</em><em>) </em><em>| </em><em>None</em>) – Function called after each iteration, must have signature
+<li><p><strong>callback</strong> (<em>StateFunction</em><em> | </em><em>None</em>) – Function called after each iteration, must have signature
 <code class="code highlight python docutils literal highlight-python"><span class="n">fun</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">)</span></code>. The default
 provides status reports at each iteration via logging at the
 INFO level.</p></li>
