@@ -252,9 +252,9 @@ def calculate_power_flows(wec,
         P_e.append((1/4)*(Fe_FD_t@np.conj(U_FD) + U_FD_t@np.conj(Fe_FD)))
 
     power_flows = {
-        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68
-        'Radiated': -1*np.sum(np.real(P_r)),
-        'Actual Excitation': -1*np.sum(np.real(P_e)),
+        'Optimal Excitation' : -2* np.sum(np.real(P_max), dtype=np.float64),#eq 6.68
+        'Radiated': -1*np.sum(np.real(P_r), dtype=np.float64),
+        'Actual Excitation': -1*np.sum(np.real(P_e), dtype=np.float64),
         'Electrical (solver)': P_elec,
         'Mechanical (solver)': P_mech,
                   }

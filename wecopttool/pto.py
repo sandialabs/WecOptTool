@@ -235,7 +235,8 @@ class PTO:
         assert f_wec_td.shape == (wec.nt*nsubsteps, wec.ndof)
         f_wec_td = jnp.expand_dims(jnp.transpose(f_wec_td), axis=0)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, wave, nsubsteps)
-        return jnp.transpose(jnp.sum(kinematics_mat*f_wec_td, axis=1))
+        result = kinematics_mat.astype(jnp.float64) * f_wec_td.astype(jnp.float64)
+        return jnp.transpose(jnp.sum(result, axis=1))
 
     def position(self,
         wec: TWEC,
@@ -362,7 +363,9 @@ class PTO:
         assert force_td.shape == (1, self.ndof, wec.nt*nsubsteps)
         kinematics_mat = self.kinematics(wec, x_wec, x_opt, wave, nsubsteps)
         kinematics_mat = jnp.transpose(kinematics_mat, (1,0,2))
-        return jnp.transpose(jnp.sum(kinematics_mat*force_td, axis=1))
+        # Use float64 for higher precision in the multiplication and sum
+        result = kinematics_mat.astype(jnp.float64) * force_td.astype(jnp.float64)
+        return jnp.transpose(jnp.sum(result, axis=1))
 
     def mechanical_power(self,
         wec: TWEC,
@@ -425,7 +428,8 @@ class PTO:
             length.
         """
         power_td = self.mechanical_power(wec, x_wec, x_opt, wave, nsubsteps)
-        return jnp.sum(power_td) * wec.dt/nsubsteps
+        # Use float64 for higher precision in the sum
+        return jnp.sum(power_td.astype(jnp.float64)) * wec.dt/nsubsteps
 
     def mechanical_average_power(self,
         wec: TWEC,
@@ -572,7 +576,8 @@ class PTO:
             length.
         """
         power_td = self.power(wec, x_wec, x_opt, wave, nsubsteps)
-        return jnp.sum(power_td) * wec.dt/nsubsteps
+        # Use float64 for higher precision in the sum
+        return jnp.sum(power_td.astype(jnp.float64)) * wec.dt/nsubsteps
 
     def average_power(self,
         wec: TWEC,
