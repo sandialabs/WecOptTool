@@ -95,6 +95,9 @@ def _resolve_version_context(config=None, current_ref_override=None) -> tuple[st
 
 skip_notebook_execution = os.environ.get('WOT_DOCS_SKIP_NOTEBOOK_EXECUTION') == '1'
 skip_theory_animations = os.environ.get('WOT_DOCS_SKIP_THEORY_ANIMATIONS') == '1'
+skip_pseudospectral_visualizations = os.environ.get(
+    'WOT_DOCS_SKIP_PSEUDOSPECTRAL_VISUALIZATIONS'
+) == '1'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -168,6 +171,20 @@ def _generate_theory_animations() -> None:
     _theory_animations_generated = True
 
 
+def _generate_pseudospectral_visualizations() -> None:
+    global _pseudospectral_visualizations_generated
+    if _pseudospectral_visualizations_generated:
+        return
+
+    importlib.invalidate_caches()
+    module_name = 'make_pseudospectral_visualizations'
+    if module_name in sys.modules:
+        importlib.reload(sys.modules[module_name])
+    else:
+        importlib.import_module(module_name)
+    _pseudospectral_visualizations_generated = True
+
+
 def _cleanup_index_html(outdir: str) -> None:
     index_file = os.path.join(outdir, 'index.html')
     if not os.path.exists(index_file):
@@ -202,6 +219,10 @@ def _on_config_inited(_app, _config):
         print('Skipping theory animation generation')
     else:
         _generate_theory_animations()
+    if skip_pseudospectral_visualizations:
+        print('Skipping pseudospectral visualization generation')
+    else:
+        _generate_pseudospectral_visualizations()
 
 
 def _on_build_finished(app, exception):
@@ -217,6 +238,7 @@ def setup(app):
 
 
 _theory_animations_generated = False
+_pseudospectral_visualizations_generated = False
 
 suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do not play well together
                      'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these

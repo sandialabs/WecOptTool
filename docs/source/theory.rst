@@ -70,6 +70,59 @@ At first the solution will not be correct, but as the optimization algorithm ite
 .. note::
     These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.
 
+Time/frequency equivalence in the pseudo-spectral method
+--------------------------------------------------------
+
+In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
+This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
+
+.. image:: _static/pseudospectral_equivalence.png
+    :width: 700
+    :alt: Illustration of the relationship between frequency-domain coefficients and time-domain collocation points
+    :align: center
+
+For a chosen fundamental frequency :math:`f_1` and a maximum harmonic index :math:`n_{freq}`, the modeled frequencies are integer multiples of the fundamental frequency:
+
+.. math::
+    f_k = k f_1
+    :label: discrete_frequencies
+
+The pseudo-spectral representation implies a periodic time trajectory with repeat period
+
+.. math::
+    T = \frac{1}{f_1}
+    :label: repeat_period
+
+and :math:`2 n_{freq}` time-domain collocation points.
+The corresponding time step is
+
+.. math::
+    \Delta t = \frac{1}{2 n_{freq} f_1}
+    :label: timestep_relation
+
+Thus, the choice of frequency vector determines both what dynamics can be represented in the frequency domain and how finely the corresponding periodic trajectory is sampled in time.
+
+Some useful interpretations are:
+
+    * **All modeled frequencies are harmonics of** :math:`f_1`.
+    * **The smallest nonzero frequency** :math:`f_1` **sets the total repeat period** :math:`T`.
+    * **The highest modeled frequency** :math:`n_{freq} f_1` **sets the effective time resolution**.
+    * **The Fourier coefficients and time-domain collocation points are linked:** :math:`n_{freq}` harmonics correspond to :math:`2 n_{freq}` collocation points in time.
+
+In practice, this means that selecting :math:`f_1` and :math:`n_{freq}` is not only a question of frequency resolution.
+It also determines the length and temporal resolution of the periodic trajectory used to enforce the dynamics and constraints.
+
+WaveBot example
+^^^^^^^^^^^^^^^
+
+The same correspondence can be seen in an actual WecOptTool solution.
+The animation below shows the pseudo-spectral representation of each iteration of a 
+WaveBot PTO trajectory being optimized over the full periodic time window.
+
+.. image:: _static/wavebot_ex_xopt_iterates.gif
+    :width: 700
+    :alt: WaveBot pseudo-spectral solution animation
+    :align: center
 
 Practical concerns
 ------------------
