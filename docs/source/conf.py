@@ -94,6 +94,7 @@ def _resolve_version_context(config=None, current_ref_override=None) -> tuple[st
 
 
 skip_notebook_execution = os.environ.get('WOT_DOCS_SKIP_NOTEBOOK_EXECUTION') == '1'
+skip_theory_animations = os.environ.get('WOT_DOCS_SKIP_THEORY_ANIMATIONS') == '1'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -137,16 +138,19 @@ def _all_but_nc(_dir, contents):
 def _copy_examples() -> None:
     print('Copy example notebooks into docs/_examples')
     examples_dst = os.path.join(project_root, 'docs/source/_examples')
-    shutil.rmtree(examples_dst, ignore_errors=True)
+    os.makedirs(examples_dst, exist_ok=True)
+
     shutil.copytree(
         os.path.join(project_root, 'examples'),
         examples_dst,
         ignore=_all_but_ipynb,
+        dirs_exist_ok=True,
     )
     shutil.copytree(
         os.path.join(project_root, 'examples/data'),
-        os.path.join(project_root, 'docs/source/_examples/data'),
+        os.path.join(examples_dst, 'data'),
         ignore=_all_but_nc,
+        dirs_exist_ok=True,
     )
 
 
@@ -194,8 +198,10 @@ def _on_config_inited(_app, _config):
 
     if skip_notebook_execution:
         print('Skipping notebook execution')
-
-    _generate_theory_animations()
+    if skip_theory_animations:
+        print('Skipping theory animation generation')
+    else:
+        _generate_theory_animations()
 
 
 def _on_build_finished(app, exception):
