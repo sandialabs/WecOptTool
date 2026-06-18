@@ -62,7 +62,7 @@ The documentation is built using [Sphinx](https://www.sphinx-doc.org/en/master/)
 The source code (restructured text) is in `./docs/source` and images are in `./docs/source/_static`.
 The homepage source code is in `./docs/source/index.rst`.
 
-To build the documentation locally for the current branch (not required, but a good check), run:
+To build the documentation locally for the current branch (not required, but a good check), run (after installing development dependencies with `pip install -e .[dev]`):
 
 ```bash
 python3 docs/build_docs.py
