@@ -274,9 +274,10 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float],
+def plot_power_flow(
+    power_flows: dict[str, float],
     tolerance: Optional[float] = None,
-)-> tuple(Figure, Axes):
+) -> tuple[Figure, Axes]:
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
