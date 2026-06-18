@@ -74,7 +74,7 @@ def build_pseudospectral_figure(
     xk_td = np.array(xk_td)
 
     if fig is None or ax is None:
-        fig = plt.figure(figsize=(6, 6))
+        fig = plt.figure(figsize=(6, 5))
         ax = fig.add_subplot(111, projection="3d")
     else:
         ax.cla()
@@ -105,10 +105,10 @@ def build_pseudospectral_figure(
     ax.plot([xmin, xmax], [y_xax_min] * 2, [0, 0], color="k", lw=1)
     ax.plot(t_full, np.full_like(t_full, y_xax_min), np.zeros_like(t_full), color="b", linestyle="None", alpha=0.4, marker="|", markersize=4)
 
-    ax.text(1 / freqs[1], y_xax_min, 0, r"$T_f=\frac{1}{f_1}$", ha="left", va="center")
+    ax.text(1 / freqs[1], y_xax_min, 0, r"$T=\frac{1}{f_1}$", ha="left", va="center")
     if zero_freq:
         ax.text(0, y_xax_min, 0, r"0", ha="left", va="bottom")
-    ax.text(t[1], y_xax_min, 0, r"$\Delta t = \frac{1}{2 n_\mathrm{fq} f_1}$", "x", ha="left", va="center")
+    ax.text(t[1], y_xax_min, 0, r"$\Delta t = \frac{1}{2 n_{freq} f_1}$", "x", ha="left", va="center")
     ax.text((t[-1] - t[1]) / 2, y_xax_maj, 0, r"$x_t$", "x", ha="center", va="top")
 
     ax.plot([t_freq_ax_mag] * 2, np.array([-0.05, 1.05]) * freqs[-1], [0, 0], color="k", lw=1)
@@ -122,7 +122,7 @@ def build_pseudospectral_figure(
     ax.plot(np.full_like(freqs, t_freq_ax_ph), freqs, -z_ph_ax, color="k", lw=0.7, linestyle="--")
 
     ax.text(t_freq_ax_mag, freqs[1], 0, r"$f_1$", ha="left", va="top")
-    ax.text(t_freq_ax_mag, freqs[-1], 0, r"$n_\mathrm{fq} f_1$", ha="left", va="top")
+    ax.text(t_freq_ax_mag, freqs[-1], 0, r"$n_{freq} f_1$", ha="left", va="top")
     ax.text(t_freq_ax_mag * 1.1, freqs[-1] / 2, 0, r"$|X_k|$", "y", ha="center", va="top")
     ax.text(t_freq_ax_ph - 0.1 * t_freq_ax_mag, freqs[-1] / 2, z_ph_ax, r"$\measuredangle X_k$", "y", ha="center", va="top")
 
@@ -156,7 +156,7 @@ def build_pseudospectral_figure(
     ax.plot(t_sub, np.full_like(t_sub, y_xax_maj), x_td_interp, color="k", lw=0.7, linestyle="-.", alpha=0.7)
 
     if title_str is not None:
-        ax.set_title(title_str, pad=10)
+        ax.set_title(title_str, pad=2)
 
     plt.tight_layout()
     return fig, ax
@@ -185,7 +185,7 @@ def animate_xopt_history(
 
     def update(i):
         X_fd = row_to_Xfd(x_opt[i, :])
-        title_str = rf"{title_prefix} {i+1}/{x_opt.shape[0]}" "\n" rf"$f_1={f1:.4g}\ \mathrm{{Hz}},\ n_\mathrm{{fq}}={nfreq}$"
+        title_str = rf"{title_prefix} {i+1}/{x_opt.shape[0]}" "\n" rf"$f_1={f1:.4g}\ \mathrm{{Hz}},\ n_{{freq}}={nfreq}$"
         build_pseudospectral_figure(
             f1=f1,
             nfreq=nfreq,
@@ -210,7 +210,12 @@ def make_equivalence_figure():
     nfreq = 5
     X_fd = generate_frequency_domain_signal(nfreq, Np=3, seed=9)
     fig, _ax = build_pseudospectral_figure(f1=f1, nfreq=nfreq, X_fd=X_fd, zero_freq=True, nsub=10, zlim=(-0.7, 0.7))
-    fig.savefig(STATIC_DIR / "pseudospectral_equivalence.png", dpi=300)
+    fig.savefig(
+        STATIC_DIR / "pseudospectral_equivalence.png",
+        dpi=300,
+        bbox_inches="tight",
+        pad_inches=0.02,
+    )    
     plt.close(fig)
 
 

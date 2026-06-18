@@ -75,6 +75,7 @@ Time/frequency equivalence in the pseudo-spectral method
 
 In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
 This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
+In the figure below, each harmonic component is shown individually with its amplitude and phase on the opposing frequency-domain axes, while their sum reconstructs the periodic time-domain trajectory.
 
 .. image:: _static/pseudospectral_equivalence.png
     :width: 700
