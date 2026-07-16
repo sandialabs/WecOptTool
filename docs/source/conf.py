@@ -35,6 +35,27 @@ with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
     versions = yaml.safe_load(v_file)
 
 
+# pandoc setup
+def _ensure_pandoc_available() -> None:
+    if shutil.which("pandoc") is not None:
+        return
+
+    try:
+        import pypandoc
+        pandoc_path = pypandoc.get_pandoc_path()
+    except Exception as exc:
+        raise RuntimeError(
+            "Pandoc executable was not found. Install it with "
+            "`conda install -c conda-forge pandoc` or install the dev "
+            "dependencies with `pypandoc-binary` included."
+        ) from exc
+
+    pandoc_dir = os.path.dirname(pandoc_path)
+    os.environ["PATH"] = pandoc_dir + os.pathsep + os.environ.get("PATH", "")
+
+_ensure_pandoc_available()
+
+
 def _normalize_ref(ref: str | None) -> str | None:
     if ref is None:
         return None

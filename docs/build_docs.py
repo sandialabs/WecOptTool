@@ -233,6 +233,7 @@ def main() -> None:
         logger.info("Building docs for current branch in debug mode")
         build_doc("latest", build)
         move_pages_debug()
+        print(f"\nThe final HTML pages are in {os.path.join(docs_dir, 'pages')}.")
         return
 
     versions = _load_versions()

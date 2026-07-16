@@ -255,5 +255,4 @@ def main():
     print(f"  {STATIC_DIR / 'wavebot_ex_xopt_iterates.gif'}")
 
 
-if __name__ == "__main__":
-    main()
+main()
