@@ -1876,7 +1876,7 @@ def write_netcdf(fpath: Union[str, Path], data: Dataset) -> None:
     --------
     read_netcdf,
     """
-    cpy.io.xarray.separate_complex_values(data).to_netcdf(fpath)
+    cpy.export_dataset(fpath, data, format="netcdf")
 
 
 def check_radiation_damping(
@@ -2194,7 +2194,9 @@ def run_bem(
                       'wavenumber': False,
                      }
     wec_im = fb.copy()
-    wec_im = set_fb_centers(wec_im, rho=rho)
+    if getattr(wec_im, "center_of_mass", None) is None:
+        wec_im.center_of_mass = wec_im.center_of_buoyancy
+        _log.warning("Using the geometric centroid as the center of gravity (COG).")
     if not hasattr(wec_im, 'inertia_matrix'):
         if wec_im.mass is None:
             wec_im.mass = rho*wec_im.immersed_part().volume
@@ -2591,41 +2593,6 @@ def time_results(fd: DataArray, time: DataArray) -> ndarray:
         out = out + \
             np.real(mag)*np.cos(w*time) - np.imag(mag)*np.sin(w*time)
     return out
-
-
-def set_fb_centers(
-    fb: FloatingBody,
-    rho: float = _default_parameters["rho"],
-) -> FloatingBody:
-    """Sets default properties if not provided by the user:
-        - `center_of_mass` is set to the geometric centroid
-        - `rotation_center` is set to the center of mass
-    """
-    valid_properties = ['center_of_mass', 'rotation_center']
-
-    for property in valid_properties:
-        if not hasattr(fb, property):
-            setattr(fb, property, None)
-        if getattr(fb, property) is None:
-            if property == 'center_of_mass':
-                def_val = fb.center_of_buoyancy
-                log_str = (
-                    "Using the geometric centroid as the center of gravity (COG).")
-            elif property == 'rotation_center':
-                def_val = fb.center_of_mass
-                log_str = (
-                    "Using the center of gravity (COG) as the rotation center " +
-                    "for hydrostatics. Note that the hydrostatics do not use the " +
-                    "axes defined by the FloatingBody degrees of freedom, and the " +
-                    "rotation center should be set manually when using Capytaine to " +
-                    "calculate hydrostatics about an axis other than the COG.")
-            setattr(fb, property, def_val)
-            _log.warning(log_str)
-        elif getattr(fb, property) is not None:
-            _log.warning(
-                f'{property} already defined as {getattr(fb, property)}.')
-
-    return fb
 
 
 def block_diag_jax(*arrays: ArrayLike) -> ndarray:
