@@ -35,6 +35,27 @@ with open(os.path.join(project_root, 'docs/versions.yaml'), 'r') as v_file:
     versions = yaml.safe_load(v_file)
 
 
+# pandoc setup
+def _ensure_pandoc_available() -> None:
+    if shutil.which("pandoc") is not None:
+        return
+
+    try:
+        import pypandoc
+        pandoc_path = pypandoc.get_pandoc_path()
+    except Exception as exc:
+        raise RuntimeError(
+            "Pandoc executable was not found. Install it with "
+            "`conda install -c conda-forge pandoc` or install the dev "
+            "dependencies with `pypandoc-binary` included."
+        ) from exc
+
+    pandoc_dir = os.path.dirname(pandoc_path)
+    os.environ["PATH"] = pandoc_dir + os.pathsep + os.environ.get("PATH", "")
+
+_ensure_pandoc_available()
+
+
 def _normalize_ref(ref: str | None) -> str | None:
     if ref is None:
         return None
@@ -94,6 +115,25 @@ def _resolve_version_context(config=None, current_ref_override=None) -> tuple[st
 
 
 skip_notebook_execution = os.environ.get('WOT_DOCS_SKIP_NOTEBOOK_EXECUTION') == '1'
+skip_theory_animations = os.environ.get('WOT_DOCS_SKIP_THEORY_ANIMATIONS') == '1'
+skip_pseudospectral_visualizations = os.environ.get(
+    'WOT_DOCS_SKIP_PSEUDOSPECTRAL_VISUALIZATIONS'
+) == '1'
+
+theory_animation_outputs = [
+    os.path.join(source_root, '_static', 'theory_animation_ps.gif'),
+    os.path.join(source_root, '_static', 'theory_animation_td.gif'),
+]
+
+pseudospectral_visualization_outputs = [
+    os.path.join(source_root, '_static', 'pseudospectral_equivalence.png'),
+    os.path.join(source_root, '_static', 'wavebot_ex_xopt_iterates.gif'),
+]
+
+
+def _any_missing(paths: list[str]) -> bool:
+    return any(not os.path.exists(path) for path in paths)
+
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -137,32 +177,38 @@ def _all_but_nc(_dir, contents):
 def _copy_examples() -> None:
     print('Copy example notebooks into docs/_examples')
     examples_dst = os.path.join(project_root, 'docs/source/_examples')
-    shutil.rmtree(examples_dst, ignore_errors=True)
+    os.makedirs(examples_dst, exist_ok=True)
+
     shutil.copytree(
         os.path.join(project_root, 'examples'),
         examples_dst,
         ignore=_all_but_ipynb,
-        dirs_exist_ok=True
+        dirs_exist_ok=True,
     )
     shutil.copytree(
         os.path.join(project_root, 'examples/data'),
-        os.path.join(project_root, 'docs/source/_examples/data'),
+        os.path.join(examples_dst, 'data'),
         ignore=_all_but_nc,
+        dirs_exist_ok=True,
     )
 
 
 def _generate_theory_animations() -> None:
-    global _theory_animations_generated
-    if _theory_animations_generated:
-        return
-
     importlib.invalidate_caches()
     module_name = 'make_theory_animations'
     if module_name in sys.modules:
         importlib.reload(sys.modules[module_name])
     else:
         importlib.import_module(module_name)
-    _theory_animations_generated = True
+
+
+def _generate_pseudospectral_visualizations() -> None:
+    importlib.invalidate_caches()
+    module_name = 'make_pseudospectral_visualizations'
+    if module_name in sys.modules:
+        importlib.reload(sys.modules[module_name])
+    else:
+        importlib.import_module(module_name)
 
 
 def _cleanup_index_html(outdir: str) -> None:
@@ -195,8 +241,20 @@ def _on_config_inited(_app, _config):
 
     if skip_notebook_execution:
         print('Skipping notebook execution')
-
-    _generate_theory_animations()
+    if skip_theory_animations:
+        print('Skipping theory animation generation')
+    elif _any_missing(theory_animation_outputs):
+        print('Generating theory animations')
+        _generate_theory_animations()
+    else:
+        print('Theory animations already exist; skipping generation')
+    if skip_pseudospectral_visualizations:
+        print('Skipping pseudospectral visualization generation')
+    elif _any_missing(pseudospectral_visualization_outputs):
+        print('Generating pseudospectral visualizations')
+        _generate_pseudospectral_visualizations()
+    else:
+        print('Pseudospectral visualizations already exist; skipping generation')
 
 
 def _on_build_finished(app, exception):
@@ -210,8 +268,6 @@ def setup(app):
     app.connect('config-inited', _on_config_inited)
     app.connect('build-finished', _on_build_finished)
 
-
-_theory_animations_generated = False
 
 suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do not play well together
                      'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these

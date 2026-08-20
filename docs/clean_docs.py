@@ -22,7 +22,10 @@ def clean() -> None:
         _assert_within_docs(target)
         if os.path.exists(target):
             print(f"Removing {target}")
-            rmtree(target, ignore_errors=False)
+            try:
+                rmtree(target, ignore_errors=False)
+            except Exception as err:
+                print(f"Failed to remove {target}: {err}")
         else:
             print(f"Skipping {target} (not found)")
 

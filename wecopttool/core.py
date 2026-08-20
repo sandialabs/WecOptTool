@@ -655,9 +655,9 @@ class WEC:
             Optimization options passed to the optimizer.
             See :py:func:`scipy.optimize.minimize`.
         use_grad
-             If :python:`True`, optimization will utilize
-             `jax <https://https://github.com/jax-ml/jax>`_
-             for gradients.
+            If :python:`True`, optimization will utilize
+            `jax <https://github.com/jax-ml/jax>`_
+            for gradients.
         maximize
             Whether to maximize the objective function.
             The default is to minimize the objective function.

@@ -33,10 +33,9 @@ pip install -e .[dev]
 * Docstrings: [pep257](https://www.python.org/dev/peps/pep-0257/) & [NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html).
 * Type hints: [module documentation](https://docs.python.org/3/library/typing.html), [cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html).
 
-## Autograd
-This project uses [`autograd`](https://github.com/HIPS/autograd) for automatic differentiation.
-Autograd does not support all NumPy and SciPy functionalities, see [autograd documentation](https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy).
-*NOTE:* using unsupported functionalities results in the gradient calculation failing silently.
+## Jax
+This project uses [`Jax`](https://github.com/jax-ml/jax) for automatic differentiation.
+Jax does not support all NumPy and SciPy functionalities, see [jax documentation](https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html).
 
 ## Pull Requests
   1. Create a fork of WecOptTool

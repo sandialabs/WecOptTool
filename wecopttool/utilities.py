@@ -274,19 +274,22 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float],
+def plot_power_flow(
+    power_flows: dict[str, float],
     tolerance: Optional[float] = None,
-)-> tuple(Figure, Axes):
+) -> tuple[Figure, Axes]:
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
     ----------
     power_flows
-        Power flow dictionary produced by for example by
+        Power flow dictionary produced by
         :py:func:`wecopttool.utilities.calculate_power_flows`.
-        Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation',
-                        'Electrical (solver)', 'Mechanical (solver)',
-                        'Absorbed', 'Unused Potential', 'PTO Loss'
+
+        Required keys are ``'Optimal Excitation'``, ``'Radiated'``,
+        ``'Actual Excitation'``, ``'Electrical (solver)'``,
+        ``'Mechanical (solver)'``, ``'Absorbed'``,
+        ``'Unused Potential'``, and ``'PTO Loss'``.
     tolerance
         Tolerance value for sankey diagram.
     """
