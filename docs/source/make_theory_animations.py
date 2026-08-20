@@ -23,6 +23,8 @@ N = 30  # number of frames
 M = 10  # number of times to repeat final frame
 # will produce M+N total frames
 
+skip_gifsicle = os.environ.get('WOT_DOCS_SKIP_GIFSICLE') == '1'
+
 with tempfile.TemporaryDirectory() as tmpdirname:
 
     fig, ax = plt.subplots()
@@ -102,4 +104,6 @@ with tempfile.TemporaryDirectory() as tmpdirname:
                           axis=0)
         gif_path = os.path.join(odir, f"{gif_name}_{key}.gif")
         iio.imwrite(gif_path, frames, loop=0)
-        optimize(gif_path)
+        if not skip_gifsicle:
+            optimize(gif_path)
+            
