@@ -120,6 +120,21 @@ skip_pseudospectral_visualizations = os.environ.get(
     'WOT_DOCS_SKIP_PSEUDOSPECTRAL_VISUALIZATIONS'
 ) == '1'
 
+theory_animation_outputs = [
+    os.path.join(source_root, '_static', 'theory_animation_ps.gif'),
+    os.path.join(source_root, '_static', 'theory_animation_td.gif'),
+]
+
+pseudospectral_visualization_outputs = [
+    os.path.join(source_root, '_static', 'pseudospectral_equivalence.png'),
+    os.path.join(source_root, '_static', 'wavebot_ex_xopt_iterates.gif'),
+]
+
+
+def _any_missing(paths: list[str]) -> bool:
+    return any(not os.path.exists(path) for path in paths)
+
+
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.autodoc',
@@ -179,31 +194,21 @@ def _copy_examples() -> None:
 
 
 def _generate_theory_animations() -> None:
-    global _theory_animations_generated
-    if _theory_animations_generated:
-        return
-
     importlib.invalidate_caches()
     module_name = 'make_theory_animations'
     if module_name in sys.modules:
         importlib.reload(sys.modules[module_name])
     else:
         importlib.import_module(module_name)
-    _theory_animations_generated = True
 
 
 def _generate_pseudospectral_visualizations() -> None:
-    global _pseudospectral_visualizations_generated
-    if _pseudospectral_visualizations_generated:
-        return
-
     importlib.invalidate_caches()
     module_name = 'make_pseudospectral_visualizations'
     if module_name in sys.modules:
         importlib.reload(sys.modules[module_name])
     else:
         importlib.import_module(module_name)
-    _pseudospectral_visualizations_generated = True
 
 
 def _cleanup_index_html(outdir: str) -> None:
@@ -238,12 +243,18 @@ def _on_config_inited(_app, _config):
         print('Skipping notebook execution')
     if skip_theory_animations:
         print('Skipping theory animation generation')
-    else:
+    elif _any_missing(theory_animation_outputs):
+        print('Generating theory animations')
         _generate_theory_animations()
+    else:
+        print('Theory animations already exist; skipping generation')
     if skip_pseudospectral_visualizations:
         print('Skipping pseudospectral visualization generation')
-    else:
+    elif _any_missing(pseudospectral_visualization_outputs):
+        print('Generating pseudospectral visualizations')
         _generate_pseudospectral_visualizations()
+    else:
+        print('Pseudospectral visualizations already exist; skipping generation')
 
 
 def _on_build_finished(app, exception):
@@ -257,9 +268,6 @@ def setup(app):
     app.connect('config-inited', _on_config_inited)
     app.connect('build-finished', _on_build_finished)
 
-
-_theory_animations_generated = False
-_pseudospectral_visualizations_generated = False
 
 suppress_warnings = ['autosectionlabel.*', # nbsphinx and austosectionlabel do not play well together
                      'app.add_node', # using multiple builders in custom Sphinx objects throws a bunch of these
