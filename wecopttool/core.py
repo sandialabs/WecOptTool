@@ -50,7 +50,6 @@ __all__ = [
     "decompose_state",
     "frequency_parameters",
     "time_results",
-    "set_fb_centers",
     "block_diag_jax",
 ]
 
