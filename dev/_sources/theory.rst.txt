@@ -70,6 +70,60 @@ At first the solution will not be correct, but as the optimization algorithm ite
 .. note::
     These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.
 
+Time/frequency equivalence in the pseudo-spectral method
+--------------------------------------------------------
+
+In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
+This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
+In the figure below, each harmonic component is shown individually with its amplitude and phase on the opposing frequency-domain axes, while their sum reconstructs the periodic time-domain trajectory.
+
+.. image:: _static/pseudospectral_equivalence.png
+    :width: 700
+    :alt: Illustration of the relationship between frequency-domain coefficients and time-domain collocation points
+    :align: center
+
+For a chosen fundamental frequency :math:`f_1` and a maximum harmonic index :math:`n_{freq}`, the modeled frequencies are integer multiples of the fundamental frequency:
+
+.. math::
+    f_k = k f_1
+    :label: discrete_frequencies
+
+The pseudo-spectral representation implies a periodic time trajectory with repeat period
+
+.. math::
+    T = \frac{1}{f_1}
+    :label: repeat_period
+
+and :math:`2 n_{freq}` time-domain collocation points.
+The corresponding time step is
+
+.. math::
+    \Delta t = \frac{1}{2 n_{freq} f_1}
+    :label: timestep_relation
+
+Thus, the choice of frequency vector determines both what dynamics can be represented in the frequency domain and how finely the corresponding periodic trajectory is sampled in time.
+
+Some useful interpretations are:
+
+    * **All modeled frequencies are harmonics of** :math:`f_1`.
+    * **The smallest nonzero frequency** :math:`f_1` **sets the total repeat period** :math:`T`.
+    * **The highest modeled frequency** :math:`n_{freq} f_1` **sets the effective time resolution**.
+    * **The Fourier coefficients and time-domain collocation points are linked:** :math:`n_{freq}` harmonics correspond to :math:`2 n_{freq}` collocation points in time.
+
+In practice, this means that selecting :math:`f_1` and :math:`n_{freq}` is not only a question of frequency resolution.
+It also determines the length and temporal resolution of the periodic trajectory used to enforce the dynamics and constraints.
+
+WaveBot example
+^^^^^^^^^^^^^^^
+
+The same correspondence can be seen in an actual WecOptTool solution.
+The animation below shows the pseudo-spectral representation of each iteration of a 
+WaveBot PTO trajectory being optimized over the full periodic time window.
+
+.. image:: _static/wavebot_ex_xopt_iterates.gif
+    :width: 700
+    :alt: WaveBot pseudo-spectral solution animation
+    :align: center
 
 Practical concerns
 ------------------
@@ -88,9 +142,9 @@ Automatic differentiation
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 In practice, the size of the decision vector :math:`x` from :eq:`optim_prob` will often be quite large.
 For a single degree of freedom device, :math:`x` can easily be :math:`\mathcal{O}(1e2)`.
-To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Autograd`_.
-In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Autograd replacement for `NumPy`_ by calling :code:`import autograd.numpy as np`.
-Note that Autograd does not support all of NumPy (see the `Autograd documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
+To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the `automatic differentiation`_ package `Jax`_.
+In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Jax replacement for `NumPy`_ by calling :code:`import jax.numpy as np`.
+Note that Jax does not support all of NumPy (see the `Jax documentation`_) and using unsupported parts can result in silent failure of the automatic differentiation.
 
 Scaling
 ^^^^^^^
@@ -151,10 +205,10 @@ Phase Realizations
 Irregular waves are defined in WecOptTool as a spectrum of complex frequency-domain wave elevations. The phase of each of the elevation elements impacts the time-domain result. Thus, the standard calculation of the objective function (average power) may change across a range of phase realizations. The amount of variance in power depends on multiple factors such as the optimization problem and the frequency array. When creating an irregular wave using :py:meth:`wecopttool.waves.long_crested_wave` or :py:meth:`wecopttool.waves.irregular_wave`, :code:`nrealizations` can be used to select the number of phase realizations to be used. By default, random realizations will be used to create the selected number of wave elevation spectra. The :py:meth:`wecopttool.WEC.solve` function will automatically iterate through and solve the optimization problem for each realization, and the overall result can be found by averaging the value of the objective function across all realizations. A general recommendation is to use sufficient random phase realizations such that the total simulation time sums to 20 minutes. 
 
 .. math::
-    t_{total} = \frac{nrealizations}{f1}
+    t_{total} = \frac{n_{realizations}}{f1}
     :label: total_time
 
-The selection of the number of realizations is further detailed in :doc:`_examples/tutorial_4_Pioneer`.
+The selection of the number of realizations is further detailed in :cite:`Grasberger:2025ad` and :doc:`_examples/tutorial_4_Pioneer`.
 
 Troubleshooting
 ---------------
@@ -169,7 +223,7 @@ If your simulation is not behaving as expected, consider some of the general tro
     * Check that absorbed power is less than or equal to the theoretical maximum
 
 .. _WEC-Sim: https://wec-sim.github.io/WEC-Sim/master/index.html
-.. _Autograd: https://github.com/HIPS/autograd
-.. _Autograd documentation: https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy
+.. _Jax: https://github.com/jax-ml/jax
+.. _Jax documentation: https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html
 .. _automatic differentiation: https://en.wikipedia.org/wiki/Automatic_differentiation
 .. _NumPy: https://numpy.org

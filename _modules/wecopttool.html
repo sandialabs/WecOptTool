@@ -77,7 +77,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for wecopttool</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">WEC Design Optimization Toolbox (*WecOptTool*) developed by</span>
 <span class="sd">Sandia National Laboratories. See</span>
 <span class="sd">`sandialabs.github.io/WecOptTool/ &lt;https://sandialabs.github.io/WecOptTool/&gt;`_.</span>
@@ -101,7 +101,7 @@
 <span class="sd">+=========================+============================================================================+</span>
 <span class="sd">| :python:`StateFunction` | :python:`Callable[[WEC, np.ndarray, np.ndarray, xr.Dataset], np.ndarray]`  |</span>
 <span class="sd">+-------------------------+----------------------------------------------------------------------------+</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">metadata</span> <span class="k">as</span> <span class="n">metadata</span>
@@ -117,18 +117,18 @@
 <span class="k">try</span><span class="p">:</span>
   <span class="kn">from</span><span class="w"> </span><span class="nn">wecopttool</span><span class="w"> </span><span class="kn">import</span> <span class="n">geom</span>
 <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
-  <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;`geom` submodule not loaded because of missing dependencies. Install these by running `pip install wecopttool[geometry]`.&quot;</span><span class="p">)</span>
+  <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">"`geom` submodule not loaded because of missing dependencies. Install these by running `pip install wecopttool[geometry]`."</span><span class="p">)</span>
 
 
 <span class="c1"># metadata</span>
-<span class="n">_metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">(</span><span class="s1">&#39;wecopttool&#39;</span><span class="p">)</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;Version&#39;</span><span class="p">]</span>
-<span class="n">__version_info__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">__version__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">))</span>
-<span class="n">__title__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">]</span>
-<span class="n">__description__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
-<span class="n">__author__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;Author&#39;</span><span class="p">]</span>
-<span class="n">__uri__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;Project-URL&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-<span class="n">__license__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">&#39;License&#39;</span><span class="p">]</span>
+<span class="n">_metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="p">(</span><span class="s1">'wecopttool'</span><span class="p">)</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'Version'</span><span class="p">]</span>
+<span class="n">__version_info__</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">__version__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'.'</span><span class="p">))</span>
+<span class="n">__title__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'Name'</span><span class="p">]</span>
+<span class="n">__description__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'Summary'</span><span class="p">]</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'Author'</span><span class="p">]</span>
+<span class="n">__uri__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'Project-URL'</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">','</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="n">_metadata</span><span class="p">[</span><span class="s1">'License'</span><span class="p">]</span>
 
 <span class="c1"># logging</span>
 <span class="n">_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
@@ -138,7 +138,7 @@
 <span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="n">_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">_handler</span><span class="p">)</span>
 
-<span class="n">_log_capytaine</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;capytaine&quot;</span><span class="p">)</span>
+<span class="n">_log_capytaine</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"capytaine"</span><span class="p">)</span>
 <span class="n">_log_capytaine</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">_handler</span><span class="p">)</span>
 
 
@@ -149,7 +149,7 @@
     <span class="n">wecopttool</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">capytaine</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot; Change the logging level of the :python:`wecopttool` and</span>
+<span class="w">    </span><span class="sd">""" Change the logging level of the :python:`wecopttool` and</span>
 <span class="sd">    :python:`capytaine` loggers to the specified level.</span>
 
 <span class="sd">    Parameters</span>
@@ -158,10 +158,10 @@
 <span class="sd">        Level for :py:meth:`python.logging.Logger.setLevel`.</span>
 <span class="sd">        See `list of logging levels &lt;https://docs.python.org/3/library/logging.html#levels&gt;`_.</span>
 <span class="sd">    wecopttool</span>
-<span class="sd">        Whether to change WecOptTool&#39;s log level.</span>
+<span class="sd">        Whether to change WecOptTool's log level.</span>
 <span class="sd">    capytaine</span>
-<span class="sd">        Whether to change Capytaine&#39;s log level.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        Whether to change Capytaine's log level.</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">wecopttool</span><span class="p">:</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">capytaine</span><span class="p">:</span>

@@ -50,6 +50,10 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Theory &amp; Practice</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basic-concept">Basic concept</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-s-this-different-from-what-i-m-used-to">How’s this different from what I’m used to?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#time-frequency-equivalence-in-the-pseudo-spectral-method">Time/frequency equivalence in the pseudo-spectral method</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#wavebot-example">WaveBot example</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#practical-concerns">Practical concerns</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#frequencies">Frequencies</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#automatic-differentiation">Automatic differentiation</a></li>
@@ -148,16 +152,54 @@ Some examples of problems which can be addressed within this framework include:<
 <h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Link to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
-<a class="reference internal image-reference" href="_static/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_static/theory_animation_td.gif" style="width: 600px;" />
+<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" />
 </a>
 <p>Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.</p>
-<a class="reference internal image-reference" href="_static/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_static/theory_animation_ps.gif" style="width: 600px;" />
+<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" />
 </a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>These animations are simplifications and do not fully capture all details of either the time-stepping or pseudo-spectral numerical optimization solution.</p>
 </div>
+</section>
+<section id="time-frequency-equivalence-in-the-pseudo-spectral-method">
+<h2>Time/frequency equivalence in the pseudo-spectral method<a class="headerlink" href="#time-frequency-equivalence-in-the-pseudo-spectral-method" title="Link to this heading"></a></h2>
+<p>In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
+This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
+In the figure below, each harmonic component is shown individually with its amplitude and phase on the opposing frequency-domain axes, while their sum reconstructs the periodic time-domain trajectory.</p>
+<a class="reference internal image-reference" href="_images/pseudospectral_equivalence.png"><img alt="Illustration of the relationship between frequency-domain coefficients and time-domain collocation points" class="align-center" src="_images/pseudospectral_equivalence.png" style="width: 700px;" />
+</a>
+<p>For a chosen fundamental frequency <span class="math notranslate nohighlight">\(f_1\)</span> and a maximum harmonic index <span class="math notranslate nohighlight">\(n_{freq}\)</span>, the modeled frequencies are integer multiples of the fundamental frequency:</p>
+<div class="math notranslate nohighlight" id="equation-discrete-frequencies">
+<span class="eqno">(2)<a class="headerlink" href="#equation-discrete-frequencies" title="Link to this equation"></a></span>\[f_k = k f_1\]</div>
+<p>The pseudo-spectral representation implies a periodic time trajectory with repeat period</p>
+<div class="math notranslate nohighlight" id="equation-repeat-period">
+<span class="eqno">(3)<a class="headerlink" href="#equation-repeat-period" title="Link to this equation"></a></span>\[T = \frac{1}{f_1}\]</div>
+<p>and <span class="math notranslate nohighlight">\(2 n_{freq}\)</span> time-domain collocation points.
+The corresponding time step is</p>
+<div class="math notranslate nohighlight" id="equation-timestep-relation">
+<span class="eqno">(4)<a class="headerlink" href="#equation-timestep-relation" title="Link to this equation"></a></span>\[\Delta t = \frac{1}{2 n_{freq} f_1}\]</div>
+<p>Thus, the choice of frequency vector determines both what dynamics can be represented in the frequency domain and how finely the corresponding periodic trajectory is sampled in time.</p>
+<p>Some useful interpretations are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>All modeled frequencies are harmonics of</strong> <span class="math notranslate nohighlight">\(f_1\)</span>.</p></li>
+<li><p><strong>The smallest nonzero frequency</strong> <span class="math notranslate nohighlight">\(f_1\)</span> <strong>sets the total repeat period</strong> <span class="math notranslate nohighlight">\(T\)</span>.</p></li>
+<li><p><strong>The highest modeled frequency</strong> <span class="math notranslate nohighlight">\(n_{freq} f_1\)</span> <strong>sets the effective time resolution</strong>.</p></li>
+<li><p><strong>The Fourier coefficients and time-domain collocation points are linked:</strong> <span class="math notranslate nohighlight">\(n_{freq}\)</span> harmonics correspond to <span class="math notranslate nohighlight">\(2 n_{freq}\)</span> collocation points in time.</p></li>
+</ul>
+</div></blockquote>
+<p>In practice, this means that selecting <span class="math notranslate nohighlight">\(f_1\)</span> and <span class="math notranslate nohighlight">\(n_{freq}\)</span> is not only a question of frequency resolution.
+It also determines the length and temporal resolution of the periodic trajectory used to enforce the dynamics and constraints.</p>
+<section id="wavebot-example">
+<h3>WaveBot example<a class="headerlink" href="#wavebot-example" title="Link to this heading"></a></h3>
+<p>The same correspondence can be seen in an actual WecOptTool solution.
+The animation below shows the pseudo-spectral representation of each iteration of a
+WaveBot PTO trajectory being optimized over the full periodic time window.</p>
+<a class="reference internal image-reference" href="_images/wavebot_ex_xopt_iterates.gif"><img alt="WaveBot pseudo-spectral solution animation" class="align-center" src="_images/wavebot_ex_xopt_iterates.gif" style="width: 700px;" />
+</a>
+</section>
 </section>
 <section id="practical-concerns">
 <h2>Practical concerns<a class="headerlink" href="#practical-concerns" title="Link to this heading"></a></h2>
@@ -178,9 +220,9 @@ When creating this frequency array, consider:</p>
 <h3>Automatic differentiation<a class="headerlink" href="#automatic-differentiation" title="Link to this heading"></a></h3>
 <p>In practice, the size of the decision vector <span class="math notranslate nohighlight">\(x\)</span> from <a class="reference internal" href="#equation-optim-prob">(1)</a> will often be quite large.
 For a single degree of freedom device, <span class="math notranslate nohighlight">\(x\)</span> can easily be <span class="math notranslate nohighlight">\(\mathcal{O}(1e2)\)</span>.
-To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the <a class="reference external" href="https://en.wikipedia.org/wiki/Automatic_differentiation">automatic differentiation</a> package <a class="reference external" href="https://github.com/HIPS/autograd">Autograd</a>.
-In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Autograd replacement for <a class="reference external" href="https://numpy.org">NumPy</a> by calling <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">autograd.numpy</span> <span class="pre">as</span> <span class="pre">np</span></code>.
-Note that Autograd does not support all of NumPy (see the <a class="reference external" href="https://github.com/HIPS/autograd/blob/master/docs/tutorial.md#supported-and-unsupported-parts-of-numpyscipy">Autograd documentation</a>) and using unsupported parts can result in silent failure of the automatic differentiation.</p>
+To obtain high accuracy solutions to optimization problems with large numbers of decision variables, without requiring users to provide analytic gradients (i.e., the Jacobian and Hessian matrices), WecOptTool employs the <a class="reference external" href="https://en.wikipedia.org/wiki/Automatic_differentiation">automatic differentiation</a> package <a class="reference external" href="https://github.com/jax-ml/jax">Jax</a>.
+In practice, most WecOptTool users should only need to know that when writing custom functions to define their device, they should simply use the Jax replacement for <a class="reference external" href="https://numpy.org">NumPy</a> by calling <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">jax.numpy</span> <span class="pre">as</span> <span class="pre">np</span></code>.
+Note that Jax does not support all of NumPy (see the <a class="reference external" href="https://docs.jax.dev/en/latest/notebooks/Common_Gotchas_in_JAX.html">Jax documentation</a>) and using unsupported parts can result in silent failure of the automatic differentiation.</p>
 </section>
 <section id="scaling">
 <h3>Scaling<a class="headerlink" href="#scaling" title="Link to this heading"></a></h3>
@@ -212,17 +254,17 @@ In this case, the device can still be modeled with the linear hydrostatic stiffn
 Creating one of these pre-defined PTOs requires specifying the <em>kinematics matrix</em>.
 Here, the kinematics matrix, <span class="math notranslate nohighlight">\(K\)</span>, is defined as the linear transformation from the WEC position (e.g., heave) in the global frame, <span class="math notranslate nohighlight">\(x\)</span>, to the PTO position in the PTO frame (e.g., tether length/generator rotation), <span class="math notranslate nohighlight">\(p\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-kinematics">
-<span class="eqno">(2)<a class="headerlink" href="#equation-kinematics" title="Link to this equation"></a></span>\[p = K x\]</div>
+<span class="eqno">(5)<a class="headerlink" href="#equation-kinematics" title="Link to this equation"></a></span>\[p = K x\]</div>
 <p>The relationship <span class="math notranslate nohighlight">\(p(x)\)</span> is typically referred to as the <em>backward kinematics</em>, in the field of robotics. If the WEC were considered to be a robot it’s hydrodynamic body would be equivalent to an end effector represented in a global coordinate frame. The PTO positions would be equivalent to joint positions in local coordinates.
 The matrix <span class="math notranslate nohighlight">\(K\)</span> has a size equal to the number of DOFs of the PTOs times the number of DOFs of the WEC.
 Note, however that the real kinematics might not be linear.
-Equation <a class="reference internal" href="#equation-kinematics">(2)</a> represents a linearization of <span class="math notranslate nohighlight">\(p(x)\)</span> about the mean <span class="math notranslate nohighlight">\(x=0\)</span> position, with the matrix <span class="math notranslate nohighlight">\(K\)</span> being the inverse Jacobian of <span class="math notranslate nohighlight">\(p(x)\)</span> at <span class="math notranslate nohighlight">\(x=0\)</span>.</p>
+Equation <a class="reference internal" href="#equation-kinematics">(5)</a> represents a linearization of <span class="math notranslate nohighlight">\(p(x)\)</span> about the mean <span class="math notranslate nohighlight">\(x=0\)</span> position, with the matrix <span class="math notranslate nohighlight">\(K\)</span> being the inverse Jacobian of <span class="math notranslate nohighlight">\(p(x)\)</span> at <span class="math notranslate nohighlight">\(x=0\)</span>.</p>
 <p>The transpose of <span class="math notranslate nohighlight">\(K\)</span> is used to transform the PTO forces in PTO frame, <span class="math notranslate nohighlight">\(f_p\)</span>, to the PTO forces on the WEC, <span class="math notranslate nohighlight">\(f_w\)</span>:</p>
 <div class="math notranslate nohighlight" id="equation-k">
-<span class="eqno">(3)<a class="headerlink" href="#equation-k" title="Link to this equation"></a></span>\[f_w = K^T f_p\]</div>
-<p>This relationship can be derived from conservation of energy in both frames, and using the definition in <a class="reference internal" href="#equation-kinematics">(2)</a>:</p>
+<span class="eqno">(6)<a class="headerlink" href="#equation-k" title="Link to this equation"></a></span>\[f_w = K^T f_p\]</div>
+<p>This relationship can be derived from conservation of energy in both frames, and using the definition in <a class="reference internal" href="#equation-kinematics">(5)</a>:</p>
 <div class="math notranslate nohighlight" id="equation-conservation-energy">
-<span class="eqno">(4)<a class="headerlink" href="#equation-conservation-energy" title="Link to this equation"></a></span>\[\begin{split}f_w^T x = f_p^T p \\
+<span class="eqno">(7)<a class="headerlink" href="#equation-conservation-energy" title="Link to this equation"></a></span>\[\begin{split}f_w^T x = f_p^T p \\
 f_w^T x = f_p^T K x \\
 f_w^T = f_p^T K \\
 f_w = K^T f_p \\\end{split}\]</div>
@@ -231,8 +273,8 @@ f_w = K^T f_p \\\end{split}\]</div>
 <h3>Phase Realizations<a class="headerlink" href="#phase-realizations" title="Link to this heading"></a></h3>
 <p>Irregular waves are defined in WecOptTool as a spectrum of complex frequency-domain wave elevations. The phase of each of the elevation elements impacts the time-domain result. Thus, the standard calculation of the objective function (average power) may change across a range of phase realizations. The amount of variance in power depends on multiple factors such as the optimization problem and the frequency array. When creating an irregular wave using <a class="reference internal" href="api_docs/wecopttool.waves.long_crested_wave.html#wecopttool.waves.long_crested_wave" title="wecopttool.waves.long_crested_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.long_crested_wave()</span></code></a> or <a class="reference internal" href="api_docs/wecopttool.waves.irregular_wave.html#wecopttool.waves.irregular_wave" title="wecopttool.waves.irregular_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.irregular_wave()</span></code></a>, <code class="code docutils literal notranslate"><span class="pre">nrealizations</span></code> can be used to select the number of phase realizations to be used. By default, random realizations will be used to create the selected number of wave elevation spectra. The <a class="reference internal" href="api_docs/wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a> function will automatically iterate through and solve the optimization problem for each realization, and the overall result can be found by averaging the value of the objective function across all realizations. A general recommendation is to use sufficient random phase realizations such that the total simulation time sums to 20 minutes.</p>
 <div class="math notranslate nohighlight" id="equation-total-time">
-<span class="eqno">(5)<a class="headerlink" href="#equation-total-time" title="Link to this equation"></a></span>\[t_{total} = \frac{nrealizations}{f1}\]</div>
-<p>The selection of the number of realizations is further detailed in <span class="xref std std-doc">_examples/tutorial_4_Pioneer</span>.</p>
+<span class="eqno">(8)<a class="headerlink" href="#equation-total-time" title="Link to this equation"></a></span>\[t_{total} = \frac{n_{realizations}}{f1}\]</div>
+<p>The selection of the number of realizations is further detailed in <span class="bibtex-citation" id="id3">[]</span> and <span class="xref std std-doc">_examples/tutorial_4_Pioneer</span>.</p>
 </section>
 </section>
 <section id="troubleshooting">

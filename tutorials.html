@@ -129,15 +129,15 @@ The additional forces should also be defined at all nonzero states (i.e. returns
 <span class="k">def</span><span class="w"> </span><span class="nf">forcing_func</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
     <span class="n">frc</span> <span class="o">=</span> <span class="mi">50</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nfreq</span><span class="o">*</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="n">frc</span>
- <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Additional force&#39;</span><span class="p">:</span> <span class="n">forcing_func</span><span class="p">}</span>
+ <span class="n">f_add</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Additional force'</span><span class="p">:</span> <span class="n">forcing_func</span><span class="p">}</span>
 
 <span class="c1"># define constraint</span>
 <span class="c1"># (must be independent of x_opt)</span>
 <span class="n">f_max</span> <span class="o">=</span> <span class="mf">750.</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">force_constraint</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">waves</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">f_max</span>
-<span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;ineq&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;fun&#39;</span><span class="p">:</span> <span class="n">force_constraint</span><span class="p">,</span>
+<span class="n">ineq_cons</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'type'</span><span class="p">:</span> <span class="s1">'ineq'</span><span class="p">,</span>
+             <span class="s1">'fun'</span><span class="p">:</span> <span class="n">force_constraint</span><span class="p">,</span>
              <span class="p">}</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">ineq_cons</span><span class="p">]</span>
 
@@ -162,7 +162,7 @@ The additional forces should also be defined at all nonzero states (i.e. returns
 <span class="c1"># post process</span>
 <span class="n">nsubsteps</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">wec_fdom</span><span class="p">,</span> <span class="n">wec_tdom</span> <span class="o">=</span> <span class="n">wec</span><span class="o">.</span><span class="n">post_process</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">waves</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="o">=</span><span class="n">nsubsteps</span><span class="p">)</span>
-<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pos&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">wec_tdom</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'pos'</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>

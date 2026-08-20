@@ -78,7 +78,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for wecopttool.waves</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Provide the wave definition structure and provide</span>
+<span></span><span class="sd">"""Provide the wave definition structure and provide</span>
 <span class="sd">functions for creating different common types of waves.</span>
 
 <span class="sd">This module provides the (empty) data structure for waves in</span>
@@ -94,18 +94,18 @@
 <span class="sd">This module uses wave spectrum data in the</span>
 <span class="sd">:py:class:`wavespectra.SpecArray` format, but does not require that you</span>
 <span class="sd">use :py:class:`wavespectra.SpecArray` objects.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;elevation_fd&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;regular_wave&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;long_crested_wave&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;irregular_wave&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;random_phase&quot;</span><span class="p">,</span>
+    <span class="s2">"elevation_fd"</span><span class="p">,</span>
+    <span class="s2">"regular_wave"</span><span class="p">,</span>
+    <span class="s2">"long_crested_wave"</span><span class="p">,</span>
+    <span class="s2">"irregular_wave"</span><span class="p">,</span>
+    <span class="s2">"random_phase"</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -137,7 +137,7 @@
     <span class="n">attr</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct the complex wave elevation</span>
+<span class="w">    </span><span class="sd">"""Construct the complex wave elevation</span>
 <span class="sd">    :py:class:`xarray.DataArray`.</span>
 
 <span class="sd">    This is the complex wave elevation (m) indexed by radial frequency</span>
@@ -165,22 +165,22 @@
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
 <span class="sd">        Generally should not be used except for testing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">directions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">degrees_to_radians</span><span class="p">(</span><span class="n">directions</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
     <span class="n">ndirections</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">directions</span><span class="p">)</span>
     <span class="n">realization</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">nrealizations</span><span class="p">)</span>
     <span class="n">freq</span> <span class="o">=</span> <span class="n">frequency</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
-    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;omega&#39;</span><span class="p">,</span> <span class="s1">&#39;wave_direction&#39;</span><span class="p">,</span> <span class="s1">&#39;realization&#39;</span><span class="p">)</span>
-    <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Radial frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad/s&#39;</span><span class="p">}</span>
-    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Frequency&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;Hz&#39;</span><span class="p">}</span>
-    <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wave direction&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;rad&#39;</span><span class="p">}</span>
-    <span class="n">real_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Phase realization&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
-    <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">omega_attr</span><span class="p">),</span>
-              <span class="s1">&#39;freq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span>
-              <span class="s1">&#39;wave_direction&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">),</span>
-              <span class="s1">&#39;realization&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">realization</span><span class="p">,</span> <span class="n">real_attr</span><span class="p">)}</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'omega'</span><span class="p">,</span> <span class="s1">'wave_direction'</span><span class="p">,</span> <span class="s1">'realization'</span><span class="p">)</span>
+    <span class="n">omega_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'Radial frequency'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'rad/s'</span><span class="p">}</span>
+    <span class="n">freq_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'Frequency'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'Hz'</span><span class="p">}</span>
+    <span class="n">dir_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'Wave direction'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'rad'</span><span class="p">}</span>
+    <span class="n">real_attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'Phase realization'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">''</span><span class="p">}</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'omega'</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">omega</span><span class="p">,</span> <span class="n">omega_attr</span><span class="p">),</span>
+              <span class="s1">'freq'</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">freq</span><span class="p">,</span> <span class="n">freq_attr</span><span class="p">),</span>
+              <span class="s1">'wave_direction'</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">directions</span><span class="p">,</span> <span class="n">dir_attr</span><span class="p">),</span>
+              <span class="s1">'realization'</span><span class="p">:</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">realization</span><span class="p">,</span> <span class="n">real_attr</span><span class="p">)}</span>
 
     <span class="k">if</span> <span class="n">amplitudes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="n">ndirections</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">])</span>
@@ -199,10 +199,10 @@
     <span class="n">camplitude</span> <span class="o">=</span> <span class="n">amplitudes</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">phases</span><span class="p">)</span>
 
     <span class="n">attr</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">attr</span>
-    <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;long_name&#39;</span><span class="p">:</span> <span class="s1">&#39;Wave elevation&#39;</span><span class="p">}</span> <span class="o">|</span> <span class="n">attr</span>
+    <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">,</span> <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'Wave elevation'</span><span class="p">}</span> <span class="o">|</span> <span class="n">attr</span>
 
     <span class="n">waves</span> <span class="o">=</span> <span class="n">DataArray</span><span class="p">(</span><span class="n">camplitude</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
-                         <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;wave_elev&#39;</span><span class="p">)</span>
+                         <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">'wave_elev'</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">waves</span><span class="o">.</span><span class="n">sortby</span><span class="p">(</span><span class="n">waves</span><span class="o">.</span><span class="n">wave_direction</span><span class="p">)</span></div>
 
@@ -218,7 +218,7 @@
     <span class="n">phase</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">direction</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create the dataset for a regular wave.</span>
+<span class="w">    </span><span class="sd">"""Create the dataset for a regular wave.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -237,26 +237,26 @@
 <span class="sd">        Phase (in degrees) of the regular wave.</span>
 <span class="sd">    direction</span>
 <span class="sd">        Direction (in degrees) of the regular wave.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># attributes &amp; index</span>
     <span class="n">omega</span> <span class="o">=</span> <span class="n">freq</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span>
     <span class="n">tmp_waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">iomega</span> <span class="o">=</span> <span class="n">tmp_waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="n">omega</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">iomega</span> <span class="o">=</span> <span class="n">tmp_waves</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">omega</span><span class="o">=</span><span class="n">omega</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'nearest'</span><span class="p">)</span><span class="o">.</span><span class="n">omega</span><span class="o">.</span><span class="n">values</span>
     <span class="n">ifreq</span> <span class="o">=</span> <span class="n">iomega</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">iomega</span><span class="p">,</span> <span class="n">omega</span><span class="p">):</span>
         <span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Requested frequency </span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2"> Hz is not in array. &quot;</span> <span class="o">+</span>
-            <span class="sa">f</span><span class="s2">&quot;Using nearest value of </span><span class="si">{</span><span class="n">ifreq</span><span class="si">}</span><span class="s2"> Hz.&quot;</span>
+            <span class="sa">f</span><span class="s2">"Requested frequency </span><span class="si">{</span><span class="n">freq</span><span class="si">}</span><span class="s2"> Hz is not in array. "</span> <span class="o">+</span>
+            <span class="sa">f</span><span class="s2">"Using nearest value of </span><span class="si">{</span><span class="n">ifreq</span><span class="si">}</span><span class="s2"> Hz."</span>
         <span class="p">)</span>
 
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;Wave type&#39;</span><span class="p">:</span> <span class="s1">&#39;Regular&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;Frequency (Hz)&#39;</span><span class="p">:</span> <span class="n">ifreq</span><span class="p">,</span>
-        <span class="s1">&#39;Amplitude (m)&#39;</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span>
-        <span class="s1">&#39;Phase (degrees)&#39;</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
-        <span class="s1">&#39;Direction (degrees)&#39;</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
+        <span class="s1">'Wave type'</span><span class="p">:</span> <span class="s1">'Regular'</span><span class="p">,</span>
+        <span class="s1">'Frequency (Hz)'</span><span class="p">:</span> <span class="n">ifreq</span><span class="p">,</span>
+        <span class="s1">'Amplitude (m)'</span><span class="p">:</span> <span class="n">amplitude</span><span class="p">,</span>
+        <span class="s1">'Phase (degrees)'</span><span class="p">:</span> <span class="n">phase</span><span class="p">,</span>
+        <span class="s1">'Direction (degrees)'</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="c1"># phase</span>
@@ -269,7 +269,7 @@
     <span class="c1"># wave elevation</span>
     <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">nfreq</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
     <span class="n">waves</span> <span class="o">=</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">tmp</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
-    <span class="n">waves</span><span class="o">.</span><span class="n">loc</span><span class="p">[{</span><span class="s1">&#39;omega&#39;</span><span class="p">:</span> <span class="n">iomega</span><span class="p">}]</span> <span class="o">=</span> <span class="n">amplitude</span>  <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">rphase</span><span class="p">)</span>
+    <span class="n">waves</span><span class="o">.</span><span class="n">loc</span><span class="p">[{</span><span class="s1">'omega'</span><span class="p">:</span> <span class="n">iomega</span><span class="p">}]</span> <span class="o">=</span> <span class="n">amplitude</span>  <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">rphase</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">waves</span></div>
 
@@ -283,7 +283,7 @@
     <span class="n">direction</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from an</span>
+<span class="w">    </span><span class="sd">"""Create a complex frequency-domain wave elevation from an</span>
 <span class="sd">    omnidirectional spectrum.</span>
 
 <span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used</span>
@@ -307,16 +307,16 @@
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
 <span class="sd">        Generally should not be used except for testing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span> <span class="o">=</span> <span class="n">frequency_parameters</span><span class="p">(</span><span class="n">efth</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">f1</span>
 
-    <span class="k">if</span> <span class="s1">&#39;dir&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">efth</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">'dir'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">efth</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">efth</span> <span class="o">=</span> <span class="n">DataArray</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">efth</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;freq&quot;</span><span class="p">,</span> <span class="s2">&quot;dir&quot;</span><span class="p">],</span>
-            <span class="n">coords</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">efth</span><span class="p">[</span><span class="s1">&#39;freq&#39;</span><span class="p">],</span> <span class="nb">dir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">direction</span><span class="p">])),</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;efth&quot;</span><span class="p">,</span>
+            <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s2">"freq"</span><span class="p">,</span> <span class="s2">"dir"</span><span class="p">],</span>
+            <span class="n">coords</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">freq</span><span class="o">=</span><span class="n">efth</span><span class="p">[</span><span class="s1">'freq'</span><span class="p">],</span> <span class="nb">dir</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">direction</span><span class="p">])),</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"efth"</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="n">values</span> <span class="o">=</span> <span class="n">efth</span><span class="o">.</span><span class="n">values</span>
@@ -324,8 +324,8 @@
     <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">values</span> <span class="o">*</span> <span class="n">df</span><span class="p">)</span>
 
     <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;Wave type&#39;</span><span class="p">:</span> <span class="s1">&#39;Long-crested irregular&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;Direction (degrees)&#39;</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
+        <span class="s1">'Wave type'</span><span class="p">:</span> <span class="s1">'Long-crested irregular'</span><span class="p">,</span>
+        <span class="s1">'Direction (degrees)'</span><span class="p">:</span> <span class="n">direction</span><span class="p">,</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
@@ -337,7 +337,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">irregular_wave</span><span class="p">(</span><span class="n">efth</span><span class="p">:</span> <span class="n">DataArray</span><span class="p">,</span>
                    <span class="n">nrealizations</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="n">DataArray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a complex frequency-domain wave elevation from a spectrum. </span>
+<span class="w">    </span><span class="sd">"""Create a complex frequency-domain wave elevation from a spectrum. </span>
 
 <span class="sd">    The spectrum is a :py:class:`xarray.DataArray` in the format used</span>
 <span class="sd">    by :py:class:`wavespectra.SpecArray`.</span>
@@ -364,7 +364,7 @@
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
 <span class="sd">        Generally should not be used except for testing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span> <span class="o">=</span> <span class="n">frequency_parameters</span><span class="p">(</span><span class="n">efth</span><span class="o">.</span><span class="n">freq</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">directions</span> <span class="o">=</span> <span class="n">efth</span><span class="o">.</span><span class="n">dir</span><span class="o">.</span><span class="n">values</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">f1</span>
@@ -374,7 +374,7 @@
     <span class="n">values</span><span class="p">[</span><span class="n">values</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
     <span class="n">amplitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">values</span> <span class="o">*</span> <span class="n">df</span> <span class="o">*</span> <span class="n">dd</span><span class="p">)</span>
 
-    <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Wave type&#39;</span><span class="p">:</span> <span class="s1">&#39;Irregular&#39;</span><span class="p">}</span>
+    <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Wave type'</span><span class="p">:</span> <span class="s1">'Irregular'</span><span class="p">}</span>
 
     <span class="k">return</span> <span class="n">elevation_fd</span><span class="p">(</span><span class="n">f1</span><span class="p">,</span> <span class="n">nfreq</span><span class="p">,</span> <span class="n">directions</span><span class="p">,</span> <span class="n">nrealizations</span><span class="p">,</span> <span class="n">amplitudes</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span></div>
 
@@ -386,7 +386,7 @@
     <span class="n">shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span> <span class="p">,</span> <span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate random phases in range [-π, π) radians.</span>
+<span class="w">    </span><span class="sd">"""Generate random phases in range [-π, π) radians.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -395,7 +395,7 @@
 <span class="sd">    seed</span>
 <span class="sd">        Seed for random number generator. Used for reproducibility.</span>
 <span class="sd">        Generally should not be used except for testing.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rng</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span></div>
 
