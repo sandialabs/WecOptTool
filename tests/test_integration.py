@@ -88,6 +88,8 @@ def fb():
     lid_mesh = mesh_obj.generate_lid(-2e-2)
     fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, center_of_mass=(0, 0, 0), name="WaveBot")
     fb.add_translation_dof(name="Heave")
+    if cpy.__version__ < '3':
+        fb.rotation_center = (0, 0, 0)  # Workaround for a bug in Capytaine 2.x. Actually unused since the body has only translation dofs.
     return fb
 
 
@@ -110,6 +112,8 @@ def fb_2d():
     fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, center_of_mass=(0, 0, 0), name="WaveBot")
     fb.add_translation_dof(name="Heave")
     fb.add_translation_dof(name="Surge")
+    if cpy.__version__ < '3':
+        fb.rotation_center = (0, 0, 0)  # Workaround for a bug in Capytaine 2.x. Actually unused since the body has only translation dofs.
     return fb
 
 
