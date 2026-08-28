@@ -106,9 +106,9 @@ def plot_hydrodynamic_coefficients(bem_data,
                 bem_data.radiation_damping.sel(
                     radiating_dof=rdof, influenced_dof=idof).plot(ax=ax_rd[i, j])
                 if i == len(radiating_dofs)-1:
-                    ax_am[i, j].set_xlabel(f'$\omega$', fontsize=10)
-                    ax_rd[i, j].set_xlabel(f'$\omega$', fontsize=10)
-                    ax_ex[j, 0].set_xlabel(f'$\omega$', fontsize=10)
+                    ax_am[i, j].set_xlabel(r'$\omega$', fontsize=10)
+                    ax_rd[i, j].set_xlabel(r'$\omega$', fontsize=10)
+                    ax_ex[j, 0].set_xlabel(r'$\omega$', fontsize=10)
                 else:
                     ax_am[i, j].set_xlabel('')
                     ax_rd[i, j].set_xlabel('')
@@ -175,12 +175,12 @@ def plot_bode_impedance(impedance: DataArray,
             axes[2*i, j].grid(True, which = 'both')
             axes[2*i+1, j].grid(True, which = 'both')
             if i == len(radiating_dofs)-1:
-                axes[2*i+1, j].set_xlabel(f'Frequency [Hz]', fontsize=10)
+                axes[2*i+1, j].set_xlabel(r'Frequency [Hz]', fontsize=10)
             else:
                 axes[i, j].set_xlabel('')
             if j == 0:
                 axes[2*i, j].set_ylabel(f'{rdof} \n Mag. [dB]', fontsize=10)
-                axes[2*i+1, j].set_ylabel(f'Phase. [deg]', fontsize=10)
+                axes[2*i+1, j].set_ylabel(r'Phase. [deg]', fontsize=10)
             else:
                 axes[i, j].set_ylabel('')
             if i == 0:
@@ -252,9 +252,9 @@ def calculate_power_flows(wec,
         P_e.append((1/4)*(Fe_FD_t@np.conj(U_FD) + U_FD_t@np.conj(Fe_FD)))
 
     power_flows = {
-        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68
-        'Radiated': -1*np.sum(np.real(P_r)),
-        'Actual Excitation': -1*np.sum(np.real(P_e)),
+        'Optimal Excitation' : -2* np.sum(np.real(P_max), dtype=np.float64),#eq 6.68
+        'Radiated': -1*np.sum(np.real(P_r), dtype=np.float64),
+        'Actual Excitation': -1*np.sum(np.real(P_e), dtype=np.float64),
         'Electrical (solver)': P_elec,
         'Mechanical (solver)': P_mech,
                   }
@@ -274,19 +274,22 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(power_flows: dict[str, float],
+def plot_power_flow(
+    power_flows: dict[str, float],
     tolerance: Optional[float] = None,
-)-> tuple(Figure, Axes):
+) -> tuple[Figure, Axes]:
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
     ----------
     power_flows
-        Power flow dictionary produced by for example by
+        Power flow dictionary produced by
         :py:func:`wecopttool.utilities.calculate_power_flows`.
-        Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation',
-                        'Electrical (solver)', 'Mechanical (solver)',
-                        'Absorbed', 'Unused Potential', 'PTO Loss'
+
+        Required keys are ``'Optimal Excitation'``, ``'Radiated'``,
+        ``'Actual Excitation'``, ``'Electrical (solver)'``,
+        ``'Mechanical (solver)'``, ``'Absorbed'``,
+        ``'Unused Potential'``, and ``'PTO Loss'``.
     tolerance
         Tolerance value for sankey diagram.
     """

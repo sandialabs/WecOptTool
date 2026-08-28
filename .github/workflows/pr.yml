@@ -80,6 +80,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     - uses: actions/setup-python@v4
       with:
         python-version: '3.12'  # CHANGE: Python version
@@ -97,5 +99,6 @@ jobs:
     - name: Build documentation
       shell: bash -l {0}
       run: |
-        git fetch --tags
+        git fetch --force --prune --tags
+        git fetch --force --prune origin '+refs/heads/*:refs/remotes/origin/*'
         python3 docs/build_docs.py --build debug

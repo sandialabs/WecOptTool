@@ -654,9 +654,9 @@ class WEC:
             Optimization options passed to the optimizer.
             See :py:func:`scipy.optimize.minimize`.
         use_grad
-             If :python:`True`, optimization will utilize
-             `jax <https://https://github.com/jax-ml/jax>`_
-             for gradients.
+            If :python:`True`, optimization will utilize
+            `jax <https://github.com/jax-ml/jax>`_
+            for gradients.
         maximize
             Whether to maximize the objective function.
             The default is to minimize the objective function.
@@ -724,15 +724,21 @@ class WEC:
             scale_x_opt = scale_dofs([scale_x_opt], nstate_opt)
 
         # composite scaling vector
-        scale = jnp.concatenate([jnp.array(scale_x_wec), jnp.array(scale_x_opt)])
+        scale = jnp.concatenate([
+            jnp.array(scale_x_wec, dtype=jnp.float64),
+            jnp.array(scale_x_opt, dtype=jnp.float64),
+        ])
 
         # decision variable initial guess
         key = jax.random.PRNGKey(0) # could add key as input to select same initial guesses?
         if x_wec_0 is None:
-            x_wec_0 = jax.random.normal(key, [self.nstate_wec], dtype=np.float64)
+            x_wec_0 = jax.random.normal(key, [self.nstate_wec])
         if x_opt_0 is None:
-            x_opt_0 = jax.random.normal(key, [nstate_opt], dtype=np.float64)
-        x0 = jnp.concatenate([jnp.array(x_wec_0), jnp.array(x_opt_0)])*scale
+            x_opt_0 = jax.random.normal(key, [nstate_opt])
+        x0 = jnp.concatenate([
+            jnp.array(x_wec_0, dtype=jnp.float64),
+            jnp.array(x_opt_0, dtype=jnp.float64),
+        ]) * scale
 
         # bounds
         if (bounds_wec is None) and (bounds_opt is None):
@@ -963,7 +969,7 @@ class WEC:
                 attrs={"time_created_utc": create_time}
             )
 
-            results_fd = xr.merge([fd_state, fd_forces, wave])
+            results_fd = xr.merge([fd_state, fd_forces, wave], join="outer", compat="no_conflicts")
             results_fd = results_fd.transpose('omega', 'influenced_dof', 'type',
                                             'wave_direction')
             results_fd = results_fd.fillna(0)
@@ -987,8 +993,8 @@ class WEC:
         results_td_list = []
         for idx, ires in enumerate(res):
             ifd, itd = _postproc(ires, waves.sel(realization=idx), nsubsteps)
-            ifd.expand_dims({'realization':[ires]})
-            itd.expand_dims({'realization':[ires]})
+            ifd = ifd.expand_dims(realization=[idx])
+            itd = itd.expand_dims(realization=[idx])
             results_fd_list.append(ifd)
             results_td_list.append(itd)
         results_fd = xr.concat(results_fd_list, dim='realization')
@@ -2333,7 +2339,8 @@ def wave_excitation(exc_coeff: DataArray, wave: DataArray) -> ndarray:
             f"\n Wave direction(s): {(np.rad2deg(dir_w))} (deg)" +
             f"\n BEM direction(s): {np.rad2deg(dir_e)} (deg).")
 
-    return jnp.sum(wave_elev_fd*exc_coeff[:, sub_ind, :], axis=1)
+    result = wave_elev_fd.astype(jnp.complex128) * exc_coeff[:, sub_ind, :].astype(jnp.complex128)
+    return jnp.sum(result, axis=1)
 
 
 def hydrodynamic_impedance(hydro_data: Dataset) -> Dataset:
