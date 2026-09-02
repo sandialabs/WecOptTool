@@ -15,11 +15,11 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -103,11 +103,11 @@
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This theory section is intended to give a very high-level understanding of key concepts for WecOptTool.
-For a more detailed explanation, please see <span class="bibtex-citation" id="id1">[<a class="reference internal" href="references.html#id8" title="Carlos A. Michelén Ströfer, Daniel T. Gaebele, Ryan G. Coe, and Giorgio Bacelli. Control Co-Design of Power Take-off Systems for Wave Energy Converters using WecOptTool. IEEE Transactions on Sustainable Energy, 14(4):2157-2167, 2023. doi:10.1109/TSTE.2023.3272868.">1</a>, <a class="reference internal" href="references.html#id9" title="Giorgio Bacelli. Optimal control of wave energy converters. PhD, National University of Ireland, Maynooth, Maynooth, Ireland, 2014. URL: http://mural.maynoothuniversity.ie/6753/.">2</a>, <a class="reference internal" href="references.html#id13" title="Giorgio Bacelli and John V Ringwood. Numerical optimal control of wave energy converters. IEEE Transactions on Sustainable Energy, 6(2):294–302, 2014. doi:10.1109/TSTE.2014.2371536.">3</a>]</span>.</p>
+For a more detailed explanation, please see <span class="bibtex-citation" id="id1">[]</span>.</p>
 </div>
 <section id="basic-concept">
 <h2>Basic concept<a class="headerlink" href="#basic-concept" title="Link to this heading"></a></h2>
-<p>WecOptTool uses a pseudo-spectral method <span class="bibtex-citation" id="id2">[<a class="reference internal" href="references.html#id10" title="G. Elnagar, M.A. Kazemi, and M. Razzaghi. The pseudospectral legendre method for discretizing optimal control problems. IEEE Transactions on Automatic Control, 40(10):1793-1796, 1995. doi:10.1109/9.467672.">4</a>]</span> to perform two tasks simultaneously:</p>
+<p>WecOptTool uses a pseudo-spectral method <span class="bibtex-citation" id="id2">[]</span> to perform two tasks simultaneously:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p>Optimize the solution for the desired objective function (e.g. power generation)</p></li>
@@ -152,11 +152,11 @@ Some examples of problems which can be addressed within this framework include:<
 <h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Link to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" width="600" />
+<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" />
 </a>
 <p>Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" width="600" />
+<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" />
 </a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -168,7 +168,7 @@ At first the solution will not be correct, but as the optimization algorithm ite
 <p>In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
 This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
 In the figure below, each harmonic component is shown individually with its amplitude and phase on the opposing frequency-domain axes, while their sum reconstructs the periodic time-domain trajectory.</p>
-<a class="reference internal image-reference" href="_images/pseudospectral_equivalence.png"><img alt="Illustration of the relationship between frequency-domain coefficients and time-domain collocation points" class="align-center" src="_images/pseudospectral_equivalence.png" width="700" />
+<a class="reference internal image-reference" href="_images/pseudospectral_equivalence.png"><img alt="Illustration of the relationship between frequency-domain coefficients and time-domain collocation points" class="align-center" src="_images/pseudospectral_equivalence.png" style="width: 700px;" />
 </a>
 <p>For a chosen fundamental frequency <span class="math notranslate nohighlight">\(f_1\)</span> and a maximum harmonic index <span class="math notranslate nohighlight">\(n_{freq}\)</span>, the modeled frequencies are integer multiples of the fundamental frequency:</p>
 <div class="math notranslate nohighlight" id="equation-discrete-frequencies">
@@ -197,7 +197,7 @@ It also determines the length and temporal resolution of the periodic trajectory
 <p>The same correspondence can be seen in an actual WecOptTool solution.
 The animation below shows the pseudo-spectral representation of each iteration of a
 WaveBot PTO trajectory being optimized over the full periodic time window.</p>
-<a class="reference internal image-reference" href="_images/wavebot_ex_xopt_iterates.gif"><img alt="WaveBot pseudo-spectral solution animation" class="align-center" src="_images/wavebot_ex_xopt_iterates.gif" width="700" />
+<a class="reference internal image-reference" href="_images/wavebot_ex_xopt_iterates.gif"><img alt="WaveBot pseudo-spectral solution animation" class="align-center" src="_images/wavebot_ex_xopt_iterates.gif" style="width: 700px;" />
 </a>
 </section>
 </section>
@@ -236,7 +236,7 @@ Scaling mismatches in the decision variable <span class="math notranslate nohigh
 <section id="constraints">
 <h3>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h3>
 <p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
-This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_WaveBot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
+This functionality is well-illustrated in <span class="xref std std-doc">_examples/tutorial_1_WaveBot</span>.
 An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
 It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
 In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec" title="wecopttool.pto.PTO.force_on_wec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PTO.force_on_wec()</span></code></a>).</p>
@@ -274,7 +274,7 @@ f_w = K^T f_p \\\end{split}\]</div>
 <p>Irregular waves are defined in WecOptTool as a spectrum of complex frequency-domain wave elevations. The phase of each of the elevation elements impacts the time-domain result. Thus, the standard calculation of the objective function (average power) may change across a range of phase realizations. The amount of variance in power depends on multiple factors such as the optimization problem and the frequency array. When creating an irregular wave using <a class="reference internal" href="api_docs/wecopttool.waves.long_crested_wave.html#wecopttool.waves.long_crested_wave" title="wecopttool.waves.long_crested_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.long_crested_wave()</span></code></a> or <a class="reference internal" href="api_docs/wecopttool.waves.irregular_wave.html#wecopttool.waves.irregular_wave" title="wecopttool.waves.irregular_wave"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.waves.irregular_wave()</span></code></a>, <code class="code docutils literal notranslate"><span class="pre">nrealizations</span></code> can be used to select the number of phase realizations to be used. By default, random realizations will be used to create the selected number of wave elevation spectra. The <a class="reference internal" href="api_docs/wecopttool.WEC.solve.html#wecopttool.WEC.solve" title="wecopttool.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.WEC.solve()</span></code></a> function will automatically iterate through and solve the optimization problem for each realization, and the overall result can be found by averaging the value of the objective function across all realizations. A general recommendation is to use sufficient random phase realizations such that the total simulation time sums to 20 minutes.</p>
 <div class="math notranslate nohighlight" id="equation-total-time">
 <span class="eqno">(8)<a class="headerlink" href="#equation-total-time" title="Link to this equation"></a></span>\[t_{total} = \frac{n_{realizations}}{f1}\]</div>
-<p>The selection of the number of realizations is further detailed in <span class="bibtex-citation" id="id3">[<a class="reference internal" href="references.html#id16" title="Jeff Grasberger, Ryan Coe, Daniel T. Gaebele, Michael C. Devin, Carlos A. Michelen Ströfer, and Giorgio Bacelli. Frequency array and wave phase realizations for wave energy converter control optimization. International Marine Energy Journal, 8(3):265-270, October 2025. doi:10.36688/imej.8.265-270.">5</a>]</span> and <a class="reference internal" href="_examples/tutorial_4_Pioneer.html"><span class="doc">Tutorial 4 - Pioneer</span></a>.</p>
+<p>The selection of the number of realizations is further detailed in <span class="bibtex-citation" id="id3">[]</span> and <span class="xref std std-doc">_examples/tutorial_4_Pioneer</span>.</p>
 </section>
 </section>
 <section id="troubleshooting">
