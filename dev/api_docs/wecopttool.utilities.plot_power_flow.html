@@ -15,8 +15,8 @@
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../_static/doctools.js?v=9a2dae69"></script>
-      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -146,18 +146,19 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>power_flows</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – <p>Power flow dictionary produced by
-<a class="reference internal" href="wecopttool.utilities.calculate_power_flows.html#wecopttool.utilities.calculate_power_flows" title="wecopttool.utilities.calculate_power_flows"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.utilities.calculate_power_flows()</span></code></a>.</p>
-<p>Required keys are <code class="docutils literal notranslate"><span class="pre">'Optimal</span> <span class="pre">Excitation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Radiated'</span></code>,
-<code class="docutils literal notranslate"><span class="pre">'Actual</span> <span class="pre">Excitation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Electrical</span> <span class="pre">(solver)'</span></code>,
-<code class="docutils literal notranslate"><span class="pre">'Mechanical</span> <span class="pre">(solver)'</span></code>, <code class="docutils literal notranslate"><span class="pre">'Absorbed'</span></code>,
-<code class="docutils literal notranslate"><span class="pre">'Unused</span> <span class="pre">Potential'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'PTO</span> <span class="pre">Loss'</span></code>.</p>
+<li><p><strong>power_flows</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – <p>Power flow dictionary produced by for example by
+<a class="reference internal" href="wecopttool.utilities.calculate_power_flows.html#wecopttool.utilities.calculate_power_flows" title="wecopttool.utilities.calculate_power_flows"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.utilities.calculate_power_flows()</span></code></a>.
+Required keys: ‘Optimal Excitation’, ‘Radiated’, ‘Actual Excitation’,</p>
+<blockquote>
+<div><p>’Electrical (solver)’, ‘Mechanical (solver)’,
+‘Absorbed’, ‘Unused Potential’, ‘PTO Loss’</p>
+</div></blockquote>
 </p></li>
-<li><p><strong>tolerance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>) – Tolerance value for sankey diagram.</p></li>
+<li><p><strong>tolerance</strong> (<em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – Tolerance value for sankey diagram.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[Figure, Axes]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>(Figure, Axes)</p>
 </dd>
 </dl>
 </dd></dl>
