@@ -22,7 +22,7 @@ from pathlib import Path
 import numpy as np
 from numpy.linalg import inv
 from numpy.typing import ArrayLike
-from xarray import DataArray, concat
+from xarray import Dataset, DataArray, concat
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
@@ -31,6 +31,11 @@ from matplotlib.sankey import Sankey
 from wecopttool.core import add_linear_friction, check_radiation_damping
 from wecopttool.core import hydrodynamic_impedance, frequency_parameters
 from wecopttool.core import fd_to_td, time
+
+# add function from Multibody for Everbody
+from multibody import MbdSystem
+from multibody.linearization.linearization_main import LinearizationManager
+from multibody.linearization.hydro_linear_mckf import HydroLinearMCKF
 
 # logger
 _log = logging.getLogger(__name__)
@@ -106,9 +111,9 @@ def plot_hydrodynamic_coefficients(bem_data,
                 bem_data.radiation_damping.sel(
                     radiating_dof=rdof, influenced_dof=idof).plot(ax=ax_rd[i, j])
                 if i == len(radiating_dofs)-1:
-                    ax_am[i, j].set_xlabel(r'$\omega$', fontsize=10)
-                    ax_rd[i, j].set_xlabel(r'$\omega$', fontsize=10)
-                    ax_ex[j, 0].set_xlabel(r'$\omega$', fontsize=10)
+                    ax_am[i, j].set_xlabel(f'$\omega$', fontsize=10)
+                    ax_rd[i, j].set_xlabel(f'$\omega$', fontsize=10)
+                    ax_ex[j, 0].set_xlabel(f'$\omega$', fontsize=10)
                 else:
                     ax_am[i, j].set_xlabel('')
                     ax_rd[i, j].set_xlabel('')
@@ -175,12 +180,12 @@ def plot_bode_impedance(impedance: DataArray,
             axes[2*i, j].grid(True, which = 'both')
             axes[2*i+1, j].grid(True, which = 'both')
             if i == len(radiating_dofs)-1:
-                axes[2*i+1, j].set_xlabel(r'Frequency [Hz]', fontsize=10)
+                axes[2*i+1, j].set_xlabel(f'Frequency [Hz]', fontsize=10)
             else:
                 axes[i, j].set_xlabel('')
             if j == 0:
                 axes[2*i, j].set_ylabel(f'{rdof} \n Mag. [dB]', fontsize=10)
-                axes[2*i+1, j].set_ylabel(r'Phase. [deg]', fontsize=10)
+                axes[2*i+1, j].set_ylabel(f'Phase. [deg]', fontsize=10)
             else:
                 axes[i, j].set_ylabel('')
             if i == 0:
@@ -252,9 +257,9 @@ def calculate_power_flows(wec,
         P_e.append((1/4)*(Fe_FD_t@np.conj(U_FD) + U_FD_t@np.conj(Fe_FD)))
 
     power_flows = {
-        'Optimal Excitation' : -2* np.sum(np.real(P_max), dtype=np.float64),#eq 6.68
-        'Radiated': -1*np.sum(np.real(P_r), dtype=np.float64),
-        'Actual Excitation': -1*np.sum(np.real(P_e), dtype=np.float64),
+        'Optimal Excitation' : -2* np.sum(np.real(P_max)),#eq 6.68
+        'Radiated': -1*np.sum(np.real(P_r)),
+        'Actual Excitation': -1*np.sum(np.real(P_e)),
         'Electrical (solver)': P_elec,
         'Mechanical (solver)': P_mech,
                   }
@@ -274,22 +279,19 @@ def calculate_power_flows(wec,
     return power_flows
 
 
-def plot_power_flow(
-    power_flows: dict[str, float],
+def plot_power_flow(power_flows: dict[str, float],
     tolerance: Optional[float] = None,
-) -> tuple[Figure, Axes]:
+)-> tuple(Figure, Axes):
     """Plot power flow through a WEC as Sankey diagram.
 
     Parameters
     ----------
     power_flows
-        Power flow dictionary produced by
+        Power flow dictionary produced by for example by
         :py:func:`wecopttool.utilities.calculate_power_flows`.
-
-        Required keys are ``'Optimal Excitation'``, ``'Radiated'``,
-        ``'Actual Excitation'``, ``'Electrical (solver)'``,
-        ``'Mechanical (solver)'``, ``'Absorbed'``,
-        ``'Unused Potential'``, and ``'PTO Loss'``.
+        Required keys: 'Optimal Excitation', 'Radiated', 'Actual Excitation',
+                        'Electrical (solver)', 'Mechanical (solver)',
+                        'Absorbed', 'Unused Potential', 'PTO Loss'
     tolerance
         Tolerance value for sankey diagram.
     """
@@ -512,3 +514,177 @@ def create_dataarray(
     Zi = DataArray(Zi, dims=dims_imp, coords=coords_imp, attrs=attrs_imp, name='Intrinsic impedance')
     
     return exc_coeff, Zi
+
+def setup_from_M4E(M4E_input_file, bem_data, fb_list, mass_list, inertia_list):
+    """Setup WOT from M4E"""
+
+    body_inputs = {
+        i + 1: {
+                'mesh': fb.mesh,
+                'name': fb.name,
+                'mesh_reference': 'absolute',
+                'inertia_diag': [m, m, m, J, J, J],
+        }
+        for i, (fb, m, J) in enumerate(zip(fb_list, mass_list, inertia_list))
+    }
+    
+    # Define the multibody system
+    MBDsys      = MbdSystem.from_example(M4E_input_file)
+    mainNumVars = M4E_input_file.ic.copy()
+
+    # Linearization
+    q0 = (MBDsys.ic - M4E_input_file.ic)[:len(MBDsys.Q)]
+
+    # Instantiate the linearized MBD system
+    LinManager = LinearizationManager(MBDsys, q0, mainNumVars, mass_list, inertia_list, print_sym_matrices=False)
+
+    # Instanciate and register hydrodynamics adapter
+    hydroAdapter = HydroLinearMCKF(
+            MBDsys,
+            (mainNumVars, mass_list, inertia_list),
+            body_inputs = body_inputs,
+            data = bem_data,
+            equilibrium_pos=q0
+            )
+
+    LinManager.register(hydroAdapter)
+    
+    # Instantiate the total linearized system with attributes M,C,K,F
+    omega = bem_data.omega.values
+    FD_system = LinManager.assemble_frequency_domain(omega)
+
+    # Extract linearized matrices
+    M = FD_system.M
+    C = FD_system.C
+    K = FD_system.K 
+    F = FD_system.Fhat
+
+    # Impedance matrix in joint coordinates
+    impedance_reduced = M * (1j * omega[:, None, None]) + C - 1j * K[None, :, :] * (1/omega)[:, None, None]
+    hydrostatic_stiffness_reduced = K
+
+    # Convert excitation force to xarray
+    excitation_reduced = DataArray(F.transpose(0,2,1), coords=hydroAdapter.coords_exc, attrs={})
+
+    # transformation variables
+    R0 = LinManager.R0
+    
+    return impedance_reduced, excitation_reduced, hydrostatic_stiffness_reduced, R0, MBDsys.NDOF
+
+def reduce_PTO_kinematics_M4E(kinematics_mat, R0):
+    """Convert PTO kinematics from full dofs to reduced dofs using the transformation matrix R0 from M4E linearization"""
+
+    kinematics_reduced = kinematics_mat @ R0
+    return kinematics_reduced
+
+def reduce_damping_stiffness_M4E(damping_stiffness_mat, R0):
+    """Convert damping or stiffness matrix from full dofs to reduced dofs using the transformation matrix R0 from M4E linearization"""
+
+    damping_stiffness_reduced = R0.T @ damping_stiffness_mat @ R0
+    return damping_stiffness_reduced
+
+def reduce_timeseries_M4E(timeseries_full, R0):
+    """Convert full timeseries to reduced DOFs using R0"""
+
+    timeseries_reduced = np.linalg.solve(R0.T @ R0, R0.T @ timeseries_full.T).T
+    return timeseries_reduced
+
+def expand_timeseries_M4E(timeseries_reduced, R0):
+    """Convert reduced-coordinate time series to full DOFs using R0."""
+
+    timeseries_full = timeseries_reduced @ R0.T
+    return timeseries_full
+
+def _full_dof_labels(n_full):
+    """Create generic full-DOF labels."""
+    return [f"DOF_{i}" for i in range(n_full)]
+
+def _expand_reduced_da(da, R0, dof_dim="influenced_dof", new_labels=None):
+
+    n_full, n_red = R0.shape
+    if da.sizes[dof_dim] != n_red:
+        raise ValueError(
+            f"DataArray '{da.name}' has {da.sizes[dof_dim]} reduced DOFs, "
+            f"but R0 has shape {R0.shape}."
+        )
+
+    # Move reduced dof to last axis for matrix multiply
+    other_dims = [d for d in da.dims if d != dof_dim]
+    da_last = da.transpose(*other_dims, dof_dim)
+
+    # (..., n_red) @ (n_red, n_full) -> (..., n_full)
+    data_full = expand_timeseries_M4E(da_last.data, R0)
+
+    coords = {d: da_last.coords[d] for d in other_dims}
+    coords[dof_dim] = new_labels if new_labels is not None else _full_dof_labels(n_full)
+
+    da_full = DataArray(
+        data=data_full,
+        dims=other_dims + [dof_dim],
+        coords=coords,
+        attrs=da.attrs,
+        name=da.name,
+    )
+
+    # Restore original dim ordering
+    return da_full.transpose(*da.dims)
+
+def _rename_reduced_dof_dim(da, old_dim="influenced_dof", new_dim="reduced_influenced_dof"):
+    if old_dim not in da.dims:
+        return da
+    return da.rename({old_dim: new_dim})
+
+# Post-process and convert reduced coordinate results back into full coordinates
+def post_process_M4E(wec, results, waves, nsubsteps, R0):
+
+    wec_fdom, wec_tdom = wec.post_process(wec, results, waves, nsubsteps=nsubsteps)
+
+    n_full, _ = R0.shape
+    full_labels = _full_dof_labels(n_full)
+
+    def transform_dataset(ds):
+        data_vars = {}
+
+        for name, da in ds.data_vars.items():
+            if name in ["pos", "vel", "acc"] and "influenced_dof" in da.dims:
+                data_vars[name] = _expand_reduced_da(
+                    da, R0, dof_dim="influenced_dof", new_labels=full_labels
+                )
+
+            elif name == "force" and "influenced_dof" in da.dims:
+                force_reduced = _rename_reduced_dof_dim(
+                    da, old_dim="influenced_dof", new_dim="reduced_influenced_dof"
+                )
+                data_vars["force"] = force_reduced
+
+                force_full = _expand_reduced_da(
+                    da, R0, dof_dim="influenced_dof", new_labels=full_labels
+                )
+                force_full.name = "force_full"
+                force_full.attrs = dict(force_full.attrs)
+                force_full.attrs["note"] = (
+                    "Reconstructed from reduced generalized forces using R0. "
+                    "This is not guaranteed to be the unique physical full-DOF force."
+                )
+                data_vars["force_full"] = force_full
+
+            else:
+                data_vars[name] = da
+
+        # Only keep original coords that do NOT use influenced_dof
+        coords = {}
+        for cname, c in ds.coords.items():
+            if "influenced_dof" not in c.dims:
+                coords[cname] = c
+
+        # Add both coordinate sets explicitly
+        coords["influenced_dof"] = full_labels
+        if "influenced_dof" in ds.coords:
+            coords["reduced_influenced_dof"] = ds.coords["influenced_dof"].values
+
+        return Dataset(data_vars=data_vars, coords=coords, attrs=ds.attrs)
+
+    wec_fdom_full = transform_dataset(wec_fdom)
+    wec_tdom_full = transform_dataset(wec_tdom)
+
+    return wec_fdom_full, wec_tdom_full
