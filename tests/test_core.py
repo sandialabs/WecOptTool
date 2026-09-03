@@ -1265,6 +1265,8 @@ class TestRunBEM:
         )
         rect = cpy.FloatingBody(rect_mesh, name="rect")
         rect.add_translation_dof(name="Heave")
+        if cpy.__version__ < '3':
+            rect.rotation_center = (0, 0, 0)  # Workaround for a bug in Capytaine 2.x. Actually unused since the body has only translation dofs.
         bem_data = wot.run_bem(fb=rect, freq=[0.1, 0.2], wave_dirs=[0,])
         assert type(bem_data) == xr.Dataset
 

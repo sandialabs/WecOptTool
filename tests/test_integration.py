@@ -4,7 +4,6 @@ import pytest
 from pytest import approx
 import wecopttool as wot
 import capytaine as cpy
-from capytaine.io.meshio import load_from_meshio
 import numpy as np
 import jax.numpy as jnp
 from scipy.optimize import Bounds
@@ -85,10 +84,12 @@ def fb():
     mesh_size_factor = 0.2
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-    mesh_obj = load_from_meshio(mesh, 'WaveBot')
+    mesh_obj = cpy.load_mesh(mesh)
     lid_mesh = mesh_obj.generate_lid(-2e-2)
-    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name="WaveBot")
+    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, center_of_mass=(0, 0, 0), name="WaveBot")
     fb.add_translation_dof(name="Heave")
+    if cpy.__version__ < '3':
+        fb.rotation_center = (0, 0, 0)  # Workaround for a bug in Capytaine 2.x. Actually unused since the body has only translation dofs.
     return fb
 
 
@@ -106,11 +107,13 @@ def fb_2d():
     mesh_size_factor = 0.2
     wb = geom.WaveBot()
     mesh = wb.mesh(mesh_size_factor)
-    mesh_obj = load_from_meshio(mesh, 'WaveBot')
+    mesh_obj = cpy.load_mesh(mesh)
     lid_mesh = mesh_obj.generate_lid(-2e-2)
-    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, name="WaveBot")
+    fb = cpy.FloatingBody(mesh=mesh_obj, lid_mesh=lid_mesh, center_of_mass=(0, 0, 0), name="WaveBot")
     fb.add_translation_dof(name="Heave")
     fb.add_translation_dof(name="Surge")
+    if cpy.__version__ < '3':
+        fb.rotation_center = (0, 0, 0)  # Workaround for a bug in Capytaine 2.x. Actually unused since the body has only translation dofs.
     return fb
 
 
@@ -198,8 +201,6 @@ def wec_from_impedance(hydro_data, pto, fb):
     w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
     B = bemc['radiation_damping'].values
-    fb.center_of_mass = [0, 0, 0]
-    fb.rotation_center = fb.center_of_mass
     fb = fb.immersed_part()
     mass = bemc['inertia_matrix'].values
     hstiff = bemc['hydrostatic_stiffness'].values
@@ -223,8 +224,6 @@ def wec_from_impedance_2d(hydro_data_2d, pto_2d, fb_2d):
     w = np.expand_dims(omega, [1,2])
     A = bemc['added_mass'].values
     B = bemc['radiation_damping'].values
-    fb_2d.center_of_mass = [0, 0, 0]
-    fb_2d.rotation_center = fb_2d.center_of_mass
     fb_2d = fb_2d.immersed_part()
     mass = bemc['inertia_matrix'].values
     hstiff = bemc['hydrostatic_stiffness'].values
