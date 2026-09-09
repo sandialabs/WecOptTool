@@ -13,12 +13,16 @@ The third part builds on the second to solve a design optimization problem, usin
 The second and third tutorials use the `AquaHarmonics`_ and `LUPA`_ WECs, respectively, and provide more robust optimization examples illustrating more complex cases of the WEC body, power take-off, applied forces, and constraints.
 These tutorials each have two parts, which are similar in structure to the second and third parts of Tutorial 1.
 
-    - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study. You can find an extended version 
+    - :doc:`_examples/tutorial_2_AquaHarmonics`: Two part example with a realistic power take-off system and co-design study. You can find an extended version
     - :doc:`_examples/tutorial_3_LUPA`: Two part example with multiple bodies, multiple degrees of freedom, irregular waves, a mooring system, and realistic constraints.
 
 The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch resonator PTO system. This tutorial illustrates how to use WecOptTool to implement and optimize control strategies for less common PTO archetypes.
 
     - :doc:`_examples/tutorial_4_Pioneer`: Example with custom PTO physics and modeling both hydrodynamic and non-hydrodynamic degrees of freedom.
+
+The fifth tutorial uses the `FOSWEC` model, which includes two flaps pitching relative to a floating platform. This tutorial illustrates how to use Multibody for Everybody to generate reduced-coordinate matrices and forces for WecOptTool.
+
+    - :doc:`_examples/tutorial_5_FOSWEC`: Example with multiple coupled bodies, code-to-code verification using a static solve, a multi-dof PTO representation, and a study of top-mounted ballast effects.
 
 .. toctree::
     :maxdepth: 3
@@ -28,7 +32,7 @@ The fourth tutorial uses the `Pioneer WEC` model, which includes a unique pitch 
     _examples/tutorial_2_AquaHarmonics
     _examples/tutorial_3_LUPA
     _examples/tutorial_4_Pioneer
-
+    _examples/tutorial_5_FOSWEC
 
 Simulating WEC Dynamics without optimization
 --------------------------------------------
