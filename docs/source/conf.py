@@ -191,6 +191,11 @@ def _copy_examples() -> None:
         ignore=_all_but_nc,
         dirs_exist_ok=True,
     )
+    shutil.copytree(
+        os.path.join(project_root, 'examples/M4E_inputs'),
+        os.path.join(examples_dst, 'M4E_inputs'),
+        dirs_exist_ok=True,
+    )
 
 
 def _generate_theory_animations() -> None:
