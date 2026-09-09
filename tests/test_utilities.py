@@ -9,12 +9,7 @@ import wecopttool as wot
 from pytest import approx
 import capytaine as cpy
 
-
-
-# test function in the utilities.py
-
-
-
+# test functions in utilities.py
 @pytest.fixture(scope="module")
 def power_flows():
     """Dictionary of power flows."""
@@ -33,7 +28,6 @@ def power_flows():
 def f1():
     """Fundamental frequency [Hz]."""
     return 0.1
-
 
 @pytest.fixture(scope="module")
 def nfreq():
@@ -125,7 +119,6 @@ def fb():
     fb.add_translation_dof(name="Heave")
     return fb
 
-
 @pytest.fixture(scope="module")
 def wb_bem(f1, nfreq, fb):
     """Boundary elemement model (Capytaine) results"""
@@ -140,7 +133,16 @@ def wb_hydro_impedance(wb_bem):
     Zi = wot.hydrodynamic_impedance(hd)
     return Zi
 
-
+@pytest.fixture(scope="module")
+def R0():
+    """Transformation matrix from reduced to full coordinates."""
+    return np.array(
+        [
+            [1.0, 0.0],
+            [0.0, 1.0],
+            [1.0, 1.0],
+        ]
+    )
 
 
 def test_plot_hydrodynamic_coefficients(bem_data,ndof):
@@ -165,7 +167,6 @@ def test_plot_bode_impedance(intrinsic_impedance, ndof):
     assert 2*ndof*ndof == len(fig_Zi.axes)
     assert isinstance(fig_Zi,Figure)
     assert all([isinstance(ax, Axes) for ax in np.reshape(axes_Zi,-1)])
-
 
 def test_plot_power_flow(power_flows):
     fig_sankey, ax_sankey = wot.utilities.plot_power_flow(power_flows)
@@ -232,3 +233,98 @@ def test_linear_solve(wb_bem, regular_wave):
 
     power, _, _, _ = wot.utilities.linear_solve(wb_bem, pto_impedance, regular_wave.isel(realization=0), np.eye(1))
     assert power == approx(-29.2, abs=0.05)
+
+def test_create_dataarray():
+    omega = np.array([1.0, 2.0, 3.0])
+    directions = np.array([0.0])
+    dof_names = ["DOF_1"]
+
+    impedance = np.array([1 + 1j, 2 + 2j, 3 + 3j])
+    exc_coeff = np.array([4 + 1j, 5 + 2j, 6 + 3j])
+
+    exc_da, zi_da = wot.utilities.create_dataarray(
+        impedance, exc_coeff, omega, directions, dof_names
+    )
+
+    assert exc_da.dims == ("omega", "wave_direction", "influenced_dof")
+    assert zi_da.dims == ("omega", "radiating_dof", "influenced_dof")
+
+    assert exc_da.shape == (3, 1, 1)
+    assert zi_da.shape == (3, 1, 1)
+
+    assert exc_da.omega.values == approx(omega)
+    assert zi_da.omega.values == approx(omega)
+    assert np.squeeze(exc_da.values) == approx(exc_coeff)
+    assert np.squeeze(zi_da.values) == approx(impedance)
+ 
+def test_reduce_PTO_kinematics_M4E(R0):
+    kinematics_mat = np.array([[1.0, 2.0, 3.0]])
+
+    result = wot.utilities.reduce_PTO_kinematics_M4E(kinematics_mat, R0)
+    expected = kinematics_mat @ R0
+
+    assert result == approx(expected)
+
+def test_reduce_damping_stiffness_M4E(R0):
+    damping_stiffness_mat = np.diag([1.0, 2.0, 3.0])
+
+    result = wot.utilities.reduce_damping_stiffness_M4E(damping_stiffness_mat, R0)
+    expected = R0.T @ damping_stiffness_mat @ R0
+
+    assert result == approx(expected)
+
+def test_expand_and_reduce_timeseries_M4E(R0):
+
+    timeseries_reduced = np.array(
+        [
+            [1.0, 2.0],
+            [3.0, 4.0],
+        ]
+    )
+
+    timeseries_full = wot.utilities.expand_timeseries_M4E(timeseries_reduced, R0)
+    timeseries_reduced_back = wot.utilities.reduce_timeseries_M4E(timeseries_full, R0)
+
+    assert timeseries_reduced_back == approx(timeseries_reduced)
+
+def test_post_process_M4E(R0):
+
+    coords = {
+        "realization": [0],
+        "time": [0.0, 1.0],
+        "influenced_dof": ["red_0", "red_1"],
+        "type": ["test"],
+    }
+
+    pos = xr.DataArray(
+        np.array([[[1.0, 2.0], [3.0, 4.0]]]),
+        dims=("realization", "influenced_dof", "time"),
+        coords={k: coords[k] for k in ["realization", "influenced_dof", "time"]},
+        name="pos",
+    )
+
+    force = xr.DataArray(
+        np.ones((1, 2, 1, 2)),
+        dims=("realization", "influenced_dof", "type", "time"),
+        coords=coords,
+        name="force",
+    )
+
+    ds = xr.Dataset({"pos": pos, "force": force}, coords=coords)
+
+    class DummyWEC:
+        def post_process(self, *args, **kwargs):
+            return ds, ds
+
+    wec_fdom_full, wec_tdom_full = wot.utilities.post_process_M4E(
+        DummyWEC(), None, None, 1, R0
+    )
+
+    assert wec_tdom_full.sizes["influenced_dof"] == 3
+    assert wec_tdom_full.sizes["reduced_influenced_dof"] == 2
+    assert "force_full" in wec_tdom_full
+
+    expected_pos_t0 = np.array([1.0, 3.0, 4.0])
+    assert wec_tdom_full["pos"].isel(realization=0, time=0).values == approx(expected_pos_t0)
+
+    assert wec_tdom_full["force"].dims == ("realization","reduced_influenced_dof","type","time")
