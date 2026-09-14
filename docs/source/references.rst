@@ -15,6 +15,6 @@ General resources
 
 Bibliography
 ------------
-.. bibliography:: wecopttool_refs.bib
+.. bibliography::
     :style: unsrt
     :all:
