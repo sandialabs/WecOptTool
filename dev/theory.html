@@ -15,11 +15,12 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -152,11 +153,11 @@ Some examples of problems which can be addressed within this framework include:<
 <h2>How’s this different from what I’m used to?<a class="headerlink" href="#how-s-this-different-from-what-i-m-used-to" title="Link to this heading"></a></h2>
 <p>Most users will be more familiar with a time-stepping approach for differential equations–this is the method applied in Simulink and therefore <a class="reference external" href="https://wec-sim.github.io/WEC-Sim/master/index.html">WEC-Sim</a>.
 Starting from an initial time (e.g., <span class="math notranslate nohighlight">\(t=0\)</span>), the solution is solved by iteratively stepping forward in time.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" width="600" />
+<a class="reference internal image-reference" href="_images/theory_animation_td.gif"><img alt="Time-domain solution animation" class="align-center" src="_images/theory_animation_td.gif" style="width: 600px;" />
 </a>
 <p>Pseudo-spectral methods can be applied to solve the same differential equations, but solve the entire time period of interest at once.
 At first the solution will not be correct, but as the optimization algorithm iterates, it will progressively improve the solution.</p>
-<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" width="600" />
+<a class="reference internal image-reference" href="_images/theory_animation_ps.gif"><img alt="Pseudo-spectral solution animation" class="align-center" src="_images/theory_animation_ps.gif" style="width: 600px;" />
 </a>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -168,7 +169,7 @@ At first the solution will not be correct, but as the optimization algorithm ite
 <p>In WecOptTool, the pseudo-spectral solution is represented using a finite set of Fourier coefficients on an equally spaced frequency grid.
 This creates a direct correspondence between the frequency-domain decision variables and a periodic time-domain trajectory.
 In the figure below, each harmonic component is shown individually with its amplitude and phase on the opposing frequency-domain axes, while their sum reconstructs the periodic time-domain trajectory.</p>
-<a class="reference internal image-reference" href="_images/pseudospectral_equivalence.png"><img alt="Illustration of the relationship between frequency-domain coefficients and time-domain collocation points" class="align-center" src="_images/pseudospectral_equivalence.png" width="700" />
+<a class="reference internal image-reference" href="_images/pseudospectral_equivalence.png"><img alt="Illustration of the relationship between frequency-domain coefficients and time-domain collocation points" class="align-center" src="_images/pseudospectral_equivalence.png" style="width: 700px;" />
 </a>
 <p>For a chosen fundamental frequency <span class="math notranslate nohighlight">\(f_1\)</span> and a maximum harmonic index <span class="math notranslate nohighlight">\(n_{freq}\)</span>, the modeled frequencies are integer multiples of the fundamental frequency:</p>
 <div class="math notranslate nohighlight" id="equation-discrete-frequencies">
@@ -197,7 +198,7 @@ It also determines the length and temporal resolution of the periodic trajectory
 <p>The same correspondence can be seen in an actual WecOptTool solution.
 The animation below shows the pseudo-spectral representation of each iteration of a
 WaveBot PTO trajectory being optimized over the full periodic time window.</p>
-<a class="reference internal image-reference" href="_images/wavebot_ex_xopt_iterates.gif"><img alt="WaveBot pseudo-spectral solution animation" class="align-center" src="_images/wavebot_ex_xopt_iterates.gif" width="700" />
+<a class="reference internal image-reference" href="_images/wavebot_ex_xopt_iterates.gif"><img alt="WaveBot pseudo-spectral solution animation" class="align-center" src="_images/wavebot_ex_xopt_iterates.gif" style="width: 700px;" />
 </a>
 </section>
 </section>

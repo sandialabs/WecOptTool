@@ -14,9 +14,10 @@
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=eb155f5e"></script>
-      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/doctools.js?v=9a2dae69"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@^1.0.1/dist/embed-amd.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -319,7 +320,8 @@
         <span class="k">assert</span> <span class="n">f_wec_td</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">ndof</span><span class="p">)</span>
         <span class="n">f_wec_td</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">f_wec_td</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">kinematics_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">kinematics_mat</span><span class="o">*</span><span class="n">f_wec_td</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">kinematics_mat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">*</span> <span class="n">f_wec_td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 
 <div class="viewcode-block" id="PTO.position">
 <a class="viewcode-back" href="../../api_docs/wecopttool.pto.PTO.position.html#wecopttool.pto.PTO.position">[docs]</a>
@@ -457,7 +459,9 @@
         <span class="k">assert</span> <span class="n">force_td</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndof</span><span class="p">,</span> <span class="n">wec</span><span class="o">.</span><span class="n">nt</span><span class="o">*</span><span class="n">nsubsteps</span><span class="p">)</span>
         <span class="n">kinematics_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinematics</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
         <span class="n">kinematics_mat</span> <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">kinematics_mat</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">kinematics_mat</span><span class="o">*</span><span class="n">force_td</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
+        <span class="c1"># Use float64 for higher precision in the multiplication and sum</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">kinematics_mat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">*</span> <span class="n">force_td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="PTO.mechanical_power">
@@ -526,7 +530,8 @@
 <span class="sd">            length.</span>
 <span class="sd">        """</span>
         <span class="n">power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mechanical_power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span></div>
+        <span class="c1"># Use float64 for higher precision in the sum</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span></div>
 
 
 <div class="viewcode-block" id="PTO.mechanical_average_power">
@@ -685,7 +690,8 @@
 <span class="sd">            length.</span>
 <span class="sd">        """</span>
         <span class="n">power_td</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">wec</span><span class="p">,</span> <span class="n">x_wec</span><span class="p">,</span> <span class="n">x_opt</span><span class="p">,</span> <span class="n">wave</span><span class="p">,</span> <span class="n">nsubsteps</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="p">)</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span></div>
+        <span class="c1"># Use float64 for higher precision in the sum</span>
+        <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">power_td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span> <span class="o">*</span> <span class="n">wec</span><span class="o">.</span><span class="n">dt</span><span class="o">/</span><span class="n">nsubsteps</span></div>
 
 
 <div class="viewcode-block" id="PTO.average_power">
