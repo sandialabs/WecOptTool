@@ -174,19 +174,24 @@ def _all_but_nc(_dir, contents):
     return [entry for entry in contents if not (entry.endswith('.nc') or entry.endswith('.npz'))]
 
 
-def _copy_examples() -> None:
+def _copy_examples(sphinx_source_dir: str) -> None:
     print('Copy example notebooks into docs/_examples')
-    examples_dst = os.path.join(project_root, 'docs/source/_examples')
+
+    repo_root = os.path.abspath(os.path.join(sphinx_source_dir, '..', '..'))
+
+    examples_src = os.path.join(repo_root, 'examples')
+    examples_dst = os.path.join(sphinx_source_dir, '_examples')
+
     os.makedirs(examples_dst, exist_ok=True)
 
     shutil.copytree(
-        os.path.join(project_root, 'examples'),
+        examples_src,
         examples_dst,
         ignore=_all_but_ipynb,
         dirs_exist_ok=True,
     )
     shutil.copytree(
-        os.path.join(project_root, 'examples/data'),
+        os.path.join(examples_src, 'data'),
         os.path.join(examples_dst, 'data'),
         ignore=_all_but_nc,
         dirs_exist_ok=True,
@@ -236,8 +241,8 @@ def _on_config_inited(_app, _config):
     _config.html_context = dict(_config.html_context or {})
     _config.html_context['current_version'] = current_branch
     _config.html_context['other_versions'] = other_versions
-
-    _copy_examples()
+    
+    _copy_examples(_app.srcdir)
 
     if skip_notebook_execution:
         print('Skipping notebook execution')
