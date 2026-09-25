@@ -4,7 +4,7 @@ This section is for developers.
 Before a release make sure to:
 
 * Ensure all tests are passing on the `dev` branch.
-* Change [version number](https://semver.org/) in `pyproject.toml` in the `dev` branch.
+* Change [version number](https://semver.org/) in `pyproject.toml` in the `dev` branch and commit change.
 * Using your local command line from the cloned repository directory, ensure your local main and dev branch are up to date.
 ```
 git fetch <upstream remote name>
@@ -21,7 +21,7 @@ git merge dev --ff-only
 git push <upstream remote name> main
 ```
 **Note: the `dev` branch should only be merged into `main` when it is ready for a new release.**
-If the merge does not work because the `main` branch is ahead of the `dev` branch, `dev` should be rebased onto main (`git rebase <upstream remote name> main` with the dev branch checked out).
+If the merge does not work because the `main` branch is ahead of the `dev` branch, `dev` should be rebased onto main (`git rebase <upstream remote name>/main` with the dev branch checked out).
 
 ## GitHub
 In the GitHub repository, click on *Releases*, click on *Draft new release*.
