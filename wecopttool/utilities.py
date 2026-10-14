@@ -565,6 +565,11 @@ def setup_from_M4E(M4E_input_file, bem_data, fb_list, mass_list, inertia_list):
     impedance_reduced = M * (1j * omega[:, None, None]) + C - 1j * K[None, :, :] * (1/omega)[:, None, None]
     hydrostatic_stiffness_reduced = K
 
+    # Extract and map independent degrees of freedom if not already done
+    if hydroAdapter.coords_exc["influenced_dof"][1] is None:
+        hydroAdapter._extract_independent_dofs()
+        hydroAdapter._load_data(bem_data, None)
+
     # Convert excitation force to xarray
     excitation_reduced = DataArray(F.transpose(0,2,1), coords=hydroAdapter.coords_exc, attrs={})
 
