@@ -238,9 +238,29 @@ Scaling mismatches in the decision variable <span class="math notranslate nohigh
 <h3>Constraints<a class="headerlink" href="#constraints" title="Link to this heading"></a></h3>
 <p>Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
 This functionality is well-illustrated in <a class="reference internal" href="_examples/tutorial_1_WaveBot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>.
-An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
-It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
-In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec" title="wecopttool.pto.PTO.force_on_wec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PTO.force_on_wec()</span></code></a>).</p>
+An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of time points.</p>
+<p>The dynamics are enforced at the <span class="math notranslate nohighlight">\(2 n_{freq}\)</span> collocation points described above, which is exactly as many equations as there are Fourier coefficients to solve for.
+An inequality constraint, such as a maximum force, is only enforced at the points where your constraint function evaluates it.
+Between those points the trajectory is a continuous sum of harmonics, and it can exceed the limit even if every evaluated point satisfies it; the peak of the signal will in general fall between two collocation points.
+So it may be required to enforce constraints at more points than the dynamics.</p>
+<p>There are two ways to get more evaluation points, and they are not equivalent:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Use more frequencies</strong> (increase <span class="math notranslate nohighlight">\(n_{freq}\)</span>, or decrease <span class="math notranslate nohighlight">\(f_1\)</span> for the same highest frequency): this adds Fourier coefficients, so it adds decision variables, adds dynamics equations, and allows the solution to contain higher frequencies.
+It changes the problem being solved and increases its cost.</p></li>
+<li><p><strong>Evaluate the same trajectory on a finer time grid</strong> with <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code>: the state <span class="math notranslate nohighlight">\(x\)</span> and the dynamics stay exactly as they are.
+The Fourier series defined by <span class="math notranslate nohighlight">\(x\)</span> is simply sampled at <span class="math notranslate nohighlight">\(n_{substeps} \cdot 2 n_{freq}\)</span> equally spaced times (see <a class="reference internal" href="api_docs/wecopttool.time_mat.html#wecopttool.time_mat" title="wecopttool.time_mat"><code class="xref py py-func docutils literal notranslate"><span class="pre">wecopttool.time_mat()</span></code></a>), so the constraint function returns that many more values and the solver receives that many more inequality rows (and Jacobian rows).
+No new unknowns are introduced.</p></li>
+</ul>
+</div></blockquote>
+<p>In WecOptTool’s example PTO module, this is controlled by the <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument (see, e.g., <a class="reference internal" href="api_docs/wecopttool.pto.PTO.force_on_wec.html#wecopttool.pto.PTO.force_on_wec" title="wecopttool.pto.PTO.force_on_wec"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.pto.PTO.force_on_wec()</span></code></a>).
+The value is chosen inside the constraint function that you write, as in <a class="reference internal" href="_examples/tutorial_1_WaveBot.html"><span class="doc">Tutorial 1 - WaveBot</span></a>; <a class="reference internal" href="api_docs/wecopttool.core.WEC.solve.html#wecopttool.core.WEC.solve" title="wecopttool.core.WEC.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.solve()</span></code></a> does not take an <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument.
+A larger <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> gives a tighter enforcement of the constraint at the price of more constraint evaluations, and <code class="code docutils literal notranslate"><span class="pre">nsubsteps=1</span></code> enforces it only at the collocation points.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">nsubsteps</span></code> argument of the <code class="code docutils literal notranslate"><span class="pre">post_process</span></code> methods (e.g., <a class="reference internal" href="api_docs/wecopttool.core.WEC.post_process.html#wecopttool.core.WEC.post_process" title="wecopttool.core.WEC.post_process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">wecopttool.core.WEC.post_process()</span></code></a>) is a separate use of the same idea.
+It does not affect the optimization: it only evaluates the already-computed solution on a finer time grid so that the time-domain results plot smoothly.</p>
+</div>
 </section>
 <section id="buoyancy-gravity">
 <h3>Buoyancy/gravity<a class="headerlink" href="#buoyancy-gravity" title="Link to this heading"></a></h3>

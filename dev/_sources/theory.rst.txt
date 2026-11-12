@@ -159,9 +159,28 @@ Constraints
 ^^^^^^^^^^^
 Constraints, such as maximum PTO force, maximum piston force, or maintaining tension in a tether, may be enforced in WecOptTool.
 This functionality is well-illustrated in :doc:`_examples/tutorial_1_WaveBot`.
-An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of collocation points.
-It may be required to enforce constraints at more points than the dynamics (as defined by the frequency array).
+An important practical factor when using this functionality is to make sure that the constraint is evaluated at a sufficient number of time points.
+
+The dynamics are enforced at the :math:`2 n_{freq}` collocation points described above, which is exactly as many equations as there are Fourier coefficients to solve for.
+An inequality constraint, such as a maximum force, is only enforced at the points where your constraint function evaluates it.
+Between those points the trajectory is a continuous sum of harmonics, and it can exceed the limit even if every evaluated point satisfies it; the peak of the signal will in general fall between two collocation points.
+So it may be required to enforce constraints at more points than the dynamics.
+
+There are two ways to get more evaluation points, and they are not equivalent:
+
+    * **Use more frequencies** (increase :math:`n_{freq}`, or decrease :math:`f_1` for the same highest frequency): this adds Fourier coefficients, so it adds decision variables, adds dynamics equations, and allows the solution to contain higher frequencies.
+      It changes the problem being solved and increases its cost.
+    * **Evaluate the same trajectory on a finer time grid** with :code:`nsubsteps`: the state :math:`x` and the dynamics stay exactly as they are.
+      The Fourier series defined by :math:`x` is simply sampled at :math:`n_{substeps} \cdot 2 n_{freq}` equally spaced times (see :py:func:`wecopttool.time_mat`), so the constraint function returns that many more values and the solver receives that many more inequality rows (and Jacobian rows).
+      No new unknowns are introduced.
+
 In WecOptTool's example PTO module, this is controlled by the :code:`nsubsteps` argument (see, e.g., :py:meth:`wecopttool.pto.PTO.force_on_wec`).
+The value is chosen inside the constraint function that you write, as in :doc:`_examples/tutorial_1_WaveBot`; :py:meth:`wecopttool.core.WEC.solve` does not take an :code:`nsubsteps` argument.
+A larger :code:`nsubsteps` gives a tighter enforcement of the constraint at the price of more constraint evaluations, and :code:`nsubsteps=1` enforces it only at the collocation points.
+
+.. note::
+    The :code:`nsubsteps` argument of the :code:`post_process` methods (e.g., :py:meth:`wecopttool.core.WEC.post_process`) is a separate use of the same idea.
+    It does not affect the optimization: it only evaluates the already-computed solution on a finer time grid so that the time-domain results plot smoothly.
 
 Buoyancy/gravity
 ^^^^^^^^^^^^^^^^

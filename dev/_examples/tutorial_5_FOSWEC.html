@@ -124,7 +124,7 @@
 <p>This tutorial models the floating oscillating surge wave energy converter (FOSWEC) and examines adding top-mounted ballast to the FOSWEC flaps. The FOSWEC has been tested in <a class="reference external" href="https://mhkdr.openei.org/submissions/350">multiple experimental campaigns at the Oregon State University (OSU) O.H. Hinsdale Wave Research Laboratory (HWRL) Directional Wave Basin (DWB)</a> and a <a class="reference external" href="https://github.com/WEC-Sim/FOSWEC2">WEC-Sim numerical model</a> has been previously developed and validated against experimental
 data.</p>
 <p>The FOSWEC is a coupled multibody system consisting of two flaps pitching relative to a floating platform. Efficiently modeling this system in WecOptTool requires a reduced-coordinate formulation. In this tutorial, that reduction is performed using <a class="reference external" href="https://github.com/Project-SEA-Stack/Python_Multibody_for_Everybody">Multibody for Everybody</a> (M4E), a package developed by the National Laboratory of the Rockies (NLR).</p>
-<img alt="FOSWEC image" src="https://live.staticflickr.com/65535/55515103812_77d48575c1_z.jpg" />
+<p><img alt="FOSWEC image" src="https://live.staticflickr.com/65535/55515103812_77d48575c1_z.jpg" /></p>
 <p>While previous WecOptTool tutorials focus on a single degree of freedom (DOF) or a small set of coupled DOFs, many WEC archetypes have more complex and coupled dynamics that would otherwise require manually defining kinematic constraints or reduced-coordinate equations of motion. M4E automates this process by transforming the hydrodynamic, hydrostatic, kinematic, and external force terms from global to joint coordinates. For the FOSWEC, this reduces the planar model from 9 global coordinates to
 5 joint coordinates, preserving important platform-flap coupling while reducing the number of optimization state variables significantly. M4E eliminates the need for manually deriving reduced-coordinate equations, which can be time-consuming and error prone, and greatly improves the computational efficiency, since the WecOptTool optimization cost roughly scales with the square of the number of optimization variables.</p>
 <p>Using Multibody for Everybody with WecOptTool requires the following main steps:</p>
@@ -358,7 +358,7 @@ WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (C
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:25:23] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:26:54] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
 </pre></div>
 </div>
 <div class="nboutput docutils container">
@@ -383,7 +383,7 @@ WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "2dc71a08dde1408bb3bcdfac7d74faa7"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "cfba9c33bef84e40b05e68f442286f52"}</script></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -421,8 +421,8 @@ All branches in the graph:
 Branch 1: [1, 2]
 Branch 2: [1, 3]
 R and RD matrices calculation finished in:       0.052 seconds
-Symbolic EOM computation finished in:            0.022 seconds
-Compiling EOM expressions finished in:           0.076 seconds
+Symbolic EOM computation finished in:            0.023 seconds
+Compiling EOM expressions finished in:           0.075 seconds
 
 [Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
 
@@ -625,7 +625,7 @@ low error across the tested wave conditions verifies the WecOptTool+M4E model an
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/tmp/ipykernel_4237/252279905.py:34: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+/tmp/ipykernel_4414/252279905.py:34: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
   plt.tight_layout()
 </pre></div></div>
 </div>
@@ -1021,7 +1021,7 @@ WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (C
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:25:46] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:27:16] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
 </pre></div>
 </div>
 <div class="nboutput docutils container">
@@ -1065,753 +1065,7 @@ This warning appears when the largest panel of this mesh has radius &gt; wavelen
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "4f5aadde8c8a430a86dfefc560cfac58"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.021 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.066 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.4722878874610539
-            Iterations: 25
-            Function evaluations: 26
-            Gradient evaluations: 25
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.4722878891864572
-            Iterations: 22
-            Function evaluations: 25
-            Gradient evaluations: 22
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.250590985587285
-            Iterations: 17
-            Function evaluations: 20
-            Gradient evaluations: 17
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.2505909905573676
-            Iterations: 16
-            Function evaluations: 19
-            Gradient evaluations: 16
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -11.807197105638778
-            Iterations: 14
-            Function evaluations: 16
-            Gradient evaluations: 14
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -11.807197182031025
-            Iterations: 15
-            Function evaluations: 18
-            Gradient evaluations: 15
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:26:17] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "125bca180d81488790e83079838c457b"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.020 seconds
-Symbolic EOM computation finished in:            0.002 seconds
-Compiling EOM expressions finished in:           0.066 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.985812060491261
-            Iterations: 20
-            Function evaluations: 24
-            Gradient evaluations: 20
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.985812082765188
-            Iterations: 20
-            Function evaluations: 24
-            Gradient evaluations: 20
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.316251609737131
-            Iterations: 27
-            Function evaluations: 31
-            Gradient evaluations: 27
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.316251609728284
-            Iterations: 15
-            Function evaluations: 21
-            Gradient evaluations: 15
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.310441763356556
-            Iterations: 24
-            Function evaluations: 31
-            Gradient evaluations: 24
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.310441762815542
-            Iterations: 10
-            Function evaluations: 15
-            Gradient evaluations: 10
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:26:47] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "f08c120e53e540df88b76655268bafed"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.021 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.067 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.29746914782847783
-            Iterations: 21
-            Function evaluations: 22
-            Gradient evaluations: 21
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.0019202054189914894
-            Iterations: 5
-            Function evaluations: 6
-            Gradient evaluations: 5
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.600522110284948
-            Iterations: 16
-            Function evaluations: 19
-            Gradient evaluations: 16
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.600522110291004
-            Iterations: 19
-            Function evaluations: 21
-            Gradient evaluations: 19
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6015540616052333
-            Iterations: 15
-            Function evaluations: 20
-            Gradient evaluations: 15
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6015540697792665
-            Iterations: 16
-            Function evaluations: 19
-            Gradient evaluations: 16
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:27:17] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:capytaine.bem.solver:Mesh resolution for 19 problems:
-The resolution of the mesh might be insufficient for omega ranging from 12.566 to 12.566.
-This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">19</span> problems:
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span>.
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "84eaf228d7b74614b18d70e296691dba"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.021 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.068 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.49450957839986254
-            Iterations: 23
-            Function evaluations: 25
-            Gradient evaluations: 23
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.4945095767343216
-            Iterations: 23
-            Function evaluations: 26
-            Gradient evaluations: 23
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.45058619090312
-            Iterations: 17
-            Function evaluations: 20
-            Gradient evaluations: 17
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.4505861880724975
-            Iterations: 17
-            Function evaluations: 20
-            Gradient evaluations: 17
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -12.362739418669578
-            Iterations: 15
-            Function evaluations: 19
-            Gradient evaluations: 15
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -12.362739418493595
-            Iterations: 16
-            Function evaluations: 19
-            Gradient evaluations: 16
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:27:45] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "b5214e03d28f4156be661092d6d10ae1"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.022 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.070 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.836629438436521
-            Iterations: 20
-            Function evaluations: 25
-            Gradient evaluations: 20
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.836629448003479
-            Iterations: 29
-            Function evaluations: 34
-            Gradient evaluations: 29
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.320837968770919
-            Iterations: 8
-            Function evaluations: 10
-            Gradient evaluations: 8
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.32083796877009
-            Iterations: 14
-            Function evaluations: 20
-            Gradient evaluations: 14
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Iteration limit reached    (Exit mode 9)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Iteration limit reached    (Exit mode 9)
-            Current function value: 49.6279462938092
-            Iterations: 500
-            Function evaluations: 1997
-            Gradient evaluations: 501
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:28:17] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Iteration limit reached    <span style="font-weight: bold">(</span>Exit mode <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">)</span>
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.312186964577563
-            Iterations: 13
-            Function evaluations: 19
-            Gradient evaluations: 13
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:28:18] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "8df2166968824f09b6239be6f9fde0d6"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.021 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.067 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.3223896950922931
-            Iterations: 21
-            Function evaluations: 24
-            Gradient evaluations: 21
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.001754466563553272
-            Iterations: 5
-            Function evaluations: 6
-            Gradient evaluations: 5
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.602846438773955
-            Iterations: 20
-            Function evaluations: 24
-            Gradient evaluations: 20
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.602846438408145
-            Iterations: 22
-            Function evaluations: 25
-            Gradient evaluations: 22
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6006607084109574
-            Iterations: 15
-            Function evaluations: 20
-            Gradient evaluations: 15
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.600660708410552
-            Iterations: 19
-            Function evaluations: 24
-            Gradient evaluations: 19
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:28:48] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:capytaine.bem.solver:Mesh resolution for 19 problems:
-The resolution of the mesh might be insufficient for omega ranging from 12.566 to 12.566.
-This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">19</span> problems:
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span>.
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "15f47c29efab44a7baef13932356905e"}</script></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Problem initialization finished in:              0.001 seconds
-All branches in the graph:
-Branch 1: [1, 2]
-Branch 2: [1, 3]
-R and RD matrices calculation finished in:       0.020 seconds
-Symbolic EOM computation finished in:            0.002 seconds
-Compiling EOM expressions finished in:           0.066 seconds
-
-[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
-
-
-[HydroAdapter] Prepared bodies:
-  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
-  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
-  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.5155149335643173
-            Iterations: 23
-            Function evaluations: 26
-            Gradient evaluations: 23
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.5155149364967618
-            Iterations: 22
-            Function evaluations: 24
-            Gradient evaluations: 22
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.639634409950427
-            Iterations: 19
-            Function evaluations: 20
-            Gradient evaluations: 19
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.639634399477887
-            Iterations: 17
-            Function evaluations: 20
-            Gradient evaluations: 17
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -12.88787333975127
-            Iterations: 15
-            Function evaluations: 18
-            Gradient evaluations: 15
-Optimization terminated successfully    (Exit mode 0)
-            Current function value: -12.887873323859989
-            Iterations: 14
-            Function evaluations: 17
-            Gradient evaluations: 14
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:29:17] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "7997608333d44ee0a7752cae1f6fca49"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "050529fe7308414286a6943536c90cbc"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -1840,64 +1094,35 @@ Compiling EOM expressions finished in:           0.065 seconds
   [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
   [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.692228335300319
-            Iterations: 23
-            Function evaluations: 28
-            Gradient evaluations: 23
+            Current function value: -0.47228793862575846
+            Iterations: 25
+            Function evaluations: 26
+            Gradient evaluations: 25
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -4.692228336889064
-            Iterations: 34
-            Function evaluations: 39
-            Gradient evaluations: 34
+            Current function value: -0.47228794035104504
+            Iterations: 22
+            Function evaluations: 25
+            Gradient evaluations: 22
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.32800815770614
-            Iterations: 7
-            Function evaluations: 8
-            Gradient evaluations: 7
+            Current function value: -4.250591446069625
+            Iterations: 17
+            Function evaluations: 20
+            Gradient evaluations: 17
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.328008156999417
+            Current function value: -4.250591451040738
+            Iterations: 16
+            Function evaluations: 19
+            Gradient evaluations: 16
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -11.807198384762852
             Iterations: 14
-            Function evaluations: 18
+            Function evaluations: 16
             Gradient evaluations: 14
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-WARNING:wecopttool.core:Iteration limit reached    (Exit mode 9)
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Iteration limit reached    (Exit mode 9)
-            Current function value: 16.160995310365873
-            Iterations: 500
-            Function evaluations: 2170
-            Gradient evaluations: 501
-</pre></div></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:29:47] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Iteration limit reached    <span style="font-weight: bold">(</span>Exit mode <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">9</span><span style="font-weight: bold">)</span>
-</pre></div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -6.314767175089055
-            Iterations: 11
-            Function evaluations: 15
-            Gradient evaluations: 11
+            Current function value: -11.807198461148543
+            Iterations: 15
+            Function evaluations: 18
+            Gradient evaluations: 15
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -1912,7 +1137,7 @@ WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (C
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area rendered_html docutils container">
-<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[19:29:49] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:27:45] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
 </pre></div>
 </div>
 <div class="nboutput docutils container">
@@ -1937,7 +1162,724 @@ WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "699dfd10c50946c1b3e49964fddac7cd"}</script></div>
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "22c1df37e73a44b4a6d89bd5ad8fe884"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.019 seconds
+Symbolic EOM computation finished in:            0.002 seconds
+Compiling EOM expressions finished in:           0.065 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.985812937110666
+            Iterations: 20
+            Function evaluations: 24
+            Gradient evaluations: 20
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.985812949090972
+            Iterations: 21
+            Function evaluations: 25
+            Gradient evaluations: 21
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.316251634588216
+            Iterations: 23
+            Function evaluations: 27
+            Gradient evaluations: 23
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.31625163463039
+            Iterations: 15
+            Function evaluations: 21
+            Gradient evaluations: 15
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.310441765901119
+            Iterations: 24
+            Function evaluations: 31
+            Gradient evaluations: 24
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.310441765170276
+            Iterations: 10
+            Function evaluations: 15
+            Gradient evaluations: 10
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:28:14] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "a4661af9798347768f0ccd43cad38878"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.000 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.017 seconds
+Symbolic EOM computation finished in:            0.003 seconds
+Compiling EOM expressions finished in:           0.066 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.2974680998615629
+            Iterations: 21
+            Function evaluations: 22
+            Gradient evaluations: 21
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.0019202011113290528
+            Iterations: 5
+            Function evaluations: 6
+            Gradient evaluations: 5
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6005221279847142
+            Iterations: 16
+            Function evaluations: 19
+            Gradient evaluations: 16
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6005221279896382
+            Iterations: 19
+            Function evaluations: 21
+            Gradient evaluations: 19
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6015540466400449
+            Iterations: 17
+            Function evaluations: 21
+            Gradient evaluations: 17
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.601554046844931
+            Iterations: 16
+            Function evaluations: 19
+            Gradient evaluations: 16
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:28:42] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.bem.solver:Mesh resolution for 19 problems:
+The resolution of the mesh might be insufficient for omega ranging from 12.566 to 12.566.
+This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">19</span> problems:
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span>.
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "c92f8dfd696a4267a2a76d35378cce84"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.021 seconds
+Symbolic EOM computation finished in:            0.003 seconds
+Compiling EOM expressions finished in:           0.065 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.49450947631333886
+            Iterations: 23
+            Function evaluations: 25
+            Gradient evaluations: 23
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.4945094746477797
+            Iterations: 23
+            Function evaluations: 26
+            Gradient evaluations: 23
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.450585272124261
+            Iterations: 17
+            Function evaluations: 20
+            Gradient evaluations: 17
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.450585269292233
+            Iterations: 17
+            Function evaluations: 20
+            Gradient evaluations: 17
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -12.362736866506047
+            Iterations: 15
+            Function evaluations: 19
+            Gradient evaluations: 15
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -12.36273686633005
+            Iterations: 16
+            Function evaluations: 19
+            Gradient evaluations: 16
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:29:10] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "a3d34ab620a34b3da5f4b6a9b3cab81e"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.021 seconds
+Symbolic EOM computation finished in:            0.003 seconds
+Compiling EOM expressions finished in:           0.065 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.836630103096695
+            Iterations: 20
+            Function evaluations: 25
+            Gradient evaluations: 20
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.836630113230015
+            Iterations: 29
+            Function evaluations: 34
+            Gradient evaluations: 29
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.320837986089406
+            Iterations: 8
+            Function evaluations: 10
+            Gradient evaluations: 8
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.320837986088712
+            Iterations: 14
+            Function evaluations: 20
+            Gradient evaluations: 14
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: 62.97838452815726
+            Iterations: 442
+            Function evaluations: 1944
+            Gradient evaluations: 442
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.312186967726372
+            Iterations: 12
+            Function evaluations: 18
+            Gradient evaluations: 12
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:29:41] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "7ff7bbeeabee45fa984dcaf1f88f66a6"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.021 seconds
+Symbolic EOM computation finished in:            0.002 seconds
+Compiling EOM expressions finished in:           0.066 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.32239043722631633
+            Iterations: 21
+            Function evaluations: 24
+            Gradient evaluations: 21
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.0017544691618312455
+            Iterations: 5
+            Function evaluations: 6
+            Gradient evaluations: 5
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6028463902068855
+            Iterations: 20
+            Function evaluations: 24
+            Gradient evaluations: 20
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6028463894542437
+            Iterations: 22
+            Function evaluations: 25
+            Gradient evaluations: 22
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6006607150605512
+            Iterations: 15
+            Function evaluations: 20
+            Gradient evaluations: 15
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -1.6006607150600338
+            Iterations: 19
+            Function evaluations: 24
+            Gradient evaluations: 19
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:30:10] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:capytaine.bem.solver:Mesh resolution for 19 problems:
+The resolution of the mesh might be insufficient for omega ranging from 12.566 to 12.566.
+This warning appears when the largest panel of this mesh has radius &gt; wavelength/8.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Mesh resolution for <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">19</span> problems:
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         The resolution of the mesh might be insufficient for omega ranging from <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span> to <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">12.566</span>.
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         This warning appears when the largest panel of this mesh has radius &gt; wavelength/<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">8</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "9b547f581a9c4f6a8d59dc29096db2e6"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.020 seconds
+Symbolic EOM computation finished in:            0.003 seconds
+Compiling EOM expressions finished in:           0.066 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.5155149824000194
+            Iterations: 23
+            Function evaluations: 26
+            Gradient evaluations: 23
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -0.5155149853329033
+            Iterations: 22
+            Function evaluations: 24
+            Gradient evaluations: 22
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.63963484947277
+            Iterations: 19
+            Function evaluations: 20
+            Gradient evaluations: 19
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.639634838997601
+            Iterations: 17
+            Function evaluations: 20
+            Gradient evaluations: 17
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -12.887874560643827
+            Iterations: 15
+            Function evaluations: 18
+            Gradient evaluations: 15
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -12.887874544752435
+            Iterations: 14
+            Function evaluations: 17
+            Gradient evaluations: 14
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:30:37] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "c4769cd7c72d42c59489fdca518823e4"}</script></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"></pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Problem initialization finished in:              0.001 seconds
+All branches in the graph:
+Branch 1: [1, 2]
+Branch 2: [1, 3]
+R and RD matrices calculation finished in:       0.021 seconds
+Symbolic EOM computation finished in:            0.003 seconds
+Compiling EOM expressions finished in:           0.065 seconds
+
+[Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
+
+
+[HydroAdapter] Prepared bodies:
+  [1] name=&#39;platform&#39;, CoM=[ 0.   0.  -0.8]
+  [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
+  [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.692229299916109
+            Iterations: 23
+            Function evaluations: 28
+            Gradient evaluations: 23
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -4.69222930149393
+            Iterations: 34
+            Function evaluations: 39
+            Gradient evaluations: 34
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.32800817398913
+            Iterations: 7
+            Function evaluations: 8
+            Gradient evaluations: 7
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.328008173283558
+            Iterations: 14
+            Function evaluations: 18
+            Gradient evaluations: 14
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: 62.598157745126414
+            Iterations: 328
+            Function evaluations: 1881
+            Gradient evaluations: 328
+Optimization terminated successfully    (Exit mode 0)
+            Current function value: -6.3147671803868075
+            Iterations: 11
+            Function evaluations: 15
+            Gradient evaluations: 11
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the geometric centroid as the center of gravity (COG).
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[23:31:08] </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the geometric centroid as the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span>.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+WARNING:wecopttool.core:Using the center of gravity (COG) as the rotation center for hydrostatics. Note that the hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the rotation center should be set manually when using Capytaine to calculate hydrostatics about an axis other than the COG.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span><span style="color: #808000; text-decoration-color: #808000">WARNING </span> Using the center of gravity <span style="font-weight: bold">(</span>COG<span style="font-weight: bold">)</span> as the rotation center for hydrostatics. Note that the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         hydrostatics do not use the axes defined by the FloatingBody degrees of freedom, and the
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         rotation center should be set manually when using Capytaine to calculate hydrostatics about an
+<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         axis other than the COG.
+</pre></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "a291250a2aba4eeeb64a28cb7cd2136c"}</script></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -1955,8 +1897,8 @@ All branches in the graph:
 Branch 1: [1, 2]
 Branch 2: [1, 3]
 R and RD matrices calculation finished in:       0.021 seconds
-Symbolic EOM computation finished in:            0.003 seconds
-Compiling EOM expressions finished in:           0.067 seconds
+Symbolic EOM computation finished in:            0.002 seconds
+Compiling EOM expressions finished in:           0.065 seconds
 
 [Info] Updating float body 1 IC from (x=0.0, z=0.0) → (x=0.0, z=-0.8) relative to Reference_frame_Origin: (x=0, z=0) .
 
@@ -1966,32 +1908,32 @@ Compiling EOM expressions finished in:           0.067 seconds
   [2] name=&#39;flap1&#39;, CoM=[-0.72  0.   -0.42]
   [3] name=&#39;flap2&#39;, CoM=[ 0.72  0.   -0.42]
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.3523215870764252
+            Current function value: -0.35232118437483306
             Iterations: 23
             Function evaluations: 25
             Gradient evaluations: 23
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -0.0016077541350345028
+            Current function value: -0.0016077529370401042
             Iterations: 5
             Function evaluations: 6
             Gradient evaluations: 5
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.607822692726673
+            Current function value: -1.607822709394858
             Iterations: 18
             Function evaluations: 22
             Gradient evaluations: 18
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6078226938545082
+            Current function value: -1.6078227105255432
             Iterations: 20
             Function evaluations: 22
             Gradient evaluations: 20
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.6005326595019904
+            Current function value: -1.6005326659779926
             Iterations: 13
             Function evaluations: 17
             Gradient evaluations: 13
 Optimization terminated successfully    (Exit mode 0)
-            Current function value: -1.600532664114216
+            Current function value: -1.6005326659325025
             Iterations: 17
             Function evaluations: 21
             Gradient evaluations: 17
@@ -2094,7 +2036,7 @@ Optimization terminated successfully    (Exit mode 0)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x7f3464d1c8c0&gt;
+&lt;matplotlib.legend.Legend at 0x748ec10185c0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -2105,7 +2047,7 @@ Optimization terminated successfully    (Exit mode 0)
 </div>
 </div>
 <script type="application/vnd.jupyter.widget-state+json">
-{"state": {"3ebcabe1b36a4e63a67494d1fa2fd2dc": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "2dc71a08dde1408bb3bcdfac7d74faa7": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3ebcabe1b36a4e63a67494d1fa2fd2dc", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "3837594233e14277a8c221161adc487a": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "4f5aadde8c8a430a86dfefc560cfac58": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3837594233e14277a8c221161adc487a", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "3901fd6bad334e9898fc4111a01b593e": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "125bca180d81488790e83079838c457b": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3901fd6bad334e9898fc4111a01b593e", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "19577c891447409783fc5b1af204f9a2": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "f08c120e53e540df88b76655268bafed": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_19577c891447409783fc5b1af204f9a2", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "f40bdcd89fcd46099ca89cf7ce6a0e48": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "84eaf228d7b74614b18d70e296691dba": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_f40bdcd89fcd46099ca89cf7ce6a0e48", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "ea7f9a9d48c547d7aad042fbe5c73bcb": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "b5214e03d28f4156be661092d6d10ae1": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_ea7f9a9d48c547d7aad042fbe5c73bcb", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:19\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:19</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "f973953a42b844eaa552d01c63bd086a": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "8df2166968824f09b6239be6f9fde0d6": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_f973953a42b844eaa552d01c63bd086a", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "c168cb8a8e234e28b8b9923359af9f85": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "15f47c29efab44a7baef13932356905e": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_c168cb8a8e234e28b8b9923359af9f85", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "c91001823957493f8e3e88fb53004259": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "7997608333d44ee0a7752cae1f6fca49": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_c91001823957493f8e3e88fb53004259", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "3e305417ad30493bb3b7504f39b6ce97": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "699dfd10c50946c1b3e49964fddac7cd": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_3e305417ad30493bb3b7504f39b6ce97", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
+{"state": {"31a4889b1df445508d29cdc464f4f4ba": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "cfba9c33bef84e40b05e68f442286f52": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_31a4889b1df445508d29cdc464f4f4ba", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:16\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:16</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "38d835e620b747d38dff678d0068ebf1": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "050529fe7308414286a6943536c90cbc": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_38d835e620b747d38dff678d0068ebf1", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:16\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:16</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "2d278a9c7f7a4725ba4474453012d755": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "22c1df37e73a44b4a6d89bd5ad8fe884": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_2d278a9c7f7a4725ba4474453012d755", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "e2232a11061947b3ba9bc1a7702b8393": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "a4661af9798347768f0ccd43cad38878": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_e2232a11061947b3ba9bc1a7702b8393", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "389117f9252849c28e3bc505555179f0": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "c92f8dfd696a4267a2a76d35378cce84": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_389117f9252849c28e3bc505555179f0", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:16\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:16</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "61e4a5fd15204413b95a181e2d184924": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "a3d34ab620a34b3da5f4b6a9b3cab81e": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_61e4a5fd15204413b95a181e2d184924", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "2475e34252d24e14882b65c11e772716": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "7ff7bbeeabee45fa984dcaf1f88f66a6": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_2475e34252d24e14882b65c11e772716", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "e7856d24bc25411e84b09d0170fa5364": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "9b547f581a9c4f6a8d59dc29096db2e6": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_e7856d24bc25411e84b09d0170fa5364", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:16\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:16</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "8b73e9b953d84f69879d2fc4a5cc5e4d": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "c4769cd7c72d42c59489fdca518823e4": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_8b73e9b953d84f69879d2fc4a5cc5e4d", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:18\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:18</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}, "6e9039e52db14a88bab34f3731487b31": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "a291250a2aba4eeeb64a28cb7cd2136c": {"model_name": "OutputModel", "model_module": "@jupyter-widgets/output", "model_module_version": "1.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/output", "_model_module_version": "1.0.0", "_model_name": "OutputModel", "_view_count": null, "_view_module": "@jupyter-widgets/output", "_view_module_version": "1.0.0", "_view_name": "OutputView", "layout": "IPY_MODEL_6e9039e52db14a88bab34f3731487b31", "msg_id": "", "outputs": [{"output_type": "display_data", "metadata": {}, "data": {"text/plain": "Solving BEM problems \u001b[38;2;114;156;31m\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u001b[0m \u001b[35m100%\u001b[0m \u001b[33m0:00:17\u001b[0m\n", "text/html": "<pre style=\"white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace\">Solving BEM problems <span style=\"color: #729c1f; text-decoration-color: #729c1f\">\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501</span> <span style=\"color: #800080; text-decoration-color: #800080\">100%</span> <span style=\"color: #808000; text-decoration-color: #808000\">0:00:17</span>\n</pre>\n"}}], "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}
 </script></section>
 </section>
 </section>
